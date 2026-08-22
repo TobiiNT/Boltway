@@ -1,0 +1,60 @@
+# registry-scan's working directory. These are run artifacts mid-flight: the
+# harvest is paginating, and the scan appends one line per host as it goes, so
+# the files here are checkpoints rather than results and committing them would
+# publish a partial measurement as a finished one.
+#
+# Finished runs get published deliberately, to discover/sweeps/<date>-registry/,
+# the same way every other sweep in this repository does.
+classify/registry/
+
+# --- .NET: auth/ (the authorization server) and dotnet/ (Boltway.Mcp) ---
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+.vs/
+TestResults/
+*.trx
+*.coverage
+artifacts/
+
+# Local development databases. The dev default is SQLite, which means the
+# database is a file sitting next to the source, and it accumulates real
+# authorization codes, refresh-token hashes and user records the moment anyone
+# runs the server. None of that belongs in git.
+*.db
+*.db-shm
+*.db-wal
+
+# Signing keys. The server generates an RSA key on first run if none is
+# configured, so an unignored key directory publishes the private key that
+# every access token is signed with.
+auth/**/keys/
+*.pfx
+*.snk
+
+# Local secrets: connection strings, Google client secrets, management
+# credentials. appsettings.json is committed; the .Local and .Development
+# overlays are where real values go.
+appsettings.Local.json
+appsettings.*.Local.json
+.env
+
+# Agent worktrees. Created by background agents working in parallel on this repo,
+# and holding live git metadata for worktrees that are locked while they run —
+# committing it would check another checkout's bookkeeping into the tree.
+.claude/worktrees/
+
+# third-party design skill -- 33 MB of demos and BGM, reinstalled at a pinned commit by
+# .claude/setup-container.sh. Git carries the recipe, not the bytes.
+.claude/skills/huashu-design/
+
+# Python bytecode, from scripts/
+__pycache__/
+*.pyc
+
+# Local test database created by scripts/postgres.sh
+*.db
+*.db-shm
+*.db-wal

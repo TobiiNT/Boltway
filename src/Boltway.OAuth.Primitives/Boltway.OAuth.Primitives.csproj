@@ -1,0 +1,100 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    BCL only. No ASP.NET Core, no EF Core, no third-party runtime dependency.
+
+    Two reasons, both structural rather than stylistic:
+
+      1. This is the only assembly BOTH the authorization server and the resource
+         server reference. They must agree byte-for-byte on issuer comparison,
+         resource identity, `aud` matching, media-type parsing and
+         WWW-Authenticate quoting. Sharing the compiled code makes an AS/RS
+         disagreement impossible by construction rather than prevented by test.
+
+      2. The BannedApiAnalyzers ban list is per-project, and this project is the
+         enforcement scope for N-03. Nothing else here has a legitimate reason to
+         call the normalizing members of System.Uri, so they can be banned
+         project-wide with no collateral damage and no allowlist. An allowlist is
+         a place to add an entry.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!--
+    BannedSymbols.txt bans the normalizing members of System.Uri project-wide.
+
+    RFC 3986 6.2.1 requires redirect_uri comparison to be Simple String Comparison
+    — ordinal, on the raw string. System.Uri is a normalizing type, and each banned
+    member returns a value that has been through at least one normalization:
+    AbsoluteUri and ToString() lowercase the host and elide the default port (so
+    https://claude.ai:443/cb becomes equal to https://claude.ai/cb); AbsolutePath
+    percent-decodes, collapsing %2e%2e into ..; IdnHost punycode-converts. Every one
+    of those maps several distinct byte strings onto one, which widens the set of
+    redirect URIs that match. A widened match is an open redirector on a trusted
+    domain that leaks `code` and `state`.
+
+    Uri.TryCreate, GetComponents, Scheme, Host, Port, Fragment and UserInfo are NOT
+    banned: they are how the value objects parse once at construction and freeze the
+    result into strings, so the matcher never has to parse anything.
+
+    Note the file format has no comment syntax. A leading '#' is not a comment — the
+    line is parsed as a symbol, and a file of prose produces a pile of duplicate
+    empty-symbol errors (RS0031). The per-symbol message after the semicolon is the
+    documentation, and it is what the developer sees in the build error.
+  -->
+  <ItemGroup>
+    <AdditionalFiles Include="BannedSymbols.txt" />
+  </ItemGroup>
+
+  <!--
+    READ THIS BEFORE ADDING A LINE HERE.
+
+    InternalsVisibleTo is granted per assembly, never per member. Every entry below hands the named
+    assembly EVERY internal member of this one, including the members whose inaccessibility someone
+    is relying on. That is not a hypothetical: a grant added so one assembly could mint a
+    ResourceIdentifier also handed it RedirectMatch.Exact, and a probe compiled that forged a
+    validated redirect to an arbitrary address — the exact capability the authorize pipeline's stage
+    ordering exists to withhold.
+
+    Two things changed after that, and both are load-bearing:
+
+      1. What actually enforces "only X may call Y" is now an IL scan over call sites in
+         tests/Boltway.Architecture.Tests/StructuralRuleTests.cs, not the keyword. Cecil reads
+         what the compiler emitted, so it is unaffected by who was granted what. That is why the
+         Boltway.AuthorizationServer entry below is safe to add today and was not before.
+
+      2. ResourceIdentifier.TryRegister is public again. Making it internal did close the forgery,
+         and it also made IResourceRegistry — public, required, with no shipped implementation —
+         impossible to implement from any assembly a customer could own. Every test passed the whole
+         time, because the only implementations lived in assemblies on this list. See
+         tests/Boltway.PublicApi.Tests, which exists to hold exactly that blind spot open.
+
+    So: add an entry only when an architecture rule covers the member you are widening access to,
+    and never add Boltway.PublicApi.Tests.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Boltway.OAuth.Primitives.Tests" />
+    <InternalsVisibleTo Include="Boltway.AuthorizationServer.Tests" />
+    <InternalsVisibleTo Include="Boltway.OAuth.Tokens" />
+    <InternalsVisibleTo Include="Boltway.OAuth.Tokens.Tests" />
+    <InternalsVisibleTo Include="Boltway.Storage.EntityFrameworkCore" />
+
+    <!--
+      For OpaqueSecret.FromDerivedMaterial, which RefreshTokenDeriver calls. It was public, and a
+      review measured that it would mint a valid refresh token — or a registration access token —
+      from the SHA-256 of an email address. Its 32-byte check enforces wire indistinguishability and
+      says nothing at all about unguessability, so as public API it was an unbacked promise.
+    -->
+    <InternalsVisibleTo Include="Boltway.AuthorizationServer" />
+  </ItemGroup>
+
+</Project>

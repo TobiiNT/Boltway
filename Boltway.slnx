@@ -1,0 +1,48 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Boltway.AuthorizationServer/Boltway.AuthorizationServer.csproj" />
+    <Project Path="src/Boltway.AuthorizationServer.Abstractions/Boltway.AuthorizationServer.Abstractions.csproj" />
+    <Project Path="src/Boltway.Federation.Google/Boltway.Federation.Google.csproj" />
+    <Project Path="src/Boltway.Federation.Oidc/Boltway.Federation.Oidc.csproj" />
+    <Project Path="src/Boltway.Identity/Boltway.Identity.csproj" />
+    <Project Path="src/Boltway.Mcp/Boltway.Mcp.csproj" />
+    <Project Path="src/Boltway.Notifications/Boltway.Notifications.csproj" />
+    <Project Path="src/Boltway.Notifications.Smtp/Boltway.Notifications.Smtp.csproj" />
+    <Project Path="src/Boltway.OAuth.Net/Boltway.OAuth.Net.csproj" />
+    <Project Path="src/Boltway.OAuth.Primitives/Boltway.OAuth.Primitives.csproj" />
+    <Project Path="src/Boltway.OAuth.Tokens/Boltway.OAuth.Tokens.csproj" />
+    <Project Path="src/Boltway.ResourceServer/Boltway.ResourceServer.csproj" />
+    <Project Path="src/Boltway.Storage.EntityFrameworkCore/Boltway.Storage.EntityFrameworkCore.csproj" />
+    <Project Path="src/Boltway.Storage.InMemory/Boltway.Storage.InMemory.csproj" />
+    <Project Path="src/Boltway.Storage.PostgreSql/Boltway.Storage.PostgreSql.csproj" />
+    <Project Path="src/Boltway.Storage.Sqlite/Boltway.Storage.Sqlite.csproj" />
+  </Folder>
+  <Folder Name="/hosts/">
+    <Project Path="hosts/Boltway.AdminBff/Boltway.AdminBff.csproj" />
+    <Project Path="hosts/Boltway.AuthorizationServer.Host/Boltway.AuthorizationServer.Host.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Boltway.Sample.AuthorizationServer/Boltway.Sample.AuthorizationServer.csproj" />
+    <Project Path="samples/Boltway.Sample.ResourceServer/Boltway.Sample.ResourceServer.csproj" />
+  </Folder>
+  <Folder Name="/testing/">
+    <Project Path="testing/Boltway.Interaction.Testing/Boltway.Interaction.Testing.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Boltway.AdminBff.Tests/Boltway.AdminBff.Tests.csproj" />
+    <Project Path="tests/Boltway.Architecture.Tests/Boltway.Architecture.Tests.csproj" />
+    <Project Path="tests/Boltway.AuthorizationServer.Tests/Boltway.AuthorizationServer.Tests.csproj" />
+    <Project Path="tests/Boltway.Identity.Tests/Boltway.Identity.Tests.csproj" />
+    <Project Path="tests/Boltway.Interaction.Tests/Boltway.Interaction.Tests.csproj" />
+    <Project Path="tests/Boltway.Mcp.Tests/Boltway.Mcp.Tests.csproj" />
+    <Project Path="tests/Boltway.Notifications.Tests/Boltway.Notifications.Tests.csproj" />
+    <Project Path="tests/Boltway.OAuth.Net.Tests/Boltway.OAuth.Net.Tests.csproj" />
+    <Project Path="tests/Boltway.OAuth.Primitives.Tests/Boltway.OAuth.Primitives.Tests.csproj" />
+    <Project Path="tests/Boltway.OAuth.Tokens.Tests/Boltway.OAuth.Tokens.Tests.csproj" />
+    <Project Path="tests/Boltway.PublicApi.Tests/Boltway.PublicApi.Tests.csproj" />
+    <Project Path="tests/Boltway.ResourceServer.Tests/Boltway.ResourceServer.Tests.csproj" />
+    <Project Path="tests/Boltway.Storage.PostgreSql.Tests/Boltway.Storage.PostgreSql.Tests.csproj" />
+    <Project Path="tests/Boltway.Storage.Sqlite.Tests/Boltway.Storage.Sqlite.Tests.csproj" />
+    <Project Path="tests/Boltway.Storage.Tests/Boltway.Storage.Tests.csproj" />
+  </Folder>
+</Solution>

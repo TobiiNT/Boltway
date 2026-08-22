@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Local accounts: password hashing, and minting the `sub` this server emits.
+
+    Separate from Boltway.AuthorizationServer because it is the one assembly that carries a
+    third-party crypto dependency. Keeping it out of the protocol assembly means a customer who
+    points the server at their own directory — an existing IUserStore, or upstream federation only —
+    does not take Konscious along with it, and the dependency audit for that deployment is shorter
+    by one package.
+
+    NO ASP.NET Core reference, for the same reason the abstractions assembly has none: everything
+    here is testable without a web host.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.AuthorizationServer.Abstractions\Boltway.AuthorizationServer.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      The one third-party crypto dependency in the tree, and it was chosen before this project
+      existed: Directory.Packages.props has pinned it, with the licence vetted in a comment, since
+      the package list was written. This is the reference that makes that pin live.
+    -->
+    <PackageReference Include="Konscious.Security.Cryptography.Argon2" />
+  </ItemGroup>
+
+  <!--
+    No dependency-injection package, and therefore no AddBoltwayIdentity() extension. The three
+    registrations a host needs are plain AddSingleton calls, and taking
+    Microsoft.Extensions.DependencyInjection.Abstractions for the sugar would put a container
+    dependency in the one assembly whose contents are pure functions over bytes. The abstractions
+    assembly makes the same trade for the same reason.
+  -->
+
+  <ItemGroup>
+    <!--
+      The ban list is per-project (see Boltway.OAuth.Primitives.csproj). This project mints
+      identifiers and derives keys, so `System.Random` and local-time clocks are exactly the APIs it
+      must never reach for — which makes it one of the two projects where the list earns its keep.
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="BannedSymbols.txt" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    JWT and JWK handling, shared by both halves of the product: the authorization server mints
+    tokens here and the resource server validates them here. One implementation means an AS/RS
+    disagreement about `typ`, `alg` or `aud` is impossible by construction rather than prevented by
+    a test that runs in two repositories.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Boltway.OAuth.Tokens.Tests" />
+  </ItemGroup>
+
+</Project>

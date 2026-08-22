@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The server itself: validation pipelines, the metadata document, the endpoints.
+
+    FrameworkReference rather than PackageReference for ASP.NET Core — the shared framework is
+    versioned with the runtime, so a PackageReference would pin a second copy and the two would
+    disagree at the first patch release.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.AuthorizationServer.Abstractions\Boltway.AuthorizationServer.Abstractions.csproj" />
+    <!--
+      The notification seam, and nothing that sends mail: Boltway.Notifications has no
+      transport reference of its own, which is the whole reason the SMTP implementation is a
+      second package. Referencing this pulls in three message types and two interfaces.
+    -->
+    <ProjectReference Include="..\Boltway.Notifications\Boltway.Notifications.csproj" />
+    <ProjectReference Include="..\Boltway.OAuth.Net\Boltway.OAuth.Net.csproj" />
+    <ProjectReference Include="..\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
+    <ProjectReference Include="..\Boltway.OAuth.Tokens\Boltway.OAuth.Tokens.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Boltway.AuthorizationServer.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,14 @@
+P:System.Uri.AbsoluteUri;Normalizes. RFC 9728 3.3 compares `resource` byte for byte (N-03, A-22).
+P:System.Uri.AbsolutePath;Percent-decodes, so %2e%2e collapses to .. (N-03).
+P:System.Uri.IdnHost;Punycode-normalizes the host (N-03).
+P:System.Uri.DnsSafeHost;Normalizes the host (N-03).
+P:System.Uri.PathAndQuery;Percent-decodes (N-03).
+P:System.Uri.LocalPath;Percent-decodes and applies platform path rules (N-03).
+P:System.Uri.Authority;Lowercases the host and elides the default port. Splice the raw string instead.
+M:System.Uri.ToString();Normalizes. Emit the configured raw string (N-03).
+M:System.Uri.Equals(System.Object);Uri equality ignores the fragment and normalizes (N-03).
+T:System.Random;Not a CSPRNG. Use RandomNumberGenerator (N-16).
+P:System.DateTime.Now;Local time. Use TimeProvider.
+P:System.DateTimeOffset.Now;Local time. Use TimeProvider.
+P:System.DateTime.UtcNow;Untestable clock. Take a TimeProvider.
+P:System.DateTimeOffset.UtcNow;Untestable clock. Take a TimeProvider.

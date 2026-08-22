@@ -1,0 +1,104 @@
+/* One sheet, no framework, no web fonts — `default-src 'self'` refuses a CDN and the pages have no
+   script to widen it for. A deployment with its own design replaces this file. */
+:root { color-scheme: light dark; --line: color-mix(in srgb, currentColor 20%, transparent); }
+
+body {
+  margin: 0; font: 16px/1.5 system-ui, sans-serif;
+  max-width: 62rem; padding: 0 1rem 4rem;
+}
+
+/* Still one bar, out of two groups. The shell puts the destinations in a <nav> and the operator
+   and sign-out in a footer, which is what a rail needs and what a sheet laying them out sideways
+   has to flatten again — three levels of flex, so a deployment that wants the rail has the groups
+   and this one still reads as the line of links it always was. */
+header {
+  display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
+  padding: 1rem 0; border-bottom: 1px solid var(--line); margin-bottom: 2rem;
+}
+
+header nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+header .rail-foot { display: flex; gap: 1rem; align-items: baseline; margin-left: auto; }
+header .who { opacity: .7; }
+header form.inline { display: inline; margin: 0; }
+
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.125rem; margin-top: 2.5rem; }
+
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: .5rem .75rem .5rem 0; border-bottom: 1px solid var(--line); }
+
+dl { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; }
+dt { opacity: .7; }
+dd { margin: 0; }
+
+label { display: block; margin-top: 1rem; }
+input[type="text"], input[type="email"], input:not([type]) {
+  display: block; width: 100%; max-width: 28rem; padding: .4rem;
+  font: inherit; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: inherit;
+}
+input[type="checkbox"] { margin-right: .4rem; }
+
+button {
+  margin-top: 1rem; padding: .5rem 1rem; font: inherit;
+  border: 1px solid var(--line); border-radius: 4px; background: transparent; color: inherit; cursor: pointer;
+}
+
+.ops { display: grid; gap: 1.5rem; }
+.ops form { padding: 1rem; border: 1px solid var(--line); border-radius: 6px; }
+.ops p { margin: .5rem 0 0; opacity: .7; font-size: .875rem; }
+
+.notice { padding: .75rem 1rem; border: 1px solid var(--line); border-radius: 6px; }
+.secret code { font-size: 1.25rem; user-select: all; }
+
+/* A credential that exists in this one response: the generated password, and a service account's
+   secret. Boxed because it is the thing on the page to act on before leaving it. */
+.secret-card { padding: 1rem; border: 1px solid var(--line); border-radius: 6px; margin: 1rem 0; }
+.secret-card .notice { border: 0; padding: 0; }
+.secret-card .kv dd { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+
+/* One click selects the whole value, which is the behaviour with or without the copy script — that
+   is what makes the button a keystroke saved rather than the only way through. */
+.copyable {
+  flex: 1; min-width: 12rem; padding: .35rem .5rem; user-select: all;
+  border: 1px solid var(--line); border-radius: 4px; overflow-wrap: anywhere;
+}
+
+button.copy { margin: 0; padding: .3rem .6rem; font-size: .875rem; }
+
+/* A role per row, and the service account as one section, both expanding in place. `<details>`
+   because these pages carry no JavaScript and the CSP has no script-src to widen — the browser's
+   own disclosure is the only one available. */
+.roles { border: 1px solid var(--line); border-radius: 6px; }
+.role + .role { border-top: 1px solid var(--line); }
+.role.new { margin-top: 1rem; border: 1px solid var(--line); border-radius: 6px; }
+.role > summary,
+.service > summary { padding: .6rem 1rem; cursor: pointer; display: flex; gap: .5rem; align-items: center; }
+.perms { margin-left: auto; display: flex; gap: .3rem; }
+.role-count { opacity: .6; font-size: .875rem; white-space: nowrap; }
+.perms code { font-size: .8125rem; opacity: .7; }
+.role-body { padding: 0 1rem 1rem; }
+.role-body form + form { margin-top: 1rem; }
+
+/* The service account is a section of the account page rather than a row in a list, so it keeps the
+   page's left edge and its body is not indented. */
+.service { margin-top: 2.5rem; }
+.service > summary { padding-left: 0; }
+.service > summary .role-title { font-size: 1.125rem; }
+.service-body { padding: 1rem 0 0; }
+.service-body form + form { margin-top: 1rem; }
+
+/* A literal is never case-shifted. This sheet does not transform any heading, so nothing here
+   exposes it — but a deployment's sheet may, and a role id shown in the wrong case is a string that
+   would not match the one in the token. */
+code { text-transform: none; }
+
+/* The buttons that destroy something. Marked by the renderer rather than matched on a URL suffix. */
+form.danger button { border-style: dashed; }
+
+/* A group of checkboxes is a fieldset, and a fieldset arrives with a border, padding and a legend
+   the browser insets into it — none of which any other field on this page has. Reset to a plain
+   block and let the legend read as the label it is. `min-width: 0` because a fieldset's default
+   `min-width: min-content` stops it shrinking inside a grid or flex parent. */
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+fieldset > legend { padding: 0; margin-top: 1rem; }
+.scopes label { margin-top: .5rem; }

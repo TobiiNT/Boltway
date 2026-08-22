@@ -1,0 +1,43 @@
+<Project>
+
+  <!--
+    Inherit everything from auth/Directory.Build.props, then relax two rules that
+    only make sense on shipped API.
+  -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <!--
+      CS1591 (missing XML comment on a public member) is an error in the shipped
+      projects: their public surface is what a customer codes against, and the
+      doc comments are also the source of the config-schema descriptions the
+      admin endpoint serves, so an undocumented option is a hole in the operator
+      documentation.
+
+      None of that applies to a test. A test method's name is its documentation —
+      `A_public_host_never_gets_the_port_exception` says more than any <summary>
+      would — and requiring a doc comment on each of several hundred of them buys
+      nothing and costs the readability of the file. The prose that matters in a
+      test file is the comment explaining WHY a row is in the matrix, and that is
+      on the row, not on the method.
+    -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!--
+      CS1591 missing XML comment on a public member, CA1707 underscores in a member name.
+
+      Both belong to the shipped API surface, not to tests. A test method's name IS its
+      documentation — `Two_concurrent_redemptions_produce_one_successor_and_both_callers_get_it`
+      says more than any summary tag would, and it says it in the test runner's output where a
+      failure is actually read.
+
+      Scoped here rather than by filename in .editorconfig: the first attempt matched `*Tests.cs`,
+      which silently missed every shared contract and fixture file that does not end in "Tests".
+    -->
+    <NoWarn>$(NoWarn);CS1591;CA1707</NoWarn>
+  </PropertyGroup>
+
+</Project>

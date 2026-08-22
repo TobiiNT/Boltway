@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!--
+      Packable, unlike every other test project. GrantStoreContract/UserStoreContract say "It is
+      published as a package so a customer writing their own store runs the same tests" — and with
+      IsPackable=false, `dotnet pack` emitted twelve packages and not this one, so the sentence was
+      false. A review executed the intended use: a foreign project referencing the built assembly ran
+      31 contract tests against a naive store and failed exactly the two retention tests, which is
+      the suite working as advertised for the first time.
+    -->
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.Storage.InMemory\Boltway.Storage.InMemory.csproj" />
+  </ItemGroup>
+
+</Project>

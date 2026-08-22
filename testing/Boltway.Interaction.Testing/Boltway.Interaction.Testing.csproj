@@ -1,0 +1,76 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The interaction contracts, as something a customer can reference.
+
+    They lived in Boltway.Interaction.Tests, which was already `IsPackable=true` with the right
+    reason written on it — "a contract nobody outside this repository can run is a contract only this
+    repository is held to." What it produced was not usable. Measured on the packed output:
+
+      * dependencies included Microsoft.NET.Test.Sdk, xunit.runner.visualstudio and
+        coverlet.collector, so referencing the contract dragged a test *runner* and a coverage
+        collector into the customer's project;
+      * the assembly shipped a runtimeconfig.json, because it was packaged as an executable test
+        project rather than as a library;
+      * and it carried this repository's own concrete tests — DefaultInteractionLayoutTests, the
+        themed-renderer suite, and the sabotage suite with its deliberately broken renderer. A
+        customer running `dotnet test` would have run Boltway's tests inside their own suite
+        and read the results as being about their renderer.
+
+    So: the abstract contracts and the small markup reader live here, with xunit and nothing else.
+    The derivations and the sabotage suite stay next door, where they are this repository's tests
+    rather than anybody's contract.
+
+    No test runner here on purpose. This assembly is never executed by itself — a customer's own
+    test project supplies the runner, and adding one would put a second copy in their build.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <Description>
+      The IInteractionRenderer and IInteractionLayout contracts, as xunit base classes. Derive from
+      them, supply your implementation, and the suite that defines the seam runs against it.
+    </Description>
+
+    <!--
+      CA1707 (no underscores in a public member name) off, CS1591 (missing XML comment) left on,
+      and the split is the point.
+
+      The names are underscored because a contract method's name is what a customer reads in their
+      own test runner when it fails: `Consent_shows_the_host_of_the_client_id` is the finding.
+      Renaming it to satisfy a convention meant for API surfaces would cost the one place the
+      message has to land.
+
+      The docs stay required because this *is* an API surface now. A customer deriving from these
+      types sees the summaries in IntelliSense, and "what is this assertion for" is exactly the
+      question the seam exists to answer. `auth/tests/Directory.Build.props` turns both off, for
+      tests that nobody outside this repository reads; only one of its two reasons applies here.
+    -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The assertion library only. Not Microsoft.NET.Test.Sdk, not the runner, not coverlet:
+         those belong to whatever project executes tests, which is never this one. -->
+    <PackageReference Include="xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    The shipped assembly only, and deliberately no InternalsVisibleTo grant: this project is
+    compiled against exactly what a customer has. If a contract ever needs an internal type to
+    express an assertion, that type belongs on the public surface instead — the customer writing the
+    renderer needs it just as much as the contract does.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.AuthorizationServer\Boltway.AuthorizationServer.csproj" />
+  </ItemGroup>
+
+</Project>

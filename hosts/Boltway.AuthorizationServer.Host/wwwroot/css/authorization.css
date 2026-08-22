@@ -1,0 +1,241 @@
+/*
+ * The sign-in and consent pages, as this host serves them.
+ *
+ * Linked by default and removable with `UI_STYLESHEETS=""`. A deployment with its own design
+ * mounts a volume over /app/wwwroot/css and points UI_STYLESHEETS at what it put there.
+ *
+ * Deliberately neutral: system fonts, no brand colour, both colour schemes. This image is the
+ * reference container for every Boltway deployment, so anything here that looked like
+ * somebody's brand would be a brand every other deployment inherited.
+ *
+ * ── Why it is all element selectors ──────────────────────────────────────────
+ *
+ * The markup carries no classes. That is the renderer's decision and a defensible one — the
+ * pages are a heading, some paragraphs and a form — but it means the hooks available here are
+ * elements, positions, and attributes that are part of a contract.
+ *
+ * `button[value="approve"]` is the one attribute hook used, and it is safe for a specific
+ * reason rather than by luck: `PostConsentAsync` reads form["decision"] and compares it to
+ * "approve" ordinally, so those two strings are a wire contract, asserted by
+ * `Consent_names_the_decision_field_the_way_the_endpoint_reads_it` in the renderer contract
+ * suite. A renderer that changes them fails that test long before it reaches this file.
+ *
+ * `.ck-warning` is the only class the markup carries, and it exists because this file needed it.
+ * The first attempt used `p:has(> strong:first-child)` on the reasoning that the two cautions —
+ * the "this code goes to your own device" warning on consent, and the failed-sign-in message on
+ * login — are the only paragraphs opening with a <strong>. That was measured wrong on the first
+ * render: `:first-child` counts elements and ignores the leading text node, so the two paragraphs
+ * naming the client host and the redirect host matched too, and the page came back with three
+ * warning boxes. Three is the same as none — it drowns the one N-14 actually asks for.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --page: #ffffff;
+  --ink: #16181d;
+  --muted: #5b6472;
+  --line: #dfe3ea;
+  --field: #ffffff;
+  --accent: #1f4ed8;
+  --accent-ink: #ffffff;
+  --caution-bg: #fff8e6;
+  --caution-line: #e3b341;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #14161a;
+    --ink: #e8eaed;
+    --muted: #9aa3b2;
+    --line: #2c313a;
+    --field: #1c1f25;
+    --accent: #6f9bff;
+    --accent-ink: #10131a;
+    --caution-bg: #2b2416;
+    --caution-line: #9c7a26;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+
+  color: var(--ink);
+  background: var(--page);
+}
+
+/* The shell is two boxes — a brand panel and the server's markup — and this sheet stacks them
+   rather than splitting them, which is what a neutral default should do: a panel down one side is
+   a design decision, and this file's whole job is to make none. The measure that used to be on
+   `body` is here, so the pages read exactly as wide as they did.
+
+   A deployment wanting the split has both boxes to work with and needs no markup of its own. */
+.ck-shell {
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+  max-width: 34rem;
+}
+
+.ck-panel { margin-bottom: 2rem; }
+
+/* The deployment's own logo, when one is configured. Bounded, because it is a path this host
+   was handed and not an asset this stylesheet has ever seen. It moved into the brand panel with
+   the shell; `body > img` matched nothing afterwards, which is a logo of whatever size the file
+   happens to be, on every page. */
+.ck-brand {
+  margin: 0;
+}
+
+.ck-brand img {
+  display: block;
+  max-width: 10rem;
+  max-height: 3rem;
+}
+
+/* The two panel lines, when a deployment supplies them. Quiet: they are the shell saying where
+   the reader is, and nothing here may compete with the client hostname below. */
+.ck-tagline,
+.ck-domain {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.ck-domain {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+h1 {
+  margin: 0 0 1.25rem;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  margin: 2rem 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+p {
+  margin: 0 0 0.875rem;
+}
+
+/* The client hostname and the redirect hostname. N-14 makes these the most important text on the
+   consent page, so they are the only thing here allowed to be heavier than body text. */
+strong {
+  font-weight: 650;
+}
+
+/* "That name is chosen by the application and is not verified", and the missing-description
+   note. Quieter than the claim it qualifies, never hidden. */
+em {
+  font-style: normal;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+ul {
+  margin: 0 0 0.875rem;
+  padding-left: 1.25rem;
+}
+
+li {
+  margin-bottom: 0.35rem;
+}
+
+/* The device warning on consent, and the failed sign-in on login. */
+.ck-warning {
+  padding: 0.75rem 0.875rem;
+  margin-bottom: 1.25rem;
+  background: var(--caution-bg);
+  border-left: 3px solid var(--caution-line);
+  border-radius: 0 4px 4px 0;
+}
+
+form {
+  margin-top: 1.5rem;
+}
+
+label {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.25rem;
+  padding: 0.6rem 0.7rem;
+
+  font: inherit;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button {
+  padding: 0.6rem 1.1rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+/* Approve, and the sign-in submit. `value="approve"` is a wire contract — see the note at the
+   top — and `form > button` with no value is the single submit on each sign-in form. */
+button[value="approve"],
+form > button[type="submit"]:not([name]) {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* A-11: a configured-but-unavailable provider renders disabled with its reason beside it. It has
+   to stay legible — a control faded to the point of being unreadable is the vanishing this rule
+   exists to prevent, achieved with opacity. */
+button:disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+  border-style: dashed;
+}
+
+/* Each external provider is its own form, so without this they stack with a full form margin
+   between every button. */
+form + form {
+  margin-top: 0.5rem;
+}
+
+form + form p {
+  margin: 0;
+}

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A non-persistent store, shipped rather than confined to a test project: a customer writing their
+    own store needs something to compare against, and the shared contract suite needs a third
+    implementation to prove the contract describes BEHAVIOUR rather than EF Core.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.AuthorizationServer.Abstractions\Boltway.AuthorizationServer.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

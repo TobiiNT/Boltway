@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    One implementation of INotificationSender, over SMTP, in its own package.
+
+    Separate from Boltway.Notifications so that referencing the seam does not drag in a mail
+    client. A deployment that sends through an API rather than a socket references neither this nor
+    anything it pulls in.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.Notifications\Boltway.Notifications.csproj" />
+  </ItemGroup>
+
+  <!--
+    The dependency the comment above says this package exists to avoid, taken deliberately. It is
+    here and not one level up: Boltway.Notifications is still the seam, and a deployment that
+    sends through an API references neither this package nor MailKit.
+  -->
+  <ItemGroup>
+    <PackageReference Include="MailKit" />
+  </ItemGroup>
+
+</Project>

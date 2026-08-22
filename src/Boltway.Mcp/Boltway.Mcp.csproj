@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Boltway.Mcp</PackageId>
+    <!-- Explicit because it would pack either way: a library packs unless told otherwise, and a
+         repository whose published surface can only be read off a pack that already happened is
+         one nobody can review. Every project here answers this question in the file. -->
+    <IsPackable>true</IsPackable>
+    <Description>The reusable half of an MCP connector: the RFC 9728 discovery surface, the authentication seam, and tool-error semantics. Layers over the official MCP SDK rather than replacing its transport.</Description>
+    <PackageTags>mcp;connector;oauth;rfc9728</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+  </ItemGroup>
+
+  <!--
+    The resource-server half of the authorization server, for connectors that have one.
+    Lightweight on purpose: Primitives and Tokens are BCL-and-IdentityModel only, with no
+    storage, no EF Core and no reference to Boltway.AuthorizationServer — that absence
+    is that package's design, and it is what makes an AS and an RS separate deployables.
+
+    Referencing it here is the beginning of the answer to this repository holding two RFC 9728
+    implementations. Boltway.ResourceServer is the better one at that job; what this
+    package keeps is the part that is MCP-shaped and has nowhere else to live.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="../Boltway.ResourceServer/Boltway.ResourceServer.csproj" />
+
+    <!--
+      For the guarded fetcher. JwksRefresher reaches an operator-configured issuer over the network,
+      and every other outbound fetch in this repository goes through this package's client: redirects
+      refused, addresses checked, bytes capped, timeouts applied. This one did not, for as long as it
+      lived in a source tree the architecture rules did not walk.
+    -->
+    <ProjectReference Include="../Boltway.OAuth.Net/Boltway.OAuth.Net.csproj" />
+  </ItemGroup>
+
+</Project>

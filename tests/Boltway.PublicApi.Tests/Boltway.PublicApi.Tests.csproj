@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The customer's-eye assembly.
+
+    This project holds ONE property, and it holds it at compile time rather than at run time: every
+    seam a deployment must implement can be implemented using the public API alone. If that stops
+    being true, this project does not fail a test — it fails to build, which is a louder and earlier
+    signal than any assertion.
+
+    Why it has to be a separate project: every other test assembly in this solution appears on an
+    InternalsVisibleTo list somewhere, so a seam implemented in one of them proves nothing about what
+    a customer can write. That is not hypothetical. IResourceRegistry was public, required, and
+    impossible to implement outside this repository for weeks, because ResourceIdentifier.TryRegister
+    was internal and the only assemblies granted access were test projects and one empty storage
+    project. Every test passed the whole time. An operability review found it by trying to build a
+    host, and had to rename its assembly to Boltway.AuthorizationServer.Tests to get it to
+    compile.
+
+    THE RULE FOR THIS PROJECT: it must never be given an InternalsVisibleTo grant, and it must never
+    reference a test-support type from another test assembly. Both would silently restore exactly the
+    blindness it exists to remove. There is nothing the compiler can do to stop that, so it is
+    written here where someone adding a reference will read it.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.AuthorizationServer\Boltway.AuthorizationServer.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,95 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The rules that `internal` cannot keep.
+
+    Every rule here is enforced by reading compiled IL with Mono.Cecil, and that choice is the
+    point. `internal` is scoped per assembly and InternalsVisibleTo widens it silently — one grant
+    added for one reason hands over every internal member in the assembly, including the ones whose
+    inaccessibility was load-bearing. A Cecil scan sees what the compiler actually emitted, so it is
+    unaffected by who was granted what.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Mono.Cecil" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.AuthorizationServer\Boltway.AuthorizationServer.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Identity\Boltway.Identity.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Notifications\Boltway.Notifications.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Notifications.Smtp\Boltway.Notifications.Smtp.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.OAuth.Net\Boltway.OAuth.Net.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
+    <!--
+      Referenced only so its assembly lands beside the test binary and the IL rules can see it.
+      Il.AssemblyNames discovers what is in that directory, so an unreferenced project is silently
+      unscanned — measured: an unguarded HttpClient planted in Storage.InMemory broke no rule.
+      Every_project_with_code_is_scanned is what stops the next one being missed.
+    -->
+    <ProjectReference Include="..\..\src\Boltway.Storage.InMemory\Boltway.Storage.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.OAuth.Tokens\Boltway.OAuth.Tokens.csproj" />
+
+    <!--
+      Same reason again, and Every_project_with_code_is_scanned is what asked for these two lines:
+      both projects were a .csproj and nothing else until the durable stores were written, and the
+      moment they held a single .cs file that test failed naming them. Which is the guard working —
+      an unscanned assembly makes every ban in StructuralRuleTests report green over it.
+    -->
+    <ProjectReference Include="..\..\src\Boltway.Storage.EntityFrameworkCore\Boltway.Storage.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Storage.Sqlite\Boltway.Storage.Sqlite.csproj" />
+
+    <!--
+      And a third, for the same reason and asked for the same way: Every_project_with_code_is_scanned
+      failed naming Boltway.Storage.PostgreSql the moment that project stopped being an empty
+      .csproj. Twice now the guard has been the thing that noticed, which is the argument for keeping
+      it.
+    -->
+    <ProjectReference Include="..\..\src\Boltway.Storage.PostgreSql\Boltway.Storage.PostgreSql.csproj" />
+
+    <!-- Referenced so the assembly lands beside the tests and Il.AssemblyNames can load it. It
+         holds an InternalsVisibleTo grant over Primitives, which the comment above explains is
+         exactly the situation these rules exist for. -->
+    <ProjectReference Include="..\..\src\Boltway.ResourceServer\Boltway.ResourceServer.csproj" />
+
+    <!--
+      A fourth and fifth, and Every_project_with_code_is_scanned asked for these the same way it
+      asked for the three above: it went red naming both the moment the federation projects held
+      code. Two of these rules matter here specifically —
+      Only_the_guarded_fetcher_touches_system_net_http, because a relying party is the obvious place
+      for somebody to reach for an HttpClient, and Token_validation_parameters_have_one_construction_site,
+      because validating an upstream ID token is the obvious place for a second one.
+    -->
+    <ProjectReference Include="..\..\src\Boltway.Federation.Oidc\Boltway.Federation.Oidc.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Federation.Google\Boltway.Federation.Google.csproj" />
+
+    <!--
+      A sixth, and it is here because of a repository layout rather than new code. This project lived
+      in a second tree with its own solution, outside the reach of every ban in this file, and the
+      rules never noticed because Every_project_with_code_is_scanned only walks src/. Folding the two
+      trees together made it visible and the rule went red the same day.
+
+      Which is the argument for the one-tree layout rather than a detail of it: a project that sits
+      outside the scan is not a project the scan approved, and nothing anywhere said so. It carries an
+      HttpClient-shaped job — fetching a key set over the network — so
+      Only_the_guarded_fetcher_touches_system_net_http is the ban that most wanted to see it.
+    -->
+    <ProjectReference Include="..\..\src\Boltway.Mcp\Boltway.Mcp.csproj" />
+  </ItemGroup>
+
+</Project>

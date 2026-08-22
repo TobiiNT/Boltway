@@ -1,0 +1,11 @@
+P:System.Uri.AbsoluteUri;Normalizes. RFC 3986 6.2.1 requires the raw string (N-03).
+P:System.Uri.AbsolutePath;Percent-decodes. Compare the escaped path instead (N-03).
+P:System.Uri.IdnHost;Punycode-normalizes the host (N-03).
+P:System.Uri.DnsSafeHost;Normalizes the host (N-03).
+P:System.Uri.PathAndQuery;Percent-decodes. Use GetComponents with UriFormat.UriEscaped (N-03).
+P:System.Uri.LocalPath;Percent-decodes and applies platform path rules (N-03).
+M:System.Uri.ToString();Normalizes. Emit the stored raw string (N-03).
+M:System.Uri.Equals(System.Object);Uri equality ignores the fragment and normalizes (N-03).
+T:System.Random;Not a CSPRNG. Use RandomNumberGenerator (N-16).
+P:System.DateTime.Now;Local time. Use TimeProvider or DateTimeOffset.UtcNow.
+P:System.DateTimeOffset.Now;Local time. Use TimeProvider or DateTimeOffset.UtcNow.

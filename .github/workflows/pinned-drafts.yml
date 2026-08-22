@@ -1,0 +1,56 @@
+# Ask the IETF datatracker, once a week, whether a draft this repository pins has been revised.
+#
+# `spec/REQUIREMENTS.md` U-15 says OAuth 2.1 is a moving target and asks for three things.
+# Citing the exact revision and pinning a copy are properties of the repository: they are true
+# right now and stay true without anybody doing anything. "Re-diff on each new revision" is not
+# like that. It is a standing instruction whose trigger lives on someone else's website, and
+# nothing here was watching it.
+#
+# **On a schedule rather than on push, because the input is not in the diff.** A revision lands
+# when the working group publishes it, which has no relationship to when we happen to push. A
+# check that runs on our commits would be asking the right question at times chosen by the wrong
+# calendar, and would go a quiet fortnight without asking at all.
+#
+# **A red here is not a broken commit.** It means a revision exists and the diff U-15 asks for is
+# owed. Nothing is wrong with `main`; there is work to do. Read it the way you would read a
+# dependency advisory rather than a failing test.
+#
+# Cheap enough not to think about: two HTTPS requests and no checkout of anything large, well
+# inside the arithmetic in a downstream deployment guide about what a short scheduled job costs.
+
+name: pinned-drafts
+
+on:
+  schedule:
+    # Monday 06:00 UTC, which is Monday afternoon in Vietnam. A weekly cadence is chosen against
+    # how fast the input moves: draft-ietf-oauth-v2-1 has averaged months between revisions, so
+    # daily would be six wasted runs for the same answer.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+  # Also on any change to what is pinned or to the check itself. Not to catch a new revision —
+  # that is the schedule's job — but so that adding a pinned draft is told immediately if its
+  # filename is one the datatracker cannot resolve, rather than on the following Monday.
+  pull_request:
+    paths:
+      - 'spec/draft-*.txt'
+      - 'scripts/check-pinned-drafts.py'
+      - '.github/workflows/pinned-drafts.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pinned-drafts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No setup-python: the runner image ships python3, and the script imports nothing outside
+      # the standard library on purpose. A check whose own dependencies can break is a check that
+      # goes red for reasons that have nothing to do with what it watches.
+      - name: Every pinned draft is still the current revision
+        run: python3 scripts/check-pinned-drafts.py spec

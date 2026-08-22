@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      For JwksKeySource: JsonWebKeySet to parse a key set, SecurityKey to hand the parsed keys back
+      in the type ProtectedResourceOptions.SigningKeySource takes.
+
+      This is the only reason this project references IdentityModel, and the alternative was worse in
+      both directions. Handing back raw bytes would put the parse in whichever package called it,
+      which is two implementations of "which members of a JWKS are signing keys" the day a second
+      caller appears. Putting the fetch in Boltway.OAuth.Tokens instead would mean Tokens
+      referencing this project — and Tokens is the one assembly both halves of the product compile
+      against, so every resource server would acquire an HTTP transport whether it fetches anything
+      or not.
+    -->
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!--
+      This is the seventeenth package, and it was the one nobody could see. Directory.Build.props
+      said sixteen packages moved together, which is exactly how many projects declared IsPackable;
+      this one packed anyway, because packing is what the SDK does with a library unless told
+      otherwise. It was right about the files and wrong about the feed for the two publishes
+      that followed — 2026-08-19, and v0.3.0 itself, which is the one that noticed.
+
+      True is what it already was. Saying so changes no output — it makes the output legible from
+      here, which is what StructuralRuleTests.Every_project_says_whether_it_packs now requires of
+      every project under auth/.
+    -->
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Boltway.OAuth.Net.Tests" />
+
+    <!--
+      For SafeHttpFetcherOptions.SslOptionsForTests / UpstreamEndpointClientOptions.SslOptionsForTests,
+      and nothing else. The federation suite stands up a real Kestrel identity provider on loopback
+      with a certificate it generates, and drives the whole sign-in through the *real* guarded
+      transport against it. Without this grant the only reachable outcome is Blocked, which is how
+      the original SSRF suite ended up never completing a single fetch and proving nothing.
+
+      The grant widens what a test assembly can see. It does not widen what a customer can: the
+      property is internal and not settable from configuration, so no deployment can reach it.
+    -->
+    <InternalsVisibleTo Include="Boltway.AuthorizationServer.Tests" />
+  </ItemGroup>
+
+</Project>

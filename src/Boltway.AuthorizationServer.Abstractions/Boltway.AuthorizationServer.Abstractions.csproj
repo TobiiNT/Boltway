@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Every extensibility seam, and the records they exchange.
+
+    NO ASP.NET Core reference, deliberately. It forces each seam to take a request-shaped DTO rather
+    than an HttpContext, which means a customer can implement one in a plain class library and unit
+    test it without spinning up a web host. That constraint improved every signature it touched.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
+    <ProjectReference Include="..\Boltway.OAuth.Tokens\Boltway.OAuth.Tokens.csproj" />
+  </ItemGroup>
+
+</Project>

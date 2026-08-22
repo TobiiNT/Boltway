@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The notification seam and the messages that cross it, and nothing that sends mail.
+
+    NO transport reference, deliberately, and it is the same constraint the abstractions package
+    carries: `Boltway.AuthorizationServer` depends on this and therefore on no mail library, so
+    a customer on SES, Postmark or their own queue replaces one package rather than forking.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
+  </ItemGroup>
+
+</Project>

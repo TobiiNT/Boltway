@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    A ProjectReference to an executable, which is unusual and is the point: Pages is public static
+    and takes its data as JsonElement, so the pages can be rendered without a host, a token or an
+    authorization server to sign into. That is the only reason these assertions are cheap enough to
+    exist at all.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\hosts\Boltway.AdminBff\Boltway.AdminBff.csproj" />
+  </ItemGroup>
+
+</Project>

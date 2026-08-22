@@ -1,0 +1,132 @@
+# Pack and publish to GitHub Packages.
+#
+# This exists because the packages had no home. `Boltway.Mcp` was consumed by a connector in
+# another repository at version 0.3.0, and that version existed only as a `dotnet pack` output in
+# one developer's home directory — nowhere on nuget.org, nowhere in a feed. Measured with a cold
+# package cache, the connector's deploy failed twice over: `NU1301 The local source doesn't exist`
+# on the CI runner, and `NU1101 Unable to find package Boltway.Mcp` inside the image. Neither
+# had ever been seen, because no image had ever been built.
+#
+# Private, and no token is stored anywhere: `GITHUB_TOKEN` is minted for this run and expires with
+# it. Consuming repositories are granted read access to the package rather than being handed a
+# personal access token, which is the same preference the connector applies to GitHub Apps — if a
+# credential has to exist, make it the one that expires.
+#
+# Publishing does NOT make anything public. Packages inherit the repository's visibility, and this
+# repository is private. Worth knowing for later: GitHub Packages requires a token to install even
+# a *public* NuGet package, so the day Boltway is sold to someone outside this org, the feed
+# moves to nuget.org. That is one URL in the consumer's NuGet.config, not a redesign.
+
+name: publish packages
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+  # Called by `release`, which cuts the tag first and then calls this with the sha it cut.
+  #
+  # It is a call rather than the `push: tags` trigger above because a tag pushed with GITHUB_TOKEN
+  # does not start another workflow — GitHub blocks that to stop a workflow triggering itself, and
+  # the failure here would be silent: a tag in the repository, a green run, and no packages.
+  workflow_call:
+    inputs:
+      ref:
+        description: >-
+          What to build. Empty means the ref this run was started on, which is what the two triggers
+          above want. `release` passes the sha it tagged, so a package is built from the tagged tree
+          rather than from wherever the branch has got to by the time the job starts.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    # The storage contract suite runs against a real Postgres, not a double — the whole point of
+    # `GrantStoreContract` is that two implementations answer identically, and an in-memory stand-in
+    # here would test the stand-in. Credentials match the tests' default connection string, so
+    # BOLTWAY_TEST_POSTGRES stays unset.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: boltway
+          POSTGRES_PASSWORD: boltway
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      # `ref` is empty for a tag push and for a manual dispatch, and empty is what checkout reads as
+      # "the ref that started this run" — so those two paths behave exactly as before.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Before packing, never after. A package pushed to a feed cannot be unpublished in any way
+      # that helps — a consumer who restored it already has it — so the tests are the last moment
+      # anything is reversible.
+      - name: Test
+        run: |
+          dotnet test Boltway.slnx --configuration Release
+
+      # Two solutions, because Boltway.Mcp lives in one and reaches across a ProjectReference
+      # into Boltway.ResourceServer in the other. Packing only the first produces a package
+      # whose dependency is not in the feed — which restores cleanly on a machine that happens to
+      # have it cached and fails on every other one.
+      - name: Pack
+        run: |
+          dotnet pack Boltway.slnx --configuration Release -o packages
+
+      - name: What was packed
+        run: ls -1 packages
+
+      # Whether any of those versions is already in the feed holding something else.
+      #
+      # The step below has always said that forgetting to bump a version is quiet, and that
+      # printing every version was the answer. It was not, and the gap is worth stating exactly:
+      # the printed line for the package that took production down read `0.1.0`, which is what a
+      # correct line looks like. Nothing printed says the *contents* moved.
+      #
+      # `Boltway.ResourceServer` stayed at 0.1.0 across the change that added
+      # `ProtectedResourceOptions.SigningKeySource`. The feed already held a 0.1.0, so
+      # --skip-duplicate skipped it and this workflow was green. `Boltway.Mcp` 0.4.0 was new
+      # in the same run, so it was pushed — depending, via its ProjectReference, on the 0.1.0 that
+      # does not have that setter. The downstream connector built green, its image built green, and the
+      # container threw MissingMethodException out of Host.StartAsync on every start.
+      #
+      # Before the push rather than after it, for the same reason the tests are: a package in a
+      # feed cannot be unpublished in any way that helps.
+      #
+      # The token is the run's own, and read access to the feed is what it needs; `packages: write`
+      # above already covers it.
+      - name: Nothing already published has changed underneath its version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: python3 scripts/check-published-versions.py packages '${{ github.repository_owner }}'
+
+      # --skip-duplicate, because versions here are per-package rather than per-tag: a tag that
+      # bumps Boltway.Mcp alone must not fail on the fifteen packages whose version did not
+      # move. That stays true and stays useful; what makes it safe is the step above, which is the
+      # difference between "skipped because it is unchanged" and "skipped, and the change is being
+      # dropped on the floor" — two things this flag reports identically.
+      - name: Push
+        run: |
+          dotnet nuget push 'packages/*.nupkg' \
+            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --api-key "${{ secrets.GITHUB_TOKEN }}" \
+            --skip-duplicate

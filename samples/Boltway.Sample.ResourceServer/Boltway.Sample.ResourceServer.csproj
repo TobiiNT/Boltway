@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!--
+    Two project references, and neither is Boltway.AuthorizationServer. That absence is the
+    point being demonstrated: these two halves deploy apart, and it is a fact about the dependency
+    graph rather than a claim in a document.
+
+    This list said "and nothing else" while it had one entry. It has two now, because a resource
+    server that wants to survive a key rotation has to fetch a JWKS, and the one assembly in this
+    solution permitted to make an outbound request is Boltway.OAuth.Net — a structural rule with
+    an architecture test behind it (Only_the_guarded_fetcher_touches_system_net_http). So the honest
+    version of the claim is the one now written above: not "one reference", but "not the
+    authorization server". The count was never what mattered.
+
+    Boltway.OAuth.Net is deliberately not a dependency of the Boltway.ResourceServer
+    package itself. A deployment that supplies its keys by hand — an authorization server hosting its
+    own protected resource, pointing at its own key ring — should not acquire an HTTP transport it
+    never calls. Taking the refresher is the host's decision, so it is the host's reference.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.ResourceServer\Boltway.ResourceServer.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.OAuth.Net\Boltway.OAuth.Net.csproj" />
+  </ItemGroup>
+
+</Project>

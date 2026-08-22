@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The shared store contract, run against the SQLite stores.
+
+    A separate project rather than three more classes in Boltway.Storage.Tests, for one reason:
+    that project is IsPackable=true and ships so a customer writing their own store runs the same
+    suite. A ProjectReference to Boltway.Storage.Sqlite there would put EF Core, SQLite and the
+    four SQLitePCLRaw natives into the package a customer takes in order to test a Redis store.
+
+    The contract itself stays where it is and is referenced from here.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!--
+      Inherited from Microsoft.NET.Test.Sdk, which is the same invisible default that hid the
+      seventeenth package, pointing the other way. Written down so that what packs can be read off
+      the files rather than off a pack that has already run.
+    -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.Storage.Sqlite\Boltway.Storage.Sqlite.csproj" />
+    <ProjectReference Include="..\Boltway.Storage.Tests\Boltway.Storage.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

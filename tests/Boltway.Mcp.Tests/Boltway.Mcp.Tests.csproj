@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Boltway.Mcp/Boltway.Mcp.csproj" />
+    <!-- To mint the tokens the handshake test presents, with the real minter rather than a
+         hand-rolled JWT. A test that built its own token would be asserting the middleware
+         agrees with the test's idea of a token. -->
+    <ProjectReference Include="../../src/Boltway.OAuth.Tokens/Boltway.OAuth.Tokens.csproj" />
+  </ItemGroup>
+
+</Project>

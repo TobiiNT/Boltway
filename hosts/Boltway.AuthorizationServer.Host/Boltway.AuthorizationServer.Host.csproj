@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    A deployable authorization server, configured entirely by environment.
+
+    Not a sample and not in samples/: the two next door exist to be read, and every DEV: block
+    in them is a sentence about what a deployment does instead. This is that. One image serves
+    every deployment, and what differs between them is a secret rather than a build.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <UserSecretsId>boltway-authorization-server</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.AuthorizationServer\Boltway.AuthorizationServer.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Identity\Boltway.Identity.csproj" />
+    <!-- The one INotificationSender this image ships. See "Where mail goes" in Program.cs. -->
+    <ProjectReference Include="..\..\src\Boltway.Notifications.Smtp\Boltway.Notifications.Smtp.csproj" />
+    <!--
+      §1.12: the admin and self-service surfaces validate bearer tokens with
+      Boltway.ResourceServer, and there is no second validator. This reference is what makes
+      that sentence true of this image rather than only of the design.
+    -->
+    <ProjectReference Include="..\..\src\Boltway.ResourceServer\Boltway.ResourceServer.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Federation.Google\Boltway.Federation.Google.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Storage.PostgreSql\Boltway.Storage.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Storage.Sqlite\Boltway.Storage.Sqlite.csproj" />
+  </ItemGroup>
+
+  <!--
+    Already pinned in Directory.Packages.props and referenced by nothing, which read like the
+    server had tracing when it had none. Now it is used, and Serilog's six pins are gone.
+  -->
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+  </ItemGroup>
+
+</Project>

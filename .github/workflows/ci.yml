@@ -1,0 +1,224 @@
+# Build and test, on every pull request and every push to main.
+#
+# This did not exist. The only place the tests ran was on the way to production — the connector's
+# deploy workflow, and (as of the same change that added this) the authorization server's. Which
+# means the moment you learned the code was broken was the moment you were pushing it live, and a
+# branch could sit red for a week with nothing saying so.
+#
+# Deliberately separate from the deploy workflows rather than something they depend on. A deploy
+# re-runs the tests against the exact commit it is about to ship: this job proved a branch was
+# green, not that the thing being deployed is.
+
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A second push to the same branch makes the first run's answer worthless. Cancelling it is not
+# only about minutes — a queue of superseded runs is how a red that mattered gets scrolled past.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # The storage contract suite fails rather than skipping when there is no server, on the grounds
+    # that its purpose is proving two implementations answer identically — a stand-in here would
+    # test the stand-in. These credentials are its default connection string, so
+    # BOLTWAY_TEST_POSTGRES stays unset.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: boltway
+          POSTGRES_PASSWORD: boltway
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # One solution, and it is one because it used to be two. Boltway.Mcp reaches across a
+      # ProjectReference into Boltway.ResourceServer, so a change to the latter could always break
+      # the former — but the two lived in separate trees with separate solutions, which also put
+      # Boltway.Mcp outside the architecture scan for its whole life. Folding them together turned
+      # two of those rules red immediately, one of them a network fetch outside the guarded client.
+      #
+      # Release, because that is the configuration everything ships in and it is not always the one
+      # a defect shows up in.
+      #
+      # KNOWN FAILURE: SqliteGrantStoreTests.Redeeming_many_times_in_parallel_still_succeeds_
+      # exactly_once fails intermittently under parallel load — three of four runs when it was
+      # first measured — with `SQLite Error 1: 'cannot start a transaction within a transaction'`.
+      # It is a real defect on the SQLITE_PATH storage path, documented on
+      # SqliteRelationalStoreBehavior, and it is not excluded here on purpose: an exclusion outlives
+      # the bug it was written for. SQLite is a development provider and the README says so; this
+      # test staying in is what keeps that statement honest rather than convenient.
+      #
+      # Pooling is now off for a SQLite file database, which removes the one poisoning mechanism
+      # that has been proven to exist. Whether that ends the failure is what these runs measure. If
+      # this comment still names a known failure after a run of green ones, delete the comment
+      # rather than trusting it.
+      #
+      # Not a known failure any more: CimdFetchControlTests.One_caller_cancelling_does_not_abort_
+      # the_shared_fetch reddened this workflow once with no defect present. It was two sleeps
+      # betting against a saturated thread pool, and it is now gated.
+      - name: Test
+        run: dotnet test Boltway.slnx --configuration Release
+
+  # The image: built on every branch, pushed from main.
+  #
+  # This is now the only thing that publishes the image, and the reasons it was here rather than
+  # in the Cloud Run workflow are why that workflow is the one that went: it has to exist for
+  # anything that is not Cloud Run to pull — a compose file on a VPS names an image and cannot
+  # build one — while Artifact Registry is reachable only by something holding Google
+  # credentials, which a host outside GCP does not have. GHCR is already where this repository's
+  # NuGet packages live, so the grant story is one somebody here has already done once.
+  #
+  # It used to say: "main only, deliberately. Building this on every pull request would add a
+  # minute to a job that exists to answer 'is the branch green', and a tag nobody deploys is a tag
+  # nobody looks at." That reasoning priced the wrong thing. The image is a publishing step, but
+  # this Dockerfile is also the only thing in the repository that compiles hosts/ with the inputs a
+  # deploy uses, and `dotnet test` cannot stand in for it — the first run of this job on main
+  # failed on a missing .editorconfig, on a commit whose `test` job was green.
+  #
+  # So it builds everywhere and pushes from main. A minute per pull request is the price of the one
+  # signal the rest of CI structurally cannot produce, and "is the branch green" was never a
+  # question `test` alone could answer for the thing that actually ships.
+  #
+  # **Two images, one matrix.** The admin UI is a separate deployable because `N-17` makes it an
+  # OAuth client rather than a page on the authorization server — see hosts/Boltway.AdminBff.
+  # It shipped without a Dockerfile and without a line here, so for its whole life it was a project
+  # that built, passed its probes against `dotnet run`, and could not be deployed by anybody. That
+  # is the same defect this repository has now found seven times, and the reason it survived here
+  # is that nothing in CI asks "can this be deployed" except the job that builds an image.
+  #
+  # A matrix rather than two copies of the job: the build, the push and the tagging are the parts
+  # worth keeping identical, and a second hand-written copy is where they stop being.
+  image:
+    runs-on: ubuntu-latest
+    needs: test
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # `deploys: true|false` used to be a third field here, read by one step that dispatched a
+          # deploy into a downstream connector repository. That step is gone; the field went with it rather than
+          # staying as configuration nothing reads, which is how a matrix comes to describe a
+          # behaviour the file no longer has.
+          - name: boltway-auth
+            dockerfile: hosts/Boltway.AuthorizationServer.Host/Dockerfile
+          - name: boltway-adminbff
+            dockerfile: hosts/Boltway.AdminBff/Dockerfile
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history, for the build number computed below. On the default shallow clone
+          # `git rev-list --count` answers 1 — not an error, just wrong — and the guard in the
+          # build step is what turns that back into a red build instead of a `b1` tag quietly
+          # overwriting the real first build's.
+          fetch-depth: 0
+
+      # Only on main: a pull request needs the build, not the credential.
+      - uses: docker/login-action@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Three tags on one build: the sha is the identity a deploy should name, because `latest`
+      # moves under a running host and makes "which build is serving" unanswerable; `bN` is the
+      # same image ordered, so a person reading two tags knows which is newer and by how many
+      # merges. The number never replaces the sha anywhere a machine compares — the downstream verify.sh
+      # asserts the sha and its compose pins it. `latest` exists anyway, for the compose file a
+      # person edits by hand and for a first deploy that has no sha yet.
+      - name: Build
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}
+          IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+          # The build number: commits behind this one on the first-parent chain. A function of
+          # the commit rather than of CI state — the same commit rebuilt gets the same number,
+          # renaming this file resets nothing, and anybody can recompute it from the repo.
+          # `github.run_number` is none of those things. Both matrix rows compute the same
+          # number from the same commit, which is the point: one commit, one number, two images.
+          BUILD_NUMBER="$(git rev-list --count --first-parent HEAD)"
+
+          # 1 is what a shallow clone answers, silently; this repository is hundreds of commits
+          # deep, so a number that small is a broken checkout rather than a real count.
+          [ "$BUILD_NUMBER" -gt 1 ] || {
+            echo "::error::build number is $BUILD_NUMBER — shallow checkout? fetch-depth: 0 is load-bearing."
+            exit 1
+          }
+
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+
+          # Context is the repository root. It used to be auth/, to keep a prospecting tool and
+          # the MCP package out of the layer cache of a process with no use for them; neither
+          # reason survives — the tool is not in this repository at all and the MCP package is part
+          # of the same tree the host builds from. BUILD_SHA is the same value as the tag, and it is passed in rather than derived so
+          # that /health reports what the image is regardless of which tag it was pulled by. A
+          # deployment pinning `latest` still gets a specific sha back from the running server,
+          # which is the only way "is this the build we deployed" has an answer. BUILD_NUMBER
+          # rides along under the same rule.
+          docker build \
+            -f ${{ matrix.dockerfile }} \
+            --build-arg BUILD_SHA="${{ github.sha }}" \
+            --build-arg BUILD_NUMBER="$BUILD_NUMBER" \
+            -t "$IMAGE:${{ github.sha }}" \
+            -t "$IMAGE:b$BUILD_NUMBER" \
+            -t "$IMAGE:latest" \
+            .
+
+      - name: Push
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:b$BUILD_NUMBER"
+          docker push "$IMAGE:latest"
+
+          echo "pushed $IMAGE:${{ github.sha }} (b$BUILD_NUMBER)"
+
+      # **This repository no longer deploys anything, and that is deliberate.**
+      #
+      # There was a step here that dispatched the downstream connector's `deploy-vps.yml` with `auth_tag`
+      # set to this commit, so a merge to main here reached a production host without anybody
+      # choosing to release. It went, along with the `DOWNSTREAM_DEPLOY_TOKEN` secret it needed and the
+      # `deploys` column in the matrix above that decided which row owned it.
+      #
+      # The downstream connector releases on a `v*` tag now. One repository owns the decision to ship, a tag is what
+      # records it, and a second repository able to start a deploy on its own schedule is exactly
+      # the automatic path that decision removes — the auth server would have moved under a
+      # release that had not asked for it, which is the same failure as resolving `latest`.
+      #
+      # The image is still built and pushed above, which is the part that was always this
+      # repository's job. The downstream repository picks it up by naming this commit in `AUTH_TAG` and cutting a tag.
+      # See *Releasing* in the downstream connector's deployment guide.
+      #
+      # Nothing here needs a credential for another repository any more. If `DOWNSTREAM_DEPLOY_TOKEN`
+      # still exists in this repository's secrets, it can be deleted — it is a PAT with
+      # Actions: write on somebody else's repository and it is now granting that for nothing.

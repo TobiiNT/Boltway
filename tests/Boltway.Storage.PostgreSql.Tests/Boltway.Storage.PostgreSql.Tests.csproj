@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The shared store contract, run against the PostgreSQL stores.
+
+    A separate project rather than three more classes in Boltway.Storage.Tests, for the same
+    reason Boltway.Storage.Sqlite.Tests is separate: that project is IsPackable=true and ships
+    so a customer writing their own store runs the same suite. A ProjectReference to
+    Boltway.Storage.PostgreSql there would put EF Core and Npgsql into the package a customer
+    takes in order to test a Redis store.
+
+    THIS SUITE NEEDS A REAL POSTGRESQL SERVER AND DOES NOT SKIP WITHOUT ONE. There is no
+    conditional attribute and no "if the server is absent, pass anyway" branch: PostgresDatabase's
+    constructor throws, and every test in every class that takes the fixture is reported as FAILED
+    with the connection string it tried and the reason it could not use it. A skipped storage suite
+    that reads as green is the "did not measure, recorded as passing" failure LESSONS.md is about.
+
+    Point it somewhere else with BOLTWAY_TEST_POSTGRES; see PostgresDatabase.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!--
+      Inherited from Microsoft.NET.Test.Sdk, which is the same invisible default that hid the
+      seventeenth package, pointing the other way. Written down so that what packs can be read off
+      the files rather than off a pack that has already run.
+    -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.Storage.PostgreSql\Boltway.Storage.PostgreSql.csproj" />
+    <ProjectReference Include="..\Boltway.Storage.Tests\Boltway.Storage.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

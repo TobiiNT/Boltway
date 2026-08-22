@@ -1,0 +1,114 @@
+<Project>
+
+  <!--
+    Central package versions for the authorization server.
+
+    Licence hygiene is a hard constraint here, not a preference. This server is
+    meant to be dropped into customer codebases and resold, so a dependency with
+    a source-available or commercial licence makes the whole thing unshippable.
+    Every package below is MIT or Apache-2.0. Two deliberate absences:
+
+      FluentAssertions  - v8 moved to a paid licence for commercial use. Tests
+                          use xUnit's built-in asserts instead. This costs some
+                          readability in assertions and is worth it.
+
+      Duende.IdentityServer - commercial above a revenue threshold, and building
+                          on it would contradict the point of the exercise.
+
+    Versions are pinned exactly. An authorization server that floats its crypto
+    and token-handling dependencies is one silent minor bump away from a
+    different security posture than the one that was reviewed.
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Persistence — provider-agnostic by design (SQLite dev/test, PostgreSQL prod)">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+
+    <!--
+      Npgsql itself, because Boltway.Storage.PostgreSql references it directly: recognising a
+      unique violation means naming PostgresException and its SqlState, and those are in this package
+      rather than in the EF provider above. Same version as the EF provider resolves transitively, so
+      pinning it changes nothing today and makes the next bump one decision instead of two.
+    -->
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
+
+    <!--
+      Transitive pin, not a direct dependency.
+
+      Microsoft.EntityFrameworkCore.Sqlite 10.0.10 resolves SQLitePCLRaw 2.1.11, which carries a
+      known high-severity advisory (GHSA-2m69-gcr7-jv3q). NuGet audit reports it as NU1903, and
+      because Directory.Build.props sets TreatWarningsAsErrors, it fails the build rather than
+      scrolling past in restore output — which is the entire reason that property is set.
+
+      2.1.12 is the fix and it is the *only* one available: lib.e_sqlite3 has a 3.x line, but
+      bundle_e_sqlite3 and core stop at 3.0.5, so the four packages cannot be moved to 3.x
+      together. Measured 2026-08-04: 2.1.12 restores and builds clean on net10.0.
+
+      All four move together. Pinning the bundle alone leaves the others at 2.1.11 and the
+      advisory stands.
+    -->
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
+    <PackageVersion Include="SQLitePCLRaw.core" Version="2.1.12" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.12" />
+  </ItemGroup>
+
+  <ItemGroup Label="Tokens and crypto">
+    <!-- JWT creation and validation. Note: ValidTypes and ValidAlgorithms are
+         UNSET by default in this library, which is why N-09 exists. -->
+    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.22.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.22.0" />
+    <!-- Argon2id for local password hashing. MIT. -->
+    <PackageVersion Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
+    <!--
+      SMTP submission. MIT, and it replaces System.Net.Mail.SmtpClient in
+      Boltway.Notifications.Smtp — that client cannot do implicit TLS, and Cloudflare Email
+      Service offers 465 with implicit TLS and nothing else. MimeKit comes with it.
+    -->
+    <PackageVersion Include="MailKit" Version="4.17.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Hosting and federation">
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup Label="Diagnostics — the field report says undiagnosable failure is what kills deployments">
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.17.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.17.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="MCP — transport and server plumbing, layered over rather than reimplemented">
+    <!--
+      Boltway.Mcp wraps this rather than replacing it: the official SDK owns the transport, and a
+      second implementation of a transport is a second thing to keep in step with the protocol.
+    -->
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test">
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.10" />
+    <!-- Architecture tests: N-03 (no System.Uri in the redirect matcher) and
+         N-12 (no 307/308 after a credential POST) are enforced by reflecting
+         over the compiled assemblies, so a violation fails the build. -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
+    <PackageVersion Include="Mono.Cecil" Version="0.11.6" />
+  </ItemGroup>
+
+</Project>

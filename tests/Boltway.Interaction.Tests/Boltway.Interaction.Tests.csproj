@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!--
+      Not packable. The contracts moved to Boltway.Interaction.Testing, which is; what is left
+      here is this repository's own tests, including a renderer built to be broken. Shipping those
+      to a customer meant their `dotnet test` ran ours.
+    -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    The shipped assembly only, and deliberately no InternalsVisibleTo grant: this project is
+    compiled against exactly what a customer has. If the contract ever needs an internal type to
+    express an assertion, that type belongs on the public surface instead — the customer writing
+    the renderer needs it just as much as the test does.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.AuthorizationServer\Boltway.AuthorizationServer.csproj" />
+    <ProjectReference Include="..\..\testing\Boltway.Interaction.Testing\Boltway.Interaction.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

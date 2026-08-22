@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The SQLite provider: the package reference, the migrations, and the one class that says how this
+    provider makes a read-decide-write sequence atomic.
+
+    Thin on purpose. Everything a store does lives in Boltway.Storage.EntityFrameworkCore; what
+    is here is what cannot be written provider-neutrally.
+
+    The four SQLitePCLRaw packages are NOT listed. Microsoft.EntityFrameworkCore.Sqlite pulls them
+    transitively at 2.1.11, which carries GHSA-2m69-gcr7-jv3q, and
+    CentralPackageTransitivePinningEnabled in Directory.Packages.props lifts them to the 2.1.12 pins
+    already recorded there. Before this project existed those pins guarded nothing, because no
+    project referenced anything that resolved them.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.Storage.EntityFrameworkCore\Boltway.Storage.EntityFrameworkCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+
+    <!--
+      Design-time only: `dotnet ef migrations add` needs it, a running server does not.
+      PrivateAssets="all" keeps it out of the produced package, so a customer referencing
+      Boltway.Storage.Sqlite does not pull the migration scaffolder into their deployment.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

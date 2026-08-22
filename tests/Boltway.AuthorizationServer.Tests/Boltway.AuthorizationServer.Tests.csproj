@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    The real captured vendor documents, copied beside the tests so the CIMD suite parses the bytes
+    that were measured rather than a paraphrase of them. A copy pasted into a .cs file stops tracking
+    the capture the first time the capture is refreshed.
+
+    A glob rather than one named file, because naming them was measured failing. The 2026-08-17
+    capture — the one recording the change that made every ChatGPT connection resolve to a client
+    this server cannot authenticate — sat in spec/ for a release copied nowhere and read by nothing,
+    while the document it recorded was transcribed into a .cs file instead: exactly what the
+    paragraph above says not to do, done because adding a capture needed an edit here and the edit
+    was missed. Now dropping a cimd-live-*.json into spec/ is the whole ritual, and
+    Every_capture_in_spec_is_read fails if one arrives that no test opens.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\spec\cimd-live-*.json"
+             Link="%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.AuthorizationServer\Boltway.AuthorizationServer.csproj" />
+    <!-- The login tests exercise the real hasher and user store, not stand-ins: the endpoint's
+         username-enumeration defence is a claim about the work a real hash does. -->
+    <!--
+      The resource server, referenced by the authorization server's own test project, which looks
+      backwards and is the point. RevocationChainTests drives /introspect with the real
+      IntrospectionRevocationCheck rather than with an assertion about the JSON: the two are separate
+      implementations of one contract, in separate packages, and a suite that only reads the body
+      here would keep passing through any change that broke the reader.
+    -->
+    <ProjectReference Include="..\..\src\Boltway.ResourceServer\Boltway.ResourceServer.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Identity\Boltway.Identity.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Storage.InMemory\Boltway.Storage.InMemory.csproj" />
+
+    <!-- The federation suite drives the shipped relying party against a fake upstream it hosts, not
+         a stand-in for it: the failure cases that matter are all inside the ID-token validation and
+         the token exchange, which a double would not have. -->
+    <ProjectReference Include="..\..\src\Boltway.Federation.Oidc\Boltway.Federation.Oidc.csproj" />
+    <ProjectReference Include="..\..\src\Boltway.Federation.Google\Boltway.Federation.Google.csproj" />
+  </ItemGroup>
+
+</Project>

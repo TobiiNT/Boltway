@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The durable stores, written once against EF Core and shared by every provider.
+
+    PROVIDER-NEUTRAL, and that is a constraint rather than an aspiration: there is no Sqlite or
+    Npgsql package reference here, so nothing in this assembly *can* name a provider type. The two
+    places where a provider genuinely differs — how a read-decide-write sequence is made atomic, and
+    what a unique-key violation looks like — go through IRelationalStoreBehavior, which the provider
+    package implements.
+
+    The check is mechanical: adding `using Microsoft.Data.Sqlite;` to any file here does not compile,
+    because the package is not referenced.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.AuthorizationServer.Abstractions\Boltway.AuthorizationServer.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Relational, not just Core: this assembly needs transactions, ExecuteUpdate/ExecuteDelete and
+         relational metadata. It does NOT need a provider. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+  </ItemGroup>
+
+</Project>

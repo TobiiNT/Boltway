@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    The admin UI, as a backend-for-frontend. §7.1.
+
+    It references NOTHING from Boltway's server side — not the authorization server, not a
+    storage package, not the abstractions. It is an OAuth client that happens to be written in the
+    same repository, and the only contract between it and the server is HTTP: the discovery
+    document, the code flow, and `/admin/*`.
+
+    That is the point rather than an accident. A BFF that reached into IUserStore would be a second
+    implementation of the operations UserAdministration owns, and the audit entry — written on the
+    service's path — is the half that would drift first.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+  </ItemGroup>
+
+</Project>

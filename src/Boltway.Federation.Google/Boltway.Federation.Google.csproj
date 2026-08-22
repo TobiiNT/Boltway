@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Google, and nothing but Google's configured values.
+
+    If this project ever grows protocol code, something has gone wrong: the generic relying party is
+    Boltway.Federation.Oidc, and a vendor-specific workaround belongs there behind a flag with
+    an argument attached, not here where it would be invisible to every other provider.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Boltway.Federation.Oidc\Boltway.Federation.Oidc.csproj" />
+    <ProjectReference Include="..\Boltway.OAuth.Net\Boltway.OAuth.Net.csproj" />
+  </ItemGroup>
+
+</Project>

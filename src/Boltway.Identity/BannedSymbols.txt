@@ -1,0 +1,5 @@
+T:System.Random;Not a CSPRNG. Use RandomNumberGenerator (N-16).
+P:System.DateTime.Now;Local time. Use the injected TimeProvider.
+P:System.DateTimeOffset.Now;Local time. Use the injected TimeProvider.
+P:System.DateTime.UtcNow;A ULID's timestamp must come from the injected TimeProvider, or a test cannot drive the monotonic path.
+P:System.DateTimeOffset.UtcNow;A ULID's timestamp must come from the injected TimeProvider, or a test cannot drive the monotonic path.

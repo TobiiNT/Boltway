@@ -1,0 +1,140 @@
+<Project>
+
+  <!--
+    Settings every project in the authorization server inherits.
+
+    Two of these are load-bearing rather than stylistic, and removing them
+    silently weakens the security posture rather than breaking the build:
+
+      TreatWarningsAsErrors  - the nullable-reference warnings are how a
+                               "this can never be null" claim in a protocol
+                               path stays true. Downgrading them to warnings
+                               means the next person's null check is optional.
+
+      EnforceCodeStyleInBuild - the analyzer rules in .editorconfig include the
+                               ones that ban the APIs a redirect-URI comparison
+                               must never touch (see N-03 in the requirements:
+                               System.Uri may never be the comparison input).
+                               Those bans are worthless if they are suggestions.
+  -->
+
+  <!--
+    The version every package in this repository publishes at.
+
+    It is a single literal on purpose. Every packable project here is built from one tree and
+    released together, so a per-project version would be seventeen literals to forget instead of
+    one. Count what actually packs rather than what declares `<IsPackable>true</IsPackable>`: a
+    library packs unless told otherwise, so the count read off the files has been wrong before.
+
+    **0.1.0 because nothing here has ever been published.** The 0.x line is the honest claim for a
+    server whose own README lists what is not built yet; 1.0.0 would say more than this gets to say.
+
+    The rule that outlives this number: **once a version is published, it is frozen.** A feed will
+    not take a second 0.1.0 and will not tell anybody it refused — it skips the duplicate and the
+    workflow stays green, so the new assembly simply never ships. That failure is silent on the
+    publishing side and loud on the consuming side, in the worst possible place: a downstream
+    consumer restores the frozen package, compiles green (the C# compiler does not check a call
+    that lives inside an already-compiled dependency), and throws MissingMethodException at
+    startup. That is not hypothetical — it took a production container into a restart loop behind
+    a 502 until it was rolled back.
+
+    Two consequences worth stating plainly:
+
+      - Bump this number in the same commit as the public change, not at release time.
+      - A ProjectReference packs as a dependency on the referenced project's version, so a project
+        whose own source did not change still needs a bump when something it references moves.
+        Otherwise the frozen nuspec names a dependency that is merely old, and a consumer pinning
+        it can never receive the newer one no matter how often that one is published.
+
+    `scripts/check-published-versions.py` runs in the publish workflow and fails when a packed
+    version is already in the feed with different contents. That guard is what makes forgetting
+    cost twenty minutes instead of a rollback.
+  -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+    <!-- Reproducible output: the same source must produce the same bytes,
+         because "is the deployed binary the reviewed source" needs an answer. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+    <!-- An authorization server has no business calling unmanaged code. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!--
+      Culture *identity* without culture *data*, and the split is the point.
+
+      `InvariantGlobalization` implies `PredefinedCulturesOnly`, so `new CultureInfo("vi")` throws:
+      only the invariant culture exists. That is fatal for the interaction pages' localization, which
+      needs a BCP 47 tag as a dictionary key, as the value of `<html lang>`, and as something
+      `RequestLocalizationMiddleware` can match `ui_locales` against.
+
+      What it does NOT need is ICU. Nothing on those pages formats a number, a date or a currency,
+      and no comparison anywhere in this repository is culture-sensitive — the ban list forbids the
+      normalizing members of System.Uri, every string comparison is Ordinal or OrdinalIgnoreCase by
+      rule, and `LOWER()`-style folding is done in C# on a normalized column rather than by a
+      collation. So allowing a culture to be *named* costs nothing that the invariant setting was
+      protecting, and the unmanaged-code reason above stands unchanged.
+
+      A culture created this way carries invariant data. That is correct here and would not be for an
+      application that formatted anything: this one puts the tag in an attribute and looks a
+      dictionary up with it.
+    -->
+    <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package metadata">
+    <Authors>The Boltway Authors</Authors>
+    <Product>Boltway</Product>
+    <Copyright>Copyright the Boltway Authors</Copyright>
+
+    <!--
+      An SPDX expression rather than the deprecated PackageLicenseUrl, so a consumer's licence
+      scanner reads it off the nuspec instead of following a link that may not resolve in five
+      years. Apache-2.0 rather than MIT for the patent grant: this is protocol code, and a
+      contributor licensing their patents alongside their copyright is the difference that matters
+      to anyone adopting it inside a company.
+    -->
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/TobiiNT/Boltway</PackageProjectUrl>
+    <PackageTags>oauth;oauth2;oidc;authorization-server;mcp;pkce;dpop;aspnetcore</PackageTags>
+
+    <RepositoryUrl>https://github.com/TobiiNT/Boltway</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <!--
+      A symbol package beside every library. A stack trace from a consumer's production incident is
+      worth more than the few hundred kilobytes, and it is the one artefact that cannot be produced
+      after the fact.
+    -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!--
+    The readme every package carries. One file at the root rather than a per-project one: a reader
+    who lands on any of the seventeen packages should reach the same explanation of what the whole
+    thing is, and seventeen near-identical files would drift within a release.
+  -->
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+</Project>
