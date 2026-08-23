@@ -544,6 +544,38 @@ just its material:
    token it signed has expired; `retired` is not an accepted state, because carrying a dead key
    in the secret invites promoting it back.
 
+## Alerting on revocation
+
+`IntrospectionRevocationCheck` — how a resource server finds out that a grant behind a still-valid
+access token has been revoked — **fails open**. When it cannot reach this server, the request is
+allowed through and a warning is logged.
+
+That is the right default: failing closed would turn one server's outage into an outage for every
+resource server that trusts it. What it means is that revocation silently stops working for as long
+as the two cannot talk, and nothing about the traffic looks wrong. So it needs an alert rather than
+a dashboard.
+
+Alert on `boltway.resource.revocation.check` where `outcome="failed_open"`, as a fraction of the
+decisions that actually asked:
+
+```
+failed_open / (live + revoked + failed_open)
+```
+
+**`outcome="cached"` is excluded on purpose.** Including it makes the denominator a cache hit rate,
+and the number then moves with traffic rather than with reliability — busy periods would look
+healthier than quiet ones for no reason connected to whether revocation works.
+
+**One `reason` deserves its own alert rather than a threshold.** `credential_rejected` is this
+resource server's own introspection secret being wrong. It never recovers on its own, it does not
+improve with a retry, and it presents as revocation quietly doing nothing forever. A percentage
+threshold tuned for network trouble will not fire on it quickly, because it is 100% from the first
+request and stays there.
+
+The meter is off until the host names it — `AddMeter(ResourceServerMetrics.MeterName)` — and an
+unnamed meter is not an error. It is silence that looks like a healthy system, which is the failure
+this whole section is about, one layer down.
+
 ## Verified, not assumed
 
 ```

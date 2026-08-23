@@ -12,6 +12,7 @@ the day.
 |---|---|---|---|
 | [`DESIGN.md`](DESIGN.md) | Someone about to change the authorization server | The requirement ids in `spec/REQUIREMENTS.md`; §10 of that file wins on conflict | decision record |
 | [`USER-MANAGEMENT.md`](USER-MANAGEMENT.md) | The same reader, for accounts, administration, self-service and recovery | The same ids, plus §11. Written when none of this existed — the administration, self-service and recovery surfaces have since shipped behind flags, so the README's capability lists are current and this is not | decision record |
+| [`INTERACTION-PAGES.md`](INTERACTION-PAGES.md) | A deployment changing what the sign-in and consent pages look like | Nothing. Three tiers, and it says what each one hands you responsibility for — tier 3 means owning N-14 in full | current |
 | [`LOCALIZATION.md`](LOCALIZATION.md) | A deployment replacing the English text | Nothing. Three surfaces with three different mechanisms, and it says which is which and what each silently ignores | current |
 | [`examples/translations.vi.json`](examples/translations.vi.json) | The same reader, one file later | `LOCALIZATION.md` read first — a mistyped key is silently the English string | current |
 | [`decisions/protocol-surface-gaps-2026-08.md`](decisions/protocol-surface-gaps-2026-08.md) | Anyone about to propose DPoP, dynamic client registration, pairwise `sub` or back-channel logout here | Nothing. §3, *won't do and why*, is the half that keeps mattering | decision record |
