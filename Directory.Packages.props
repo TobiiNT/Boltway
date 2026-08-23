@@ -94,7 +94,7 @@
       Boltway.Mcp wraps this rather than replacing it: the official SDK owns the transport, and a
       second implementation of a transport is a second thing to keep in step with the protocol.
     -->
-    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.1.0" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup Label="Test">
