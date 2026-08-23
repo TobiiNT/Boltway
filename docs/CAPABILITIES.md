@@ -8,7 +8,7 @@ Four states, and keeping them apart is the whole point of this file.
 | **Built, off by default** | [below](#built-and-off-by-default) |
 | **Absent on purpose** | [below](#absent-on-purpose) |
 | **Not built yet** | [below](#not-built-yet) |
-| *(built, on, and not advertised)* | [a fifth state, found by looking](#a-fifth-state-found-by-looking) |
+| *(built, on, and not advertised)* | [a fifth state, found and closed](#a-fifth-state-found-by-looking--closed-2026-08-23) |
 
 **Off is not absent, and unbuilt is not refused.** Two categories — absent on purpose, and absent
 because nobody wrote it — leave no room for *present, and not switched on*. A capability that grew
@@ -186,16 +186,23 @@ unless a deployment turns them on, and a deployment that has not is back to one 
 lifetime of lag. Designed in [`docs/USER-MANAGEMENT.md`](USER-MANAGEMENT.md), requirements in
 `spec/REQUIREMENTS.md` §11.
 
-## A fifth state, found by looking
+## A fifth state, found by looking — **closed, 2026-08-23**
 
-The four states above are what a capability can be *in*. There is a fifth this file had no box for,
-and it took measuring the discovery document against the code to see it: **built, on, and not
+The four states above are what a capability can be *in*. There was a fifth this file had no box
+for, and it took measuring the discovery document against the code to see it: **built, on, and not
 advertised.**
 
-`/authorize` honours four values of `prompt` — `none`, `login`, `select_account` and `consent`. The
-metadata document names none of them: `prompt_values_supported` does not appear anywhere in this
-repository. A client reading discovery to decide whether it may ask for a silent refresh finds no
-answer and concludes it may not, so a capability that exists is one nobody can discover.
+`/authorize` honours four values of `prompt` — `none`, `login`, `select_account` and `consent` —
+and the metadata document named none of them. A client reading discovery to decide whether it may
+ask for a silent refresh found no answer and had to conclude it may not, so a capability that
+existed was one nobody could discover.
+
+**Fixed in the same pass that found it.** `prompt_values_supported` is published, and
+`The_advertised_prompt_values_are_exactly_the_ones_authorize_acts_on` pins the list to the code
+that reads the parameter rather than to a second list written by hand — so a fifth value honoured
+without being advertised fails, and so does advertising one nothing reads. The entry stays because
+the reasoning below is why the test exists, and because the state it names can recur on any other
+field the document could carry.
 
 **This is N-06 pointing the other way.** That rule refuses to advertise what is not served, and the
 whole of `MetadataHonestyTests` runs in that direction: every advertised endpoint answers, every
@@ -205,5 +212,6 @@ surfaces emit — and that one exists because a claim list that under-states is 
 over-states. Nothing extends the same reasoning to anything else the document could name.
 
 Over-advertising is the expensive direction and is guarded. Under-advertising is the cheap
-direction, which is why it was never noticed: nothing breaks, no test goes red, and the only cost
-is a client taking the long way round.
+direction, which is why it went unseen for a release: nothing breaks, no test goes red, and the
+only cost is a client taking the long way round. There are now two assertions running
+served-to-advertised rather than one, and no reason to think four is the end of the list.

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Web;
 using Boltway.AuthorizationServer.Abstractions.Clients;
 using Boltway.AuthorizationServer.Abstractions.Consent;
@@ -51,7 +52,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// server that routed none of it.
 /// </para>
 /// </remarks>
-public sealed class MetadataHonestyTests : IAsyncLifetime
+public sealed partial class MetadataHonestyTests : IAsyncLifetime
 {
     private IHost _host = null!;
     private HttpClient _client = null!;
@@ -267,6 +268,118 @@ public sealed class MetadataHonestyTests : IAsyncLifetime
                 + "A client that reads the document and uses it is refused by a server that "
                 + "invited it.");
         }
+    }
+
+    /// <summary>
+    /// The advertised prompt values are exactly the ones <c>/authorize</c> acts on.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>This is the only honesty check here that runs served-to-advertised, and it exists
+    /// because the document under-stated for a release.</b> Everything else in this file runs the
+    /// other way — every advertised endpoint answers, every advertised grant has a handler, the
+    /// sweep catches a promise with a 404 behind it. Over-advertising is the expensive direction
+    /// and it is guarded four ways. Under-advertising costs a client a wasted round trip and
+    /// nothing else, so nothing caught it: <c>/authorize</c> honoured four prompt values and
+    /// <c>prompt_values_supported</c> appeared nowhere in the repository.
+    /// </para>
+    /// <para>
+    /// <b>Pinned to the code rather than to a list written twice.</b> The expectation is read out
+    /// of the source that consumes the parameter, so adding a fifth <c>Prompt.Contains("…")</c>
+    /// without advertising it fails here, and so does advertising one nothing reads. A hardcoded
+    /// pair of lists would agree with itself forever and prove nothing about either.
+    /// </para>
+    /// <para>
+    /// It scans source text because there is nothing to reflect over: the values are string
+    /// literals compared ordinally at four call sites across two files, not an enum or a table.
+    /// That is the right shape for the code — matching a wire value is what those lines do — and
+    /// it leaves the test as the only place the set is written down once.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void The_advertised_prompt_values_are_exactly_the_ones_authorize_acts_on()
+    {
+        var root = RepositoryRoot();
+        var server = Path.Combine(root, "src", "Boltway.AuthorizationServer");
+
+        var honoured = new SortedSet<string>(StringComparer.Ordinal);
+        var scanned = 0;
+
+        foreach (var file in Directory.EnumerateFiles(server, "*.cs", SearchOption.AllDirectories))
+        {
+            if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            foreach (var line in File.ReadLines(file))
+            {
+                var match = PromptRead().Match(line);
+
+                if (match.Success)
+                {
+                    scanned++;
+                    honoured.Add(match.Groups[1].Value);
+                }
+            }
+        }
+
+        // The control. A rename of the context property, or a move of these files, would leave the
+        // set empty and make the comparison below pass against nothing.
+        Assert.True(
+            scanned >= 4,
+            $"Only {scanned} `Prompt.Contains(\"…\")` call sites were found under {server}. "
+            + "If the parameter is now read some other way, this test has to learn the new shape "
+            + "rather than be deleted.");
+
+        var options = Build.Options();
+
+        Assert.True(
+            options.TryValidate(out var invalid),
+            string.Join(Environment.NewLine, invalid));
+
+        var advertised = new SortedSet<string>(
+            MetadataBuilder.Build(options).PromptValuesSupported ?? [],
+            StringComparer.Ordinal);
+
+        Assert.True(
+            advertised.SetEquals(honoured),
+            "prompt_values_supported and the values /authorize acts on have diverged."
+            + Environment.NewLine
+            + "  advertised: " + string.Join(", ", advertised)
+            + Environment.NewLine
+            + "  honoured:   " + string.Join(", ", honoured));
+    }
+
+    /// <summary>Every <c>Prompt.Contains("…")</c>, which is how a prompt value is acted on here.</summary>
+    [GeneratedRegex(@"Prompt\.Contains\(""([a-z_]+)""")]
+    private static partial Regex PromptRead();
+
+    /// <summary>Walk up from the test binary to the repository root, by shape.</summary>
+    /// <remarks>
+    /// By shape rather than a fixed count of <c>..</c> segments: that count changes with the target
+    /// framework and configuration in the output path, and a path that silently resolves to nothing
+    /// turns the scan above into a vacuous pass.
+    /// </remarks>
+    private static string RepositoryRoot()
+    {
+        var directory = new DirectoryInfo(
+            Path.GetDirectoryName(typeof(MetadataHonestyTests).Assembly.Location)!);
+
+        while (directory is not null)
+        {
+            if (Directory.Exists(Path.Combine(directory.FullName, "src"))
+                && Directory.Exists(Path.Combine(directory.FullName, "tests")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        Assert.Fail("Could not find the repository root above the test binary.");
+        return null!;
     }
 
     /// <summary>

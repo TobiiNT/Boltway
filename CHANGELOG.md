@@ -20,6 +20,12 @@ Three conventions, because a changelog nobody can rely on is worse than none:
 
 ### Added
 
+- **`prompt_values_supported` in the discovery document.** `/authorize` honours `none`, `login`,
+  `consent` and `select_account` and advertised none of them, so a client reading discovery to
+  decide whether it may ask for a silent refresh found no answer and had to assume no. Nothing
+  about the endpoint's behaviour changed; the document now says what it already did. A new field
+  on `AuthorizationServerMetadata`, so a deployment reading the document as a typed object sees
+  `PromptValuesSupported`.
 - **`Boltway.Storage.Testing`**, the store contracts a deployment runs against its own
   implementation. New package id, first published at this version. It depends on xunit and nothing
   else — see *Removed* for what it replaces.

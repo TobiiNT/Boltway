@@ -85,6 +85,26 @@ public sealed record AuthorizationServerMetadata
     public IReadOnlyList<string>? ResponseModesSupported { get; init; }
 
     /// <summary>
+    /// OIDC Discovery OPTIONAL. Every <c>prompt</c> value <c>/authorize</c> acts on, and no other.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Published because the alternative is a capability nobody can discover.</b> N-06 refuses
+    /// to advertise what is not served, and every other honesty check here runs in that direction.
+    /// This is the same rule pointing the other way: <c>/authorize</c> honours four prompt values
+    /// and named none of them, so a client reading discovery to decide whether it may ask for a
+    /// silent refresh found no answer and had to assume no.
+    /// </para>
+    /// <para>
+    /// Under-advertising is the cheap direction to be wrong in — nothing breaks, nothing goes red,
+    /// and the only cost is a client taking the long way round — which is exactly why it survived
+    /// while the expensive direction was guarded four ways.
+    /// </para>
+    /// </remarks>
+    [JsonPropertyName("prompt_values_supported")]
+    public IReadOnlyList<string>? PromptValuesSupported { get; init; }
+
+    /// <summary>
     /// RFC 8414 §2 OPTIONAL, and published explicitly for a reason.
     /// </summary>
     /// <remarks>
