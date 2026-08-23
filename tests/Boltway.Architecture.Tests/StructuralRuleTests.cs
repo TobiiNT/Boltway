@@ -1204,6 +1204,91 @@ public sealed class StructuralRuleTests
         "Boltway.AuthorizationServer.Endpoints.InteractionEndpoints",
     ];
 
+    /// <summary>
+    /// No XML doc comment quotes code with Markdown backticks.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>These files have two comment vocabularies and only one of them renders.</b> A backtick is
+    /// how the Markdown in this repository writes a code span, and every one of these projects sets
+    /// <c>GenerateDocumentationFile</c> — so a <c>///</c> line goes into the shipped
+    /// <c>.xml</c> beside the package and reaches a consumer through IntelliSense, where a backtick
+    /// is a backtick. <c>&lt;c&gt;</c> is the tag that means there what the backtick means in the
+    /// prose. Nothing warns: the comment is well-formed XML either way, and the author of the line
+    /// never sees the surface it lands on.
+    /// </para>
+    /// <para>
+    /// Measured on 2026-08-23, the day this rule was written: twelve spans across six files under
+    /// <c>src/</c> and <c>hosts/</c> had drifted this way, including one in
+    /// <c>IRoleStore</c> — a public seam whose whole doc comment exists to show a consumer what
+    /// kind of value a role name may hold.
+    /// </para>
+    /// <para>
+    /// <b>Pairs, not lone backticks.</b> An unmatched one in prose is a quote mark or part of a
+    /// shell fragment inside a <c>&lt;code&gt;</c> block, and failing on it would make this rule
+    /// the kind that gets suppressed rather than obeyed. A genuine need to render a literal
+    /// backtick pair in documentation is the point at which this rule should be argued with, not
+    /// worked around.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Doc_comments_do_not_quote_code_with_backticks()
+    {
+        var root = RepositoryRoot();
+
+        var scanned = 0;
+        var offenders = new List<string>();
+
+        foreach (var directory in new[] { "src", "hosts", "testing" })
+        {
+            var path = Path.Combine(root, directory);
+
+            if (!Directory.Exists(path))
+            {
+                continue;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                    || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var number = 0;
+
+                foreach (var line in File.ReadLines(file))
+                {
+                    number++;
+
+                    if (!line.TrimStart().StartsWith("///", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    scanned++;
+
+                    if (line.Count(c => c == '`') >= 2)
+                    {
+                        offenders.Add($"{Path.GetRelativePath(root, file)}:{number}  {line.Trim()}");
+                    }
+                }
+            }
+        }
+
+        // The control. A moved directory or a changed extension would leave nothing to look at, and
+        // an empty list is how an absence assertion reports a pass over a walk that measured nothing.
+        Assert.True(scanned > 1000, $"Only {scanned} doc-comment lines were found under {root}.");
+
+        Assert.True(
+            offenders.Count == 0,
+            "A doc comment quotes code with Markdown backticks. These reach a consumer through the "
+            + "generated .xml, where a backtick renders as a backtick — use <c>…</c>:"
+            + Environment.NewLine
+            + string.Join(Environment.NewLine, offenders.Select(o => "  " + o)));
+    }
+
     private static bool IsInternalsVisibleTo(CustomAttribute attribute) =>
         string.Equals(
             attribute.AttributeType.FullName,

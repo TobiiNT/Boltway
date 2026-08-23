@@ -1051,7 +1051,7 @@ public sealed class UserAdministration(
     /// <param name="cancellationToken">Cancels the write.</param>
     /// <remarks>
     /// The multi-valued sibling of <see cref="SetRoleAsync"/>, which stays because one role is what
-    /// almost every caller means and `set-role ada founder` should not have to become a list.
+    /// almost every caller means and <c>set-role ada founder</c> should not have to become a list.
     /// </remarks>
     public async Task<RolesChangeResult> SetRolesAsync(
         Actor actor,

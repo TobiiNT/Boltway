@@ -1073,7 +1073,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <remarks>
     /// <b>No <see cref="AdminMarkup.Encode"/> on those two.</b> They arrive encoded from the text
     /// table, and encoding again is not harmless: the authorization server's renderer carries a
-    /// comment about exactly this, where a second pass rendered `Café` as `Caf&amp;#233;`.
+    /// comment about exactly this, where a second pass rendered <c>Café</c> as <c>Caf&amp;#233;</c>.
     /// Vietnamese is entirely made of characters that would go the same way.
     /// </remarks>
     private static string Op(string handle, string verb, string hidden, string label, string caveat) =>
