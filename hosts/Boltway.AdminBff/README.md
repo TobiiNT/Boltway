@@ -46,18 +46,28 @@ server, is already signed in there, and comes straight back.
 | | |
 | --- | --- |
 | `AUTHORITY` | **required.** The authorization server's issuer URL. Discovery hangs off it. |
-| `ADMIN_API` | The base URL of `/admin/*`. Defaults to `AUTHORITY`; §1.4 puts it on its own hostname in a deployment that wants one. |
+| `ADMIN_API` | The base URL of `/admin/*`. Defaults to `AUTHORITY`; §1.4 puts it on its own hostname in a deployment that wants one. **Not the authorization server's `ADMIN_API`**, which is the `true`/`false` that routes those endpoints — one name, two processes, two environments. |
 | `CLIENT_ID` | **required.** What this app is registered as, in the server's `CLIENTS`. |
 | `CLIENT_SECRET` | **required.** Mint it with the server's `new-client-secret` — see below. |
 | `ADMIN_RESOURCE` | The admin API's resource URL, sent as RFC 8707 `resource`. Defaults to `AUTHORITY` + `/admin`, which is how the authorization server derives it too — override both together or neither. |
-| `ADMIN_ROLES` | Which roles administer the directory, so the pages can say what a role means. Optional; unset means the pages say nothing about administration rather than naming a set they were never given. |
+| `ADMIN_ROLES` | Which roles administer the directory, so the pages can say what a role means. Optional; unset means the pages say nothing about administration rather than naming a set they were never given. Comma or space separated, and the same string as the authorization server's own `ADMIN_ROLES` — kept in step by hand, because that server exposes no endpoint saying which roles it privileges. |
+| `ADMIN_PERMISSIONS` | The permission vocabulary the deployment's resource servers understand, offered as checkboxes on the roles page. Comma or space separated. Optional; unset keeps the free-text box. Same contract as `ADMIN_ROLES`, including the honest part: it is a hand-written copy of a list that lives in the resource server, and this app cannot check it. Drift costs a checkbox too many or too few — never enforcement, which stays wherever the resource server put it. |
 | `ADMIN_TEXT_FILE` | A JSON object of key to sentence, keys being the constants on `AdminText`. Optional, and partial: every key falls back to English on its own. `$language` sets the document's `lang`. A key this build does not know is named on stderr at startup and then ignored — per-string fallback means a typo renders correct English, so a sentence that did not change is the only other signal there is. |
 | `ADMIN_STYLESHEETS` | What to link, in order. Defaults to `/css/admin.css`, the sheet this app ships. Setting it **replaces** the list — name `/css/admin.css` alongside your own to keep it. Each must be an absolute path on this origin, and one that is not is refused at startup. |
 
-On the authorization server side the matching configuration is `ADMIN_API=true` and a `CLIENTS`
-entry naming this app's redirect URI (`https://<this app>/signin-oidc`) and the **hash** of its
-secret. That is all of it: the server derives its own resource URL and adds it to the registry with
-the scopes it serves, so there is nothing to keep in step by hand.
+On the authorization server side the matching configuration is `ADMIN_API=true`, an `ADMIN_ROLES`
+naming who may administer — that server refuses to start with the admin API on and no roles set —
+and a [`CLIENTS`](../Boltway.AuthorizationServer.Host/README.md#configuration) entry naming this
+app's redirect URI (`https://<this app>/signin-oidc`) and the **hash** of its secret:
+
+```
+CLIENTS='{"boltway-adminbff":{"name":"Administration","redirectUris":"https://admin.example.com/signin-oidc","secretSha256":"…"}}'
+ADMIN_API=true
+ADMIN_ROLES=…
+```
+
+That is all of it: the server derives its own resource URL and adds it to the registry with the
+scopes it serves, so there is nothing else to keep in step by hand.
 
 ### The secret cannot be a passphrase
 
