@@ -250,5 +250,6 @@ a warning is a defect that has not been noticed yet.
 Requirement ids are cited throughout the code and the README, and every one is defined in
 [`spec/REQUIREMENTS.md`](spec/REQUIREMENTS.md): `S-*` conformance matrix (§1), `E-*` endpoint
 contract (§2), `X-*` error codes (§4), `N-*` non-negotiables (§5), `C-*` client compatibility (§6),
-`A-*` acceptance criteria (§7), `D-*` deferred (§8). Cite the id, and keep the id's own entry true
+`A-*` the Auth0-trap requirements restated positively, with acceptance criteria (§7), `D-*`
+deferred (§8). Cite the id, and keep the id's own entry true
 in the same commit — an id whose entry has drifted is worse than no id.
