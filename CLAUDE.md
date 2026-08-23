@@ -153,7 +153,10 @@ table is a security property rather than a budget, and startup cannot detect it.
 against, move it in the same commit — doing it at release time has already cost an outage, and the
 comment there says so.
 
-**Check the feed before you believe the comment.** All seventeen package ids are live on nuget.org,
+**Check the feed before you believe the comment.** Eighteen package ids are live on nuget.org —
+`Directory.Build.props` says seventeen, and the eighteenth is `Boltway.Storage.Tests`, a test
+project that set `IsPackable=true` and reached the feed. A count maintained by hand is a count that
+drifts; the feed is the fact.
 and a version already on the feed is pushed with `--skip-duplicate`, which reports success and
 drops the package. nuget.org has no delete, only unlist, so a version published low cannot be taken
 back. One `curl https://api.nuget.org/v3-flatcontainer/<id.lower()>/index.json` settles what is
