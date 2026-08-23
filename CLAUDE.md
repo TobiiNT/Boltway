@@ -18,7 +18,7 @@ vocabulary, and every rule below follows from that one fact.
 | `samples/` | the smallest thing that completes a whole flow, plus `drive-flow.sh` |
 | `tests/` | one suite per package, plus `Boltway.Architecture.Tests` and `Boltway.PublicApi.Tests`, which are about the shape rather than the behaviour |
 | `spec/` | the requirements, the vendored drafts, and dated captures of live surfaces |
-| `docs/` | design and user-management notes |
+| `docs/` | everything written down that is not code — `docs/README.md` indexes it and marks each current, a decision record, or dated |
 
 One tree, one solution, `Boltway.slnx`. The reason is under *the architecture tests* below.
 
@@ -51,13 +51,13 @@ that is advertised but not routed. If a change makes the document claim somethin
 lands in the same commit. `KnownGrantTypes` lists exactly the grants `TokenEndpoint` has an arm
 for, so configuring a name with nothing behind it is a startup failure rather than a runtime one.
 
-**The README is part of that surface.** Its three lists — *deliberately not implemented*, *built
-and off by default*, *simply not built yet* — and, just as much, the *What it is not* paragraph at
-the top, are claims a reader acts on. Moving a capability between them is part of the change that
-moved it, not a follow-up. A capability that grew a default and stayed filed under "not
-implemented" is how that section earned its middle list; a capability that shipped a whole
-deployable while the opening paragraph still said it did not exist is the same defect at the one
-place every reader starts.
+**The capability lists are part of that surface.** `docs/CAPABILITIES.md` holds four states — on,
+built-and-off, absent on purpose, not built yet — and the README's *What you get* table plus its
+opening paragraph are the same claims at the place every reader starts. Moving a capability between
+states is part of the change that moved it, not a follow-up. A capability that grew a default and
+stayed filed under "not implemented" is how that middle state was earned; a capability that shipped
+a whole deployable while the opening paragraph still denied it is the same defect one level up.
+Both files move together.
 
 ## A refusal names its boundary
 
@@ -152,9 +152,10 @@ the concurrent-redemption requirement — the defect is undiagnosed and written 
 route rather than the cause.
 
 The in-memory stores are per process. Anything cached or counted per process belongs in the
-README's **Before the second replica** table in the same change that adds it — eleven files were
-each locally honest about it and there was nowhere to look on the day it mattered. One row of that
-table is a security property rather than a budget, and startup cannot detect it.
+**Before the second replica** table — in `hosts/Boltway.AuthorizationServer.Host/README.md`, beside
+the operator who reads it — in the same change that adds it. Eleven files were each locally honest
+about it and there was nowhere to look on the day it mattered. One row of that table is a security
+property rather than a budget, and startup cannot detect it.
 
 ## Public surface and version
 

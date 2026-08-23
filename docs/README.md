@@ -12,12 +12,14 @@ the day.
 |---|---|---|---|
 | [`DESIGN.md`](DESIGN.md) | Someone about to change the authorization server | The requirement ids in `spec/REQUIREMENTS.md`; §10 of that file wins on conflict | decision record |
 | [`USER-MANAGEMENT.md`](USER-MANAGEMENT.md) | The same reader, for accounts, administration, self-service and recovery | The same ids, plus §11. Written when none of this existed — the administration, self-service and recovery surfaces have since shipped behind flags, so the README's capability lists are current and this is not | decision record |
+| [`CAPABILITIES.md`](CAPABILITIES.md) | Anyone asking whether this server does X | Nothing. Four states, and the reason they are four rather than three: *off* and *absent* are different words | current |
+| [`HOSTING.md`](HOSTING.md) | Someone wiring a `Program.cs` rather than running the image | That startup names every missing service at once, so this is read in one pass | current |
 | [`INTERACTION-PAGES.md`](INTERACTION-PAGES.md) | A deployment changing what the sign-in and consent pages look like | Nothing. Three tiers, and it says what each one hands you responsibility for — tier 3 means owning N-14 in full | current |
 | [`LOCALIZATION.md`](LOCALIZATION.md) | A deployment replacing the English text | Nothing. Three surfaces with three different mechanisms, and it says which is which and what each silently ignores | current |
 | [`examples/translations.vi.json`](examples/translations.vi.json) | The same reader, one file later | `LOCALIZATION.md` read first — a mistyped key is silently the English string | current |
 | [`decisions/protocol-surface-gaps-2026-08.md`](decisions/protocol-surface-gaps-2026-08.md) | Anyone about to propose DPoP, dynamic client registration, pairwise `sub` or back-channel logout here | Nothing. §3, *won't do and why*, is the half that keeps mattering | decision record |
 | [`archive/2026-08-05-mutation-testing.md`](archive/2026-08-05-mutation-testing.md) | Anyone about to run Stryker against this codebase | That its scores are a 2026-08-05 snapshot and its chunk globs no longer partition the assembly. Its header says how far off | archive |
-| [`../README.md`](../README.md) | Everyone, first | Nothing. Its three capability lists and its *what it is not* paragraph are claims a reader acts on | current |
+| [`../README.md`](../README.md) | Everyone, first | Nothing. Deliberately short: its *What you get* table and opening paragraph are claims a reader acts on, and everything longer lives in a page linked from it | current |
 | [`../ROADMAP.md`](../ROADMAP.md) | An evaluator asking what is missing | That "measured against Keycloak" means one named commit on 2026-08-22, not a standing comparison | current |
 | [`../CHANGELOG.md`](../CHANGELOG.md) | Anyone upgrading | That every package moves on one version number, so an entry applies whether or not your package has a line in it | current |
 | [`../VERSIONING.md`](../VERSIONING.md) | The same reader, before upgrading | That 0.x promises nothing, deliberately, and that the 0.2.0 in `Directory.Build.props` already carries breaking entries | current |

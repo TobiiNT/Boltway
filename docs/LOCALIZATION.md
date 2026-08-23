@@ -517,4 +517,4 @@ What is left is the part no API can answer, because it is about meaning rather t
 - [`NotificationText.cs`](../src/Boltway.Notifications/NotificationText.cs) — the mail, and the per-deployment argument in full
 - [`AdminText.cs`](../hosts/Boltway.AdminBff/AdminText.cs) — the admin table and `$language`
 - [`hosts/Boltway.AuthorizationServer.Host/README.md`](../hosts/Boltway.AuthorizationServer.Host/README.md) — every environment variable this page names
-- [`README.md`](../README.md#changing-the-sign-in-and-consent-pages) — the three UI tiers: theme, layout, renderer. Language is orthogonal to all three
+- [`README.md`](INTERACTION-PAGES.md) — the three UI tiers: theme, layout, renderer. Language is orthogonal to all three

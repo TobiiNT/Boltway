@@ -16,6 +16,14 @@ downgrading it silently weakens the security posture rather than breaking anythi
 deliberate: a storage suite that skips itself when the database is missing is green in exactly the
 situation where it measured nothing. `postgres.sh` gets you one with Docker or without.
 
+**`global.json` names `10.0.100`, and the floor is the point.** With `rollForward: latestFeature`
+that accepts any .NET 10 SDK from `10.0.100` up, which is what "this needs .NET 10" means. It used
+to name `10.0.302` — one authoring machine's exact build — and under the same roll-forward rule
+that refuses every lower feature band: an SDK of `10.0.111` did not build this repository at all,
+it failed on the first `dotnet` command with nothing pointing at the cause. CI installs `10.0.x`
+and so never saw it. Raise the floor only for a language or SDK feature the build actually needs,
+and say which one.
+
 ## What this project is
 
 An OAuth 2.1 authorization server. The code issues credentials that grant access to somebody's data,
