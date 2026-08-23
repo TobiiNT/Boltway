@@ -1,10 +1,19 @@
-# Going open source, and what "enterprise" has to mean first
+# Roadmap
 
-**Date:** 2026-08-22 · **Status:** proposal · **Scope:** the whole repository, not just the authorization server
+What is not built here, measured against what an authorization server gets judged on. This is a
+gap list rather than a plan with dates: nothing below is committed to, and the point of writing it
+down is that a reader can tell an absence somebody chose from one nobody has looked at.
 
-Read against Keycloak at commit `24b761c0`, cloned shallow to `/home/user/keycloak/keycloak`.
-Everything attributed to Keycloak below is `measured` — read from that source tree or from the docs
-inside it — and the commit is named so a later reader can tell when it expired.
+Everything attributed to Keycloak is `measured`, read from its source tree at commit `24b761c0` on
+**2026-08-22**. The commit is named so a later reader can tell when it expired; nothing here has
+been re-measured since.
+
+**This was `docs/oss-and-enterprise-readiness.md`, and its Tier 0 — the section that called the
+missing `LICENSE` file "the blocker" — was still telling readers this repository was unlicensed
+after the licence, the package metadata, `SECURITY.md`, `CONTRIBUTING.md`, `VERSIONING.md` and
+`CHANGELOG.md` had all shipped. That section is gone rather than corrected: a finished checklist is
+not a roadmap, and a document that reports the state of the world has to be either true or
+deleted.
 
 ---
 
@@ -39,81 +48,6 @@ means every Keycloak-based MCP deployment still has to write it.
 
 ---
 
-## 1. Tier 0 — the OSS blockers
-
-These are not enterprise features. They are the difference between publishing source and being open
-source, and the first one is legal rather than technical.
-
-### 1.1 There is no LICENSE file. **This is the blocker.**
-
-`find . -iname 'LICENSE*'` matches exactly one path, and it belongs to a third-party skill under
-`.claude/` that `CLAUDE.md` says is never committed. **The repository itself carries no licence.**
-
-Under the Berne Convention the default is not "public domain" and not "do what you like" — it is
-**all rights reserved**. Source published without a licence grants nobody the right to use, copy,
-modify or redistribute it. Every enterprise legal review terminates at that fact, and most corporate
-dependency scanners refuse an unlicensed package outright.
-
-It is worse than a missing file, because **fifteen packable projects are already publishing at
-`0.7.1`**, and `.github/workflows/publish-packages.yml` says in its own comment: *"A package pushed
-to a feed cannot be unpublished in any way."* Today they go to GitHub Packages; the same workflow
-notes that moving to nuget.org is *"one URL in the consumer's NuGet.config"* — which is exactly the
-move going OSS implies.
-
-**Fix, in order:**
-
-1. Choose a licence. **Apache-2.0** is the recommendation: it is what Keycloak uses, it carries an
-   explicit patent grant that MIT does not, and it is the licence enterprise legal teams approve
-   without a meeting. MIT is the alternative if brevity matters more than the patent grant.
-2. `LICENSE` at the repository root, verbatim, unmodified.
-3. `<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>` in `auth/Directory.Build.props`
-   — without it NuGet renders the package as unlicensed regardless of the repository's file.
-4. A per-file header, or a deliberate decision not to have one, written down. Keycloak headers every
-   file; .NET projects commonly do not. Either is defensible; silence is not.
-
-**Do this before the next package push.** It is an afternoon, and everything else in this document
-is worthless until it is done.
-
-### 1.2 The package metadata is nearly empty
-
-`Directory.Build.props` sets `Authors` and `RepositoryUrl` and stops. Missing: `Description`,
-`PackageTags`, `PackageProjectUrl`, `PackageReadmeFile`, `PackageLicenseExpression`, `Copyright`.
-
-A NuGet listing with no description is one a person cannot evaluate without cloning, and fifteen
-packages named `Boltway.*` with no descriptions are indistinguishable from each other on a
-search page. Cheap, and it is the first thing anyone sees.
-
-### 1.3 The governance files that a contributor looks for and does not find
-
-Keycloak carries `CONTRIBUTING.md`, `GOVERNANCE.md`, `MAINTAINERS.md`, `SECURITY.md`,
-`PR-CHECKLIST.md`, `ADOPTERS.md`, `SECURITY-INSIGHTS.yml`. This repository carries `README.md` and
-`LESSONS.md`.
-
-Not all seven are needed. Two are, and one of those is a security obligation:
-
-- **`SECURITY.md`** — **not optional for an authorization server.** It is where somebody who finds
-  an authentication bypass is told how to report it privately. Without it, the reporting path is a
-  public GitHub issue, which is a disclosure rather than a report. Enable GitHub private
-  vulnerability reporting at the same time; it is a checkbox.
-- **`CONTRIBUTING.md`** — and this repository has an unusually strong one available almost for free.
-  The rules a contributor must know already exist and are unusually explicit: warnings are errors,
-  `dotnet test` needs a live PostgreSQL and `scripts/postgres.sh` provides it, N-06 means never
-  advertise what you do not serve, and `LESSONS.md` is what a claim about somebody else's system
-  must survive. Today those are spread across `README.md`, `CLAUDE.md` and code comments.
-- `CODE_OF_CONDUCT.md` — conventional, cheap, expected by some corporate contributors.
-- `GOVERNANCE.md` / `MAINTAINERS.md` — for a two-person project these are premature. Skip and say why.
-
-### 1.4 `LESSONS.md` is a genuine differentiator and should be advertised as one
-
-Most OSS auth projects publish a feature list. This one can publish *twelve recorded instances of
-recording "we did not measure this" as "this is not there"*, and the rules that came out of them.
-For a security project, a public register of the errors it has made is a stronger trust signal than
-any feature table — it is the thing a careful reviewer cannot get from a competitor.
-
-Put it above the fold in the README rather than in a "Before trusting any of it" section.
-
----
-
 ## 2. Tier 1 — enterprise table stakes an authorization server is actually judged on
 
 Not Keycloak parity. The things an enterprise reviewer checks before deploying *any* AS, ranked by
@@ -128,7 +62,7 @@ how badly their absence lands.
 | 2.5 | **No second factor of any kind** | none — no TOTP, no WebAuthn, no recovery codes | Keycloak has all three at `DEFAULT`. For local accounts this is the most commonly-blocking single absence. **Interacts with 2.1**: if federation is the answer, MFA is the upstream's problem and this becomes a documented non-goal rather than a gap | 2–3 wks, or 0 with 2.1 |
 | 2.6 | **Extension points are thin** | 31 public interfaces, several of them stores | Keycloak has **107 SPIs**, and that is why it survives requirements nobody anticipated. 107 is the wrong target; the right question is which five seams a deployment most often needs and cannot reach today — a token-claims mapper and an event sink are the obvious two | 1 wk to decide |
 | 2.7 | **No structured event stream** | An append-only admin audit log, plus rejection logging | An audit log is not a SIEM feed. Enterprises want authentication events — sign-in, failure, token issued, consent granted — shipped to Splunk/Elastic. Keycloak has an events SPI plus `USER_EVENT_METRICS` at `DEFAULT`. We have metrics, which is half of it | 1–2 wks |
-| 2.8 | **Upgrade and compatibility policy is unwritten** | Version `0.7.1`, no compatibility statement | At 0.x anything may break, which is fine and must be *said*. Enterprises need to know what 1.0 will promise: which surfaces are stable, what a migration looks like, how long a version is supported. Keycloak has rolling updates as a shipped feature | days |
+| ~~2.8~~ | ~~**Upgrade and compatibility policy is unwritten**~~ — **done.** `VERSIONING.md` states what 0.x promises and what 1.0 will; `CHANGELOG.md` records the breaks; `EnablePackageValidation` makes an unintended one fail the pack | Was: version `0.7.1` (itself wrong — the feed says 0.1.0), no compatibility statement | At 0.x anything may break, which is fine and must be *said*. Enterprises need to know what 1.0 will promise: which surfaces are stable, what a migration looks like, how long a version is supported. Keycloak has rolling updates as a shipped feature | days |
 
 **What we already have and should stop underselling.** The scan expected several of these to be
 missing and they are not: `RealmId` threads through every lookup (14 files), three named meters with
@@ -187,10 +121,7 @@ principled rather than incidental.
 
 | # | Item | Effort | Why here |
 |---|---|---|---|
-| 1 | LICENSE + package metadata (§1.1, §1.2) | hours | Legally blocking, and a package pushed cannot be unpushed |
-| 2 | `SECURITY.md` + private vulnerability reporting (§1.3) | hours | An AS without a private reporting path turns its first report into a disclosure |
-| 3 | `CONTRIBUTING.md` (§1.3) | 1 day | The content already exists; it is scattered |
-| 4 | Compatibility and 0.x/1.0 policy (§2.8) | 1 day | Cheap, and it is what an evaluator asks after the licence |
+| ~~1–4~~ | ~~LICENSE, package metadata, `SECURITY.md`, `CONTRIBUTING.md`, the 0.x/1.0 policy~~ | — | **Done.** Kept as rows rather than deleted so the ordering below still reads as an argument rather than a list starting at five |
 | 5 | One live upstream IdP, measured (§2.1) | 1–2 wks | Unblocks the federation answer, and 2.5 may fold into it |
 | 6 | Structured event stream (§2.7) | 1–2 wks | The most-asked integration after federation |
 | 7 | OpenID self-certification (§2.2) | 1–2 wks | Free, and it is a procurement checkbox |
