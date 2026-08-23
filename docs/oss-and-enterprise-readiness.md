@@ -1,6 +1,6 @@
 # Going open source, and what "enterprise" has to mean first
 
-**Date:** 2026-08-22 · **Status:** proposal · **Scope:** the whole repository, not just `auth/`
+**Date:** 2026-08-22 · **Status:** proposal · **Scope:** the whole repository, not just the authorization server
 
 Read against Keycloak at commit `24b761c0`, cloned shallow to `/home/user/keycloak/keycloak`.
 Everything attributed to Keycloak below is `measured` — read from that source tree or from the docs
@@ -99,9 +99,9 @@ Not all seven are needed. Two are, and one of those is a security obligation:
   The rules a contributor must know already exist and are unusually explicit: warnings are errors,
   `dotnet test` needs a live PostgreSQL and `scripts/postgres.sh` provides it, N-06 means never
   advertise what you do not serve, and `LESSONS.md` is what a claim about somebody else's system
-  must survive. Today those are spread across `auth/README.md`, `CLAUDE.md` and code comments.
+  must survive. Today those are spread across `README.md`, `CLAUDE.md` and code comments.
 - `CODE_OF_CONDUCT.md` — conventional, cheap, expected by some corporate contributors.
-- `GOVERNANCE.md` / `MAINTAINERS.md` — for two founders these are premature. Skip and say why.
+- `GOVERNANCE.md` / `MAINTAINERS.md` — for a two-person project these are premature. Skip and say why.
 
 ### 1.4 `LESSONS.md` is a genuine differentiator and should be advertised as one
 

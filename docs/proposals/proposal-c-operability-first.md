@@ -3,8 +3,8 @@
 **An OAuth 2.1 + OIDC authorization server for Boltway, designed so that every failure is
 diagnosable from outside the process.**
 
-Target: `net10.0`, SDK 10.0.302 (pinned in `/home/user/Boltway/auth/global.json`).
-Package versions already centralised in `/home/user/Boltway/auth/Directory.Packages.props`.
+Target: `net10.0`, SDK 10.0.302 (pinned in this repository's `global.json`).
+Package versions already centralised in `Directory.Packages.props`.
 Requirement IDs refer to `research/REQUIREMENTS.md`; §10 of that document wins on conflict.
 
 ---
@@ -12,7 +12,7 @@ Requirement IDs refer to `research/REQUIREMENTS.md`; §10 of that document wins 
 ## 0. The thesis, and what it changes
 
 The field report this project comes from
-(`research/anthropic-claude-client-behavior.md`, `FictStoryEngine/docs/integration/idp-configuration.md`)
+(`research/anthropic-claude-client-behavior.md`, and a deployment's own `docs/integration/idp-configuration.md`)
 is not a list of missing features. It is a list of **failures that could not be attributed**:
 
 | Symptom in the field | Real cause | Where the answer was |
@@ -45,7 +45,7 @@ that outweighs the thing observed is a real failure mode and I name the line.
 
 ## 1. Assembly split
 
-`/home/user/Boltway/auth/` — twelve shipping projects, four test projects.
+This repository — twelve shipping projects, four test projects.
 
 ```
 auth/
@@ -172,7 +172,7 @@ RFC 7662 introspection client, the grant-id denylist client.
 *Why a boundary — the question the brief asks:* **a customer who wants only the resource-server
 middleware takes `Boltway.Auth.ResourceServer`, `.Primitives`, `.Diagnostics`,
 `.Abstractions`, `.Http`. Five packages, no EF Core, no ASP.NET MVC/Razor, no AS.** That claim is
-verified, not asserted — see the boundary test in §7.4, which is the C# port of FictStoryEngine's
+verified, not asserted — see the boundary test in §7.4, which is the C# port of the TypeScript connector's
 `npm run check:boundary`, including step (4): copy the RS projects to an empty directory *without*
 Core/Server/Storage present and build. If it builds, the boundary holds.
 
@@ -1177,7 +1177,7 @@ public void ResourceServer_distribution_does_not_drag_in_the_authorization_serve
 }
 ```
 
-Plus the FictStoryEngine step (4) equivalent as a script, `eng/check-boundary.sh`: copy the five
+Plus that connector's step (4) equivalent as a script, `eng/check-boundary.sh`: copy the five
 projects into a scratch directory with no other sources present and `dotnet build`. A green build
 there is proof; a passing reference-graph assertion alone is only evidence.
 
@@ -1214,7 +1214,7 @@ rs.token.rejected / .insufficient_scope
 ```
 
 `Serilog` with `Serilog.Sinks.Console` in `CompactJsonFormatter` by default. Redaction is a
-destructuring policy modelled on FictStoryEngine's `redact()`: regex for `Bearer\s+\S+` and
+destructuring policy modelled on the TypeScript connector's `redact()`: regex for `Bearer\s+\S+` and
 `eyJ[A-Za-z0-9._-]{20,}` over every string field, plus a key denylist. It runs on *every* field, not
 the ones we remember — a JWT that ends up in an `error_description` because someone concatenated it
 is exactly the leak that a field-selective redactor misses.
@@ -1261,9 +1261,9 @@ The stage breakdown matters: `AuthorizePipeline` records elapsed per stage into 
 events, so a slow `/authorize` says *which stage* (almost always the CIMD fetch or the store).
 Without it, "authorize is slow" is a fortnight.
 
-### 8.4 The doctor — the C# equivalent of FictStoryEngine's `--doctor`
+### 8.4 The doctor — the C# equivalent of the TypeScript connector's `--doctor`
 
-FictStoryEngine's `diagnostics.ts` has three sections (tool catalogue, resource server config,
+That connector's `diagnostics.ts` has three sections (tool catalogue, resource server config,
 live authorization-server preflight) and returns *data* — `{ text, failed }` — so a deploy script
 gates on the exit code and a human reads the same output. That shape is right and I keep it:
 
@@ -1298,7 +1298,7 @@ What it checks:
 
 *Configuration (static, no network):*
 1. `Issuer` is https, no trailing slash, no query/fragment, and `Ordinal`-equal to the
-   token-signing issuer constant (N-13). — *the FictStory audit's `1.2a` "issuer matches byte for
+   token-signing issuer constant (N-13). — *a prior audit's `1.2a` "issuer matches byte for
    byte", which it calls out as "cheap to check, expensive to discover during a review".*
 2. Exactly one client-acquisition mechanism advertised (N-06/A-05), naming both if not.
 3. Every advertised `token_endpoint_auth_methods_supported` value has a registered
@@ -1347,7 +1347,7 @@ What it checks:
     command to run from outside. This is the single most valuable line in the whole report and it
     is honest about what it does not know rather than printing a green tick.
 
-Output is the same two-column text FictStory produces, plus `--json` for a deploy gate.
+Output is the same two-column text that connector produces, plus `--json` for a deploy gate.
 
 ### 8.5 The admin surface (A-16, A-17)
 
@@ -1526,5 +1526,5 @@ Ordered by what I would drop first.
   proves the product does the thing it is for.
 
 The deadline pressure should fall on `app`-shaped surface — endpoints, providers, admin
-convenience — never on `core`-shaped guarantees. That is the same rule
-`FictStoryEngine/CLAUDE.md` states for its own deadline, and it was right there too.
+convenience — never on `core`-shaped guarantees. That was the same rule on the deployment this
+project comes from, under its own deadline, and it was right there too.

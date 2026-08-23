@@ -275,6 +275,17 @@ public sealed class NorthwindRendererTests : InteractionRendererContract
 Both seams use `TryAdd`, so a registration made **before** `AddBoltwayAuthorizationServer`
 wins. Registering after it does nothing, silently.
 
+**Language is a fourth axis, orthogonal to all three tiers.** Every sentence these pages say is a key
+in `InteractionText`, and a deployment replaces any subset of them with a JSON file — untranslated
+keys fall back to English one string at a time, so a partial translation is a partial translation
+rather than a broken page. `ui_locales` (OIDC Core §3.1.2.1) picks the language per request, and
+`ui_locales_supported` advertises exactly what the middleware will honour, because startup refuses
+the two disagreeing. The admin pages and the mail have their own tables and their own failure modes.
+One thing to know before you reference this from a container image: this library needs a culture to
+be *nameable*, so `InvariantGlobalization=true` on its own — which implies
+`PredefinedCulturesOnly=true` — throws `CultureNotFoundException` at startup.
+[`docs/LOCALIZATION.md`](docs/LOCALIZATION.md) is the whole of it, with an example translation file.
+
 ---
 
 ## What is deliberately not implemented

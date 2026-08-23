@@ -1,7 +1,7 @@
 # Proposal A — Security-First Architecture
 
 **Boltway Authorization Server** · OAuth 2.1 + OIDC, from scratch, `net10.0`
-Target repo: `/home/user/Boltway/auth/` (ground already pinned in `Directory.Build.props`,
+Target repo: this one (ground already pinned in `Directory.Build.props`,
 `Directory.Packages.props`, `global.json`, `.editorconfig` — commit `83feebf`).
 
 Requirement IDs cite `research/REQUIREMENTS.md`. §10 of that document wins on conflict with §6/§9.
@@ -77,7 +77,7 @@ Boltway.Oidc.Net      Boltway.Oidc.Abstractions   Boltway.Oidc.ResourceServer
 
 `Boltway.Oidc.ResourceServer` deliberately does **not** reference `Abstractions` or `Server`.
 That is the reuse boundary the Boltway playbook needs: it is the C# analogue of
-`mcp-server/core/` in FictStoryEngine, and the same one-directional rule applies.
+a TypeScript MCP connector's `mcp-server/core/`, and the same one-directional rule applies.
 
 ### 1.2 Every project
 
@@ -113,7 +113,7 @@ builder.Services.AddBoltwayResourceServer(o =>
     o.Resource   = "https://mcp.example.com/mcp";       // RFC 9728 §2, A-22 — a path is fine
     o.Authority  = "https://auth.example.com";          // first entry of authorization_servers, C-27
     o.Scopes     = ["mcp:tools", "story:read", "story:write"];   // NO offline_access — C-22
-    o.ResourceName = "FictStory MCP";
+    o.ResourceName = "Example MCP";
 });
 app.UseBoltwayResourceServer();   // maps E-22, E-23; installs bearer validation
 ```

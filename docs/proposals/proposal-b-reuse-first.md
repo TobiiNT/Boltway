@@ -4,7 +4,7 @@
 below is made for deployment ten, not deployment one. Where that costs indirection, the cost is
 stated. Where it does not pay, generalization is refused and the refusal is named.
 
-**Repo location:** `/home/user/Boltway/auth/` (the `Directory.Build.props`,
+**Repo location:** this repository (the `Directory.Build.props`,
 `Directory.Packages.props`, `global.json` and the pinned drafts in `spec/` are already there and
 this proposal builds on them, not around them).
 
@@ -46,7 +46,7 @@ pre-configured immutable issuer strings; it never **produces** one. The type mak
 cross-customer blast radius, and the `A-09` correlation story gets much harder. The savings are
 hosting cost, which is the customer's, not ours.
 
-*Naming trap:* the FictStory resource-server layer already uses "tenant" for the **subject-derived
+*Naming trap:* the TypeScript connector's resource-server layer already uses "tenant" for the **subject-derived
 data scope** (`identity.ts`, `assertSafeTenantId`). That is a different concept at a different
 layer. The AS-side concept is **Realm**. Never use "tenant" in AS code.
 
@@ -85,7 +85,7 @@ story at all. A template exists, but it references the packages; it never vendor
 ### 0.3 Both halves ship, and they share the comparison primitives.
 
 `E-22`..`E-24` say we ship resource-server middleware. There is already a TypeScript implementation
-of exactly that at `/home/user/FictStoryEngine/mcp-server/core/src`. §11 below answers whether
+of exactly that in the TypeScript MCP connector this project comes from. §11 below answers whether
 shipping both is coherent. The short version, because it drives the assembly split: **the AS and the
 RS must agree byte-for-byte on issuer comparison, `resource` identity, `aud` matching, media-type
 parsing and `WWW-Authenticate` quoting.** Shipping both from one repo lets those be *the same
@@ -355,7 +355,7 @@ providers and is index-friendly. Client-generated, so inserts need no round-trip
 This also hands us `A-18` for free: **the `sub` we emit is a `Ulid`, charset `[0-9A-HJKMNP-TV-Z]{26}`.**
 No `|`, no `/`, no `.`, no `@`. It is safe as a path segment, a filename, a cache key and a
 column name, and the charset is documented in the metadata service documentation. This is a
-deliberate improvement on `auth0|<hex>`, which forced FictStory to write a sanitiser and a
+deliberate improvement on `auth0|<hex>`, which forced one deployment to write a sanitiser and a
 collision-disambiguation path.
 
 **3.2.5 The rule that dissolves collation.** SQLite's `NOCASE` and PostgreSQL's collations differ,
@@ -460,7 +460,7 @@ because GitHub has no ID token and pretending otherwise produces a base class fu
 
 The seam **cannot** return a local `sub`: it returns `ExternalIdentity`, and `IUserProvisioner` maps
 `(UpstreamIssuer, UpstreamSubject)` → local `User` through the `ExternalLogin` table. This is `D-10`
-made structural — the disambiguation surface that FictStory's `identity.ts` had to reason about
+made structural — the disambiguation surface that the connector's `identity.ts` had to reason about
 cannot open, because upstream subjects never become local ones.
 
 ### 4.3 Token format and minting (`D-02`)
@@ -1077,7 +1077,7 @@ given a test credential.
   a three-replica deployment racing on `Database.Migrate()` is a real outage. Migration is a separate
   entrypoint: `boltway migrate`, run as a Kubernetes `Job` or a compose one-shot.
 - **At boot the AS asserts the schema is current and refuses to start otherwise**, naming the exact
-  command to run — the same shape as FictStory's `--doctor`, which exists because a server that starts
+  command to run — the same shape as that connector's `--doctor`, which exists because a server that starts
   with a broken configuration and discovers it on the first user connection is worse than one that
   refuses to start.
 - **Expand/contract is a release rule, tested.** Every release's migrations must be applicable while
@@ -1146,7 +1146,7 @@ rotation that has never been exercised is a rotation that fails.
 
 ## 9. Resource-server side: borrow, differ, coherence
 
-I read `/home/user/FictStoryEngine/mcp-server/core/src` (`auth/`, `metadata/`, `http/`, `limits/`,
+I read the TypeScript connector's `mcp-server/core/src` (`auth/`, `metadata/`, `http/`, `limits/`,
 `net/`). It is good code and most of it should be ported rather than re-derived.
 
 ### 9.1 Borrow, close to verbatim

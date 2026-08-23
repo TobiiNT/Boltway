@@ -713,7 +713,7 @@ and three of the five are rules the code already documents and does not enforce.
    revoking grants does not touch a cookie.
 
    ✅ **`/me/consents` is the fourth page**, added after step 11. §7.2 named three paths and shipped
-   three, leaving withdrawal in a browser impossible — the gap was named in `auth/README.md` rather
+   three, leaving withdrawal in a browser impossible — the gap was named in `README.md` rather
    than closed by inventing a path, and this is closing it rather than renaming it.
 
    It describes each approval with the deployment's `ScopeDescriptions`, not with the wire scope: a
@@ -848,7 +848,7 @@ restating.
 | Seam | `IInteractionRenderer` (`RenderLogin`, `RenderConsent`), `IInteractionLayout`, both public |
 | Default | `DefaultInteractionRenderer`, 272 lines, `public` so a customer can wrap rather than replace |
 | Styling | one 212-line stylesheet in the host's `wwwroot` |
-| JavaScript | **none.** Not one `.js` file in `auth/` |
+| JavaScript | **none.** Not one `.js` file in the repository |
 | CSP, every page | `default-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'`, with an opt-in nonce |
 | Antiforgery | on the login and consent POSTs |
 
@@ -877,7 +877,7 @@ Two things turned up that are not part of this design and are worth more than mo
 **Take the BFF**, for the reason §1.1 gives: what is behind this API is the directory, not a
 document. *OAuth 2.0 for Browser-Based Apps* reaches the same recommendation for the same class of
 application, and it is one of the few places where the safer option is also the smaller one here —
-a BFF that renders forms server-side keeps `auth/`'s zero-JavaScript property, reuses the existing
+a BFF that renders forms server-side keeps the repository's zero-JavaScript property, reuses the existing
 stylesheet, and needs neither CORS nor a CSP exception.
 
 `N-17` is untouched by it. The browser's cookie is scoped to the BFF's own hostname and its own
@@ -885,13 +885,13 @@ session; the admin API only ever sees a bearer token, which is exactly what the 
 
 The BFF is a **confidential** client — it has a secret and is not a browser app — so it uses the
 client store and `client_secret_basic` that already exist. It will show its own consent screen to
-the founder once, which reads oddly and is correct: consent is what binds `users:write` to a person
+the administrator once, which reads oddly and is correct: consent is what binds `users:write` to a person
 who is entitled to it (§1.3), and an admin UI that skipped it would be the one client exempt from
 the check.
 
 ### 7.2 Self-service pages and the self-service API are different surfaces, and `N-17` has to say which
 
-Taken literally, `N-17` covers `/account/*` as well, which would mean a founder changing their own
+Taken literally, `N-17` covers `/account/*` as well, which would mean a user changing their own
 password needs an OAuth client to do it. That is absurd, and the way out is **not** to soften the
 rule.
 
@@ -1115,7 +1115,7 @@ directions are now pinned by tests, because the first one reads as a bug to whoe
 The last line is the part worth deciding rather than discovering. **Listing a culture puts it in
 `Accept-Language` negotiation**, so a Vietnamese deployment that offers English serves English to a
 browser that asks for it, default or no default. That is what the header is for and it is the
-standard behaviour — and it means the language a founder sees depends on their browser rather than
+standard behaviour — and it means the language a user sees depends on their browser rather than
 on the deployment's configuration. Northwind ships `vi` alone for that reason; `deploy/ui/README.md`
 states the consequence beside the change that turns it on.
 

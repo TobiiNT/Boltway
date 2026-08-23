@@ -57,7 +57,7 @@ reach for, and three of them are strictly better engineering:
 
 | Graft | Why it wins |
 |---|---|
-| **`sub` is a ULID**, 26 chars of Crockford base32, `[0-9A-HJKMNP-TV-Z]{26}` | Satisfies `A-18` *by construction*. No `\|`, `/`, `.`, or `@`, so it is safe as a path segment, filename, cache key and column name with no sanitiser and no collision-disambiguation path. This is a deliberate improvement on `auth0\|<hex>`, which forced FictStory to write both |
+| **`sub` is a ULID**, 26 chars of Crockford base32, `[0-9A-HJKMNP-TV-Z]{26}` | Satisfies `A-18` *by construction*. No `\|`, `/`, `.`, or `@`, so it is safe as a path segment, filename, cache key and column name with no sanitiser and no collision-disambiguation path. This is a deliberate improvement on `auth0\|<hex>`, which forced one deployment to write both |
 | **`RealmId` on every table and every store method from day one** | Free now, a migration across ten live customer databases later. `S-08` (path-less issuer) + `N-13` (issuer never from `Request.Host`) leave only one-issuer-per-process or host-mapped selection; the column makes host-mapping a v1.1 feature rather than a schema change |
 | **Every security-relevant comparison happens in C# with `StringComparison.Ordinal`, never in a `WHERE` clause** | Dissolves the entire PostgreSQL-collation class of bug rather than patching it. See §1.3 flaw 4 for the necessary carve-out |
 | **A CIMD client is not an entity** | `A-08` requires 100 sequential CIMD connects to leave the client table unchanged. "Just cache it in the clients table" is the obvious move and it breaks the zero-registration property CIMD exists for |
@@ -670,5 +670,5 @@ Each step leaves a green build and something runnable.
   dependency; finding out from a customer is the expensive way.
 
 Deadline pressure falls on `app`-shaped surface — endpoints, providers, admin convenience — never on
-`core`-shaped guarantees. That is the rule `FictStoryEngine/CLAUDE.md` states for its own deadline,
-and it was right there too.
+`core`-shaped guarantees. That was the rule on the deployment this was extracted from, under its own
+deadline, and it was right there too.

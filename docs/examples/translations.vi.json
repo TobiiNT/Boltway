@@ -1,0 +1,34 @@
+{
+  "vi": {
+    "ShellTagline": "Một lần đăng nhập cho mọi ứng dụng",
+    "ShellDomain": "auth.example.com",
+
+    "LoginTitle": "Đăng nhập",
+    "LoginUsername": "Tên đăng nhập hoặc email",
+    "LoginPassword": "Mật khẩu",
+    "LoginSubmit": "Đăng nhập",
+    "LoginRejected": "Tên đăng nhập hoặc mật khẩu không đúng.",
+    "LoginWithProvider": "Đăng nhập bằng {0}",
+    "LoginForgotPassword": "Tôi quên mật khẩu",
+
+    "ConsentTitle": "Uỷ quyền truy cập",
+    "ConsentClientAsking": "Ứng dụng tại {0} đang xin quyền truy cập tài khoản của bạn.",
+    "ConsentNameClaim": "Ứng dụng tự gọi mình là “{0}”.",
+    "ConsentNameUnverified": "Tên đó do chính ứng dụng đặt và chưa được xác minh.",
+    "ConsentCodeGoesTo": "Nếu bạn chấp thuận, mã uỷ quyền sẽ được gửi tới {0}.",
+    "ConsentDeviceWarning": "Ứng dụng này nhận mã ngay trên thiết bị của bạn.",
+    "ConsentDeviceWarningAdvice": "Chỉ chấp thuận nếu bạn vừa mở việc này từ một ứng dụng bạn tin tưởng trên thiết bị này.",
+    "ConsentScopesHeading": "Ứng dụng đang xin",
+    "ConsentResourcesHeading": "Tại",
+    "ConsentApprove": "Chấp thuận",
+    "ConsentDeny": "Từ chối",
+
+    "ErrorTitle": "Lỗi uỷ quyền",
+    "ErrorHeading": "Không thể uỷ quyền yêu cầu này",
+    "ErrorStartAgain": "Yêu cầu này không còn hiệu lực — có thể nó đã hết hạn, hoặc trang này được mở riêng lẻ. Hãy bắt đầu lại từ ứng dụng bạn đang kết nối.",
+    "ErrorDeveloperDetail": "Chi tiết kỹ thuật, dành cho người quản lý ứng dụng:",
+    "ErrorReference": "Mã tham chiếu: {0}"
+  },
+
+  "en": {}
+}

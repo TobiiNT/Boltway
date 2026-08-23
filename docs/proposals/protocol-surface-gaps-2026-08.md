@@ -1,6 +1,6 @@
 # Protocol-surface gaps — an upgrade plan, read against better-auth 1.7.x
 
-**Date:** 2026-08-22 · **Status:** proposal · **Scope:** `auth/`
+**Date:** 2026-08-22 · **Status:** proposal · **Scope:** the authorization server
 
 ## 0. Why this document exists
 
