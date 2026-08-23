@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Net;
 using System.Text;
 using Boltway.AuthorizationServer.Configuration;
@@ -24,7 +25,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// </para>
 /// <para>
 /// <b>The shell is two boxes and the stylesheet decides what that means.</b>
-/// <c>ck-shell &gt; ck-panel + ck-content</c> is enough structure for a split-panel sign-in — brand
+/// <c>bw-shell &gt; bw-panel + bw-content</c> is enough structure for a split-panel sign-in — brand
 /// on the left, the decision on the right — and for the same markup to stack into a header bar on a
 /// phone. It is emitted unconditionally, including when nothing is themed: an unstyled page is then
 /// the brand panel's few words followed by the body, in that order, which reads correctly with no
@@ -98,7 +99,17 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
 
         var document = new StringBuilder("<!DOCTYPE html><html lang=\"")
             .Append(language)
-            .Append("\"><head><meta charset=\"utf-8\">")
+            .Append('"');
+
+        // Read off the same string `lang` carries, so the two attributes cannot come to disagree
+        // about what language this page is in. Absent rather than `dir="ltr"` on everything else:
+        // no `dir` already means left-to-right, so writing one would be a second place saying so.
+        if (IsRightToLeft(language))
+        {
+            document.Append(" dir=\"rtl\"");
+        }
+
+        document.Append("><head><meta charset=\"utf-8\">")
             .Append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
 
         foreach (var stylesheet in _options.StylesheetPaths)
@@ -107,12 +118,12 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
         }
 
         document.Append("<title>").Append(Encode(Titled(page.Title))).Append("</title></head><body>")
-            .Append("<div class=\"ck-shell\">");
+            .Append("<div class=\"bw-shell\">");
 
         Panel(document);
 
         return document
-            .Append("<main class=\"ck-content\">").Append(page.Body).Append("</main>")
+            .Append("<main class=\"bw-content\">").Append(page.Body).Append("</main>")
             .Append("</div></body></html>")
             .ToString();
     }
@@ -141,20 +152,20 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
     /// </remarks>
     private void Panel(StringBuilder document)
     {
-        document.Append("<aside class=\"ck-panel\">");
+        document.Append("<aside class=\"bw-panel\">");
 
         if (_options.LogoPath is { Length: > 0 } logo)
         {
             // Empty alt when there is no product name. A decorative image announced as "logo" tells
             // a screen-reader user nothing they can act on, and inventing a description for an image
             // this code has never seen would be worse than announcing nothing.
-            document.Append("<p class=\"ck-brand\"><img src=\"").Append(Encode(logo))
+            document.Append("<p class=\"bw-brand\"><img src=\"").Append(Encode(logo))
                 .Append("\" alt=\"").Append(Encode(_options.ProductName)).Append("\"></p>");
         }
 
         if (Text(InteractionText.ShellTagline) is { Length: > 0 } tagline)
         {
-            document.Append("<p class=\"ck-tagline\">").Append(Encode(tagline)).Append("</p>");
+            document.Append("<p class=\"bw-tagline\">").Append(Encode(tagline)).Append("</p>");
         }
 
         // Which server this is, said on the page rather than only in the address bar. It is the
@@ -162,7 +173,7 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
         // N-14's way: nothing a client controls can reach this line.
         if (Text(InteractionText.ShellDomain) is { Length: > 0 } domain)
         {
-            document.Append("<p class=\"ck-domain\">").Append(Encode(domain)).Append("</p>");
+            document.Append("<p class=\"bw-domain\">").Append(Encode(domain)).Append("</p>");
         }
 
         document.Append("</aside>");
@@ -176,4 +187,47 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
     private string Text(string key) => InteractionText.Plain(_localizer, key);
 
     private static string Encode(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
+
+    /// <summary>Whether a BCP 47 tag names a language whose modern script runs right to left.</summary>
+    /// <remarks>
+    /// The primary subtag decides it, because direction is a property of the writing system and not
+    /// of the country: <c>ar-EG</c> and <c>ar-MA</c> are one script, and a table keyed on whole
+    /// culture names would need a row for every region a deployment ever configures.
+    /// </remarks>
+    private static bool IsRightToLeft(string language)
+    {
+        var separator = language.IndexOf('-');
+
+        return RightToLeftLanguages.Contains(separator < 0 ? language : language[..separator]);
+    }
+
+    /// <summary>The primary subtags this shell mirrors for, matched ordinally and case-insensitively.</summary>
+    /// <remarks>
+    /// <para>
+    /// <b>A list rather than <see cref="System.Globalization.TextInfo.IsRightToLeft"/>, because that
+    /// property cannot answer the question in this assembly.</b> It reads ICU data, and the build
+    /// sets <c>InvariantGlobalization</c>, under which every culture carries invariant data.
+    /// Measured 2026-08-23 on .NET SDK 10.0.111 by constructing each tag below and reading the
+    /// property: all nine returned <see langword="false"/>, exactly as <c>en</c> did. So the
+    /// framework call is not unavailable here — it is a silent wrong answer for every language
+    /// alike, and would have shipped as "no page is ever right-to-left" with nothing failing.
+    /// </para>
+    /// <para>
+    /// <b>Case-insensitive as a guard on the seam, not because the caller needs it.</b> Measured the
+    /// same day: .NET normalizes a culture name's language subtag to lower case, so
+    /// <c>GetCultureInfo("AR").Name</c> is <c>ar</c> and nothing mixed-case reaches this set through
+    /// <c>CurrentUICulture</c> today. That is a property of the framework rather than of this file,
+    /// and an ordinal comparer would make it one this file depends on — so there is no test pinning
+    /// the insensitivity, because there is no path here that exercises it.
+    /// </para>
+    /// <para>
+    /// A tag this list does not know renders left-to-right, which is the direction to be wrong in.
+    /// Missing one leaves that language's page with its panel and accent bars on the far edge;
+    /// mirroring one wrongly does the same thing to a language that was reading correctly before.
+    /// </para>
+    /// </remarks>
+    private static readonly FrozenSet<string> RightToLeftLanguages =
+        FrozenSet.ToFrozenSet(
+            ["ar", "he", "fa", "ur", "ps", "sd", "yi", "ckb", "dv"],
+            StringComparer.OrdinalIgnoreCase);
 }

@@ -117,7 +117,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         // ordering N-14 fixes becomes three things the same size. Named rather than counted, for the
         // reason the device warning below has carried since it was the only class here: position is
         // not a contract.
-        body.Append("<p class=\"ck-client\">")
+        body.Append("<p class=\"bw-client\">")
             .Append(Text(InteractionText.ConsentClientAsking, Strong(model.ClientHost)))
             .Append("</p>");
 
@@ -128,7 +128,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             // `Acme & "Claude"` as the literal text `Acme &amp; &quot;Claude&quot;`, and `Café` as
             // `Caf&#233;`. Every value on the model is now plain text, so this method's uniform
             // Encode is both correct and the only place encoding happens.
-            body.Append("<p class=\"ck-name\">");
+            body.Append("<p class=\"bw-name\">");
 
             // Inside this paragraph, and after the hostname's, because both facts about where it
             // sits are the whole of what makes it safe to draw. A logo is the same self-assertion
@@ -145,7 +145,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             // all rather than as a broken-image box beside the client's name.
             if (model.ClientLogoUrl is { Length: > 0 } logo)
             {
-                body.Append("<img class=\"ck-client-logo\" src=\"").Append(Encode(logo))
+                body.Append("<img class=\"bw-client-logo\" src=\"").Append(Encode(logo))
                     .Append("\" alt=\"\" width=\"20\" height=\"20\"> ");
             }
 
@@ -155,7 +155,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
                 .Append("</em></p>");
         }
 
-        body.Append("<p class=\"ck-redirect\">")
+        body.Append("<p class=\"bw-redirect\">")
             .Append(Text(InteractionText.ConsentCodeGoesTo, Strong(model.RedirectHost)))
             .Append("</p>");
 
@@ -171,7 +171,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             // them, because it counts elements and ignores the leading text node. A stylesheet
             // trying anyway highlights all three, which drowns the one warning N-14 asks for in two
             // that are merely informational. Measured, on this page, before this class existed.
-            body.Append("<p class=\"ck-warning\"><strong>")
+            body.Append("<p class=\"bw-warning\"><strong>")
                 .Append(Text(InteractionText.ConsentDeviceWarning))
                 .Append("</strong> ")
                 .Append(Text(InteractionText.ConsentDeviceWarningAdvice))
@@ -179,7 +179,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         }
 
         body.Append("<h2>").Append(Text(InteractionText.ConsentScopesHeading))
-            .Append("</h2><ul class=\"ck-scopes\">");
+            .Append("</h2><ul class=\"bw-scopes\">");
 
         foreach (var scope in model.Scopes)
         {
@@ -205,7 +205,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         if (model.Resources.Count > 0)
         {
             body.Append("<h2>").Append(Text(InteractionText.ConsentResourcesHeading))
-                .Append("</h2><ul class=\"ck-resources\">");
+                .Append("</h2><ul class=\"bw-resources\">");
 
             foreach (var resource in model.Resources)
             {
@@ -215,7 +215,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             body.Append("</ul>");
         }
 
-        body.Append("<form class=\"ck-decision\" method=\"post\" action=\"")
+        body.Append("<form class=\"bw-decision\" method=\"post\" action=\"")
             .Append(Encode(AuthorizationServerPaths.Consent)).Append("\">")
             .Append(Hidden(model.AntiforgeryFieldName, model.AntiforgeryToken))
             .Append(Hidden("returnUrl", model.ReturnUrl))
@@ -244,7 +244,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             // Same hook as the consent page's device warning: a failed sign-in and "approve only if
             // you started this" are the two things on these pages a user must not skim past, and a
             // deployment styling one should get the other for free.
-            body.Append("<p class=\"ck-warning\"><strong>")
+            body.Append("<p class=\"bw-warning\"><strong>")
                 .Append(Text(InteractionText.LoginRejected))
                 .Append("</strong></p>");
         }
@@ -264,7 +264,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             // the prefix cannot shift. This form's action is one path and could have been matched
             // the same way; the class is here because "the password form" is what a sheet means,
             // and a deployment that mounts the server under a prefix moves the path.
-            body.Append("<form class=\"ck-signin\" method=\"post\" action=\"")
+            body.Append("<form class=\"bw-signin\" method=\"post\" action=\"")
                 .Append(Encode(AuthorizationServerPaths.Login)).Append("\">")
                 .Append(Hidden(model.AntiforgeryFieldName, model.AntiforgeryToken))
                 .Append(Hidden("returnUrl", model.ReturnUrl))
@@ -284,7 +284,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             // has forgotten their password a 404.
             if (model.PasswordRecoveryEnabled)
             {
-                body.Append("<p class=\"ck-aside\"><a href=\"")
+                body.Append("<p class=\"bw-aside\"><a href=\"")
                     .Append(Encode(AuthorizationServerPaths.Forgot)).Append("\">")
                     .Append(Text(InteractionText.LoginForgotPassword)).Append("</a></p>");
             }
@@ -326,7 +326,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
             if (model.LocalPasswordsEnabled && model.ExternalProviders.Count > 0)
             {
-                body.Append("<p class=\"ck-or\">").Append(Text(InteractionText.LoginOrPassword)).Append("</p>");
+                body.Append("<p class=\"bw-or\">").Append(Text(InteractionText.LoginOrPassword)).Append("</p>");
             }
 
             Password();
@@ -467,7 +467,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         // qualification above stays and this says what is in flight.
         if (model.VerificationNotice is not EmailVerificationNotice.None)
         {
-            body.Append("<dd><p class=\"ck-notice\">")
+            body.Append("<dd><p class=\"bw-notice\">")
                 .Append(Text(model.VerificationNotice is EmailVerificationNotice.Sent
                     ? InteractionText.AccountVerifyEmailSent
                     : InteractionText.AccountVerifyEmailTooSoon))
@@ -1007,7 +1007,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// <b>One method, because the two pages are two views of one authorization and a reader moves
     /// between them in a click.</b> They were written separately and drifted immediately: the
     /// approvals page rendered the configured descriptions and the sessions page rendered the wire
-    /// scope, so a founder saw <c>email docs:read docs:write</c> on one and sentences on the other, for
+    /// scope, so a reader saw <c>email docs:read docs:write</c> on one and sentences on the other, for
     /// the same client, in the same session. Sharing the markup makes "described the same way" a
     /// property of this file rather than a thing two loops happen to agree on.
     /// </para>
@@ -1114,7 +1114,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         // same thing on four pages: the one link under the decision, pointing at the other page a
         // reader might have wanted. A sheet that centres one and not the other is a sheet that had
         // to find them separately.
-        body.Append("<p class=\"ck-aside\"><a href=\"").Append(Encode(url)).Append("\">")
+        body.Append("<p class=\"bw-aside\"><a href=\"").Append(Encode(url)).Append("\">")
             .Append(Text(InteractionText.ResetSignIn)).Append("</a></p>");
     }
 

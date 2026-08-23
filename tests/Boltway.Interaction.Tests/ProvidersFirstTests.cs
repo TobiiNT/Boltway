@@ -83,13 +83,13 @@ public sealed class ProvidersFirstTests
     {
         var html = Render(providersFirst: true, Login(passwords, providers));
 
-        Assert.Equal(expected, html.Contains("ck-or", StringComparison.Ordinal));
+        Assert.Equal(expected, html.Contains("bw-or", StringComparison.Ordinal));
     }
 
     /// <summary>And never in the shipped order, where the form is already the first thing.</summary>
     [Fact]
     public void The_divider_is_not_drawn_in_the_default_order() =>
-        Assert.DoesNotContain("ck-or", Render(providersFirst: false, Login()), StringComparison.Ordinal);
+        Assert.DoesNotContain("bw-or", Render(providersFirst: false, Login()), StringComparison.Ordinal);
 
     /// <summary>
     /// Everything the page had, it still has — reordering is not an excuse to lose a control.

@@ -8,11 +8,14 @@
  * reference container for every Boltway deployment, so anything here that looked like
  * somebody's brand would be a brand every other deployment inherited.
  *
- * ── Why it is all element selectors ──────────────────────────────────────────
+ * ── Why it is mostly element selectors ───────────────────────────────────────
  *
- * The markup carries no classes. That is the renderer's decision and a defensible one — the
- * pages are a heading, some paragraphs and a form — but it means the hooks available here are
- * elements, positions, and attributes that are part of a contract.
+ * The markup carries a `bw-` class on each block a sheet has to find — the shell and its two
+ * boxes, the brand lines, the three consent paragraphs, the scope and resource lists, the
+ * decision and sign-in forms, the divider and the asides. Inside those blocks it is a heading, a
+ * paragraph, a list or a control, so that is what this file selects on. Six classes are hooked
+ * here; the rest exist for a deployment's own sheet, and are a contract for that reason — see
+ * *the rendered markup is part of the surface too* in CLAUDE.md before renaming one.
  *
  * `button[value="approve"]` is the one attribute hook used, and it is safe for a specific
  * reason rather than by luck: `PostConsentAsync` reads form["decision"] and compares it to
@@ -20,13 +23,14 @@
  * `Consent_names_the_decision_field_the_way_the_endpoint_reads_it` in the renderer contract
  * suite. A renderer that changes them fails that test long before it reaches this file.
  *
- * `.ck-warning` is the only class the markup carries, and it exists because this file needed it.
- * The first attempt used `p:has(> strong:first-child)` on the reasoning that the two cautions —
- * the "this code goes to your own device" warning on consent, and the failed-sign-in message on
- * login — are the only paragraphs opening with a <strong>. That was measured wrong on the first
- * render: `:first-child` counts elements and ignores the leading text node, so the two paragraphs
- * naming the client host and the redirect host matched too, and the page came back with three
- * warning boxes. Three is the same as none — it drowns the one N-14 actually asks for.
+ * `.bw-warning` is the class that shows why naming a block beats matching its shape. It exists
+ * because this file needed it: the first attempt used `p:has(> strong:first-child)`, on the
+ * reasoning that the two cautions — the "this code goes to your own device" warning on consent,
+ * and the failed-sign-in message on login — are the only paragraphs opening with a <strong>. That
+ * was measured wrong on the first render: `:first-child` counts elements and ignores the leading
+ * text node, so the two paragraphs naming the client host and the redirect host matched too, and
+ * the page came back with three warning boxes. Three is the same as none — it drowns the one N-14
+ * actually asks for.
  */
 
 :root {
@@ -73,23 +77,23 @@ body {
    `body` is here, so the pages read exactly as wide as they did.
 
    A deployment wanting the split has both boxes to work with and needs no markup of its own. */
-.ck-shell {
+.bw-shell {
   margin: 0 auto;
   padding: 3rem 1.25rem 4rem;
   max-width: 34rem;
 }
 
-.ck-panel { margin-bottom: 2rem; }
+.bw-panel { margin-bottom: 2rem; }
 
 /* The deployment's own logo, when one is configured. Bounded, because it is a path this host
    was handed and not an asset this stylesheet has ever seen. It moved into the brand panel with
    the shell; `body > img` matched nothing afterwards, which is a logo of whatever size the file
    happens to be, on every page. */
-.ck-brand {
+.bw-brand {
   margin: 0;
 }
 
-.ck-brand img {
+.bw-brand img {
   display: block;
   max-width: 10rem;
   max-height: 3rem;
@@ -97,14 +101,14 @@ body {
 
 /* The two panel lines, when a deployment supplies them. Quiet: they are the shell saying where
    the reader is, and nothing here may compete with the client hostname below. */
-.ck-tagline,
-.ck-domain {
+.bw-tagline,
+.bw-domain {
   margin: 0.75rem 0 0;
   font-size: 0.8125rem;
   color: var(--muted);
 }
 
-.ck-domain {
+.bw-domain {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -115,12 +119,16 @@ h1 {
   letter-spacing: -0.01em;
 }
 
+/* Small and quiet rather than small and shouted. `text-transform: uppercase` is not a font
+   choice in every language: Turkish has a dotted and a dotless i, and case-shifting them through a
+   rule that does not know the locale merges two letters a reader tells apart. `letter-spacing`
+   is the same mistake in Arabic, Persian and Urdu, where prising the letters apart severs the
+   cursive joins and leaves a word rendered as its isolated forms. Weight and colour carry the
+   heading instead, and they cost no script anything. */
 h2 {
   margin: 2rem 0 0.5rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--muted);
 }
 
@@ -153,20 +161,27 @@ code {
 
 ul {
   margin: 0 0 0.875rem;
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
 }
 
 li {
   margin-bottom: 0.35rem;
 }
 
-/* The device warning on consent, and the failed sign-in on login. */
-.ck-warning {
+/* The device warning on consent, and the failed sign-in on login.
+
+   The accent bar is on the side the text starts from, which is the left of this paragraph in
+   English and the right of it in Arabic or Hebrew. `border-left` would pin it to the left in both
+   and leave it trailing the text it is meant to introduce, so the bar and the two corners it
+   squares off are all stated in inline terms and mirror with the page. */
+.bw-warning {
   padding: 0.75rem 0.875rem;
   margin-bottom: 1.25rem;
   background: var(--caution-bg);
-  border-left: 3px solid var(--caution-line);
-  border-radius: 0 4px 4px 0;
+  border-inline-start: 3px solid var(--caution-line);
+  border-radius: 4px;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
 }
 
 form {

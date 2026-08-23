@@ -107,6 +107,52 @@ public sealed class LayoutTests
     }
 
     /// <summary>
+    /// A right-to-left deployment's page says which way it reads.
+    /// </summary>
+    /// <remarks>
+    /// The stylesheet is written in logical properties — <c>padding-inline-start</c> and its
+    /// siblings — and those resolve to the left-hand edge until the document declares otherwise. So
+    /// without this attribute an Arabic page is not merely undecorated: every gutter, the table's
+    /// column padding and the accent bars sit on the edge the reader finishes at, and the sheet
+    /// looks converted while behaving exactly as it did before.
+    /// </remarks>
+    [Theory]
+    [InlineData("ar")]
+    [InlineData("he")]
+    [InlineData("fa")]
+    [InlineData("ur")]
+    [InlineData("ckb")]
+    [InlineData("ar-EG")]
+    public void A_right_to_left_deployment_declares_its_direction(string language)
+    {
+        var html = Wrap(text: Render.Text((AdminText.LanguageKey, language)));
+
+        Assert.Contains($"<html lang=\"{language}\" dir=\"rtl\">", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Everything else is left alone rather than told it reads left to right.
+    /// </summary>
+    /// <remarks>
+    /// The control, and it is what makes the theory above mean something: a shell that emitted
+    /// <c>dir</c> unconditionally would satisfy every row up there and still be wrong. <c>arn</c>
+    /// and <c>fat</c> are the rows that matter — Mapudungun and Fanti read left to right and open
+    /// with the letters of two languages that do not, so they go red against a prefix match.
+    /// </remarks>
+    [Theory]
+    [InlineData("en")]
+    [InlineData("vi")]
+    [InlineData("arn")]
+    [InlineData("fat")]
+    public void A_left_to_right_deployment_is_not_given_a_direction(string language)
+    {
+        var html = Wrap(text: Render.Text((AdminText.LanguageKey, language)));
+
+        Assert.Contains($"<html lang=\"{language}\">", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("dir=", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// The language is one setting with the words, so the two cannot drift apart.
     /// </summary>
     /// <remarks>
