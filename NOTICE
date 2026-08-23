@@ -1,0 +1,44 @@
+Boltway
+Copyright © 2026 Tobii (Truong To)
+
+This product includes software developed as part of the Boltway project,
+licensed under the Apache License, Version 2.0. See LICENSE.
+
+================================================================================
+Third-party material redistributed in this repository
+================================================================================
+
+Two IETF Internet-Drafts are checked in under spec/ and are NOT covered by this
+repository's Apache-2.0 licence:
+
+  spec/draft-ietf-oauth-v2-1-15.txt
+  spec/draft-ietf-oauth-client-id-metadata-document-02.txt
+
+  Copyright (c) 2026 IETF Trust and the persons identified as the document
+  authors. All rights reserved.
+
+  These documents are subject to BCP 78 and the IETF Trust's Legal Provisions
+  Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect
+  on the date of publication. Code Components extracted from them must include
+  Revised BSD License text as described in Section 4.e of the Trust Legal
+  Provisions and are provided without warranty as described in the Revised BSD
+  License.
+
+Why they are here rather than linked: requirement S-01 obliges this project to
+cite the exact draft revision it was written against, and U-15 turns that into
+pinning a copy. Each of these files says of itself that it "may be updated,
+replaced, or obsoleted by other documents at any time", and both carry an expiry
+-- 3 September 2026 for OAuth 2.1, 7 January 2027 for CIMD. A URL at ietf.org
+serves whatever revision is current, so a link is not a citation of the text the
+requirement ids were written against. The file here is.
+
+Nothing under src/, hosts/, testing/ or tests/ contains a Code Component lifted
+from either draft. If one is ever taken, TLP section 4.e attaches the Revised BSD
+text to that copy, and it is named here in the same commit.
+
+This file describes the contents of the repository. The published packages
+contain none of the third-party material above -- they carry compiled code from
+src/ and testing/ only -- so their licence metadata is Apache-2.0 with nothing
+further attached.
+
+spec/README.md carries the same statement in prose, with the reasoning.

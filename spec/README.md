@@ -73,12 +73,14 @@ the Revised BSD grant of TLP §4.e attaching to Code Components taken out of the
 covered by this repository's Apache-2.0.** Redistributing them is fine; saying so is the part that
 was missing.
 
-It matters because the root [`LICENSE`](../LICENSE) is Apache-2.0 and there is no `NOTICE` file, so
-a licence scanner walking this tree reads two third-party documents as ours to relicense. Until
-there is a `NOTICE`, this paragraph is the only place in the repository that says otherwise.
+The root [`LICENSE`](../LICENSE) is Apache-2.0, so without a statement to the contrary a licence
+scanner walking this tree reads two third-party documents as ours to relicense. [`NOTICE`](../NOTICE)
+is that statement, and it is the machine-findable one — this section is the reasoning behind it.
+Both move together or neither does.
 
 If a Code Component is ever lifted out of one of these into `src/`, TLP §4.e attaches the Revised
-BSD text to the copy — that is the point at which a `NOTICE` stops being tidy and becomes required.
+BSD text to the copy, and that copy gets named in `NOTICE` in the same commit. Until then the
+packages carry none of this material and their metadata is Apache-2.0 with nothing attached.
 
 ## `cimd-live-*.json` are fixtures, not loose snapshots
 
