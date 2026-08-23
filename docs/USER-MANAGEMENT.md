@@ -286,8 +286,9 @@ the same set the JWKS endpoint renders, one call away in the same process.
 problem.** `ProtectedResourceOptions.SigningKeys` is an `IList<SecurityKey>` reached through
 `IOptions<T>`, and `AccessTokenValidator` hands that same list instance to
 `Rfc9068ValidationParameters.ForAccessToken` on every validation. `JwksRefresher` in
-`Boltway.Mcp` keeps it current by calling `Add` and `Remove` on it from a background timer,
-with no lock and no copy.
+`Boltway.Mcp` kept it current by calling `Add` and `Remove` on it from a background timer,
+with no lock and no copy. (That type is gone — `JwksKeySource` replaced it — but the defect below
+is what the `SigningKeySource` seam was built to close, so it is recorded as it was found.)
 
 - **Measured:** the mutation and the read touch one `IList<SecurityKey>` instance, from different
   threads, with nothing synchronising them. The refresher never `Clear()`s — it adds, then removes —
@@ -305,8 +306,9 @@ public Func<IReadOnlyList<SecurityKey>>? SigningKeySource { get; set; }   // BIN
 ```
 
 Read per validation. Default: an immutable snapshot of `SigningKeys`, so no existing consumer
-changes. `JwksRefresher` publishes a new list instead of editing one, which is a smaller change than
-the lock it would otherwise need.
+changes. The producer publishes a new list instead of editing one, which is a smaller change than
+the lock it would otherwise need — `JwksKeySource` does that now, replacing the `JwksRefresher` this
+was originally written against.
 
 **The AS host's source is `SigningKeyRing`, and it needs one small addition to be safe.**
 `PublishedKeys()` returns `SigningKeyHandle`s, and a handle's `Key` is the **signing** key — the
@@ -670,7 +672,7 @@ and three of the five are rules the code already documents and does not enforce.
 | | | why it is first |
 | --- | --- | --- |
 | ✅ 0.1 | **Sign-out** (`E-45`, `S-56`) | No `Logout` endpoint and no `SignOutAsync` call exists. A person on a shared machine cannot end their session. One endpoint |
-| ✅ 0.2 | **`SigningKeySource`** + `SigningKeyRing.PublicVerificationKeys()` (`S-52`, §1.12) | Closes a shipped race: `JwksRefresher` mutates the list the validator enumerates. Also the prerequisite for the AS validating its own tokens in step 7 |
+| ✅ 0.2 | **`SigningKeySource`** + `SigningKeyRing.PublicVerificationKeys()` (`S-52`, §1.12) | Closes a shipped race: `JwksRefresher` (since replaced by `JwksKeySource`) mutated the list the validator enumerates. Also the prerequisite for the AS validating its own tokens in step 7 |
 | ✅ 0.3 | **`/error` behind `IInteractionRenderer`** (`S-55`) | Two of three pages are themeable and nobody is told which |
 | ✅ 0.4 | **`UiLocalesSupported` generated** (`S-57`, §7.5.1) | A deployment can advertise `vi` today and serve English. The property's own comment forbids exactly that |
 | ✅ 0.5 | **Publish `Boltway.Interaction.Testing`** (`S-59`, §7.6) | The contract is `IsPackable` and unpublished, so the suite written for customers cannot be obtained by one |

@@ -9,11 +9,13 @@ namespace Boltway.ResourceServer.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The defect this closes was in the producer, not here: <c>JwksRefresher</c> called <c>Add</c> and
-/// <c>Remove</c> on <c>SigningKeys</c> from a background timer, and that is the same list instance
-/// the validator hands to <c>Rfc9068ValidationParameters</c> on every call. Nothing synchronised
-/// them. It could only be fixed there by publishing a new list, and it could only publish a new list
-/// if something here would read one.
+/// The defect this closes was in the producer, not here: a <c>JwksRefresher</c> in
+/// <c>Boltway.Mcp</c> called <c>Add</c> and <c>Remove</c> on <c>SigningKeys</c> from a background
+/// timer, and that is the same list instance the validator hands to
+/// <c>Rfc9068ValidationParameters</c> on every call. Nothing synchronised them. It could only be
+/// fixed there by publishing a new list, and it could only publish a new list if something here
+/// would read one. That type has since been deleted in favour of <c>JwksKeySource</c>, which
+/// publishes a snapshot — but this seam is why it could.
 /// </para>
 /// <para>
 /// So the property under test is not "a source works" but "the source is consulted again", which is

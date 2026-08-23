@@ -383,7 +383,9 @@ Not decisions. Gaps.
   Assign `JwksKeySource.CurrentKeys` to `SigningKeySource`, not to `SigningKeys` — the list is
   mutable state a request enumerates while a refresher writes it, which is a rotation-day failure of
   its own. `samples/Boltway.Sample.ResourceServer` wires the source and refreshes once at
-  startup so the first request does not arrive at an empty set.
+  startup so the first request does not arrive at an empty set. In an MCP connector,
+  `services.AddJwksSigningKeys(issuer)` from `Boltway.Mcp` does both and refuses to start
+  without keys.
 - **Upstream identity providers other than one.** Federated sign-in ships —
   `Boltway.Federation.Oidc` is a generic OpenID Connect relying party and
   `Boltway.Federation.Google` is configuration over it — but only one has been driven against
@@ -498,9 +500,10 @@ window work only when two racing requests land on the same node, which presents 
       captured assertion, and nothing about that is visible from outside. Startup refuses the method
       with no store at all; it cannot tell a shared store from a per-process one.
 - [ ] **A key source on every resource server, not a hand-filled list.**
-      `JwksKeySource.CurrentKeys` assigned to `ProtectedResourceOptions.SigningKeySource`. A host
-      that fills `SigningKeys` by hand is a host whose rotation day is an outage, and the item above
-      guarantees there will be one. Keep `JwksKeySourceOptions.CacheLifetime` below the authorization
+      `JwksKeySource.CurrentKeys` assigned to `ProtectedResourceOptions.SigningKeySource`, or
+      `AddJwksSigningKeys(issuer)` if you are hosting an MCP connector, which wires that and primes
+      it at startup. A host that fills `SigningKeys` by hand is a host whose rotation day is an
+      outage, and the item above guarantees there will be one. Keep `JwksKeySourceOptions.CacheLifetime` below the authorization
       server's `PublishLeadTime` — the defaults, five minutes against a ten-minute floor, already
       are — and leave `AllowPrivateAddresses` clear on the client you hand it.
 - [ ] **`RefreshTokenDerivationKey` stable across restarts and instances.** At least 32 bytes, and
