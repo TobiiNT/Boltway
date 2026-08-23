@@ -98,9 +98,9 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package metadata">
-    <Authors>The Boltway Authors</Authors>
+    <Authors>Tobii (Truong To)</Authors>
     <Product>Boltway</Product>
-    <Copyright>Copyright the Boltway Authors</Copyright>
+    <Copyright>Copyright © 2026 Tobii (Truong To)</Copyright>
 
     <!--
       An SPDX expression rather than the deprecated PackageLicenseUrl, so a consumer's licence
