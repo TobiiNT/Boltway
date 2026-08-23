@@ -43,6 +43,12 @@ permissions:
   contents: read
   packages: write
 
+  # For nuget.org Trusted Publishing. The job asks GitHub for a short-lived OIDC token, hands it to
+  # nuget.org, and gets back an API key that lives one hour. Without this the token request fails
+  # *silently* — NuGet/login then has no key and the push fails for a reason that does not name the
+  # cause, which is why it is written down here rather than assumed.
+  id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -133,23 +139,36 @@ jobs:
 
       # nuget.org, and it is a separate step rather than a second `--source` because the two feeds
       # are not the same kind of thing. GitHub Packages is private and its token is minted for this
-      # run; nuget.org is the public index and its key is a stored secret with a long life.
+      # run; nuget.org is the public index.
       #
-      # Conditional on the secret existing, so the workflow keeps working before anybody has set
-      # one up: a fork, or this repository on the day before the key was created, publishes to
-      # GitHub Packages and skips this rather than failing red for a thing it was never configured
-      # to do. `secrets` cannot be used in a job-level `if`, so the guard is on the step.
+      # **Trusted Publishing, so there is no long-lived key to leak.** This exchanges the job's OIDC
+      # token for an API key that expires in an hour, against a policy registered on nuget.org that
+      # names this repository and this workflow file. That is the repository's own rule about
+      # credentials applied to its own release: prefer one that expires to one that does not. A
+      # stored NUGET_API_KEY would have been a secret with no expiry, held by a public repository,
+      # able to publish under this owner forever.
       #
+      # Requested immediately before the push on purpose — the key lives one hour and a token buys
+      # exactly one key, so asking early is how a slow run publishes with something already expired.
+      #
+      # Guarded on the repository rather than on a secret, because there is no longer a secret to
+      # test. A fork building this workflow has no policy on nuget.org and would fail red for
+      # something it was never meant to do; it publishes to its own GitHub Packages and skips here.
+      - name: NuGet login (OIDC to a one-hour key)
+        id: nuget_login
+        if: ${{ github.repository == 'TobiiNT/Boltway' && vars.NUGET_USER != '' }}
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+
       # **A version pushed here can never be unpublished.** nuget.org's delete is a de-list: the
       # package stops appearing in search and keeps restoring for anyone who names the version,
-      # forever, which is the correct behaviour and is why it cannot be undone. The step above
-      # already refuses to push a version whose contents changed; this one inherits that.
+      # forever, which is the correct behaviour and is why it cannot be undone. The version check
+      # above already refuses to push a version whose contents changed; this inherits that.
       - name: Push to nuget.org
-        if: ${{ env.NUGET_API_KEY != '' }}
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        if: ${{ steps.nuget_login.outcome == 'success' }}
         run: |
           dotnet nuget push 'packages/*.nupkg' \
             --source https://api.nuget.org/v3/index.json \
-            --api-key "$NUGET_API_KEY" \
+            --api-key '${{ steps.nuget_login.outputs.NUGET_API_KEY }}' \
             --skip-duplicate
