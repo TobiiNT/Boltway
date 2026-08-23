@@ -211,17 +211,15 @@ class DropAuthOnCrossHostRedirect(urllib.request.HTTPRedirectHandler):
 OPENER = urllib.request.build_opener(DropAuthOnCrossHostRedirect)
 
 
-def published(owner, pid, version, auth_header):
-    """The package already in the feed, or None if this version is new.
+def fetch(url, auth_header=None):
+    """The bytes at `url`, or None when the feed answers 404.
 
-    GitHub Packages lowercases ids in flat-container URLs. 404 is the answer that means "new";
-    anything else is raised, because a feed that cannot be read is not evidence that a version is
-    absent — that is the whole failure mode this file exists to close, one layer up.
+    404 is the answer that means "new"; anything else is raised, because a feed that cannot be read
+    is not evidence that a version is absent — that is the whole failure mode this file exists to
+    close, one layer up.
     """
-    lower = pid.lower()
-    url = (f'https://nuget.pkg.github.com/{owner}/download/'
-           f'{lower}/{version}/{lower}.{version}.nupkg')
-    request = urllib.request.Request(url, headers={'Authorization': auth_header})
+    headers = {'Authorization': auth_header} if auth_header else {}
+    request = urllib.request.Request(url, headers=headers)
     try:
         with OPENER.open(request, timeout=60) as response:
             return response.read()
@@ -229,6 +227,60 @@ def published(owner, pid, version, auth_header):
         if error.code == 404:
             return None
         raise
+
+
+def published(owner, pid, version, auth_header):
+    """Every feed that already holds this id and version, as (feed name, package bytes).
+
+    **Both feeds, and nuget.org first, because they are not equally forgiving.** A version on
+    GitHub Packages can be deleted; a version on nuget.org can only be unlisted, and unlisting does
+    not free the number or un-restore it for anybody who already has it. Reading only the deletable
+    one was this check measuring the cheap half: prune a version from GitHub Packages and the
+    lookup answers 404, the caller prints `new`, the push goes to nuget.org where that version does
+    exist, and `--skip-duplicate` drops it exactly as described at the top of this file.
+
+    Both are flat-container URLs and both lowercase the id; nuget.org lowercases the version too,
+    and needs no credential to read.
+    """
+    lower, lowver = pid.lower(), version.lower()
+
+    feeds = [
+        ('nuget.org',
+         f'https://api.nuget.org/v3-flatcontainer/'
+         f'{lower}/{lowver}/{lower}.{lowver}.nupkg',
+         None),
+        ('GitHub Packages',
+         f'https://nuget.pkg.github.com/{owner}/download/'
+         f'{lower}/{version}/{lower}.{version}.nupkg',
+         auth_header),
+    ]
+
+    found = []
+    for name, url, header in feeds:
+        body = fetch(url, header)
+        if body is not None:
+            found.append((name, body))
+    return found
+
+
+def compare(fresh_assemblies, published_assemblies):
+    """What moved between a packed assembly set and a published one, as readable lines."""
+    changes = []
+    for name in sorted(set(fresh_assemblies) | set(published_assemblies)):
+        if name not in published_assemblies:
+            changes.append(f'{name} is new in this build')
+            continue
+        if name not in fresh_assemblies:
+            changes.append(f'{name} is in the feed and not in this build')
+            continue
+        added = names(fresh_assemblies[name]) - names(published_assemblies[name])
+        removed = names(published_assemblies[name]) - names(fresh_assemblies[name])
+        if added or removed:
+            changes.append(
+                f'{name}: {len(added)} name(s) added, {len(removed)} removed'
+                + sample('added', added) + sample('removed', removed)
+            )
+    return changes
 
 
 def main():
@@ -258,42 +310,27 @@ def main():
         pid, version = identity(path)
         existing = published(owner, pid, version, auth_header)
 
-        if existing is None:
+        if not existing:
             print(f'  new       {pid} {version}')
             continue
 
         with open(path, 'rb') as handle:
             fresh_assemblies = assemblies(handle.read())
-        published_assemblies = assemblies(existing)
 
-        changes = []
-        for name in sorted(set(fresh_assemblies) | set(published_assemblies)):
-            if name not in published_assemblies:
-                changes.append(f'{name} is new in this build')
-                continue
-            if name not in fresh_assemblies:
-                changes.append(f'{name} is in the feed and not in this build')
-                continue
-            added = names(fresh_assemblies[name]) - names(published_assemblies[name])
-            removed = names(published_assemblies[name]) - names(fresh_assemblies[name])
-            if added or removed:
-                changes.append(
-                    f'{name}: {len(added)} name(s) added, {len(removed)} removed'
-                    + sample('added', added) + sample('removed', removed)
-                )
-
-        if changes:
-            drifted.append((pid, version, changes))
-            print(f'  DRIFTED   {pid} {version}')
-        else:
-            print(f'  unchanged {pid} {version}')
+        for feed, body in existing:
+            changes = compare(fresh_assemblies, assemblies(body))
+            if changes:
+                drifted.append((pid, version, feed, changes))
+                print(f'  DRIFTED   {pid} {version} ({feed})')
+            else:
+                print(f'  unchanged {pid} {version} ({feed})')
 
     if not drifted:
         return 0
 
     print()
-    for pid, version, changes in drifted:
-        print(f'::error::{pid} {version} is already in the feed with different contents.')
+    for pid, version, feed, changes in drifted:
+        print(f'::error::{pid} {version} is already on {feed} with different contents.')
         for change in changes:
             print(f'::error::  {change}')
         print(f'::error::  `--skip-duplicate` would drop this build and keep the published one, so')

@@ -22,12 +22,21 @@
     The version every package in this repository publishes at.
 
     It is a single literal on purpose. Every packable project here is built from one tree and
-    released together, so a per-project version would be seventeen literals to forget instead of
-    one. Count what actually packs rather than what declares `<IsPackable>true</IsPackable>`: a
-    library packs unless told otherwise, so the count read off the files has been wrong before.
+    released together, so a per-project version would be one literal per package to forget instead
+    of one in total. No number is written here: a library packs unless told otherwise, so a count
+    read off the files has been wrong twice. `StructuralRuleTests.PackableProjects` is the approved
+    set, checked by a test rather than maintained as a sentence here.
 
-    **0.1.0 because nothing here has ever been published.** The 0.x line is the honest claim for a
-    server whose own README lists what is not built yet; 1.0.0 would say more than this gets to say.
+    The 0.x line is the honest claim for a server whose own README lists what is not built yet;
+    1.0.0 would say more than this gets to say.
+
+    **This said 0.1.0 "because nothing here has ever been published", and that was false when it was
+    written.** Every id in this repository was already on nuget.org at 0.1.0 — one
+    `curl https://api.nuget.org/v3-flatcontainer/boltway.mcp/index.json` settles it, and eighteen of
+    them answered. Publishing from that state would have packed 0.1.0 against a feed that already
+    held 0.1.0, and the paragraph below describes exactly what happens next. The comment was the
+    only thing saying the feed was empty, and a comment is a claim; the feed is the fact. Check it
+    before trusting a sentence here, this one included.
 
     The rule that outlives this number: **once a version is published, it is frozen.** A feed will
     not take a second 0.1.0 and will not tell anybody it refused — it skips the duplicate and the
@@ -51,7 +60,7 @@
     cost twenty minutes instead of a rollback.
   -->
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -130,8 +139,8 @@
 
   <!--
     The readme every package carries. One file at the root rather than a per-project one: a reader
-    who lands on any of the seventeen packages should reach the same explanation of what the whole
-    thing is, and seventeen near-identical files would drift within a release.
+    who lands on any of the packages should reach the same explanation of what the whole thing is,
+    and one near-identical file per package would drift within a release.
   -->
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
