@@ -124,6 +124,11 @@ public static class MetadataBuilder
             // renders a self-submitting form, which is N-06 exactly: an advertised capability that
             // does not exist. Neither vendor sends `response_mode`, so dropping it costs nothing.
             ResponseModesSupported = ["query"],
+
+            // Exactly the four `/authorize` acts on, and a test pins the list to the code that
+            // reads them rather than to this line. Constant because none of them is configurable:
+            // a deployment cannot turn `prompt=consent` off, so nothing here depends on options.
+            PromptValuesSupported = ["none", "login", "consent", "select_account"],
             GrantTypesSupported = [.. options.GrantTypesSupported],
 
             TokenEndpointAuthMethodsSupported = authMethods,
