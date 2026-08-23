@@ -130,6 +130,15 @@ might replace follows that pattern, and the XML doc says which side of the call 
 Client resolvers run in registration order and CIMD is the only one that makes an outbound request,
 so it belongs last.
 
+**So is the wire.** Every opaque credential this server mints carries a prefix naming its kind —
+`bw_ac_`, `bw_rt_`, `bw_rat_`, `bw_cs_` — and those strings are in deployments' databases and in
+clients' hands. `OpaqueSecret.TryParse` still accepts the `ck_` spelling these carried under the
+project's previous name, and the refresh grace window can still reconstruct a successor under it,
+because refusing the old form on the deploy that renamed a string would sign out every session and
+break every confidential client. Both compatibility paths carry the condition for removing them:
+one refresh-token lifetime after the upgrade, and a re-issue for client secrets. Deleting them
+early is not a tidy-up, it is a forced re-authorization for everyone.
+
 **The rendered markup is part of the surface too.** A deployment's stylesheet hooks the class names
 the default renderer emits, so renaming one is a breaking change for every consumer who themed the
 pages — the cheapest tier of customization is the one with no compile error to warn them. Treat the
@@ -187,6 +196,21 @@ contract for.
   from a renderer or an endpoint is a defect even when it is in English.
 - The localization tests use Vietnamese as the non-English locale on purpose, so the seam is
   exercised by something with diacritics rather than by a copy of English.
+
+**A translation is data a deployment edits, so what it can silently break is a design question.**
+Two rules come out of that, and both are enforced rather than asked for. Text is HTML-encoded and
+then values are spliced into its placeholders — never `string.Format` on the raw text — so a
+translation cannot introduce markup. And `InteractionText.Problems` refuses at startup a
+translation whose placeholders do not match the English arity: a `ConsentClientAsking` without
+`{0}` reads as a grammatical sentence with the client's host silently absent, which is the field
+`N-14` makes a MUST, on the page it matters most. Nothing downstream can tell; startup is the only
+place it can be caught.
+
+The seam a deployment replaces is `IStringLocalizer`, registered **before**
+`AddBoltwayInteractionLocalization`. It was documented for a while as a replaced
+`IStringLocalizerFactory` — the way OrchardCore and ABP do it — and nothing here ever resolved a
+factory, so anybody who followed that got English pages and no error. A documented extension point
+with nothing behind it is `N-06` on the customization surface.
 
 ## Tests
 
