@@ -2,7 +2,7 @@ using Boltway.AuthorizationServer.Abstractions.Users;
 using Boltway.OAuth.Primitives.Ids;
 using Boltway.OAuth.Primitives.Secrets;
 
-namespace Boltway.Storage.Tests;
+namespace Boltway.Storage.Testing;
 
 /// <summary>
 /// The <see cref="IUserTokenStore"/> contract, run against every implementation.
@@ -36,6 +36,9 @@ public abstract class UserTokenStoreContract
     private static UserTokenRecord Reset(string token, SubjectId subject, DateTimeOffset expiresAt) =>
         new(HashOf(token), subject, UserTokenPurpose.PasswordReset, expiresAt);
 
+    /// <summary>
+    /// A hash this store never held redeems as <see langword="null"/> rather than throwing.
+    /// </summary>
     [Fact]
     public async Task A_token_that_was_never_issued_is_not_redeemable()
     {
@@ -45,6 +48,10 @@ public abstract class UserTokenStoreContract
             HashOf("never-issued"), UserTokenPurpose.PasswordReset, Now, CancellationToken.None));
     }
 
+    /// <summary>
+    /// <c>S-47</c>'s single-use clause, sequentially: the first redemption returns the record and the
+    /// second finds nothing.
+    /// </summary>
     [Fact]
     public async Task A_stored_token_is_redeemable_once()
     {
@@ -64,6 +71,14 @@ public abstract class UserTokenStoreContract
             HashOf("t1"), UserTokenPurpose.PasswordReset, Now, CancellationToken.None));
     }
 
+    /// <summary>
+    /// Single use holds under concurrency: eight simultaneous presentations of one link produce
+    /// exactly one winner.
+    /// </summary>
+    /// <remarks>
+    /// Repeated rather than run once. A store that loses this race some of the time passes a single
+    /// attempt most of the time, which is indistinguishable from not testing it.
+    /// </remarks>
     [Fact]
     public async Task Two_concurrent_redemptions_produce_exactly_one_winner()
     {
@@ -84,6 +99,7 @@ public abstract class UserTokenStoreContract
         }
     }
 
+    /// <summary><c>S-47</c>'s expiry clause: a token past its expiry is not redeemable.</summary>
     [Fact]
     public async Task An_expired_token_is_not_redeemable()
     {
@@ -95,6 +111,9 @@ public abstract class UserTokenStoreContract
             HashOf("stale"), UserTokenPurpose.PasswordReset, Now, CancellationToken.None));
     }
 
+    /// <summary>
+    /// A verification link is not a reset link, and the refused attempt does not consume it either.
+    /// </summary>
     [Fact]
     public async Task A_token_is_not_redeemable_for_another_purpose()
     {
@@ -118,6 +137,9 @@ public abstract class UserTokenStoreContract
             HashOf("v1"), UserTokenPurpose.EmailVerification, Now, CancellationToken.None));
     }
 
+    /// <summary>
+    /// The address a verification link was sent to comes back with the redemption, in <c>Detail</c>.
+    /// </summary>
     [Fact]
     public async Task A_verification_token_carries_the_address_it_was_sent_to()
     {
@@ -137,6 +159,10 @@ public abstract class UserTokenStoreContract
         Assert.Equal("ada@example.com", redeemed!.Detail);
     }
 
+    /// <summary>
+    /// Storing a hash the table already holds throws rather than overwriting the record it collides
+    /// with.
+    /// </summary>
     [Fact]
     public async Task Storing_the_same_hash_twice_is_refused()
     {
@@ -151,6 +177,10 @@ public abstract class UserTokenStoreContract
             store.StoreAsync(Reset("dup", Grace, Now.AddMinutes(1)), CancellationToken.None));
     }
 
+    /// <summary>
+    /// <c>S-47</c>'s bulk-destruction clause: one subject's reset links all go and the call says how
+    /// many, while their verification link and another subject's reset link stay.
+    /// </summary>
     [Fact]
     public async Task Deleting_for_a_subject_destroys_that_purpose_and_leaves_the_rest()
     {
@@ -183,6 +213,9 @@ public abstract class UserTokenStoreContract
             HashOf("g1"), UserTokenPurpose.PasswordReset, Now, CancellationToken.None));
     }
 
+    /// <summary>
+    /// Deleting for a subject holding nothing is zero rather than a failure.
+    /// </summary>
     [Fact]
     public async Task Deleting_for_a_subject_with_no_tokens_is_zero_rather_than_an_error()
     {
@@ -197,6 +230,9 @@ public abstract class UserTokenStoreContract
             await store.DeleteForSubjectAsync(Ada, UserTokenPurpose.PasswordReset, CancellationToken.None));
     }
 
+    /// <summary>
+    /// The sweep takes the expired row, reports one, and the live link still redeems afterwards.
+    /// </summary>
     [Fact]
     public async Task Expired_tokens_are_swept_and_live_ones_are_left()
     {
@@ -210,10 +246,4 @@ public abstract class UserTokenStoreContract
         Assert.NotNull(await store.RedeemAsync(
             HashOf("live"), UserTokenPurpose.PasswordReset, Now, CancellationToken.None));
     }
-}
-
-/// <summary>The contract, against the in-memory store.</summary>
-public sealed class InMemoryUserTokenStoreTests : UserTokenStoreContract
-{
-    protected override IUserTokenStore NewTokenStore() => new InMemory.InMemoryUserTokenStore();
 }

@@ -2,7 +2,7 @@ using Boltway.AuthorizationServer.Abstractions.Clients;
 using Boltway.AuthorizationServer.Abstractions.Consent;
 using Boltway.AuthorizationServer.Abstractions.Stores;
 using Boltway.AuthorizationServer.Abstractions.Users;
-using Boltway.Storage.Tests;
+using Boltway.Storage.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Boltway.Storage.Sqlite.Tests;

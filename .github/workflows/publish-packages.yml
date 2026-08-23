@@ -88,10 +88,14 @@ jobs:
         run: |
           dotnet test Boltway.slnx --configuration Release
 
-      # Two solutions, because Boltway.Mcp lives in one and reaches across a ProjectReference
-      # into Boltway.ResourceServer in the other. Packing only the first produces a package
-      # whose dependency is not in the feed — which restores cleanly on a machine that happens to
-      # have it cached and fails on every other one.
+      # The solution, not a list of projects. Boltway.Mcp reaches across a ProjectReference into
+      # Boltway.ResourceServer, and packing a subset produces a package whose dependency is not in
+      # the feed — which restores cleanly on a machine that happens to have it cached and fails on
+      # every other one. This said "two solutions" while there has been one since the trees were
+      # folded together, which is the change that let the architecture scan reach Boltway.Mcp.
+      #
+      # What comes out is StructuralRuleTests.PackableProjects, and that test is what stops a
+      # project joining the feed by inheriting the SDK's default.
       - name: Pack
         run: |
           dotnet pack Boltway.slnx --configuration Release -o packages

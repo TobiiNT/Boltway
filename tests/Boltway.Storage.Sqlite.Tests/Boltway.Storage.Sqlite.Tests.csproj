@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Boltway.Storage.Sqlite\Boltway.Storage.Sqlite.csproj" />
-    <ProjectReference Include="..\Boltway.Storage.Tests\Boltway.Storage.Tests.csproj" />
+    <ProjectReference Include="..\..\testing\Boltway.Storage.Testing\Boltway.Storage.Testing.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@ using Boltway.AuthorizationServer.Abstractions.Consent;
 using Boltway.OAuth.Primitives.Ids;
 using Boltway.OAuth.Primitives.Scopes;
 
-namespace Boltway.Storage.Tests;
+namespace Boltway.Storage.Testing;
 
 /// <summary>
 /// The <see cref="IConsentStore"/> contract, run against every implementation.
@@ -41,6 +41,9 @@ public abstract class ConsentStoreContract
 
     private const string Reader = "https://reader.example.com/api";
 
+    /// <summary>
+    /// Consent that was never given is <see langword="null"/>, not an empty record.
+    /// </summary>
     [Fact]
     public async Task Consent_that_was_never_given_is_not_found()
     {
@@ -49,6 +52,13 @@ public abstract class ConsentStoreContract
         Assert.Null(await store.FindAsync(Ada, Claude, CancellationToken.None));
     }
 
+    /// <summary>
+    /// A grant reads back with its scope, its resources and the instant the caller supplied.
+    /// </summary>
+    /// <remarks>
+    /// <c>GrantedAt</c> is the moment passed in rather than one the store took for itself, so two
+    /// implementations do not date the same approval differently.
+    /// </remarks>
     [Fact]
     public async Task Consent_is_found_after_it_is_granted()
     {
@@ -65,6 +75,9 @@ public abstract class ConsentStoreContract
         Assert.Equal(now, found.GrantedAt);
     }
 
+    /// <summary>
+    /// C-24: a second grant leaves the union of both scopes and both resources, not the newer pair.
+    /// </summary>
     [Fact]
     public async Task A_second_grant_widens_rather_than_replaces()
     {
@@ -90,6 +103,13 @@ public abstract class ConsentStoreContract
         Assert.Contains(Reader, found.Resources);
     }
 
+    /// <summary>
+    /// Granting what is already held leaves one scope and one resource rather than two of each.
+    /// </summary>
+    /// <remarks>
+    /// The other half of C-24: a union written as concatenation passes the widening test above and is
+    /// still wrong.
+    /// </remarks>
     [Fact]
     public async Task Re_granting_the_same_scope_does_not_duplicate_it()
     {
@@ -107,6 +127,10 @@ public abstract class ConsentStoreContract
         Assert.Equal([Mcp], found.Resources);
     }
 
+    /// <summary>
+    /// One approval answers for that subject and that client only — another client finds nothing, and
+    /// so does another subject.
+    /// </summary>
     [Fact]
     public async Task Consent_is_per_user_and_per_client()
     {
@@ -121,6 +145,10 @@ public abstract class ConsentStoreContract
         Assert.Null(await store.FindAsync(Grace, Claude, CancellationToken.None));
     }
 
+    /// <summary>
+    /// Withdrawal removes the record and answers <see langword="true"/> once; a repeat, and a
+    /// withdrawal of something never granted, both answer <see langword="false"/>.
+    /// </summary>
     [Fact]
     public async Task Withdrawing_consent_removes_it_and_says_whether_it_did()
     {
@@ -138,6 +166,9 @@ public abstract class ConsentStoreContract
         Assert.False(await store.RevokeAsync(Grace, Other, CancellationToken.None));
     }
 
+    /// <summary>
+    /// E-37: the list holds one record per client this subject approved, and nobody else's.
+    /// </summary>
     [Fact]
     public async Task Listing_returns_one_record_per_client_for_that_subject_only()
     {
@@ -169,6 +200,9 @@ public abstract class ConsentStoreContract
             (await store.ListAsync(Grace, CancellationToken.None)).Select(c => c.ClientId.Value));
     }
 
+    /// <summary>
+    /// A widened approval is one row carrying both scopes and both resources, not two rows.
+    /// </summary>
     [Fact]
     public async Task Listing_reflects_a_widening_rather_than_showing_two_rows()
     {
@@ -187,6 +221,7 @@ public abstract class ConsentStoreContract
         Assert.Equal([Mcp, Reader], record.Resources.OrderBy(v => v, StringComparer.Ordinal));
     }
 
+    /// <summary>A subject who has approved nothing lists empty rather than failing.</summary>
     [Fact]
     public async Task Listing_for_a_subject_who_has_approved_nothing_is_empty()
     {
@@ -195,6 +230,9 @@ public abstract class ConsentStoreContract
         Assert.Empty(await store.ListAsync(Ada, CancellationToken.None));
     }
 
+    /// <summary>
+    /// A withdrawn approval is gone from the list, and the approval beside it is still on it.
+    /// </summary>
     [Fact]
     public async Task A_withdrawn_approval_leaves_the_list()
     {
@@ -211,6 +249,10 @@ public abstract class ConsentStoreContract
             (await store.ListAsync(Ada, CancellationToken.None)).Select(c => c.ClientId.Value));
     }
 
+    /// <summary>
+    /// Withdrawing one client's consent leaves another client's, asked of the lookup rather than the
+    /// list.
+    /// </summary>
     [Fact]
     public async Task Withdrawing_one_client_leaves_another_granted()
     {
@@ -224,10 +266,4 @@ public abstract class ConsentStoreContract
 
         Assert.NotNull(await store.FindAsync(Ada, Other, CancellationToken.None));
     }
-}
-
-/// <summary>The contract, against the in-memory store.</summary>
-public sealed class InMemoryConsentStoreTests : ConsentStoreContract
-{
-    protected override IConsentStore NewConsentStore() => new InMemory.InMemoryConsentStore();
 }

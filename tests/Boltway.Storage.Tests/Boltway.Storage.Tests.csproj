@@ -1,18 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <!--
-      Packable, unlike every other test project. GrantStoreContract/UserStoreContract say "It is
-      published as a package so a customer writing their own store runs the same tests" — and with
-      IsPackable=false, `dotnet pack` emitted twelve packages and not this one, so the sentence was
-      false. A review executed the intended use: a foreign project referencing the built assembly ran
-      31 contract tests against a naive store and failed exactly the two retention tests, which is
-      the suite working as advertised for the first time.
+      Not packable, like every other test project. This said the opposite, because the contracts
+      lived here and "a customer writing their own store runs the same tests" was true of them and
+      not of this project: what packed carried Microsoft.NET.Test.Sdk, the xunit runner, coverlet,
+      a runtimeconfig.json and the seven InMemory*Tests below, and a customer running `dotnet test`
+      ran those and read the results as being about their store.
+
+      The contracts are in testing/Boltway.Storage.Testing now, which is what a customer
+      references. What is left here is the derivations, which are this repository's tests.
     -->
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Boltway.Storage.InMemory\Boltway.Storage.InMemory.csproj" />
+    <ProjectReference Include="..\..\testing\Boltway.Storage.Testing\Boltway.Storage.Testing.csproj" />
   </ItemGroup>
 
 </Project>

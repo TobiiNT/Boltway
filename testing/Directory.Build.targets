@@ -1,0 +1,20 @@
+<Project>
+
+  <!--
+    No runtimeconfig.json in a contract package.
+
+    Both projects here set `GenerateRuntimeConfigurationFiles=false` in their own PropertyGroup and
+    both were still packing one. xunit's targets are imported after the project body and set it back
+    to true, so the property has to be written somewhere that runs later than they do — which is what
+    `Directory.Build.targets` is, and the reason this file exists rather than a third copy of the
+    line inside each csproj.
+
+    It is dead weight rather than a hazard: a library is never launched, so nothing reads the file.
+    It is removed because these two packages exist to be exactly what a customer needs and nothing
+    else, and the csproj comments claim it was measured out. It was not, until now.
+  -->
+  <PropertyGroup>
+    <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+
+</Project>

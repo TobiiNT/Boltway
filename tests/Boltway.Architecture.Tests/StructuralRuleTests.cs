@@ -934,6 +934,88 @@ public sealed class StructuralRuleTests
 
 
     /// <summary>
+    /// The package ids this repository publishes, and no others.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The rule above proves every project <i>answers</i> the question. It does not prove the
+    /// answers add up to the intended set, and <c>Boltway.Storage.Tests</c> is what that gap costs:
+    /// it answered <c>true</c>, satisfied that rule, and published to nuget.org carrying
+    /// <c>Microsoft.NET.Test.Sdk</c>, the xunit runner, coverlet, a <c>runtimeconfig.json</c> and
+    /// seven of this repository's own store tests. A customer referencing the storage contracts ran
+    /// Boltway's tests inside their own suite. nuget.org has no delete, so that id is spent.
+    /// </para>
+    /// <para>
+    /// So the set is written down. Adding a package is an edit here, made by somebody who had to
+    /// read this paragraph — which is the same default-deny shape as
+    /// <see cref="TestAssembliesAllowedToSeeInternals"/>, and for the same reason: the failure is
+    /// silent on the publishing side and permanent on the consuming side.
+    /// </para>
+    /// </remarks>
+    private static readonly HashSet<string> PackableProjects = new(StringComparer.Ordinal)
+    {
+        "Boltway.AuthorizationServer",
+        "Boltway.AuthorizationServer.Abstractions",
+        "Boltway.Federation.Google",
+        "Boltway.Federation.Oidc",
+        "Boltway.Identity",
+        "Boltway.Interaction.Testing",
+        "Boltway.Mcp",
+        "Boltway.Notifications",
+        "Boltway.Notifications.Smtp",
+        "Boltway.OAuth.Net",
+        "Boltway.OAuth.Primitives",
+        "Boltway.OAuth.Tokens",
+        "Boltway.ResourceServer",
+        "Boltway.Storage.EntityFrameworkCore",
+        "Boltway.Storage.InMemory",
+        "Boltway.Storage.PostgreSql",
+        "Boltway.Storage.Sqlite",
+        "Boltway.Storage.Testing",
+    };
+
+    /// <summary>
+    /// What packs is exactly <see cref="PackableProjects"/> — nothing joined the feed unnoticed.
+    /// </summary>
+    /// <remarks>
+    /// Read off the project files rather than off a pack, because the point is to fail before a
+    /// pack happens. That is sound only because the rule above guarantees every project states a
+    /// value: a project inheriting the SDK default would be invisible to this scan, and that
+    /// inherited default is exactly how the id above was spent.
+    /// </remarks>
+    [Fact]
+    public void What_packs_is_the_approved_set()
+    {
+        var root = AuthRoot();
+
+        var packing = Directory.EnumerateFiles(root, "*.csproj", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Where(f => XDocument.Load(f).Descendants("IsPackable")
+                .Any(e => string.Equals(e.Value.Trim(), "true", StringComparison.OrdinalIgnoreCase)))
+            .Select(Path.GetFileNameWithoutExtension)
+            .Where(n => n is not null)
+            .Select(n => n!)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var joined = packing.Except(PackableProjects, StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        var left = PackableProjects.Except(packing, StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal).ToList();
+
+        Assert.True(
+            joined.Count == 0,
+            "These projects pack and are not on the approved list. A package id cannot be taken back "
+            + "once it is on nuget.org, so decide before the first publish rather than after:"
+            + Environment.NewLine + string.Join(Environment.NewLine, joined.Select(n => "  " + n)));
+
+        Assert.True(
+            left.Count == 0,
+            "These are on the approved list and no longer pack. If that is deliberate, remove them "
+            + "here too — a consumer restoring the id will otherwise sit on a version that stopped "
+            + "moving with no signal:"
+            + Environment.NewLine + string.Join(Environment.NewLine, left.Select(n => "  " + n)));
+    }
+
+    /// <summary>
     /// Every assembly under test was actually loaded.
     /// </summary>
     /// <remarks>
@@ -969,10 +1051,17 @@ public sealed class StructuralRuleTests
     /// Every name here is a test assembly that legitimately reaches inside the thing it tests. What
     /// must never join them is an assembly whose job is to prove a seam is reachable from outside:
     /// <c>Boltway.PublicApi.Tests</c>, which exists solely to compile against the public
-    /// surface, and <c>Boltway.Interaction.Tests</c> and <c>Boltway.Storage.Tests</c>,
-    /// which ship to customers as packages and must compile against exactly what a customer has. A
-    /// grant to any of those three would not fail a test — it would make their compilation stop
-    /// meaning anything, which is the failure mode the whole arrangement exists to prevent.
+    /// surface, and the two contract packages under <c>testing/</c> —
+    /// <c>Boltway.Interaction.Testing</c> and <c>Boltway.Storage.Testing</c> — which ship to
+    /// customers and must compile against exactly what a customer has. A grant to any of those
+    /// three would not fail a test — it would make their compilation stop meaning anything, which
+    /// is the failure mode the whole arrangement exists to prevent.
+    /// </para>
+    /// <para>
+    /// This paragraph named <c>Boltway.Interaction.Tests</c> and <c>Boltway.Storage.Tests</c>,
+    /// which are the <i>derivations</i> and pack nothing. Both contract sets have since moved to
+    /// <c>testing/</c>; the storage one moved after its <c>*.Tests</c> project had already reached
+    /// nuget.org carrying a test runner and this repository's own seven store tests.
     /// </para>
     /// </remarks>
     private static readonly HashSet<string> TestAssembliesAllowedToSeeInternals = new(StringComparer.Ordinal)
