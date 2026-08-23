@@ -673,6 +673,16 @@ scan approved, and nothing anywhere said so.
 
 Further reading: [`docs/DESIGN.md`](docs/DESIGN.md), [`spec/REQUIREMENTS.md`](spec/REQUIREMENTS.md).
 
+## Versions
+
+`0.x`, and at `0.x` anything may break. What that means concretely, what `1.0` will promise, and
+which assemblies are the stable seam are in [`VERSIONING.md`](VERSIONING.md); what actually changed
+in each version, including the breaks, is in [`CHANGELOG.md`](CHANGELOG.md).
+
+Both are linked from here rather than only from the repository root because this file is the readme
+packed into every one of the eighteen packages — somebody who arrived from nuget.org has no other
+route to them.
+
 ## Licence
 
 Apache-2.0. See [`LICENSE`](LICENSE).

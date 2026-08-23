@@ -55,7 +55,10 @@ Report privately, and give a fix a reasonable chance to ship before publishing. 
 unresponsive past what you consider reasonable, publish — an unmaintained security-critical library
 that nobody knows is unmaintained is worse than a disclosed bug.
 
-Reporters are credited in the release notes unless they ask not to be.
+Reporters are credited in [`CHANGELOG.md`](CHANGELOG.md), under the version that carries the fix,
+unless they ask not to be. That file rather than "the release notes": a release here cuts an
+annotated tag, whose message is not visible to anyone who has not cloned, so the changelog is
+where the credit would actually be read.
 
 ## A note on what this software is
 
