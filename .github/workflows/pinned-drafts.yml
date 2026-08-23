@@ -84,7 +84,7 @@ jobs:
       # Pinned to a commit rather than a tag — a tag is a mutable pointer in somebody else's
       # repository. publish-packages.yml carries the argument and .github/dependabot.yml is what
       # keeps the pin current.
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # No setup-python: the runner image ships python3, and the script imports nothing outside
       # the standard library on purpose. A check whose own dependencies can break is a check that
