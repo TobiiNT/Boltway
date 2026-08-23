@@ -1,0 +1,638 @@
+# A whole Boltway deployment on one machine: PostgreSQL, the authorization server, the admin UI,
+# and a TLS terminator in front of both.
+#
+#   docker compose up
+#
+# It needs no `.env` and no arguments. `.env.example` is a list of overrides, not a prerequisite —
+# every value below carries its own default.
+#
+# ── What this is for ─────────────────────────────────────────────────────────────────────────────
+#
+# Standing this stack up by hand takes seven restarts, because the host refuses to start rather than
+# starting wrong and each refusal names one missing setting. That is the right behaviour and it is a
+# terrible first hour. This file is the list of settings, written once, with the reason beside each
+# one that has a reason.
+#
+# ── What this is not ─────────────────────────────────────────────────────────────────────────────
+#
+# **Not a deployment.** Four things here are development-shaped on purpose, each marked `DEV:` at its
+# site, the way `samples/` marks its five:
+#
+#   DEV: the database login is `boltway`/`boltway`, the same pair `scripts/postgres.sh` and CI use.
+#   DEV: TLS is served from a certificate authority the proxy invents on first boot. No client
+#        trusts it until a person says so.
+#   DEV: the first account's password is printed into `docker compose logs init` and nowhere else.
+#   DEV: every generated secret lives in a Docker volume on this machine, unencrypted at rest.
+#
+# Nothing in this file is a credential. The signing key ring, the refresh-token derivation key and
+# the admin UI's client secret are *generated* by the `init` service on first boot, using the verbs
+# the authorization server ships for exactly that. A development RSA key committed here would be a
+# private key in a public repository whose whole subject is not doing that — and it would be the one
+# most likely to reach a real deployment, because it is the one that is already typed.
+#
+# ── Unexecuted ───────────────────────────────────────────────────────────────────────────────────
+#
+# This file has never been run. It was written by reading `hosts/*/Program.cs`, both `Dockerfile`s
+# and the Compose specification; every environment variable below appears in `Program.cs` and every
+# one `Program.cs` requires appears below. What that does not prove is that the parts fit together —
+# see the report that accompanied it for the four things worth checking first.
+name: boltway
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# The image, built from this tree
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+#
+# `context: .` because both Dockerfiles say so and CI passes the same: every `COPY` in them is
+# written from the repository root. A narrower context fails on `Directory.Build.props`.
+#
+# Two services share one build — `init` and `auth` are the same image with different arguments,
+# which is the property the authorization server's Dockerfile is protecting when it says "`migrate`
+# and `new-key` are arguments to this same entrypoint". Naming the same `image:` is what makes
+# Compose build it once instead of twice.
+x-auth-image: &auth-image
+  build:
+    context: .
+    dockerfile: hosts/Boltway.AuthorizationServer.Host/Dockerfile
+  image: boltway-auth:dev
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# One configuration, read by two processes
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+#
+# **`migrate` builds the whole host before it migrates anything.** Every `Required(...)` in
+# `Program.cs` runs above `var app = builder.Build()`, and the `migrate` block is six hundred lines
+# below that — so the migration step needs `ISSUER`, `SIGNING_KEYS`, `RESOURCES` and
+# `REFRESH_TOKEN_DERIVATION_KEY` exactly as much as the serving process does, plus `ADMIN_ROLES`
+# because `ADMIN_API=true` is refused without it.
+#
+# An anchor rather than two blocks, because the two are not allowed to differ: a migration applied
+# under one configuration and served under another is how a schema and a binary come to disagree,
+# and `SEED_ROLES` is read only by `migrate` while `ADMIN_ROLES` is enforced only by the server.
+x-auth-config: &auth-config
+  # Every token carries this as `iss` and every resource server compares it ordinally.
+  #
+  # **It must be https, path-less, and must not end in a slash** — `IssuerString.TryCreate` refuses
+  # all three, so `http://localhost:8080` is a startup failure and not a shortcut. That single rule
+  # is why there is a proxy in this file at all.
+  #
+  # The host is a `.localhost` name, which RFC 2606 §2 reserves, and the port is the *published*
+  # port rather than the container's: this URL is dereferenced from a browser on the host and from
+  # inside the admin UI's container, and it has to be the same string in both places.
+  ISSUER: "https://${AUTH_HOST:-auth.localhost}:${HTTPS_PORT:-8443}"
+
+  # Empty here, filled by the entrypoint from the volume `init` wrote — see the `auth` service.
+  # Present as a line at all so that a `.env` naming a real key ring wins over the generated one.
+  SIGNING_KEYS: "${SIGNING_KEYS:-}"
+  REFRESH_TOKEN_DERIVATION_KEY: "${REFRESH_TOKEN_DERIVATION_KEY:-}"
+
+  # **Key/value pairs, deliberately not a `postgres://` URL.** `Normalise()` in `Program.cs` rewrites
+  # a URL into key/value pairs and appends `SSL Mode=Require` while it does — correct for the hosted
+  # databases that hand out URLs, and fatal here, because the stock `postgres` image serves no TLS
+  # at all. The connection would fail with "SSL connection is required", naming nothing an operator
+  # could connect to this file. A key/value string is passed through untouched.
+  #
+  # DEV: `boltway`/`boltway`, the pair `scripts/postgres.sh` and `.github/workflows/ci.yml` already
+  # use for a server bound to loopback. It is a test login, not a secret.
+  DATABASE_URL: "Host=postgres;Port=5432;Database=boltway;Username=boltway;Password=boltway"
+
+  # At least one resource, or no token could ever be issued. This one is a placeholder audience so
+  # that `/authorize?resource=…` has something valid to name; nothing in this stack serves it.
+  # Replace it with your MCP server's URL — the URL *is* the audience, compared byte for byte, so a
+  # trailing slash here is a different resource.
+  #
+  # Not `${RESOURCES:-…}`, and the reason is Compose rather than taste: the first `}` of a JSON
+  # default would close the `${…}` expression. JSON-valued settings are edited here.
+  RESOURCES: '{"https://mcp.example.test/mcp":{"name":"Demo MCP server","scopes":"demo:read demo:write"}}'
+
+  # Shown verbatim on the consent page. Without them `A-14` renders the bare scope name rather than
+  # inventing a sentence — legible, but it reads like a leak.
+  SCOPE_DESCRIPTIONS: '{"demo:read":"Read the demo resource.","demo:write":"Write to the demo resource."}'
+
+  # Routes `/admin/*`, which is the whole reason the admin UI has anything to talk to. The server
+  # derives the admin resource URL and its scopes from `ISSUER` — there is nothing else to set, and
+  # `ADMIN_RESOURCE` is left unset on both sides so they cannot disagree.
+  ADMIN_API: "true"
+
+  # Required whenever `ADMIN_API` is on, and the server refuses to start without it. Left unset, the
+  # answer to "who may administer the directory" is everyone who can sign in.
+  #
+  # The name is this deployment's own. Nothing in the library knows it, `AdminRoleScopePolicy`
+  # matches it ordinally, and it has to be spelled identically here, in `SEED_ROLES` below, on the
+  # account `init` creates, and in the admin UI's own `ADMIN_ROLES`. All four read `${ADMIN_ROLE}`
+  # for that reason.
+  ADMIN_ROLES: "${ADMIN_ROLE:-administrator}"
+
+  # Read only by `migrate`, which creates these if absent and leaves alone any that exist. The role
+  # has to be defined before `new-user` can assign it, which is why both live in one `init` script
+  # in that order.
+  SEED_ROLES: '{"${ADMIN_ROLE:-administrator}":{"name":"Administrator"}}'
+
+  # `json` (the default), `cloud-logging`, or `simple`. `simple` here because the reader of this
+  # stack's logs is a person with a terminal open; a deployment shipping to a log store wants the
+  # default, which is structured and vendor-neutral. A misspelling is refused at startup rather than
+  # resolved to the default.
+  LOG_FORMAT: "${LOG_FORMAT:-simple}"
+
+  # How many proxies stand in front. One — the `proxy` service. Getting it wrong is silent: too high
+  # and `LoginThrottle`'s per-source limit is attributed to a header the client can assert, too low
+  # and it degrades to one bucket for the whole deployment. Behind a CDN as well, this is 2.
+  FORWARDED_HOPS: "${FORWARDED_HOPS:-1}"
+
+  # Lifetimes. Unset leaves the library's default, and an empty string reads as unset — `Duration()`
+  # tests `{ Length: > 0 }` — so these are safe to pass through empty. One spelling only: a count
+  # and a unit, `30s`, `15m`, `24h`, `30d`.
+  ACCESS_TOKEN_LIFETIME: "${ACCESS_TOKEN_LIFETIME:-}"
+  REFRESH_TOKEN_LIFETIME: "${REFRESH_TOKEN_LIFETIME:-}"
+  AUTH_CODE_LIFETIME: "${AUTH_CODE_LIFETIME:-}"
+  SESSION_REVALIDATION: "${SESSION_REVALIDATION:-}"
+  REAUTH_FRESHNESS: "${REAUTH_FRESHNESS:-}"
+
+  # Off by default in the library and on by default here, so the admin UI's sign-out ends the
+  # session at the server rather than only locally.
+  END_SESSION: "${END_SESSION:-true}"
+
+  # The browser tab is how somebody with several open decides which server is asking for a password.
+  UI_PRODUCT_NAME: "${UI_PRODUCT_NAME:-Boltway}"
+
+  # **Not every setting is safe to pass through as an empty string, so most of them are not here.**
+  # Measured in `Program.cs`: `UI_STYLESHEETS` reads empty as "serve the pages unstyled", and
+  # `UI_DEFAULT_LOCALE` is tested with `is not null`, so an empty value turns localization on with a
+  # culture named "". Settings guarded by `{ Length: > 0 }` — `SMTP_HOST`, `GOOGLE_CLIENT_ID`,
+  # `OTEL_EXPORTER_OTLP_ENDPOINT`, `DEFAULT_ROLES`, `SELF_SERVICE`, `SELF_SERVICE_PAGES`,
+  # `PASSWORD_RECOVERY`, `INTROSPECTION`, `ADMIN_RESOURCE`, `UI_TRANSLATIONS_FILE` — are. Adding one
+  # of those is a line here and a line in `.env.example`; adding one of the first two means giving
+  # it a real default rather than an empty one.
+
+services:
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  # PostgreSQL
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  #
+  # `postgres:17-alpine`, the same major and tag as the CI service container and
+  # `scripts/postgres.sh`. Three places, one version, and the two files that already agreed say so
+  # in their own comments.
+  #
+  # SQLite is a supported provider and is not an option here: it does not meet the concurrent-
+  # redemption requirement, and a stack that models the deploy shape should not model it with the
+  # provider a deploy must not use.
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: boltway
+      POSTGRES_PASSWORD: boltway
+      POSTGRES_DB: boltway
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    # Readiness is what `depends_on` waits on, and the postgres image ships no healthcheck of its
+    # own — so without this, "the port accepts a connection" is the only ordering available and
+    # `migrate` races a server that is still recovering. `-d boltway` because `pg_isready` with no
+    # database checks the one named after the user, which is not necessarily the one we migrate.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boltway -d boltway"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+    # Nothing published. A database reachable from the host is a database reachable from anything
+    # else on the host, and nothing here needs it — `docker compose exec postgres psql` is the way in.
+    expose:
+      - "5432"
+
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  # Everything that has to happen once, before anything serves
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  #
+  # **Migrations are a command, not something startup does.** Two replicas starting together would
+  # race the same migration and leave a half-applied schema, which is the one state neither a retry
+  # nor a rollback fixes. The host says so at the top of `Program.cs` and ships a `migrate` verb for
+  # it; this is that verb, run as a real dependency rather than as a sentence in a README.
+  #
+  # It matters more than it sounds. The host boots perfectly well un-migrated: `/health` answers
+  # `{"ok":true}` — it deliberately touches no database, because a probe that fails when Postgres
+  # blinks takes the server out of rotation for a dependency most requests never reach — while every
+  # endpoint that does answers 500 with "relation does not exist".
+  #
+  # `/health/ready` is the other question, and it does catch this: it reads one row out of the user
+  # store, so an un-migrated schema fails it. Compose waits on the container's own healthcheck, which
+  # is the liveness one, so this service is what makes the ordering real.
+  #
+  # This service also mints the three secrets the stack needs, because they have to exist before
+  # `migrate` runs: `Program.cs` requires `SIGNING_KEYS` and `REFRESH_TOKEN_DERIVATION_KEY` to build
+  # the host, and `migrate` is dispatched after the host is built.
+  init:
+    <<: *auth-image
+    restart: "no"
+
+    # DEV: root, and only this one-shot container. A fresh named volume is created root-owned
+    # (Docker copies ownership from the image path, and no image has `/run/boltway`), so a container
+    # running as `$APP_UID` cannot write the first byte into it. The authorization server's own
+    # Dockerfile has the same paragraph about its Data Protection volume, reached the other way
+    # round. The last line hands the directory back to the uid that reads it.
+    user: "0:0"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      <<: *auth-config
+      ADMIN_CLIENT_ID: "${ADMIN_CLIENT_ID:-boltway-adminbff}"
+      ADMIN_BASE_URL: "https://${ADMIN_HOST:-admin.localhost}:${HTTPS_PORT:-8443}"
+      ADMIN_ROLE: "${ADMIN_ROLE:-administrator}"
+      FIRST_ACCOUNT_HANDLE: "${FIRST_ACCOUNT_HANDLE:-admin}"
+      FIRST_ACCOUNT_EMAIL: "${FIRST_ACCOUNT_EMAIL:-admin@example.test}"
+
+    volumes:
+      - boltway-secrets:/run/boltway
+
+    entrypoint: ["/bin/sh", "-euc"]
+    command:
+      - |
+        secrets=/run/boltway
+        umask 077
+
+        # ── The signing key ring ──────────────────────────────────────────────────────────────
+        #
+        # **`new-key` prints one JSON object and `SIGNING_KEYS` is a JSON array.** Pasting the
+        # output of the one into the other is a documented trap that fails at startup with "The
+        # signing key secret is not valid JSON", and the brackets below are the whole fix.
+        #
+        # Not generated per boot. `DurableSigningKeys` is blunt about why: a key that dies with the
+        # process means every restart invalidates every token it issued, and the user is told to
+        # sign in again for a problem that signing in cannot fix. Written once into a volume, this
+        # ring survives `docker compose restart` and `docker compose down`; `down -v` mints a new
+        # one, which is the honest way to rotate here.
+        #
+        # Skipped entirely when `SIGNING_KEYS` is already set, so a ring supplied through `.env` is
+        # the one `migrate` runs under as well. This step and the server must not see different
+        # configuration — that is the whole reason they share one anchor above.
+        if [ -z "$${SIGNING_KEYS:-}" ] && [ ! -s "$$secrets/signing-keys.json" ]; then
+            {   printf '['
+                dotnet Boltway.AuthorizationServer.Host.dll new-key "dev-$$(date -u +%Y-%m-%d)"
+                printf ']'
+            } > "$$secrets/signing-keys.json"
+            echo "init: minted a signing key ring."
+        fi
+
+        # ── The refresh-token derivation key ──────────────────────────────────────────────────
+        #
+        # 32 random bytes, base64 — the spelling `REFRESH_TOKEN_DERIVATION_KEY`'s own error message
+        # asks for. Every refresh token is derived from it, so a value that differs between restarts
+        # silently breaks all of them.
+        #
+        # The fallback is there because `base64` is a busybox applet rather than a guarantee, and a
+        # first `up` that dies on "base64: not found" is a bad way to learn that. 44 characters of
+        # the base64 alphabet is a multiple of four, so it decodes to 33 bytes, and the host's floor
+        # is 32.
+        if [ -z "$${REFRESH_TOKEN_DERIVATION_KEY:-}" ] && [ ! -s "$$secrets/refresh-key" ]; then
+            {   head -c 32 /dev/urandom | base64 \
+                || head -c 4096 /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 44
+            } | tr -d '\n' > "$$secrets/refresh-key"
+            echo "init: minted a refresh-token derivation key."
+        fi
+
+        # ── The admin UI's client secret ──────────────────────────────────────────────────────
+        #
+        # **It cannot be a passphrase somebody invents.** `ClientAuthenticator` parses the presented
+        # value as an `OpaqueSecret` before it hashes anything, so a secret this server did not mint
+        # fails authentication whatever its hash says — and the refusal is the same `invalid_client`
+        # as a wrong password.
+        #
+        # `new-client-secret` prints both halves because they go to two different places and neither
+        # side ever needs the other's copy: the secret to the admin UI, the sha256 to this server's
+        # `CLIENTS`. Both verbs above run before `WebApplication.CreateBuilder`, so they need none
+        # of the configuration below them.
+        if [ ! -s "$$secrets/adminbff-secret" ]; then
+            dotnet Boltway.AuthorizationServer.Host.dll new-client-secret > "$$secrets/minted"
+            awk '$$1 == "secret" { print $$2 }' "$$secrets/minted" > "$$secrets/adminbff-secret"
+            awk '$$1 == "sha256" { print $$2 }' "$$secrets/minted" > "$$secrets/adminbff-secret-sha256"
+            rm -f "$$secrets/minted"
+            echo "init: minted the admin UI's client secret."
+        fi
+
+        # Rewritten every run rather than only when absent, so changing `ADMIN_HOST` or `HTTPS_PORT`
+        # in `.env` moves the registered redirect URI with it. A redirect URI is matched exactly and
+        # never by prefix, so a stale one presents as `invalid_request` at `/authorize` on a URL that
+        # looks right.
+        #
+        # To register a second client, add it to this object. It is the one place the server's
+        # `CLIENTS` is written.
+        printf '{"%s":{"name":"Administration","redirectUris":"%s/signin-oidc","secretSha256":"%s"}}' \
+            "$$ADMIN_CLIENT_ID" "$$ADMIN_BASE_URL" "$$(cat "$$secrets/adminbff-secret-sha256")" \
+            > "$$secrets/clients.json"
+
+        # `:=` and not a plain assignment, so a value supplied through `.env` survives to here
+        # rather than being replaced by the generated one.
+        : "$${SIGNING_KEYS:=$$(cat "$$secrets/signing-keys.json" 2>/dev/null || :)}"
+        : "$${REFRESH_TOKEN_DERIVATION_KEY:=$$(cat "$$secrets/refresh-key" 2>/dev/null || :)}"
+        export SIGNING_KEYS REFRESH_TOKEN_DERIVATION_KEY
+        export CLIENTS="$$(cat "$$secrets/clients.json")"
+
+        # Idempotent: it reports what it applied, or that the schema is current. It also seeds
+        # `SEED_ROLES` and checks `DEFAULT_ROLES` against what the realm defines, so a typo in a
+        # role id surfaces in this log rather than at somebody's first account creation.
+        dotnet Boltway.AuthorizationServer.Host.dll migrate
+
+        # ── Somebody has to be able to sign in ────────────────────────────────────────────────
+        #
+        # There is no registration endpoint and federated sign-in refuses an unknown identity by
+        # default, so without this the stack comes up healthy with no way in at all.
+        #
+        # **Guarded by a marker, because `new-user` is not idempotent.** It mints a new subject
+        # every time, so a second run does not reset a password — it makes a second account. The
+        # store's unique index on (realm, username) is the backstop, but it would fail this service
+        # and take the stack with it.
+        #
+        # The marker lives beside the generated secrets, so `docker compose down -v` clears both
+        # together. Removing only the database volume leaves a stale marker and no account; the way
+        # back is `docker compose run --rm auth new-user <handle> <email> <role>`.
+        #
+        # DEV: the password is generated, printed once, and is in `docker compose logs init` and
+        # nowhere else. A deployment moves it into a vault from a terminal, which is why the verb
+        # takes no password argument — an argument is visible in the process list and in history.
+        if [ ! -e "$$secrets/first-account" ]; then
+            dotnet Boltway.AuthorizationServer.Host.dll new-user \
+                "$$FIRST_ACCOUNT_HANDLE" "$$FIRST_ACCOUNT_EMAIL" "$$ADMIN_ROLE"
+            : > "$$secrets/first-account"
+        fi
+
+        # `$APP_UID` is an environment variable of the .NET runtime images, which is how both
+        # Dockerfiles here can write `USER $APP_UID` without declaring it. The literal is a
+        # belt-and-braces default rather than the value being relied on.
+        chown -R "$${APP_UID:-1654}:$${APP_UID:-1654}" "$$secrets"
+
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  # The authorization server
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  auth:
+    <<: *auth-image
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # The real ordering, rather than the hopeful kind. Without it this starts against an
+      # un-migrated database, answers its own probe, is marked healthy, and 500s on everything.
+      init:
+        condition: service_completed_successfully
+
+    environment: *auth-config
+
+    volumes:
+      - boltway-secrets:/run/boltway:ro
+
+      # The Data Protection key ring — what encrypts the login cookie and the antiforgery token.
+      # Left inside the container it dies with the container: every restart signs everyone out, and
+      # anyone mid-OAuth is bounced to `/login` by a redirect that names nothing, which reads
+      # exactly like the consent page looping.
+      #
+      # The path exists in the image and is owned by `$APP_UID` on purpose — the Dockerfile's own
+      # comment explains that Docker copies ownership into a new named volume only from a path the
+      # image already has, and that a directory created at runtime instead mounts root-owned and
+      # fails the same way as having no volume at all.
+      - auth-dpkeys:/home/app/.aspnet/DataProtection-Keys
+
+    # Nothing published, and that is load-bearing rather than tidy. `ProxyHeaders.BehindOneProxy`
+    # clears the known-proxy lists — "believe the immediate peer" — which is sound only while this
+    # application is unreachable except through the proxy. Publish 8080 and `X-Forwarded-Proto`
+    # becomes a header anyone on this machine can assert.
+    expose:
+      - "8080"
+
+    # ── Why there is a shell here ─────────────────────────────────────────────────────────────
+    #
+    # Three settings are generated by `init` into a volume, and there is no `SIGNING_KEYS_FILE` —
+    # only `UI_TRANSLATIONS` and `NOTIFICATION_TEXT` have file forms. Compose cannot pipe one
+    # service's output into another's environment (`env_file` is read when the file is parsed, long
+    # before `init` runs), so something has to read the file at start. This is that.
+    #
+    # `:=` rather than a plain read, so a `SIGNING_KEYS` set in `.env` wins over the generated ring.
+    #
+    # **`"$@"` is what keeps every verb reachable.** `docker compose run --rm auth migrate` and
+    # `docker compose run --rm auth set-role ada founder` replace the command, not the entrypoint,
+    # so the arguments arrive here and are forwarded. Without the forwarding they would be read as
+    # shell commands — and `Program.cs` has a paragraph about what happens when an argument the host
+    # does not recognise falls through to the serve path: a second authorization server, holding the
+    # same keys and the same database, that `--rm` never removes because it never exits.
+    entrypoint:
+      - /bin/sh
+      - -euc
+      - |
+        secrets=/run/boltway
+
+        # `|| :` rather than letting a missing file kill the shell. `new-key` and
+        # `new-client-secret` are dispatched before any configuration is read, so
+        # `docker compose run --rm auth new-key 2026-08` has to work against a stack that has never
+        # been up. Left empty, a setting that is genuinely needed is refused by the host, by name,
+        # in a sentence an operator can act on — which is better than `cat: can't open`.
+        : "$${SIGNING_KEYS:=$$(cat "$$secrets/signing-keys.json" 2>/dev/null || :)}"
+        : "$${REFRESH_TOKEN_DERIVATION_KEY:=$$(cat "$$secrets/refresh-key" 2>/dev/null || :)}"
+        : "$${CLIENTS:=$$(cat "$$secrets/clients.json" 2>/dev/null || :)}"
+        export SIGNING_KEYS REFRESH_TOKEN_DERIVATION_KEY CLIENTS
+        exec dotnet Boltway.AuthorizationServer.Host.dll "$$@"
+      - boltway-auth
+    command: []
+
+    # No `healthcheck:` here on purpose. The image ships one — `curl -fsS /health`, liveness only,
+    # touching no database — and a copy in this file is a copy that drifts from the Dockerfile.
+    # `depends_on: condition: service_healthy` reads the image's just as happily as an override.
+
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  # The admin UI
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  #
+  # A separate deployable because `N-17` says no admin endpoint may be reached with a cookie
+  # principal, so the UI has to be an OAuth client of the server rather than a page on it. That is
+  # also why it needs a `CLIENTS` entry and a real client secret: it authenticates with
+  # `client_secret_basic`, which a client identified by a metadata URL cannot do.
+  adminbff:
+    build:
+      context: .
+      dockerfile: hosts/Boltway.AdminBff/Dockerfile
+    image: boltway-adminbff:dev
+    restart: unless-stopped
+
+    depends_on:
+      # So that discovery answers the first time somebody opens the UI rather than the second.
+      auth:
+        condition: service_healthy
+      # For the certificate authority, which does not exist until the proxy has started once.
+      proxy:
+        condition: service_healthy
+
+    environment:
+      # The issuer, byte for byte. Discovery hangs off it and the document's own `issuer` member is
+      # compared against it, so this and `ISSUER` above are one value written twice.
+      AUTHORITY: "https://${AUTH_HOST:-auth.localhost}:${HTTPS_PORT:-8443}"
+
+      CLIENT_ID: "${ADMIN_CLIENT_ID:-boltway-adminbff}"
+
+      # Empty here and filled by the entrypoint, the same way the server's secrets are.
+      CLIENT_SECRET: "${CLIENT_SECRET:-}"
+
+      # **Not the server's `ADMIN_API`.** One name, two processes: on the authorization server it is
+      # the `true`/`false` that routes `/admin/*`; here it is the *base URL* of that API, and it
+      # defaults to `AUTHORITY`, which is right whenever the two are not on separate hostnames. So
+      # it is deliberately absent rather than set to `true`, which would point this app at a
+      # nonexistent host named "true".
+
+      # `ADMIN_RESOURCE` is absent for the same reason it is absent above: both sides derive it as
+      # issuer + `/admin`, and a value typed twice is a value that can disagree. Override both or
+      # neither.
+
+      # Read only so the pages can say what a role means; nothing here enforces anything.
+      # `AdminRoleScopePolicy` on the server is the only thing that does, and there is no endpoint
+      # through which this app could check that the two agree — hence one variable feeding both.
+      ADMIN_ROLES: "${ADMIN_ROLE:-administrator}"
+
+      # DEV: how this app comes to trust the proxy's invented certificate authority.
+      #
+      # It has to. `AUTHORITY` is the issuer, the issuer is https, and the OIDC handler refuses a
+      # non-https metadata address unless a deployment sets `RequireHttpsMetadata=false` — which is
+      # code rather than configuration and is not exposed here. So discovery, the token exchange and
+      # the `/userinfo` lookup all go out over TLS to a chain nothing ships trusting.
+      #
+      # .NET on Linux builds chains with OpenSSL and honours `SSL_CERT_FILE`, the same mechanism
+      # `samples/README.md` uses to make the two sample hosts trust the ASP.NET Core development
+      # certificate. Setting it replaces the default *bundle file*, so this container trusts the
+      # proxy's authority and not the public roots. That costs nothing here — every outbound request
+      # this app makes goes to the authorization server through that proxy — and it is a line to
+      # delete on a deployment with a real certificate.
+      SSL_CERT_FILE: /run/boltway-ca/root.crt
+
+    volumes:
+      - boltway-secrets:/run/boltway:ro
+      - proxy-ca:/run/boltway-ca:ro
+
+    expose:
+      - "8080"
+
+    entrypoint:
+      - /bin/sh
+      - -euc
+      - |
+        # `|| :` for the reason the authorization server's entrypoint gives: an absent file leaves
+        # this empty, and `CLIENT_SECRET is not set` names the setting rather than the shell.
+        : "$${CLIENT_SECRET:=$$(cat /run/boltway/adminbff-secret 2>/dev/null || :)}"
+        export CLIENT_SECRET
+        exec dotnet Boltway.AdminBff.dll "$$@"
+      - boltway-adminbff
+    command: []
+
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  # TLS, because the issuer must be https
+  # ───────────────────────────────────────────────────────────────────────────────────────────────
+  #
+  # This service exists for one rule: `IssuerString.TryCreate` refuses a non-https issuer, so there
+  # is no arrangement of these containers that serves plain HTTP and still starts. Both hosts are
+  # also written for a proxy — each calls `UseForwardedHeaders` with the known-proxy lists cleared,
+  # and their cookies are `Secure` — so terminating TLS in front is the shape they expect rather
+  # than a workaround.
+  #
+  # DEV: `tls internal` means the proxy runs its own certificate authority and signs for these two
+  # names itself. Nothing trusts that authority until somebody says so: a browser shows a warning
+  # (click through, or install the root printed by `docker compose exec proxy cat
+  # /ca/root.crt`), and `curl` needs `--cacert` or `-k`. A deployment removes this whole service and
+  # puts a real terminator in front, or removes `tls internal` and lets the proxy get a public
+  # certificate for a public name.
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+
+    # The one published port in the file, and bound to loopback rather than to every interface.
+    # Container port and host port are the same number on purpose: `ISSUER` is dereferenced from the
+    # host *and* from inside the admin UI's container, and those two only agree while the port does.
+    ports:
+      - "127.0.0.1:${HTTPS_PORT:-8443}:${HTTPS_PORT:-8443}"
+
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+
+    volumes:
+      - proxy-data:/data
+      - proxy-ca:/ca
+
+    # No `depends_on`. Upstreams are resolved per request, so waiting for them would only delay the
+    # certificate authority that the admin UI is waiting for — and this file would then have proxy
+    # waiting on auth while adminbff waits on proxy, for no gain.
+
+    # Ready means "the certificate authority exists and has been copied", which is exactly what
+    # `adminbff` is waiting for and is only reachable after the config loaded and the sites
+    # provisioned.
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /ca/root.crt"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 5s
+
+    # The copy in the background is the whole of the wrapper. The proxy writes its authority with
+    # mode 0600 as root — correct, since the private key sits in the same directory — and the admin
+    # UI runs as a non-root uid and has to read the root *certificate* to validate this proxy's
+    # chain. Copying one public file out at 0644 is what lets that happen without running that
+    # container as root or mounting a directory of private keys into it.
+    entrypoint: ["/bin/sh", "-euc"]
+    command:
+      - |
+        (   until [ -s /data/caddy/pki/authorities/local/root.crt ]; do sleep 1; done
+            cp /data/caddy/pki/authorities/local/root.crt /ca/root.crt
+            chmod 0644 /ca/root.crt
+        ) &
+        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# The proxy's configuration, inline
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+#
+# Inline because this whole stack is meant to be two files. `content:` on a config needs Docker
+# Compose v2.23.1 or newer; an older one reports the field as unsupported rather than ignoring it.
+#
+# The proxy will also try to install its root into *its own* container's trust store and log a
+# warning when it cannot. That is harmless: nothing validates against that store, and the copy at
+# /ca/root.crt is what the admin UI reads.
+configs:
+  caddyfile:
+    content: |
+      {
+          # The admin API listens unauthenticated on 127.0.0.1:2019 by default and nothing here
+          # uses it.
+          admin off
+
+          # Never bind :80. Nothing publishes it, so a redirect listener could only fail to bind
+          # and take the process with it.
+          auto_https disable_redirects
+      }
+
+      https://${AUTH_HOST:-auth.localhost}:${HTTPS_PORT:-8443} {
+          tls internal
+          reverse_proxy auth:8080
+      }
+
+      https://${ADMIN_HOST:-admin.localhost}:${HTTPS_PORT:-8443} {
+          tls internal
+          reverse_proxy adminbff:8080
+      }
+
+volumes:
+  # The database.
+  postgres-data:
+
+  # Everything `init` generated: the signing key ring, the refresh derivation key, the admin UI's
+  # client secret and the marker that says the first account exists. `docker compose down -v` clears
+  # this and the database together, which is the only combination that leaves a consistent stack.
+  boltway-secrets:
+
+  # The authorization server's Data Protection key ring. Not shared with the admin UI, deliberately:
+  # that app's cookie is a key into a ticket store a restart empties anyway, so persisting its keys
+  # would preserve cookies whose tickets are gone.
+  auth-dpkeys:
+
+  # The proxy's own state, including the certificate authority's private key.
+  proxy-data:
+
+  # One public file: the authority's root certificate, readable by the admin UI.
+  proxy-ca:

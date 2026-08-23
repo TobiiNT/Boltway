@@ -11,13 +11,31 @@
 #
 #   ./samples/drive-flow.sh
 #
+# Needs `curl` and `python3`, and nothing else. Every piece of parsing here is a python3 one-liner —
+# URL encoding, query strings, the antiforgery field, the JWT halves, the JSON summaries — because
+# `jq` is not installed everywhere and python3 is the one thing already present on every machine
+# that can build this repository.
+#
 # curl -k throughout: the hosts use the ASP.NET Core development certificate, which is not in the
 # system trust store. A real client verifies the chain.
 
 set -euo pipefail
 
-AS=${AS:-https://localhost:7443}
-RS=${RS:-https://localhost:7444}
+# Fixed, and not overridable, because there is nothing on the other side of an override.
+#
+# These two lines used to read `AS=${AS:-…}` and `RS=${RS:-…}`, which promised a knob that could not
+# work: both sample hosts declare their URLs as `const` and hand them to `UseUrls`, the authorization
+# server bakes its into the issuer and the demo client's `client_id`, and the resource server bakes
+# its into the resource that every token's `aud` is compared against. Neither project's
+# launchSettings.json carries an `applicationUrl` to move either. So `AS=… ./drive-flow.sh` moved
+# only where this script *looked*, and the failure was a connection refused at step 1 — or, worse,
+# nothing at all until step 12 rejected a token whose audience no longer matched.
+#
+# Moving them for real is an edit to samples/Boltway.Sample.AuthorizationServer/Program.cs and
+# samples/Boltway.Sample.ResourceServer/Program.cs, in the same commit, because the two constants
+# name each other.
+AS=https://localhost:7443
+RS=https://localhost:7444
 RESOURCE=$RS/mcp
 CLIENT_ID=$AS/clients/demo-cli
 REDIRECT=http://127.0.0.1:5099/callback
