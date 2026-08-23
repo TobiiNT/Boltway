@@ -92,6 +92,27 @@ jobs:
             exit 1
           fi
 
+          # The tag names a version, and until now nothing checked that it named *this* one.
+          # `Directory.Build.props` is the single literal every package publishes at and
+          # CONTRIBUTING requires bumping it in the commit that changed the surface, so the tag is
+          # purely derivative — which makes this an equality check rather than a judgement.
+          #
+          # Without it, dispatching `v0.3.0` against a tree still reading 0.2.0 cuts the tag,
+          # publishes every package at 0.2.0, and reports success. The header at the top of this
+          # file says the old process needed "the discipline to type the version twice"; the second
+          # typing was removed and this is the check that replaced it.
+          VERSION="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | head -1)"
+          if [ -z "$VERSION" ]; then
+            echo "::error::No <Version> in Directory.Build.props, so $TAG cannot be checked against it."
+            exit 1
+          fi
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "::error::$TAG names a release of $VERSION. Bump <Version> in Directory.Build.props,"
+            echo "::error::or cut v$VERSION — publishing $VERSION under $TAG leaves the tag pointing"
+            echo "::error::at packages that do not carry its number."
+            exit 1
+          fi
+
           SHA="$(git rev-parse HEAD)"
 
           # Annotated, not lightweight. An annotated tag carries a message, an author and a date, so
@@ -113,9 +134,16 @@ jobs:
   publish:
     needs: tag
 
+    # A called workflow's own `permissions:` block can only narrow what this job grants — it cannot
+    # widen it. `publish-packages.yml` declares `id-token: write` for nuget.org Trusted Publishing,
+    # and that declaration is ignored on this path, so omitting it here left `NuGet/login` with no
+    # OIDC token: the tag-push path published to nuget.org and the documented release path could
+    # not, with nothing testing the difference. It failed after the tag was pushed and after
+    # GitHub Packages was written, neither of which is reversible.
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     uses: ./.github/workflows/publish-packages.yml
     with:
