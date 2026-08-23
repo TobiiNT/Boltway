@@ -36,6 +36,12 @@
       every project in this repository.
     -->
     <IsPackable>true</IsPackable>
+    <Description>
+      The one outbound HTTP client allowed to fetch a URL the server does not control: absolute https
+      only, RFC 6890 special-use addresses refused, redirects refused, response bytes capped and
+      timeouts applied. Also carries JwksKeySource, which points a resource server's verification keys
+      at an issuer's published key set.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

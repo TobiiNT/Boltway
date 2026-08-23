@@ -15,6 +15,12 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      The authorization server's durable stores, written once against EF Core and shared by every
+      provider. Provider-neutral by construction — there is no Npgsql or SQLite reference here, so
+      nothing in the assembly can name a provider type; the two places providers genuinely differ go
+      through IRelationalStoreBehavior, which the provider package implements.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

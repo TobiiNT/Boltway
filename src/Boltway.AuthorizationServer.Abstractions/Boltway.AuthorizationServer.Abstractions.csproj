@@ -10,6 +10,11 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      Every extensibility seam of the authorization server — the stores, the policies, the providers —
+      and the records they exchange. No ASP.NET Core dependency: a seam takes a request-shaped record
+      rather than an HttpContext, so it can be implemented and unit tested in a plain class library.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

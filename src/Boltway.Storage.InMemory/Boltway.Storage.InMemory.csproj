@@ -8,6 +8,11 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      Non-persistent implementations of the authorization server's stores, shipped rather than confined
+      to a test project so that somebody writing their own store has something to compare against. Per
+      process and not durable: state is lost on restart and is not shared between replicas.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -471,6 +471,32 @@ Not decisions. Gaps.
 
 ---
 
+## Supported target frameworks
+
+**`net10.0`, every package, and that is a limit rather than a preference.** An MCP server on
+net8.0 — the LTS supported until November 2026 — cannot reference `Boltway.ResourceServer` or
+`Boltway.Mcp` at all. Not with warnings: at all. `docs/DESIGN.md` asked for `net8.0;net10.0` on the
+resource-server half for exactly that reason, in exactly those words — *"the RS lands in the
+customer's codebase and their TFM is not ours to choose"* — and it is not done.
+
+What it would take, measured on 2026-08-23 against SDK 10.0.111 rather than assumed:
+
+| | |
+|---|---|
+| the net8.0 targeting pack in CI | **not a blocker.** It restores from nuget.org, and an ASP.NET Core net8.0 library using `FrameworkReference` builds with no workflow change |
+| `System.Buffers.Text.Base64Url` | **the blocker.** .NET 9 and later. `Boltway.OAuth.Primitives` wraps it, and compiling that assembly against net8.0 fails on all three call sites |
+| `string.IndexOf(char, StringComparison)` | also .NET 9+, and `CA1307` is promoted to an error here, so `ResourceIdentifier` needs a conditional too |
+
+So the work is a hand-written unpadded base64url behind a `#if`, in the primitive that encodes PKCE
+verifiers, `jti` values and JWK thumbprints — where the padding rule is byte-exact and getting it
+wrong is a PKCE mismatch on every request, with an error that mentions nothing about padding. That
+is a decision about writing crypto-adjacent code, not a packaging chore.
+
+The authorization server staying `net10.0` is fine either way: it is a deployable you run, not a
+library that lands in somebody else's build.
+
+---
+
 ## Before the second replica
 
 **One replica is the configuration everything below is correct in.** Nothing here is a bug at *n* = 1

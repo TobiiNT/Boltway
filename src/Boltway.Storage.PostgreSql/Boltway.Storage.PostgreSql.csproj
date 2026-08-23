@@ -11,6 +11,12 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      The PostgreSQL provider for Boltway.Storage.EntityFrameworkCore: its migrations, and the one class
+      that says how this provider makes a read-decide-write sequence atomic and what a unique-key
+      violation looks like on it. Thin on purpose — everything a store does lives in the
+      provider-neutral package, and the design-time EF tooling is not carried into a deployment.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

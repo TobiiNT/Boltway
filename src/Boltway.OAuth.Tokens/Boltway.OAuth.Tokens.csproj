@@ -9,6 +9,11 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      JWT minting and validation, JWKS parsing and the signing key ring, shared by both halves so that
+      an authorization server and a resource server cannot disagree about typ, alg or aud. IdentityModel
+      and Boltway.OAuth.Primitives only, with no ASP.NET Core and no storage.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

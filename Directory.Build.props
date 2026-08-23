@@ -121,7 +121,16 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/TobiiNT/Boltway</PackageProjectUrl>
-    <PackageTags>oauth;oauth2;oidc;authorization-server;mcp;pkce;dpop;aspnetcore</PackageTags>
+    <!--
+      No `dpop`. It was in this list while `spec/REQUIREMENTS.md` S-37 said DPoP is deferred and
+      "advertise nothing DPoP-related", and §4 of the same file says advertising it "invites proofs
+      we reject". A search tag is an advertisement: somebody filtering nuget.org for `dpop` was
+      being shown a package that does not implement it. That is N-06 — the rule this repository
+      cites more than any other — on the one surface a stranger meets before the README.
+
+      Put it back in the commit that implements RFC 9449, not before.
+    -->
+    <PackageTags>oauth;oauth2;oidc;authorization-server;mcp;pkce;rfc9728;aspnetcore</PackageTags>
 
     <RepositoryUrl>https://github.com/TobiiNT/Boltway</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -136,6 +145,56 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <!--
+    A package cannot ship without saying what it is.
+
+    Fifteen of eighteen reached nuget.org carrying MSBuild's literal default, `Package Description`,
+    because nothing anywhere required otherwise: `Description` is the one field that has to be
+    per-project, so the shared block above could not supply it and no check noticed its absence.
+    `Description` is also the only thing a person reads before choosing between sixteen
+    similarly-named `Boltway.*` packages, so the failure was invisible internally and total
+    externally.
+
+    It fires at pack time, which is where the nuspec is written — so it is only a gate if something
+    packs before a tag is cut. CI does now; that is the other half of this fix and it is in
+    `.github/workflows/ci.yml`.
+  -->
+  <!--
+    Nothing detected a breaking change. No PublicApiAnalyzers, no ApiCompat, no baseline — a removed
+    or re-signatured public member produced a green build and a published package, and
+    `Boltway.PublicApi.Tests` is a compile canary over a handful of seams rather than a surface
+    baseline.
+
+    This is the SDK's own ApiCompat: it downloads the baseline package and diffs real signatures,
+    so it catches the `int`-where-a-`long`-was case that `scripts/check-published-versions.py`
+    documents itself as unable to see (it compares metadata *names*, and a signature can change
+    without a name changing).
+
+    0.1.0 is the baseline because that is what is on nuget.org and therefore what a consumer has
+    already restored. At 0.x a break is permitted — `VERSIONING.md` says so — and the point is not
+    to forbid it but to make it a thing somebody decided rather than a thing nobody noticed.
+
+    Pack-time and network-bound, so it does not slow an ordinary `dotnet build` and does not make an
+    offline one fail. The failure looks like `CP0002: Member ... exists on [Baseline] ... but not
+    on ...`, verified by making one public property internal and watching it fire.
+
+    **Its own error message suggests the wrong fix.** It offers
+    `/p:ApiCompatGenerateSuppressionFile=true`, which writes the break into an XML file nobody
+    reads again — the shape CLAUDE.md rules out for the architecture tests, for the same reason. A
+    deliberate break at 0.x is recorded by moving the version and saying so in CHANGELOG.md, where
+    the consumer who is about to hit it will see it.
+  -->
+  <PropertyGroup Condition="'$(IsPackable)' != 'false'">
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>0.1.0</PackageValidationBaselineVersion>
+  </PropertyGroup>
+
+  <Target Name="RefuseDefaultPackageDescription"
+          BeforeTargets="GenerateNuspec"
+          Condition="'$(IsPackable)' != 'false' AND ('$(Description)' == '' OR '$(Description)' == 'Package Description')">
+    <Error Text="$(PackageId) has no &lt;Description&gt;, so it would publish with the literal string 'Package Description' on its nuget.org listing. Say what the package is, and what it does not drag in." />
+  </Target>
 
   <!--
     The readme every package carries. One file at the root rather than a per-project one: a reader

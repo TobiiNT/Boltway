@@ -34,6 +34,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
+
+    <!--
+      No package validation, because there is nothing to validate against. Every other id here has
+      a 0.1.0 on nuget.org that a consumer may already have restored, and Directory.Build.props
+      makes that the ApiCompat baseline; this id has never been published, so asking for the
+      baseline is a restore failure rather than a check. Remove this the release after the first
+      one that ships it — at which point there is a baseline and it should be held to it.
+    -->
+    <EnablePackageValidation>false</EnablePackageValidation>
     <IsTestProject>false</IsTestProject>
     <Description>
       The IGrantStore, IUserStore, IClientStore, IConsentStore, IUserTokenStore, IAdminAuditStore

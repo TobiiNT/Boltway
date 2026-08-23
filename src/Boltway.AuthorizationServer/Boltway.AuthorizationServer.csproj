@@ -10,6 +10,12 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      The OAuth 2.1 and OpenID Connect authorization server itself: the endpoints, the validation
+      pipelines, client resolution, the interaction pages and the metadata document, mapped into an
+      ASP.NET Core application. Storage, local accounts and mail transport are separate packages, so a
+      deployment supplies its own store and its own user directory.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

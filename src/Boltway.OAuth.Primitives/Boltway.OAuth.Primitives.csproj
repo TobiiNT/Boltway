@@ -20,6 +20,11 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      The OAuth wire vocabulary shared by an authorization server and a resource server: scope sets,
+      redirect-URI matching, PKCE, ordinal identity types and the error surfaces. Base class library
+      only, with no ASP.NET Core, no EF Core and no third-party runtime dependency.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

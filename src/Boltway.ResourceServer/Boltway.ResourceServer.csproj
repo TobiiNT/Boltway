@@ -17,13 +17,33 @@
     Tokens fixes the access-token profile (typ, alg, aud). Sharing the compiled code is what
     makes an AS/RS disagreement about any of those impossible rather than merely tested.
 
-    Not multi-targeted. docs/DESIGN.md 2 says net8.0;net10.0 for this package; that is a
-    packaging decision needing the net8.0 targeting pack in CI and a second matrix leg, and
-    neither exists yet. Written here so the gap is visible rather than assumed closed.
-  -->
+    Not multi-targeted, and the reason written here was wrong. docs/DESIGN.md 2 asks for
+    net8.0;net10.0 on this package, and this said the blocker was the net8.0 targeting pack in CI
+    plus a second matrix leg. Measured 2026-08-23 on SDK 10.0.111: the targeting pack restores from
+    nuget.org with no CI change at all, and an ASP.NET Core net8.0 library that uses
+    FrameworkReference builds here today. So the packaging half is free.
+
+    What actually blocks it is an API. Boltway.OAuth.Primitives wraps
+    System.Buffers.Text.Base64Url, which is .NET 9 and later; compiling that assembly against
+    net8.0 fails with CS0234 on all three call sites. Multi-targeting therefore means a
+    hand-written unpadded base64url behind a #if for net8.0 — in the primitive that encodes PKCE
+    verifiers, jti values and JWK thumbprints, where the padding rule is byte-exact and getting it
+    wrong produces a PKCE mismatch on every request with an error that says nothing about padding.
+    (CA1307 is a second, smaller one: string.IndexOf(char, StringComparison) is also .NET 9+, and
+    the analyzer is an error here.)
+
+    That is a decision about writing crypto-adjacent code, not a packaging chore, so it is not
+    taken on the way past. README's "Supported target frameworks" says the same thing to a
+    consumer, which is who needs it: an MCP server on net8.0 LTS cannot reference this at all. -->
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      The resource-server half: the RFC 9728 protected-resource metadata endpoints and the bearer
+      middleware that turns a missing or bad access token into a challenge. It does not reference
+      Boltway.AuthorizationServer, and that absence is the design — a resource server validates tokens
+      and never issues them, so the two remain separate deployables.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>
