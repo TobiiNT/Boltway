@@ -16,9 +16,9 @@ public sealed class AdminFormTests
     [Fact]
     public void Several_ticked_boxes_are_several_scopes()
     {
-        var scopes = AdminForm.Scopes(new StringValues(["kb:read", "kb:write", "openid"]));
+        var scopes = AdminForm.Scopes(new StringValues(["docs:read", "docs:write", "openid"]));
 
-        Assert.Equal(["kb:read", "kb:write", "openid"], scopes);
+        Assert.Equal(["docs:read", "docs:write", "openid"], scopes);
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ public sealed class AdminFormTests
     [Fact]
     public void Ticked_boxes_are_never_joined_into_one_name()
     {
-        var scopes = AdminForm.Scopes(new StringValues(["kb:read", "kb:write"]));
+        var scopes = AdminForm.Scopes(new StringValues(["docs:read", "docs:write"]));
 
         Assert.DoesNotContain(scopes, scope => scope.Contains(',', StringComparison.Ordinal));
     }
@@ -41,18 +41,18 @@ public sealed class AdminFormTests
     [Fact]
     public void A_typed_box_is_split_on_spaces()
     {
-        var scopes = AdminForm.Scopes(new StringValues("kb:read  kb:write "));
+        var scopes = AdminForm.Scopes(new StringValues("docs:read  docs:write "));
 
-        Assert.Equal(["kb:read", "kb:write"], scopes);
+        Assert.Equal(["docs:read", "docs:write"], scopes);
     }
 
     /// <summary>A scope ticked and also typed is still one scope.</summary>
     [Fact]
     public void Repeats_collapse()
     {
-        var scopes = AdminForm.Scopes(new StringValues(["kb:read", "kb:read kb:write"]));
+        var scopes = AdminForm.Scopes(new StringValues(["docs:read", "docs:read docs:write"]));
 
-        Assert.Equal(["kb:read", "kb:write"], scopes);
+        Assert.Equal(["docs:read", "docs:write"], scopes);
     }
 
     /// <summary>
@@ -81,8 +81,8 @@ public sealed class AdminFormTests
     [Fact]
     public void A_null_value_is_skipped()
     {
-        var scopes = AdminForm.Scopes(new StringValues([null, "kb:read"]));
+        var scopes = AdminForm.Scopes(new StringValues([null, "docs:read"]));
 
-        Assert.Equal(["kb:read"], scopes);
+        Assert.Equal(["docs:read"], scopes);
     }
 }

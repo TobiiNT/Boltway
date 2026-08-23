@@ -356,22 +356,22 @@ This is the connector's rule from the other side: *"Any rule that exists on one 
 other is not a rule."* Two implementations of one contract there agreed for about a month. There is
 no reason to expect this pair to do better.
 
-### 1.14 What an MCP client may reach, and what must never be shared with a KB connector
+### 1.14 What an MCP client may reach, and what must never be shared with a document connector
 
 The question this answers: with an HTTP API in the design, can the API and the MCP tool calls share
 authentication, tokens and services?
 
 **Tokens: no — and that is `N-01`, not a preference.** The admin API is its own resource (§1.4), a
-KB connector is another, and `resource` → `aud` binding means a token minted for one is rejected by
-the other.
+document connector is another, and `resource` → `aud` binding means a token minted for one is
+rejected by the other.
 
 What makes it concrete rather than theoretical is what the connector on the other side of this is
-for. `kb_ingest` stores third-party documents **verbatim**, deliberately — *"someone else's document
-is a `source`, stored whole"* — and a model reads them. That is attacker-authored text sharing a
-context with the caller's token. If that same token also opened the directory, a sentence inside an
+for. A document connector of the kind this is built for ingests third-party documents **verbatim**,
+deliberately — summarising a source away is what makes a claim uncheckable — and a model reads them.
+That is attacker-authored text sharing a context with the caller's token. If that same token also opened the directory, a sentence inside an
 ingested PDF would be a privilege-escalation primitive with the user directory as its payload.
 Audience binding is what makes that sentence inert, and it is the reason the admin API can never be
-a tool on the KB connector.
+a tool on the document connector.
 
 **Sign-in, the authorization server and the account: shared.** One person, one password, one disabled
 flag. Two directories is how one of them keeps serving an account the other disabled.
@@ -385,8 +385,8 @@ the *entry*: resource identifier, scope check and consent are per surface, and t
 that decides whether the caller may act at all.
 
 **So account management over MCP is possible — as a separate connector**, with its own resource
-identifier, its own consent screen and its own token. Never a tool sitting beside `kb_search` on one
-token. Nothing in this design ships one; the shape is recorded so that the answer to "can we just
+identifier, its own consent screen and its own token. Never a tool sitting beside the document tools
+on one token. Nothing in this design ships one; the shape is recorded so that the answer to "can we just
 add a tool for it" is already worked out, and is no.
 
 Measured on the Northwind side, because it decides where the admin API is deployed rather than only how
@@ -607,7 +607,7 @@ Stated, so that the next person does not have to work out whether it was conside
 - **No email change without re-verification.** Changing the address and keeping `email_verified`
   true would make the claim mean nothing.
 - **No MCP tools for account management.** Shipping none is a scope decision; the rule that one
-  could never live beside KB tools on a shared token is not, and §1.14 is where it is written down.
+  could never live beside document tools on a shared token is not, and §1.14 is where it is written down.
 
 ---
 
@@ -717,7 +717,7 @@ and three of the five are rules the code already documents and does not enforce.
    than closed by inventing a path, and this is closing it rather than renaming it.
 
    It describes each approval with the deployment's `ScopeDescriptions`, not with the wire scope: a
-   person agreed to "Read the knowledge base" and does not recognise `kb:read` as the same decision.
+   person agreed to "Read the knowledge base" and does not recognise `docs:read` as the same decision.
    That makes `A-14` reachable in a way it is not on the consent page — a description can be removed
    from configuration *after* the approval that used it — so an undescribed scope renders raw with a
    warning here too.
@@ -795,7 +795,7 @@ paired property-set tests in both suites are what forced the two declarations to
 
 **There were two, and the other was ours.** `/me/sessions` rendered the raw wire scope while
 `/me/consents` rendered `ScopeDescriptions`, so one authorization read
-`email kb:read kb:write openid` on one page and as sentences on another a click away. Fixed rather
+`email docs:read docs:write openid` on one page and as sentences on another a click away. Fixed rather
 than recorded: `SessionLine` now carries the same described scopes and resources `ConsentLine` does,
 both pages draw them through one method in the renderer, and all three pages that describe scopes —
 consent, sessions, approvals — get them from `ConsentModelBuilder.Describe`, which is where `A-14`

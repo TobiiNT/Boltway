@@ -114,7 +114,7 @@ What the surrounding lines settle, which black-box probing could not:
 | Step | Result |
 |---|---|
 | `/authorize` with the per-connector `client_id` | reached, CIMD resolved |
-| Scopes `openid email offline_access kb:read kb:write` | accepted — no `invalid_scope` |
+| Scopes `openid email offline_access docs:read docs:write` | accepted — no `invalid_scope` |
 | `resource` = the MCP URL | accepted — no `invalid_target` |
 | Login, then `/consent` | reached and rendered, `client-logo` proxied 200 |
 | `/token` | **`invalid_client`** — the only failing step |
@@ -134,7 +134,7 @@ of what the vendor documentation implied**.
 |---|---|---|
 | 1 | Does ChatGPT present a `client_assertion` once resolved as a public client? | **No.** `POST /token` → `200`, and no `ClientCredentialsUnexpected` was raised. It authenticated as a public client, exactly as our metadata's `token_endpoint_auth_methods_supported` invites. |
 | 2 | Does ChatGPT probe the RFC 9728 §3.1 path-inserted PRM form? (U-01) | **Yes, and only that one.** `/.well-known/oauth-protected-resource/mcp` fetched twice from `Python/3.12 aiohttp/3.13.5`; the root form requested **zero** times. |
-| 3 | Does ChatGPT request `offline_access`? | **Yes.** The authorization request carried `scope=openid email offline_access kb:read kb:write`. |
+| 3 | Does ChatGPT request `offline_access`? | **Yes.** The authorization request carried `scope=openid email offline_access docs:read docs:write`. |
 
 **Row 2 is the one to act on.** §3 of this document reasoned from OpenAI's docs — which show only
 the root form — that the path-inserted form was the doubtful one, and recommended serving both as

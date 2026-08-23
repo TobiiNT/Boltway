@@ -572,7 +572,7 @@ public sealed class AuthorizePipeline(
             //
             // Both halves of the condition carry weight. `openid` present is what makes it a sign-in
             // at all; nothing outside `OidcOwnScopes` is what keeps it one. Drop the second half and
-            // `scope=openid kb:write` would be audienced at the OIDC resource — a write scope
+            // `scope=openid docs:write` would be audienced at the OIDC resource — a write scope
             // granted at a resource the request never named, which is the failure N-01 is about.
             if (context.IsOidc && context.Scope.Except(OidcOwnScopes).Count == 0)
             {

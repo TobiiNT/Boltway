@@ -229,14 +229,14 @@ public abstract class InteractionRendererContract
         var renderer = NewRenderer();
 
         var undescribed = Markup.Text(renderer.RenderConsent(
-            Consent() with { Scopes = [new ConsentScope("kb:read", string.Empty, false)] }));
+            Consent() with { Scopes = [new ConsentScope("docs:read", string.Empty, false)] }));
 
         // The same scope, described with its own name — so the two renders carry identical text
         // except for whatever the renderer adds to say the description is missing.
         var described = Markup.Text(renderer.RenderConsent(
-            Consent() with { Scopes = [new ConsentScope("kb:read", "kb:read", true)] }));
+            Consent() with { Scopes = [new ConsentScope("docs:read", "docs:read", true)] }));
 
-        Assert.Contains("kb:read", undescribed, StringComparison.Ordinal);
+        Assert.Contains("docs:read", undescribed, StringComparison.Ordinal);
 
         var added = undescribed.Length - described.Length;
 
@@ -818,7 +818,7 @@ public abstract class InteractionRendererContract
         ClientLogoUrl = "/client-logo?client_id=https%3A%2F%2Fevil.example%2Fc.json",
         Scopes =
         [
-            new ConsentScope("kb:read", "Read the knowledge base", true),
+            new ConsentScope("docs:read", "Read the knowledge base", true),
         ],
         Resources = ["https://mcp.example.com/mcp"],
         ReturnUrl = ReturnUrl,

@@ -167,7 +167,7 @@ public sealed partial class MeSurfaceTests
     }
 
     private static async Task<GrantRecord> SeedGrantAsync(
-        World world, string subject, string clientId, string grantId, string scope = "kb:read",
+        World world, string subject, string clientId, string grantId, string scope = "docs:read",
         string? userAgent = null)
     {
         var grant = new GrantRecord(
@@ -890,7 +890,7 @@ public sealed partial class MeSurfaceTests
     /// <b>This is the assertion that was missing, and its absence is why the defect shipped.</b>
     /// The page rendered <c>g.Scope.ToWireString()</c>, every test passed, and the symptom was only
     /// visible on a deployment with descriptions configured: <c>/me/consents</c> read "Read the
-    /// knowledge base" and <c>/me/sessions</c> read <c>kb:read kb:write</c>, one click apart, for
+    /// knowledge base" and <c>/me/sessions</c> read <c>docs:read docs:write</c>, one click apart, for
     /// the same client.
     /// </para>
     /// <para>
@@ -904,14 +904,14 @@ public sealed partial class MeSurfaceTests
     {
         var world = await StartAsync(scopeDescriptions: new()
         {
-            ["kb:read"] = "Read the knowledge base",
-            ["kb:write"] = "Write to the knowledge base",
+            ["docs:read"] = "Read the knowledge base",
+            ["docs:write"] = "Write to the knowledge base",
         });
 
         await using var fixture = world.Fixture;
 
-        await SeedGrantAsync(world, Mine, "client-a", "grant-1", "kb:read kb:write");
-        await SeedConsentAsync(world, Mine, "client-a", "kb:read kb:write");
+        await SeedGrantAsync(world, Mine, "client-a", "grant-1", "docs:read docs:write");
+        await SeedConsentAsync(world, Mine, "client-a", "docs:read docs:write");
 
         var sessions = await fixture.Client.GetStringAsync(new Uri("/me/sessions", UriKind.Relative));
         var consents = await fixture.Client.GetStringAsync(new Uri("/me/consents", UriKind.Relative));
@@ -924,7 +924,7 @@ public sealed partial class MeSurfaceTests
 
         // And the wire scope is gone from the readable part of the page. It survives in the form's
         // hidden grant id and nowhere a person reads.
-        Assert.DoesNotContain("kb:read kb:write", sessions, StringComparison.Ordinal);
+        Assert.DoesNotContain("docs:read docs:write", sessions, StringComparison.Ordinal);
 
         // The resources too, which the session page did not show at all: "what may it do" and
         // "where" are the pair the consent page asks about, so they are the pair both of these
@@ -943,15 +943,15 @@ public sealed partial class MeSurfaceTests
     [Fact]
     public async Task An_undescribed_scope_is_raw_and_flagged_on_the_session_page_too()
     {
-        var world = await StartAsync(scopeDescriptions: new() { ["kb:read"] = "Read the knowledge base" });
+        var world = await StartAsync(scopeDescriptions: new() { ["docs:read"] = "Read the knowledge base" });
         await using var fixture = world.Fixture;
 
-        await SeedGrantAsync(world, Mine, "client-a", "grant-1", "kb:read kb:write");
+        await SeedGrantAsync(world, Mine, "client-a", "grant-1", "docs:read docs:write");
 
         var html = await fixture.Client.GetStringAsync(new Uri("/me/sessions", UriKind.Relative));
 
         Assert.Contains("Read the knowledge base", html, StringComparison.Ordinal);
-        Assert.Contains("<code>kb:write</code>", html, StringComparison.Ordinal);
+        Assert.Contains("<code>docs:write</code>", html, StringComparison.Ordinal);
         Assert.Contains("no description configured", html, StringComparison.Ordinal);
     }
 
@@ -1031,16 +1031,16 @@ public sealed partial class MeSurfaceTests
     /// </summary>
     /// <remarks>
     /// The scope descriptions come from the same configuration the consent page reads. A person
-    /// agreed to "Read the knowledge base"; a page showing them <c>kb:read</c> asks them to
+    /// agreed to "Read the knowledge base"; a page showing them <c>docs:read</c> asks them to
     /// recognise their own decision from a string nobody promised was legible.
     /// </remarks>
     [Fact]
     public async Task The_consents_page_describes_scopes_the_way_the_consent_page_did()
     {
-        var world = await StartAsync(scopeDescriptions: new() { ["kb:read"] = "Read the knowledge base" });
+        var world = await StartAsync(scopeDescriptions: new() { ["docs:read"] = "Read the knowledge base" });
         await using var fixture = world.Fixture;
 
-        await SeedConsentAsync(world, Mine, "https://claude.ai/oauth/client.json", "kb:read");
+        await SeedConsentAsync(world, Mine, "https://claude.ai/oauth/client.json", "docs:read");
 
         var html = await fixture.Client.GetStringAsync(new Uri("/me/consents", UriKind.Relative));
 
@@ -1068,11 +1068,11 @@ public sealed partial class MeSurfaceTests
         var world = await StartAsync();
         await using var fixture = world.Fixture;
 
-        await SeedConsentAsync(world, Mine, "client-a", "kb:read");
+        await SeedConsentAsync(world, Mine, "client-a", "docs:read");
 
         var html = await fixture.Client.GetStringAsync(new Uri("/me/consents", UriKind.Relative));
 
-        Assert.Contains("<code>kb:read</code>", html, StringComparison.Ordinal);
+        Assert.Contains("<code>docs:read</code>", html, StringComparison.Ordinal);
         Assert.Contains("no description configured", html, StringComparison.Ordinal);
     }
 
@@ -1083,8 +1083,8 @@ public sealed partial class MeSurfaceTests
         var world = await StartAsync();
         await using var fixture = world.Fixture;
 
-        await SeedConsentAsync(world, Mine, "client-a", "kb:read");
-        await SeedConsentAsync(world, Theirs, "client-b", "kb:read");
+        await SeedConsentAsync(world, Mine, "client-a", "docs:read");
+        await SeedConsentAsync(world, Theirs, "client-b", "docs:read");
 
         var html = await fixture.Client.GetStringAsync(new Uri("/me/consents", UriKind.Relative));
 
@@ -1099,8 +1099,8 @@ public sealed partial class MeSurfaceTests
         var world = await StartAsync();
         await using var fixture = world.Fixture;
 
-        await SeedConsentAsync(world, Mine, "client-a", "kb:read");
-        await SeedConsentAsync(world, Mine, "client-b", "kb:read");
+        await SeedConsentAsync(world, Mine, "client-a", "docs:read");
+        await SeedConsentAsync(world, Mine, "client-b", "docs:read");
 
         var response = await SubmitAsync(fixture, "/me/consents", [("client", "client-a")]);
         var html = await response.Content.ReadAsStringAsync();
@@ -1128,7 +1128,7 @@ public sealed partial class MeSurfaceTests
         var world = await StartAsync();
         await using var fixture = world.Fixture;
 
-        await SeedConsentAsync(world, Theirs, "client-b", "kb:read");
+        await SeedConsentAsync(world, Theirs, "client-b", "docs:read");
 
         // The token comes from /me/password: this account has approved nothing, so /me/consents
         // draws no per-approval form to read one from — which is the point, since the id being
@@ -1157,7 +1157,7 @@ public sealed partial class MeSurfaceTests
         var world = await StartAsync();
         await using var fixture = world.Fixture;
 
-        await SeedConsentAsync(world, Mine, "client-a", "kb:read");
+        await SeedConsentAsync(world, Mine, "client-a", "docs:read");
         await SeedGrantAsync(world, Mine, "client-a", "grant-1");
 
         var response = await SubmitAsync(fixture, "/me/consents", [("client", "client-a")]);
@@ -1181,7 +1181,7 @@ public sealed partial class MeSurfaceTests
         var world = await StartAsync();
         await using var fixture = world.Fixture;
 
-        await SeedConsentAsync(world, Mine, "client-a", "kb:read");
+        await SeedConsentAsync(world, Mine, "client-a", "docs:read");
 
         var response = await SubmitAsync(fixture, "/me/consents", [("client", "not a clientid")]);
 

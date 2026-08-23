@@ -492,7 +492,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
         var field = new StringBuilder("<fieldset class=\"scopes\"><legend>")
             .Append(_text[AdminText.RolePermissionsChoose]).Append("</legend>");
 
-        // Ordinal, like every permission comparison: `Read_KB` ticked as `read_kb` would be the
+        // Ordinal, like every permission comparison: `Docs_Read` ticked as `docs_read` would be the
         // capitalised near-miss shipping through a form.
         var offered = _permissions
             .Concat(held.Where(p => !_permissions.Contains(p, StringComparer.Ordinal)))

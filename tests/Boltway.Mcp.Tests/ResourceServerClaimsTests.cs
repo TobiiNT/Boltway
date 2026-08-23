@@ -57,10 +57,10 @@ public sealed class ResourceServerClaimsTests
     [Fact]
     public void Scopes_are_read_off_the_token()
     {
-        var caller = Read(new Claim("sub", "01ABC"), new Claim("scope", "openid email kb:read kb:write"));
+        var caller = Read(new Claim("sub", "01ABC"), new Claim("scope", "openid email docs:read docs:write"));
 
         Assert.Equal(
-            ["email", "kb:read", "kb:write", "openid"],
+            ["docs:read", "docs:write", "email", "openid"],
             caller.Scopes.OrderBy(s => s, StringComparer.Ordinal).ToList());
     }
 
@@ -82,7 +82,7 @@ public sealed class ResourceServerClaimsTests
     [Fact]
     public void A_malformed_scope_claim_grants_nothing()
     {
-        Assert.Empty(Read(new Claim("sub", "01ABC"), new Claim("scope", "kb:read \"quoted\"")).Scopes);
+        Assert.Empty(Read(new Claim("sub", "01ABC"), new Claim("scope", "docs:read \"quoted\"")).Scopes);
     }
 
     /// <summary>Permissions arrive space-separated, the same shape as `scope`.</summary>
@@ -92,10 +92,10 @@ public sealed class ResourceServerClaimsTests
         var caller = Read(
             new Claim("sub", "01ABC"),
             new Claim("role", "founder"),
-            new Claim("permissions", "read_kb  write_kb read_ledgers "));
+            new Claim("permissions", "docs_read  docs_write reports_read "));
 
         Assert.Equal(
-            ["read_kb", "read_ledgers", "write_kb"],
+            ["docs_read", "docs_write", "reports_read"],
             caller.Permissions.OrderBy(p => p, StringComparer.Ordinal).ToList());
     }
 

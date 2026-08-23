@@ -1007,7 +1007,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// <b>One method, because the two pages are two views of one authorization and a reader moves
     /// between them in a click.</b> They were written separately and drifted immediately: the
     /// approvals page rendered the configured descriptions and the sessions page rendered the wire
-    /// scope, so a founder saw <c>email kb:read kb:write</c> on one and sentences on the other, for
+    /// scope, so a founder saw <c>email docs:read docs:write</c> on one and sentences on the other, for
     /// the same client, in the same session. Sharing the markup makes "described the same way" a
     /// property of this file rather than a thing two loops happen to agree on.
     /// </para>

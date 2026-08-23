@@ -225,17 +225,17 @@ The facts were all already written down, each beside the code it describes — e
 locally honest, and nowhere to look on the day somebody adds a replica. That is the defect a trigger
 fixes: not a missing fact, a missing index.
 
-Still no shared limiter, and still for the reason below: `dec-0010` puts this on one VPS, and at one
-replica per-process *is* fleet-wide. The original entry follows.
+Still no shared limiter, and still for the reason below: at one replica, per-process *is*
+fleet-wide. The original entry follows.
 
 #### 2.3a The original entry — rate limiting, a trigger not a task
 
 Today: `/authorize`'s CIMD fetch and `POST /login`, **per process**. A fleet of *n* replicas admits
 *n* times each number.
 
-`dec-0010` puts this on one VPS. **At one replica, per-process is fleet-wide**, so the gap is real
-and currently costs nothing. Building a shared limiter now buys a store, a dependency and an
-operational surface for a property we already have.
+**At one replica, per-process is fleet-wide**, so the gap is real and costs nothing until a second
+one exists. Building a shared limiter before then buys a store, a dependency and an operational
+surface for a property you already have.
 
 **Action:** add a line to the production checklist — *"before the second replica: a shared limiter,
 or accept n× every number"* — and stop there. Revisit at the replica, not at this document.

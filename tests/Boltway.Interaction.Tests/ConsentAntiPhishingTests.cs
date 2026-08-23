@@ -7,8 +7,8 @@ namespace Boltway.Interaction.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The properties here are the ones the renderer's comments and <c>dec-0012</c> describe as
-/// decisions rather than styling: the self-asserted name never appears without the sentence saying
+/// The properties here are the ones the renderer's own comments describe as decisions rather than
+/// styling: the self-asserted name never appears without the sentence saying
 /// it is unverified, the client's own logo never precedes the one host a domain owner proved, and
 /// the hostname the user's safety depends on leads the page. The existing render tests cover the
 /// device warning and the theme; these cover the ordering and the unverified caveat, which no
@@ -31,7 +31,7 @@ public sealed class ConsentAntiPhishingTests
         RedirectsToThisDevice = device,
         ClientName = name,
         ClientLogoUrl = logo,
-        Scopes = scopes ?? [new ConsentScope("kb:read", "Read the knowledge base", true)],
+        Scopes = scopes ?? [new ConsentScope("docs:read", "Read the knowledge base", true)],
         Resources = [],
         ReturnUrl = "/authorize?client_id=x",
         AntiforgeryFieldName = "__RequestVerificationToken",
@@ -46,10 +46,10 @@ public sealed class ConsentAntiPhishingTests
     /// The self-asserted name never appears without the sentence that says it is unverified.
     /// </summary>
     /// <remarks>
-    /// <c>dec-0012</c>: the caveat prints unconditionally and there is no verified branch. Encoded
-    /// as "a name implies the caveat", because that is the shape the record settles — the answer to
-    /// "when does it say verified" is never, until a party other than the application says so, and
-    /// nothing on this page is that party.
+    /// The caveat prints unconditionally and there is no verified branch — a decision, not an
+    /// omission. Encoded here as "a name implies the caveat", because that is the shape it settles
+    /// into: the answer to "when does it say verified" is never, until a party other than the
+    /// application says so, and nothing on this page is that party.
     /// </remarks>
     [Fact]
     public void A_client_name_always_carries_the_unverified_caveat()
@@ -160,7 +160,7 @@ public sealed class ConsentAntiPhishingTests
     /// An undescribed scope shows its raw name and a warning, never a description guessed from it.
     /// </summary>
     /// <remarks>
-    /// A-14: the page must not parse <c>kb:write</c> into "Write the knowledge base" and present the
+    /// A-14: the page must not parse <c>docs:write</c> into "Write the knowledge base" and present the
     /// guess as if the server had described it. The raw token in a <c>code</c> element plus the
     /// configuration warning is the honest rendering — it says what was asked for and that nobody
     /// wrote down what it means.
@@ -168,9 +168,9 @@ public sealed class ConsentAntiPhishingTests
     [Fact]
     public void An_undescribed_scope_is_shown_raw_with_a_warning()
     {
-        var html = Render(Model(scopes: [new ConsentScope("kb:write", string.Empty, false)]));
+        var html = Render(Model(scopes: [new ConsentScope("docs:write", string.Empty, false)]));
 
-        Assert.Contains("<code>kb:write</code>", html, StringComparison.Ordinal);
+        Assert.Contains("<code>docs:write</code>", html, StringComparison.Ordinal);
         Assert.Contains("no description configured", html, StringComparison.Ordinal);
     }
 
@@ -183,10 +183,10 @@ public sealed class ConsentAntiPhishingTests
     [Fact]
     public void A_described_scope_shows_its_description_and_no_warning()
     {
-        var html = Render(Model(scopes: [new ConsentScope("kb:read", "Read the knowledge base", true)]));
+        var html = Render(Model(scopes: [new ConsentScope("docs:read", "Read the knowledge base", true)]));
 
         Assert.Contains("Read the knowledge base", html, StringComparison.Ordinal);
         Assert.DoesNotContain("no description configured", html, StringComparison.Ordinal);
-        Assert.DoesNotContain("<code>kb:read</code>", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<code>docs:read</code>", html, StringComparison.Ordinal);
     }
 }

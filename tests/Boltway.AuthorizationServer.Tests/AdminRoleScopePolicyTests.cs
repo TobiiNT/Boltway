@@ -117,7 +117,7 @@ public sealed class AdminRoleScopePolicyTests
     [Fact]
     public async Task A_request_that_names_no_administrative_scope_is_untouched()
     {
-        var requested = Parse("openid kb:read kb:write email offline_access");
+        var requested = Parse("openid docs:read docs:write email offline_access");
 
         var granted = await Policy.FilterAsync(
             Account("employee"), requested, CancellationToken.None);

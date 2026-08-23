@@ -458,8 +458,8 @@ The facts were already written down, each beside the thing it describes: `LoginT
 second instance enforces twice its numbers, `CimdClientResolver` says everything it keeps is per
 process, `ClientKeySource` says the same, and so on. Eleven files, each locally honest, and nowhere
 to look on the day it matters — which is how the first draft of the table below came to be missing
-`RecoveryThrottle`. `dec-0010` puts this on one VPS, so the answer today is *nothing to do*; the
-point of the table is that the answer is written down before that changes.
+`RecoveryThrottle`. A single-instance deployment makes the answer today *nothing to do*; the point
+of the table is that the answer is written down before that changes.
 
 | Per process | *n* replicas cost | What to do |
 |---|---|---|

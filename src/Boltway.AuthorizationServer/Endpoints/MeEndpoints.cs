@@ -458,7 +458,7 @@ public static class MeEndpoints
     /// <b>Through <see cref="ConsentModelBuilder.Describe"/>, like <see cref="ConsentsPageAsync"/>
     /// and like the consent page.</b> This method used to pass <c>g.Scope.ToWireString()</c>, and
     /// what that produced on a deployment with descriptions configured was a page reading
-    /// <c>email kb:read kb:write</c> one click away from a page reading them as sentences. Somebody
+    /// <c>email docs:read docs:write</c> one click away from a page reading them as sentences. Somebody
     /// deciding whether to end a session is making the same judgement they made when they approved
     /// it, so they get the same words.
     /// </remarks>

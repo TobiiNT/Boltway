@@ -1095,8 +1095,8 @@ public sealed class UserAdministration(
     /// <remarks>
     /// <para>
     /// <b>Scopes are a parameter and cannot be derived.</b> A role holds <i>permissions</i> —
-    /// <c>read_kb</c>, in the resource server's vocabulary — and a token carries <i>scopes</i>,
-    /// <c>kb:read</c>, in OAuth's. Nothing maps one to the other, and inventing a mapping here would
+    /// <c>docs_read</c>, in the resource server's vocabulary — and a token carries <i>scopes</i>,
+    /// <c>docs:read</c>, in OAuth's. Nothing maps one to the other, and inventing a mapping here would
     /// be this library guessing at a vocabulary that belongs to somebody else's resource server.
     /// So the caller names them, and whoever presses the button sees what they are granting.
     /// </para>

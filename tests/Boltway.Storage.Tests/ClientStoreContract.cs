@@ -39,7 +39,7 @@ public abstract class ClientStoreContract
     private static readonly SubjectId Grace = SubjectId.FromStorage("01J8XKQ7M3N4P5R6S7T8V9W0ZZ");
 
     private static ClientRecord ServiceAccount(
-        string id = "northwind-nightly", SubjectId? owner = null, string scopes = "kb:read")
+        string id = "northwind-nightly", SubjectId? owner = null, string scopes = "docs:read")
     {
         _ = ScopeSet.TryParse(scopes, out var parsed, out _);
 
@@ -71,7 +71,7 @@ public abstract class ClientStoreContract
 
         Assert.NotNull(found);
         Assert.Equal(Ada, found.Owner);
-        Assert.Equal("kb:read", found.AllowedScopes.ToWireString());
+        Assert.Equal("docs:read", found.AllowedScopes.ToWireString());
         Assert.True(found.IsEnabled);
     }
 

@@ -57,7 +57,7 @@ public sealed class ResourceServerHandshakeTests : IAsyncLifetime
                     {
                         options.Resource = Resource;
                         options.AuthorizationServer = Issuer;
-                        options.ScopesSupported.Add("kb:read");
+                        options.ScopesSupported.Add("docs:read");
                         options.SigningKeys.Add(Key.Key);
                     });
 
@@ -85,7 +85,7 @@ public sealed class ResourceServerHandshakeTests : IAsyncLifetime
                         // A collision that resolves by proximity is the concrete cost of two
                         // implementations of one surface living in one repository.
                         ProtectedResourceMetadataEndpoints.MapProtectedResourceMetadata(e);
-                        e.MapMcp("/mcp").RequireScope("kb:read");
+                        e.MapMcp("/mcp").RequireScope("docs:read");
                     });
                 }))
             .StartAsync();
@@ -110,7 +110,7 @@ public sealed class ResourceServerHandshakeTests : IAsyncLifetime
             ? id!
             : throw new InvalidOperationException(error);
 
-    private static string Token(string subject = "ada", string? email = "ada@example.com", string scope = "kb:read")
+    private static string Token(string subject = "ada", string? email = "ada@example.com", string scope = "docs:read")
     {
         var extra = new Dictionary<string, object?>(StringComparer.Ordinal) { ["preferred_username"] = subject };
         if (email is not null) extra["email"] = email;
@@ -191,7 +191,7 @@ public sealed class ResourceServerHandshakeTests : IAsyncLifetime
                 SubjectId.FromStorage("user-1"),
                 ClientIdentifier.ForCimd("https://claude.ai/.well-known/oauth-client"),
                 GrantId: "grant-1",
-                ScopeSet.TryParse("kb:read", out var scopes, out _) ? scopes : throw new InvalidOperationException(),
+                ScopeSet.TryParse("docs:read", out var scopes, out _) ? scopes : throw new InvalidOperationException(),
                 now, now.AddHours(1), JwtId: "jti-2"),
             Key).Wire;
 

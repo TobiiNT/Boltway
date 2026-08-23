@@ -456,7 +456,7 @@ public sealed partial class RecoverySurfaceTests
         await world.Stores.Grants.StoreAsync(
             new GrantRecord(
                 "grant-1", SubjectId.FromStorage(Subject), ClientIdentifier.ForPreRegistered("c"),
-                ScopeSet.FromStorage("kb:read"), [], DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch),
+                ScopeSet.FromStorage("docs:read"), [], DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch),
             CancellationToken.None);
 
         var before = await world.Users.FindBySubjectAsync(SubjectId.FromStorage(Subject), CancellationToken.None);

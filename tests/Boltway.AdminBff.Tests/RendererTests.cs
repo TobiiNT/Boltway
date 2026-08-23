@@ -213,13 +213,13 @@ public sealed class RendererTests
                 Render.Account("founder"), Render.Tokens, null, "ada")
             {
                 ServiceAccount = Render.Json("null"),
-                ScopesSupported = ["kb:read", "kb:write"],
+                ScopesSupported = ["docs:read", "docs:write"],
             }),
             renderer.RenderAccount(new AccountViewModel(
                 Render.Account("founder"), Render.Tokens, null, "ada")
             {
                 ServiceAccount = Render.Json(
-                    """{"client_id":"svc-grace","scopes":["kb:read"],"enabled":true}"""),
+                    """{"client_id":"svc-grace","scopes":["docs:read"],"enabled":true}"""),
                 NewSecret = "ck_cs_shown_once",
             }),
             renderer.RenderNewAccount(new NewAccountViewModel(Render.Tokens, null, "ada")),
@@ -231,7 +231,7 @@ public sealed class RendererTests
             renderer.RenderRoles(new RolesViewModel(
                 Render.Json(
                     """
-                    {"roles":[{"id":"founder","name":"Founder","permissions":["kb:write","price:read"]},
+                    {"roles":[{"id":"founder","name":"Founder","permissions":["docs:write","reports:read"]},
                               {"id":"member","name":"Member","permissions":[]}]}
                     """),
                 Render.Tokens, "notice", "ada")
@@ -244,7 +244,7 @@ public sealed class RendererTests
 
             // Once more through a renderer that was given a vocabulary, because the picker's label,
             // its extras box and its note render on no other path.
-            Render.With(everything, ["founder"], ["read_kb"]).RenderRoles(new RolesViewModel(
+            Render.With(everything, ["founder"], ["docs_read"]).RenderRoles(new RolesViewModel(
                 Render.Json("""{"roles":[{"id":"member","name":"Member","permissions":[]}]}"""),
                 Render.Tokens, null, "ada")),
             renderer.RenderAudit(new AuditViewModel(
@@ -345,7 +345,7 @@ public sealed class RendererTests
             new AccountViewModel(Render.Account(), Render.Tokens, null, "ada")
             {
                 ServiceAccount = Render.Json(
-                    """{"client_id":"svc-grace","scopes":["kb:read"],"enabled":true}"""),
+                    """{"client_id":"svc-grace","scopes":["docs:read"],"enabled":true}"""),
                 NewSecret = "ck_cs_shown_once",
             });
 
@@ -358,7 +358,7 @@ public sealed class RendererTests
             new AccountViewModel(Render.Account(), Render.Tokens, null, "ada")
             {
                 ServiceAccount = Render.Json(
-                    """{"client_id":"svc-grace","scopes":["kb:read"],"enabled":true}"""),
+                    """{"client_id":"svc-grace","scopes":["docs:read"],"enabled":true}"""),
             });
 
         Assert.DoesNotContain("ck_cs_shown_once", without, StringComparison.Ordinal);
@@ -377,10 +377,10 @@ public sealed class RendererTests
             new AccountViewModel(Render.Account(), Render.Tokens, null, "ada")
             {
                 ServiceAccount = Render.Json("null"),
-                ScopesSupported = ["kb:read", "kb:write", "openid"],
+                ScopesSupported = ["docs:read", "docs:write", "openid"],
             });
 
-        foreach (var scope in new[] { "kb:read", "kb:write", "openid" })
+        foreach (var scope in new[] { "docs:read", "docs:write", "openid" })
         {
             Assert.Contains(
                 $"<input type=\"checkbox\" name=\"scopes\" value=\"{scope}\">",
@@ -408,7 +408,7 @@ public sealed class RendererTests
             new AccountViewModel(Render.Account(), Render.Tokens, null, "ada")
             {
                 ServiceAccount = Render.Json("null"),
-                ScopesSupported = ["kb:read", "kb:write"],
+                ScopesSupported = ["docs:read", "docs:write"],
             });
 
         // Within the fieldset rather than the page: this account's address is verified and its
@@ -464,7 +464,7 @@ public sealed class RendererTests
     public void The_role_id_has_no_input()
     {
         var page = Render.With(null, null).RenderRoles(new RolesViewModel(
-            Render.Json("""{"roles":[{"id":"founder","name":"Founder","permissions":["kb:write"]}]}"""),
+            Render.Json("""{"roles":[{"id":"founder","name":"Founder","permissions":["docs:write"]}]}"""),
             Render.Tokens, null, "ada"));
 
         Assert.Contains("<code>founder</code>", page, StringComparison.Ordinal);
@@ -597,7 +597,7 @@ public sealed class RendererTests
     public void A_collapsed_role_still_shows_its_permissions()
     {
         var page = Render.With(null, null).RenderRoles(new RolesViewModel(
-            Render.Json("""{"roles":[{"id":"editor","name":"Editor","permissions":["kb:read","kb:write"]}]}"""),
+            Render.Json("""{"roles":[{"id":"editor","name":"Editor","permissions":["docs:read","docs:write"]}]}"""),
             Render.Tokens, null, "ada"));
 
         var summary = page[page.IndexOf("<summary>", StringComparison.Ordinal)
@@ -605,8 +605,8 @@ public sealed class RendererTests
 
         Assert.Contains("<code>editor</code>", summary, StringComparison.Ordinal);
         Assert.Contains("Editor", summary, StringComparison.Ordinal);
-        Assert.Contains("<code>kb:read</code>", summary, StringComparison.Ordinal);
-        Assert.Contains("<code>kb:write</code>", summary, StringComparison.Ordinal);
+        Assert.Contains("<code>docs:read</code>", summary, StringComparison.Ordinal);
+        Assert.Contains("<code>docs:write</code>", summary, StringComparison.Ordinal);
 
         // Closed, so the page opens on the list rather than on three forms.
         Assert.DoesNotContain("<details class=\"role\" open>", page, StringComparison.Ordinal);
@@ -764,16 +764,16 @@ public sealed class RendererTests
     [Fact]
     public void A_configured_vocabulary_becomes_checkboxes_and_extras_survive()
     {
-        var page = Render.With(null, null, ["read_kb", "write_kb"]).RenderRoles(new RolesViewModel(
+        var page = Render.With(null, null, ["docs_read", "docs_write"]).RenderRoles(new RolesViewModel(
             Render.Json(
-                """{"roles":[{"id":"editor","name":"Editor","permissions":["read_kb","legacy_x"]}]}"""),
+                """{"roles":[{"id":"editor","name":"Editor","permissions":["docs_read","legacy_x"]}]}"""),
             Render.Tokens, null, "ada"));
 
         Assert.Contains(
-            "<input type=\"checkbox\" name=\"permissions\" value=\"read_kb\" checked>",
+            "<input type=\"checkbox\" name=\"permissions\" value=\"docs_read\" checked>",
             page, StringComparison.Ordinal);
         Assert.Contains(
-            "<input type=\"checkbox\" name=\"permissions\" value=\"write_kb\">",
+            "<input type=\"checkbox\" name=\"permissions\" value=\"docs_write\">",
             page, StringComparison.Ordinal);
 
         // legacy_x is not in the vocabulary, so it is offered as a ticked box — not silently gone.
@@ -796,10 +796,10 @@ public sealed class RendererTests
     public void No_vocabulary_keeps_the_box()
     {
         var page = Render.With(null, null).RenderRoles(new RolesViewModel(
-            Render.Json("""{"roles":[{"id":"editor","name":"Editor","permissions":["read_kb"]}]}"""),
+            Render.Json("""{"roles":[{"id":"editor","name":"Editor","permissions":["docs_read"]}]}"""),
             Render.Tokens, null, "ada"));
 
-        Assert.Contains("name=\"permissions\" value=\"read_kb\">", page, StringComparison.Ordinal);
+        Assert.Contains("name=\"permissions\" value=\"docs_read\">", page, StringComparison.Ordinal);
         Assert.DoesNotContain("type=\"checkbox\" name=\"permissions\"", page, StringComparison.Ordinal);
         Assert.Contains("cannot offer a list", page, StringComparison.Ordinal);
     }

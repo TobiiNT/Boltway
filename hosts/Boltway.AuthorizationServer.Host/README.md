@@ -23,10 +23,10 @@ scale event, which is a data-loss bug wearing a default's clothing.
 | `ISSUER` | **required.** The public https URL. Every token carries it as `iss` and every resource server compares it ordinally — changing it invalidates everything outstanding. |
 | `SIGNING_KEYS` | **required.** The JSON key ring. See below. |
 | `REFRESH_TOKEN_DERIVATION_KEY` | **required.** 32 random bytes, base64. Every refresh token is derived from it, so a value that differs between restarts or replicas silently breaks all of them. |
-| `RESOURCES` | **required.** `{"https://connector.example.com/mcp":{"name":"…","scopes":"kb:read kb:write email"}}`. The URL is the audience, compared byte for byte. Add `email` to a resource's scopes to release the caller's address to it — see below. |
+| `RESOURCES` | **required.** `{"https://connector.example.com/mcp":{"name":"…","scopes":"docs:read docs:write email"}}`. The URL is the audience, compared byte for byte. Add `email` to a resource's scopes to release the caller's address to it — see below. |
 | `DATABASE_URL` | Postgres. A `postgres://` URL is accepted and converted. |
 | `SQLITE_PATH` | A file. **Development only** — see below. One of these two is required. |
-| `SCOPE_DESCRIPTIONS` | `{"kb:read":"Read the knowledge base."}` — shown verbatim on the consent page. |
+| `SCOPE_DESCRIPTIONS` | `{"docs:read":"Read the knowledge base."}` — shown verbatim on the consent page. |
 | `GOOGLE_CLIENT_ID` · `GOOGLE_CLIENT_SECRET` | Optional. Turns on "Sign in with Google". |
 | `EXTERNAL_UNKNOWN_IDENTITY` | `refuse` (default) or `provision`. See below — the default matters. |
 | `END_SESSION` | `true` (default) or `false`. Routes `/logout` and publishes `end_session_endpoint`; the two move together. See below. |
@@ -91,7 +91,7 @@ is above it, translated, and chosen by what they can actually do about the refus
 
 `/me/consents` and `/me/sessions` both describe what a client may do with the same
 `SCOPE_DESCRIPTIONS` the consent page used, because a person agreed to "Read the knowledge base" and
-would not recognise `kb:read` as the same decision — and because they are two views of one
+would not recognise `docs:read` as the same decision — and because they are two views of one
 authorization, a click apart. A scope with no description configured is shown raw and flagged on
 every one of the three, which is `A-14` and is decided in one function rather than by each page.
 
@@ -313,7 +313,7 @@ static tokens. Nothing errored. The git history simply stopped naming people.
 resource asks for by listing it among its own scopes in `RESOURCES`:
 
 ```
-RESOURCES='{"https://connector.example.com/mcp":{"name":"…","scopes":"kb:read kb:write email"}}'
+RESOURCES='{"https://connector.example.com/mcp":{"name":"…","scopes":"docs:read docs:write email"}}'
 ```
 
 A resource that does not list it gets the handle and nothing else. The handle is unscoped because
@@ -377,7 +377,7 @@ rule up is that only the sign-in form may call it, checked in the IL by
 
 **Permissions come in two layers, and conflating them is the usual mistake.**
 
-*Scope* is what the **client** may ask for — `kb:read`, `kb:write`, `email`. It is shown on the
+*Scope* is what the **client** may ask for — `docs:read`, `docs:write`, `email`. It is shown on the
 consent screen, the subject approves it, and this server enforces it. That is an OAuth concept
 and it is fully built.
 
@@ -445,11 +445,11 @@ the network by the server, not stubbed:
 ```
 GET  /authorize   client_id=https://claude.ai/oauth/mcp-oauth-client-metadata  → 303 /login
 POST /login                                                                    → 303 /authorize
-GET  /consent     "See your email address. | Read the company knowledge base. | Write to it.
+GET  /consent     "See your email address. | Read the knowledge base. | Write to it.
                    | Stay connected without asking you again."
 POST /consent     decision=approve  → 303 https://claude.ai/api/mcp/auth_callback
                                         code=ck_ac_j4Y5mI…  state ok  iss=…
-POST /token       → 200  scope="email kb:read kb:write offline_access"
+POST /token       → 200  scope="email docs:read docs:write offline_access"
                     sub=01KZB0MH1074XVDAQEJH924RBM  preferred_username=ada
                     email=ada@example.com          email_verified=false
 POST /token       grant_type=refresh_token → same preferred_username, same email

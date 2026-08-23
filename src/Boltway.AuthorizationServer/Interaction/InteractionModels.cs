@@ -642,7 +642,7 @@ public sealed record ChangePasswordPageModel(
 /// <b>Deliberately the same shape as <see cref="ConsentLine"/>, minus the id.</b> This carried a
 /// wire scope string for a release, and the result was measured on a Vietnamese deployment: the
 /// approvals page read "Đọc cơ sở tri thức của công ty" and the sessions page read
-/// <c>email kb:read kb:write offline_access openid</c> — the same permissions, to the same person,
+/// <c>email docs:read docs:write offline_access openid</c> — the same permissions, to the same person,
 /// on two pages one click apart. The person deciding whether to end a session is making the same
 /// judgement they made on the consent page, so they need the same words, and
 /// <see cref="ConsentModelBuilder.Describe"/> is now the single place either page gets them.

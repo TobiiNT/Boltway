@@ -33,7 +33,7 @@ public sealed class RoleSeedingTests
         var outcomes = await service.SeedRolesAsync(
             Actor.Cli, RealmId.Default,
             [
-                new RoleSeed("founder", "Chief", ["read_kb", "write_kb"]),
+                new RoleSeed("founder", "Chief", ["docs_read", "docs_write"]),
                 new RoleSeed("member"),
             ],
             CancellationToken.None);
@@ -42,7 +42,7 @@ public sealed class RoleSeedingTests
 
         var founder = await roles.FindAsync(RealmId.Default, "founder", CancellationToken.None);
         Assert.Equal("Chief", founder!.Name);
-        Assert.Equal(["read_kb", "write_kb"], founder.Permissions.Order(StringComparer.Ordinal));
+        Assert.Equal(["docs_read", "docs_write"], founder.Permissions.Order(StringComparer.Ordinal));
 
         // No name and no permissions is a role that stands for nothing yet, named after itself —
         // the same defaults CreateRoleAsync applies, because it is CreateRoleAsync that ran.
@@ -62,11 +62,11 @@ public sealed class RoleSeedingTests
         var service = Service(new InMemoryUserStore(roles), roles);
 
         await roles.StoreAsync(
-            new RoleDefinition("founder", "Nhà sáng lập", ["read_playbooks"]), CancellationToken.None);
+            new RoleDefinition("founder", "Nhà sáng lập", ["docs_read"]), CancellationToken.None);
 
         var outcomes = await service.SeedRolesAsync(
             Actor.Cli, RealmId.Default,
-            [new RoleSeed("founder", "Chief", ["read_kb", "write_kb"])],
+            [new RoleSeed("founder", "Chief", ["docs_read", "docs_write"])],
             CancellationToken.None);
 
         var outcome = Assert.Single(outcomes);
@@ -74,7 +74,7 @@ public sealed class RoleSeedingTests
 
         var kept = await roles.FindAsync(RealmId.Default, "founder", CancellationToken.None);
         Assert.Equal("Nhà sáng lập", kept!.Name);
-        Assert.Equal(["read_playbooks"], kept.Permissions.Order(StringComparer.Ordinal));
+        Assert.Equal(["docs_read"], kept.Permissions.Order(StringComparer.Ordinal));
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class RoleSeedingTests
     {
         var roles = new InMemoryRoleStore();
         var service = Service(new InMemoryUserStore(roles), roles);
-        IReadOnlyList<RoleSeed> seeds = [new RoleSeed("founder", null, ["read_kb"]), new RoleSeed("member")];
+        IReadOnlyList<RoleSeed> seeds = [new RoleSeed("founder", null, ["docs_read"]), new RoleSeed("member")];
 
         var first = await service.SeedRolesAsync(Actor.Cli, RealmId.Default, seeds, CancellationToken.None);
         var second = await service.SeedRolesAsync(Actor.Cli, RealmId.Default, seeds, CancellationToken.None);

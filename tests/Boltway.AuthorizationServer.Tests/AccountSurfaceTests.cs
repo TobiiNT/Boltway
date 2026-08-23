@@ -138,7 +138,7 @@ public sealed class AccountSurfaceTests
             grantId,
             SubjectId.FromStorage(subject),
             ClientIdentifier.ForPreRegistered(clientId),
-            ScopeSet.FromStorage("kb:read"),
+            ScopeSet.FromStorage("docs:read"),
             ["https://api.example.com"],
             DateTimeOffset.UnixEpoch.AddDays(1),
             DateTimeOffset.UnixEpoch.AddDays(1));
@@ -515,7 +515,7 @@ public sealed class AccountSurfaceTests
         await world.Stores.Consents.GrantAsync(
             SubjectId.FromStorage(Mine),
             ClientIdentifier.ForPreRegistered("client-a"),
-            ScopeSet.FromStorage("kb:read"),
+            ScopeSet.FromStorage("docs:read"),
             ["https://api.example.com"],
             DateTimeOffset.UnixEpoch.AddDays(1),
             CancellationToken.None);
@@ -567,7 +567,7 @@ public sealed class AccountSurfaceTests
         await world.Stores.Consents.GrantAsync(
             SubjectId.FromStorage(Mine),
             ClientIdentifier.ForCimd(cimd),
-            ScopeSet.FromStorage("kb:read"),
+            ScopeSet.FromStorage("docs:read"),
             [],
             DateTimeOffset.UnixEpoch.AddDays(1),
             CancellationToken.None);
@@ -596,7 +596,7 @@ public sealed class AccountSurfaceTests
         await world.Stores.Consents.GrantAsync(
             SubjectId.FromStorage(Theirs),
             ClientIdentifier.ForPreRegistered("client-a"),
-            ScopeSet.FromStorage("kb:read"),
+            ScopeSet.FromStorage("docs:read"),
             [],
             DateTimeOffset.UnixEpoch.AddDays(1),
             CancellationToken.None);

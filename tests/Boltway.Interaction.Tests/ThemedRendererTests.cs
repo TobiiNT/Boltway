@@ -44,7 +44,7 @@ public sealed class ThemeRenderingTests
         RedirectsToThisDevice = false,
         ClientName = "Claude",
         ClientLogoUrl = null,
-        Scopes = [new ConsentScope("kb:read", "Read the knowledge base", true)],
+        Scopes = [new ConsentScope("docs:read", "Read the knowledge base", true)],
         Resources = [],
         ReturnUrl = "/authorize?client_id=x",
         AntiforgeryFieldName = "__RequestVerificationToken",

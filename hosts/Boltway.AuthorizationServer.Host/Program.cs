@@ -358,7 +358,7 @@ builder.Services
 // Which resources this server issues tokens for
 // ─────────────────────────────────────────────────────────────────────────────
 //
-//   RESOURCES='{"https://connector.example.com/mcp":{"name":"Acme Docs","scopes":"kb:read kb:write"}}'
+//   RESOURCES='{"https://connector.example.com/mcp":{"name":"Acme Docs","scopes":"docs:read docs:write"}}'
 //
 // The URL is the audience, compared byte for byte by the resource server. A trailing slash
 // here is a different resource, and the mismatch surfaces on the client as a generic failure
@@ -518,7 +518,7 @@ builder.Services.AddSingleton<IResourceRegistry>(ConfiguredResourceRegistry.Crea
 // ── A service account ────────────────────────────────────────────────────────
 //
 //   CLIENTS='{"northwind-nightly":{"name":"Nightly report","owner":"usr_01J…",
-//              "scopes":"kb:read","secretSha256":"<base64 of SHA-256 of the secret>"}}'
+//              "scopes":"docs:read","secretSha256":"<base64 of SHA-256 of the secret>"}}'
 //
 // `owner` is what makes it one, and it changes the kind of client rather than adding a field. It
 // then uses `client_credentials` and nothing else, carries no redirect URI, and is issued exactly
@@ -1375,8 +1375,8 @@ if (args is ["new-role", var newRoleId, ..])
 
     // Positional-but-unordered, the same shape `new-user` uses: a permission is snake_case and a
     // display name is not, so whichever trailing argument carries no underscore is the name. Two
-    // optional positionals in a fixed order is where somebody types `new-role editor read_kb` and
-    // silently creates a role called "read_kb".
+    // optional positionals in a fixed order is where somebody types `new-role editor docs_read` and
+    // silently creates a role called "docs_read".
     var rest = args[2..];
     var permissions = Array.FindAll(rest, a => a.Contains('_', StringComparison.Ordinal));
     var displayName = Array.Find(rest, a => !a.Contains('_', StringComparison.Ordinal));
@@ -1728,7 +1728,7 @@ if (args is ["migrate", ..])
 
     // The roles a deployment declares, created here if absent — and only here.
     //
-    //   SEED_ROLES='{"member":{"name":"Member","permissions":"kb_read"}}'
+    //   SEED_ROLES='{"member":{"name":"Member","permissions":"docs_read"}}'
     //
     // In the migrate step rather than at server startup, for the same reason the migrations
     // themselves are (C-29): one deliberate write path, run once per deploy, never raced by
@@ -2193,7 +2193,7 @@ static ScopeSet ParseScopes(string resource, string? wire)
     return parsed;
 }
 
-// SEED_ROLES='{"founder":{"name":"Founder","permissions":"kb_read kb_write"},"member":{}}'
+// SEED_ROLES='{"founder":{"name":"Founder","permissions":"docs_read docs_write"},"member":{}}'
 // The same map-of-objects shape RESOURCES uses, space-separated words inside for the same reason.
 // An entry with no body is a role that stands for nothing yet, which RoleDefinition allows on
 // purpose. Read only by the migrate verb; the serving process never parses this.
@@ -2219,7 +2219,7 @@ static IReadOnlyList<RoleSeed> ParseRoleSeeds(string json)
         .ToArray();
 }
 
-// SCOPE_DESCRIPTIONS='{"kb:read":"Read the company knowledge base."}'
+// SCOPE_DESCRIPTIONS='{"docs:read":"Read the knowledge base."}'
 static IEnumerable<KeyValuePair<string, string>> ScopeDescriptions(IConfiguration config)
 {
     var json = config["SCOPE_DESCRIPTIONS"];

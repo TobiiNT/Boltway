@@ -136,8 +136,8 @@ public sealed class ServiceAccountEndToEndTests
                 // The scopes the alternate registry declares. Harmless on the default fixture and
                 // required on the other: a resource declaring a scope this server does not publish
                 // is a scope no client could ever ask for.
-                o.ScopesSupported.Add("kb:read");
-                o.ScopesSupported.Add("kb:write");
+                o.ScopesSupported.Add("docs:read");
+                o.ScopesSupported.Add("docs:write");
 
                 // The default set is authorization_code and refresh_token, so a deployment holding
                 // service accounts has to say this — the host does, keyed on whether an IClientStore
@@ -509,19 +509,19 @@ public sealed class ServiceAccountEndToEndTests
     public async Task A_service_account_whose_scopes_name_one_resource_needs_no_resource_parameter()
     {
         await using var server = await StartAsync(registry: new TestResourceRegistry()
-            .Add(Build.Resource, "kb:read kb:write")
+            .Add(Build.Resource, "docs:read docs:write")
             .Add(Build.OtherResource, "users:read users:write"));
 
         await CreateAccountAsync(server);
 
-        var (clientId, secret) = await CreateServiceAccountAsync(server, "kb:read", "kb:write");
+        var (clientId, secret) = await CreateServiceAccountAsync(server, "docs:read", "docs:write");
 
         using var token = await TokenAsync(server, clientId, secret, ("resource", string.Empty));
 
         await ShouldBeAsync(token, HttpStatusCode.OK);
 
         var body = await token.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("kb:read kb:write", body.GetProperty("scope").GetString());
+        Assert.Equal("docs:read docs:write", body.GetProperty("scope").GetString());
     }
 
     /// <summary>
@@ -536,12 +536,12 @@ public sealed class ServiceAccountEndToEndTests
     public async Task A_scope_no_resource_defines_does_not_make_it_ambiguous()
     {
         await using var server = await StartAsync(registry: new TestResourceRegistry()
-            .Add(Build.Resource, "kb:read kb:write")
+            .Add(Build.Resource, "docs:read docs:write")
             .Add(Build.OtherResource, "users:read users:write"));
 
         await CreateAccountAsync(server);
 
-        var (clientId, secret) = await CreateServiceAccountAsync(server, "kb:read", "openid");
+        var (clientId, secret) = await CreateServiceAccountAsync(server, "docs:read", "openid");
 
         using var token = await TokenAsync(server, clientId, secret, ("resource", string.Empty));
 

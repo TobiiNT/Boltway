@@ -29,7 +29,7 @@ namespace Boltway.Mcp;
 /// app.UseBoltwayProtectedResource();                 // validates, and owns the 401
 /// app.UseConnectorCaller("/mcp", bindState);              // maps the result onto the caller
 /// app.MapProtectedResourceMetadata();
-/// app.MapMcp("/mcp").RequireScope("kb:read");             // what makes the gate apply
+/// app.MapMcp("/mcp").RequireScope("docs:read");             // what makes the gate apply
 /// </code>
 /// </summary>
 public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrincipal> map)

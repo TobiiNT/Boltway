@@ -48,7 +48,7 @@ public sealed class ConfiguredClientTests
 
     /// <summary>A service account: an owner, scopes, a secret, and no redirect URI.</summary>
     private static ConfiguredClient Nightly(
-        SubjectId? owner = null, string scopes = "kb:read", string? secret = "correct horse battery")
+        SubjectId? owner = null, string scopes = "docs:read", string? secret = "correct horse battery")
     {
         _ = ScopeSet.TryParse(scopes, out var parsed, out _);
 
@@ -80,7 +80,7 @@ public sealed class ConfiguredClientTests
 
         Assert.Equal(["client_credentials"], client.GrantTypes);
         Assert.Equal(Owner, client.Owner);
-        Assert.Equal("kb:read", client.AllowedScopes.ToWireString());
+        Assert.Equal("docs:read", client.AllowedScopes.ToWireString());
     }
 
     /// <summary>A client naming no owner is unchanged by any of this.</summary>
