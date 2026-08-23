@@ -125,7 +125,14 @@ public static class SigningAlgorithms
     /// <para>
     /// Accepting more than you issue is ordinary and safe — it is what makes a rotation across
     /// algorithms possible. Advertising more than you issue is a promise to somebody else's code.
-    /// Grow this list when <c>TokenIssuer</c> can mint the algorithm, not when the ring can hold it.
+    /// </para>
+    /// <para>
+    /// <b>This is the default, and no longer what the document is built from.</b> Which algorithm
+    /// signs is <c>AuthorizationServerOptions.TokenSigningAlgorithm</c>, and
+    /// <c>id_token_signing_alg_values_supported</c> is derived from that same value — so the
+    /// advertised set is the minted set by construction rather than by a list somebody remembers to
+    /// grow. A second hand-maintained list here would have been the original defect waiting to
+    /// happen again the moment the issuing algorithm became configurable.
     /// </para>
     /// </remarks>
     public static IReadOnlyList<string> Issued { get; } = ["RS256"];

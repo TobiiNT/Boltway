@@ -87,6 +87,45 @@ public sealed class ConfigurationDoctorTests
         Assert.Contains("RS256", check.Detail, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// An elliptic-curve deployment is not reported broken for holding no RSA key.
+    /// </summary>
+    /// <remarks>
+    /// The doctor asked the ring for RS256 and nothing else, so a deployment that set
+    /// <c>TokenSigningAlgorithm</c> to ES256 and holds exactly the key it signs with would have
+    /// been told its key ring was unusable. Both the check and the metadata document read the same
+    /// option now, so what the doctor verifies is what the server advertises and what it mints.
+    /// </remarks>
+    [Fact]
+    public void An_ec_deployment_passes_with_an_ec_key()
+    {
+        var handle = new SigningKeyHandle("ec-1", SigningAlgorithm.ES256, new ECDsaSecurityKey(ECDsa.Create(ECCurve.NamedCurves.nistP256)));
+        var ring = new SigningKeyRing([new ManagedSigningKey(handle, SigningKeyState.Active, DateTimeOffset.UtcNow.AddDays(-2))]);
+
+        var options = Build.Options(o => o.TokenSigningAlgorithm = SigningAlgorithm.ES256);
+
+        Assert.NotEqual(DoctorStatus.Fail, Check(ConfigurationDoctor.Run(options, ring), "signing-keys").Status);
+    }
+
+    /// <summary>
+    /// The control: the same ring fails for a deployment that signs with RS256.
+    /// </summary>
+    /// <remarks>
+    /// Without it the test above passes against a doctor that stopped checking the ring at all,
+    /// which is the same page with a worse failure — every token signed by a key nothing verifies.
+    /// </remarks>
+    [Fact]
+    public void An_ec_only_ring_still_fails_an_rs256_deployment()
+    {
+        var handle = new SigningKeyHandle("ec-1", SigningAlgorithm.ES256, new ECDsaSecurityKey(ECDsa.Create(ECCurve.NamedCurves.nistP256)));
+        var ring = new SigningKeyRing([new ManagedSigningKey(handle, SigningKeyState.Active, DateTimeOffset.UtcNow.AddDays(-2))]);
+
+        var check = Check(ConfigurationDoctor.Run(Build.Options(), ring), "signing-keys");
+
+        Assert.Equal(DoctorStatus.Fail, check.Status);
+        Assert.Contains("RS256", check.Detail, StringComparison.Ordinal);
+    }
+
     /// <summary>The profile check names the mechanism in use.</summary>
     /// <remarks>
     /// One profile rather than a theory over two, because dynamic registration is refused by options

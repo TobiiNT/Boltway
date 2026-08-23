@@ -224,9 +224,15 @@ public static class ConfigurationDoctor
                 "The JWKS would be empty, so no client can validate any token this server issues.");
         }
 
+        // The configured algorithm, not RS256 — a deployment that set TokenSigningAlgorithm to
+        // ES256 and holds only an EC key is correct, and asking the ring for RS256 would report it
+        // as broken. What must hold is that the ring can sign with what this server advertises,
+        // and both come off the same option.
+        var issuing = options.TokenSigningAlgorithm;
+
         try
         {
-            _ = keyRing.ActiveKey(SigningAlgorithm.RS256);
+            _ = keyRing.ActiveKey(issuing);
         }
         catch (InvalidOperationException ex)
         {
@@ -234,9 +240,13 @@ public static class ConfigurationDoctor
                 "signing-keys",
                 "A signing key is active and published",
                 DoctorStatus.Fail,
-                $"No active RS256 key: {ex.Message} RS256 is the interop floor — RFC 9068 §2.1 makes "
-                + "it mandatory to implement and OIDC Discovery §3 requires it in "
-                + "id_token_signing_alg_values_supported.");
+                $"No active {issuing.ToJwaName()} key: {ex.Message} That is the algorithm "
+                + "TokenSigningAlgorithm names, so it is what every token would be signed with and "
+                + "what id_token_signing_alg_values_supported advertises."
+                + (issuing is SigningAlgorithm.RS256
+                    ? " RS256 is also the interop floor — RFC 9068 §2.1 makes it mandatory to implement."
+                    : " RS256 is the interop floor (RFC 9068 §2.1); a relying party that cannot verify "
+                      + "this algorithm has nothing to fall back to."));
         }
 
         var rendered = JsonWebKeySet.Render(published);

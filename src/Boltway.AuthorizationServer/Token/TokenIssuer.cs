@@ -195,7 +195,7 @@ public sealed class TokenIssuer(
         CancellationToken cancellationToken)
     {
         var expiresAt = now + _options.AccessTokenLifetime;
-        var key = _keyRing.ActiveKey(SigningAlgorithm.RS256);
+        var key = _keyRing.ActiveKey(_options.TokenSigningAlgorithm);
 
         // Here rather than in either caller, because this method exists to make the two paths
         // produce indistinguishable tokens. A mapper called only on the authorization-code path

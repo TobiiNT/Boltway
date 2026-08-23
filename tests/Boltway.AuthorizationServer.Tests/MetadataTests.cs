@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Boltway.AuthorizationServer.Configuration;
 using Boltway.AuthorizationServer.Metadata;
+using Boltway.OAuth.Tokens;
 
 namespace Boltway.AuthorizationServer.Tests;
 
@@ -367,6 +368,24 @@ public sealed class MetadataTests
     public void Only_what_can_be_minted_is_advertised_for_id_tokens()
     {
         Assert.Equal(["RS256"], Strings(Serialize(), "id_token_signing_alg_values_supported"));
+    }
+
+    /// <summary>
+    /// Configuring a different issuing algorithm moves what is advertised with it.
+    /// </summary>
+    /// <remarks>
+    /// The pairing is the whole reason <c>TokenSigningAlgorithm</c> exists rather than a second
+    /// list beside it. A deployment whose key policy is elliptic-curve could not use this server at
+    /// all while the minting site named RS256 directly; making that configurable without moving the
+    /// document would have re-created the defect the test above was written for, pointing the other
+    /// way — the document promising RS256 while every token arrives signed ES256.
+    /// </remarks>
+    [Fact]
+    public void The_advertised_id_token_algorithm_follows_the_configured_one()
+    {
+        var document = Serialize(o => o.TokenSigningAlgorithm = SigningAlgorithm.ES256);
+
+        Assert.Equal(["ES256"], Strings(document, "id_token_signing_alg_values_supported"));
     }
 
     /// <summary>

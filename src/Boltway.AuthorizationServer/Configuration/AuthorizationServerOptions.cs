@@ -4,6 +4,7 @@ using Boltway.AuthorizationServer.Token;
 using Boltway.OAuth.Net;
 using Boltway.OAuth.Primitives.Ids;
 using Boltway.OAuth.Primitives.Scopes;
+using Boltway.OAuth.Tokens;
 
 namespace Boltway.AuthorizationServer.Configuration;
 
@@ -263,6 +264,33 @@ public sealed class AuthorizationServerOptions
     /// roughly 25-minute refresh spacing and bounded lag.
     /// </remarks>
     public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromMinutes(30);
+
+    /// <summary>
+    /// Which algorithm signs the tokens this server issues.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>RS256 because it is the interop floor</b> — RFC 9068 §2.1 makes it mandatory to
+    /// implement, so it is the one every relying party can verify. It is a default rather than a
+    /// rule: the key ring, the JWKS document and the verifier already handle ES256, and a
+    /// deployment whose key policy is elliptic-curve could not use this server at all while the
+    /// minting site named one algorithm directly.
+    /// </para>
+    /// <para>
+    /// <b>It sets what is advertised as well as what is minted, and that is the point.</b>
+    /// <c>id_token_signing_alg_values_supported</c> is built from this, so the document cannot come
+    /// to promise an algorithm the issuer will not produce. That has happened here before, the
+    /// other way round: the list was filled from the verifier's allow-list, so the server
+    /// advertised ES256 while minting RS256 and nothing else, and a relying party configuring
+    /// <c>id_token_signed_response_alg=ES256</c> from that document would reject every token this
+    /// server can make. <c>SigningAlgorithms.Issued</c> carries the argument.
+    /// </para>
+    /// <para>
+    /// The ring must hold an active key for it. <c>ConfigurationDoctor</c> reports a ring that does
+    /// not, which is otherwise a failure on the first token rather than at startup.
+    /// </para>
+    /// </remarks>
+    public SigningAlgorithm TokenSigningAlgorithm { get; set; } = SigningAlgorithm.RS256;
 
     /// <summary>
     /// How long an authorization code is valid.
