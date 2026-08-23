@@ -182,7 +182,7 @@ checks that single condition on every render and throws rather than serving a co
 consent on it. A tag helper can be left out of a view silently. This cannot.
 
 Tier 3 still exists and still hands over everything, so the obligation is real — which is why
-`Boltway.Interaction.Tests` ships as a package carrying `InteractionRendererContract` and
+`Boltway.Interaction.Testing` ships as a package carrying `InteractionRendererContract` and
 `InteractionLayoutContract`. That is the same arrangement as the store contracts, for the same
 reason: a contract nobody outside this repository can run is a contract only this repository is
 held to.

@@ -16,13 +16,18 @@ resource indicators, RFC 8414 and OIDC discovery, RFC 9728 protected-resource me
 (Client ID Metadata Document) client identification — so a client that has never been registered
 here can connect by naming the URL its metadata lives at.
 
-**What it is not.** Not a general-purpose identity provider, not a replacement for Entra ID or Auth0,
-and not a product with an admin UI. There is no user registration flow, no multi-tenancy, and no
-durable storage implementation. Account management is an HTTP API and a CLI, both off by default,
-with no pages behind either. Rate limiting exists on two paths only and is
-per process — see below. Several protocol endpoints
-are deliberately absent; several others simply have not been built. The difference is spelled out
-below, because a list that blurs the two is worse than no list.
+**What it is not.** Not a general-purpose identity provider, and not a replacement for Entra ID or
+Auth0. There is no user registration flow and no multi-tenancy. Rate limiting exists on two paths
+only and is per process — see below. Several protocol endpoints are deliberately absent; several
+others simply have not been built. The difference is spelled out below, because a list that blurs
+the two is worse than no list.
+
+This paragraph used to say there was no admin UI and no durable storage implementation, and both had
+been built by the time anybody read it. That is the failure *What is built and off by default*
+exists to catch, arriving at the one place every reader starts: `hosts/Boltway.AdminBff` is an admin
+UI with its own image, and `Boltway.Storage.PostgreSql` is a durable store with its own migrations.
+Account management is still off by default — an HTTP API, a CLI and, behind separate flags, pages —
+and that part was true.
 
 ---
 
@@ -115,7 +120,7 @@ password.
 |---|---|---|---|
 | `SigningKeyRing` | which keys sign tokens and appear in JWKS | `SigningKeyRing`, `SigningKeyHandle`, three-phase rotation states | always — the key material is yours; the ring is not defaulted |
 | `IResourceRegistry` | which resources this server issues tokens for, and each one's scopes | `ConfiguredResourceRegistry.Create(...)` | resources are discovered at runtime rather than declared at startup |
-| `IGrantStore` | the grant behind every issued token | `AddBoltwayInMemoryStores()` | you need persistence (see below — there is no durable implementation) |
+| `IGrantStore` | the grant behind every issued token | `AddBoltwayInMemoryStores()` | you need persistence — `AddBoltwayPostgreSqlStores(...)`, see below |
 | `IAuthorizationCodeStore` | codes between `/authorize` and `/token` | same call | same |
 | `IRefreshTokenStore` | refresh tokens and their rotation families | same call | same |
 | `IConsentStore` | what each user has already agreed to | same call | same |
@@ -255,7 +260,7 @@ break silently: `POST /consent` reads `form["decision"]` and compares it to `"ap
 so a control named anything else ships a page whose Approve button denies; and `POST /login` reads
 `username` and `password`.
 
-**Whichever of the last two you take, run the contract.** `Boltway.Interaction.Tests` ships as
+**Whichever of the last two you take, run the contract.** `Boltway.Interaction.Testing` ships as
 a package for this — derive `InteractionLayoutContract` or `InteractionRendererContract`, override
 one factory method, and get the requirements asserted against your own output, including that
 nothing on the page is something the CSP will refuse.
@@ -446,7 +451,8 @@ Not decisions. Gaps.
   `ClientRecord`, while the token path carries a `SubjectId` off the grant and never loads an
   account. Wiring it would have meant a store read per token issuance, so it would not have saved
   the hunt through call sites it existed to prevent — it was a seam that did not fit its own seam.
-  Deleted, on the precedent the [top-level README](../README.md) sets for the JavaScript layer.
+  Deleted: a seam nothing can call is a claim that a decision has been made, and deleting it is how
+  the claim stops being made.
   Pairwise, if ever wanted, is `(subject, client)` threaded through `TokenIssuer` and
   `UserInfoEndpoint` plus a salt that is permanent once set.
 - **Multi-target for the resource server package.** `DESIGN.md` calls for `net8.0;net10.0`. It is
@@ -607,6 +613,15 @@ the image tag and the apt package, so local and CI cannot drift apart unnoticed.
 | `Boltway.Federation.Oidc`, `Boltway.Federation.Google` | signing in against an upstream identity provider |
 | `Boltway.Notifications`, `Boltway.Notifications.Smtp` | the notification seam and one implementation |
 | `Boltway.Mcp` | the MCP-shaped half of a connector: tool-error semantics and the authentication seam, layered over the official MCP SDK |
+
+That is `src/`, and it is not the whole tree. Three directories beside it are what most people
+actually reach for first, and this table listed none of them:
+
+| Directory | |
+|---|---|
+| `hosts/` | two things you can run rather than reference. `Boltway.AuthorizationServer.Host` is the authorization server as one image for every deployment, configured entirely by environment; `Boltway.AdminBff` is the admin UI, and it is an OAuth client rather than a page on the server because `N-17` forbids reaching an admin endpoint with a cookie. Each has a `Dockerfile` and its own README. Neither packs |
+| `testing/` | the contracts, shipped so a deployment runs the same suite we do. `Boltway.Interaction.Testing` for a replaced layout or renderer, `Boltway.Storage.Testing` for a store you wrote. A seam worth replacing is a seam worth shipping a contract for |
+| `samples/` | the smallest pair that completes a whole flow, plus `drive-flow.sh`, which walks it end to end from the `401` to a refreshed token |
 
 `Boltway.ResourceServer` does not reference `Boltway.AuthorizationServer`, and that absence
 is the design: the two are separate deployables.
