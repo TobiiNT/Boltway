@@ -544,6 +544,60 @@ just its material:
    token it signed has expired; `retired` is not an accepted state, because carrying a dead key
    in the secret invites promoting it back.
 
+These two sections moved here from the root README. They are what an operator does, and an
+operator is reading this file.
+
+## Production checklist
+
+Twelve things, in the order they bite. Each is a decision a deployment makes once; none of them has
+a default that is right for everyone, which is why none of them has one.
+
+| | What to do | Why, and what it costs to skip |
+|---|---|---|
+| 1 | **Durable storage.** `AddBoltwayPostgreSqlStores`, and migrate as a deploy step | With the in-memory stores a restart loses every refresh token (users re-authorize), every consent record (users are asked again), and any authorization in flight. Two replicas share none of it. Not the SQLite one — it is a development provider and [the reason is above](../../docs/CAPABILITIES.md#not-built-yet) |
+| 2 | **A real signing key, with rotation.** Generate it outside the process, keep it across restarts, share it between replicas | `SigningKeyRing` models Pending → Active → Retiring: publish a key for at least `PublishLeadTime` (default 24h, floor 10 minutes) before it signs, and keep a retiring key published for at least one access-token lifetime after it stops. A key that signs before verifiers have seen its `kid` produces signature failures nobody diagnoses as a timing problem |
+| 3 | **A durable replay store if you offer `private_key_jwt`** | `AddBoltwayPostgreSqlStores` registers one. The in-memory implementation is not a weaker version of it here the way it is for grants and consents — it is a per-process set, so *n* replicas admit *n* uses of one captured assertion, and nothing about that is visible from outside. Startup refuses the method with no store at all; it cannot tell a shared store from a per-process one |
+| 4 | **A key source on every resource server, not a hand-filled list.** `JwksKeySource.CurrentKeys` assigned to `ProtectedResourceOptions.SigningKeySource`, or `AddJwksSigningKeys(issuer)` in an MCP connector | A host that fills `SigningKeys` by hand is a host whose rotation day is an outage, and item 2 guarantees there will be one. Keep `JwksKeySourceOptions.CacheLifetime` below the server's `PublishLeadTime` — the defaults, five minutes against a ten-minute floor, already are — and leave `AllowPrivateAddresses` clear on the client you hand it |
+| 5 | **`RefreshTokenDerivationKey` stable across restarts and instances.** At least 32 bytes | Worth as much as every refresh token this server will ever issue, so store it where the signing keys live. A per-process key makes the refresh grace window work only when two racing requests land on the same node — which looks like flakiness rather than a bug |
+| 6 | **TLS and HSTS** | The issuer must be `https`, path-less, and with no trailing slash. It is compared byte for byte by every client |
+| 7 | **`ForwardedHeaders` behind a proxy** | So the scheme and client address are the real ones. The issuer itself is never derived from the request, so a misconfigured proxy will not corrupt it — but cookie `Secure` policy and logging both depend on getting this right |
+| 8 | **Decide whether the per-process rate limits are enough**, and set `LoginThrottleOptions.ClientKey` if your proxy does not populate `RemoteIpAddress` | `/authorize`'s CIMD fetch and `POST /login` are bounded per process — `docs/DESIGN.md` §4.1, and [Before the second replica](#before-the-second-replica) for everything else that is per process. `/token` is not bounded at all. Without `ClientKey`, every user shares one per-source bucket and thirty attempts across all of them exhausts it |
+| 9 | **`AllowPrivateAddresses` clear** | It disables the RFC 6890 special-use address check *entirely*, which turns `/authorize` into an unauthenticated port scanner. `AddCimdClientResolver` refuses to build such a fetcher outside `Development` — but measured, that refusal happens when the fetcher is first resolved, on the first `/authorize`, **not at startup**. The host binds and serves discovery first, then fails on the first client |
+| 10 | **Name the meters, and alert on one of them.** `AuthorizationServerMetrics.MeterName`, `StorageMetrics.MeterName`, and on a resource server `ResourceServerMetrics.MeterName` | Nothing is published unless the host calls `AddMeter`, and an unnamed meter is not an error — it is silence that looks like a healthy system. The one alert to build first is `failed_open` on the revocation check, because `IntrospectionRevocationCheck` fails **open**: [Alerting on revocation](#alerting-on-revocation) has the expression and the one `reason` that deserves its own alert rather than a threshold |
+| 11 | **Run the doctor** against the configuration you would actually start with — `docker run --rm --env-file .env ghcr.io/<owner>/boltway-auth doctor`, or `ConfigurationDoctor.Run(options, keyRing)` hosting the library yourself | It prints every check rather than stopping at the first, exits non-zero on any `Fail`, and distinguishes `NotMeasured` from `Pass` — a check that could not run is never rendered green. `Warn` does not fail the exit code: telling "wrong" from "worth a look" is the job, and collapsing the two makes it a thing people stop running |
+| 12 | **Check what your discovery document promises.** Every URL in it should answer | That is the one failure mode this project has paid for most often, and the reason N-06 is the rule cited most in this repository |
+
+## Before the second replica
+
+**One replica is the configuration everything below is correct in.** Nothing here is a bug at *n* = 1
+and every item changes meaning at *n* = 2, so this is the list to read on the day somebody scales the
+deployment out — which is a day nobody plans as a protocol change.
+
+The facts were already written down, each beside the thing it describes: `LoginThrottle` says a
+second instance enforces twice its numbers, `CimdClientResolver` says everything it keeps is per
+process, `ClientKeySource` says the same, and so on. Eleven files, each locally honest, and nowhere
+to look on the day it matters — which is how the first draft of the table below came to be missing
+`RecoveryThrottle`. A single-instance deployment makes the answer today *nothing to do*; the point
+of the table is that the answer is written down before that changes.
+
+| Per process | *n* replicas cost | What to do |
+|---|---|---|
+| **Client-assertion replay store**, when it is the in-memory one | **The property, not a bound.** Each replica holds its own set, so one captured assertion authenticates once *per replica* | Use `AddBoltwayPostgreSqlStores`. This is the only row where *n* > 1 breaks a security guarantee rather than loosening a budget, and startup cannot detect it — it checks that a store is registered, not that it is shared |
+| `POST /login` throttle | *n* × the attempts before backoff, per account and per source | Accept, or put a shared limiter in front. Note `LoginThrottleOptions.ClientKey` if the proxy does not populate `RemoteIpAddress` |
+| `/forgot` recovery throttle, when `PasswordRecoveryEnabled` is on | *n* × the reset mail one address can be made to receive — the abuse here is aimed at a person's mailbox rather than at this server | Accept, or front it. Off by default, so this row applies only to a deployment that turned the flow on |
+| `/authorize`'s CIMD fetch budget and its negative-result breaker | *n* × the outbound fetches one `client_id` can provoke | Accept: the per-host limiter below is the bound that protects the stranger |
+| `SafeHttpFetcher` per-host budget (60/min) | *n* × 60/min against any one origin | Accept, or front it. LESSONS #9's conduct point lives here |
+| `ClientKeySource` cache and its unknown-`kid` refresh floor | *n* × the refetch rate against a client's `jwks_uri`; *n* independent staleness windows | Accept |
+| `CimdClientResolver` cache | *n* × the fetches, and *n* windows in which a retired client document is still trusted | Accept |
+| `JwksKeySource` cache (resource server) | *n* × the fetches against the authorization server's own JWKS | Accept |
+| `UpstreamEndpointClient` per-host budget (federation) | *n* × the requests to an upstream identity provider | Accept |
+| `AdminBff`'s in-memory `ITicketStore` | An operator is signed out whenever the load balancer moves them | Shared `ITicketStore`, or sticky sessions |
+
+**Three things are not on this list because the production checklist already forces them**: durable
+storage, a signing key shared between replicas, and a `RefreshTokenDerivationKey` that is stable
+across instances. A per-process derivation key does not fail loudly — it makes the refresh grace
+window work only when two racing requests land on the same node, which presents as flakiness.
+
 ## Alerting on revocation
 
 `IntrospectionRevocationCheck` — how a resource server finds out that a grant behind a still-valid
