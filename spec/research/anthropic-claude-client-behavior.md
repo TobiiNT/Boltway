@@ -1,9 +1,15 @@
 # Anthropic Claude MCP connector — client wire behavior
 
-**Purpose:** build an OAuth 2.1 + OIDC Authorization Server in C# / ASP.NET Core 9 that Claude
+**Purpose:** build an OAuth 2.1 + OIDC Authorization Server in C# / ASP.NET Core 10 (`net10.0`) that Claude
 connects to on the first try, with no vendor-specific patching.
 
-**Sources fetched 2026-08-03** (raw copies in `./raw/`):
+**Sources fetched 2026-08-03.** ~~raw copies in `./raw/`~~ — **there is no such directory, and git
+history has never held one.** What is checked in is this distillation and the URLs it was made
+from; where the raw bodies went is not recorded anywhere, so a claim below that rests on wording
+rather than on a quoted URL cannot currently be re-checked against the fetched text. The two
+vendor CIMD documents are the exception and are captured verbatim, at
+`../cimd-live-2026-08-03.json` and `../cimd-live-2026-08-17.json`, which
+`CimdClientResolverTests` reads.
 
 | Source | URL |
 |---|---|

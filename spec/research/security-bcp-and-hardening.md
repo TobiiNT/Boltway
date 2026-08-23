@@ -1,18 +1,30 @@
-# OAuth 2.0 Security BCP + Hardening Checklist for a C# / ASP.NET Core 9 Authorization Server
+# OAuth 2.0 Security BCP + Hardening Checklist for a C# / ASP.NET Core 10 (`net10.0`) Authorization Server
 
 Primary sources fetched and quoted verbatim from the RFC text (not from memory):
 
-| RFC | Title | Local copy |
-|---|---|---|
-| RFC 9700 | Best Current Practice for OAuth 2.0 Security | `scratchpad/rfc/rfc9700.txt` |
-| RFC 6819 | OAuth 2.0 Threat Model and Security Considerations | `scratchpad/rfc/rfc6819.txt` |
-| RFC 9207 | OAuth 2.0 Authorization Server Issuer Identification | fetched |
-| RFC 9126 | OAuth 2.0 Pushed Authorization Requests (PAR) | `scratchpad/rfc/rfc9126.txt` |
-| RFC 9449 | OAuth 2.0 Demonstrating Proof of Possession (DPoP) | `scratchpad/rfc/rfc9449.txt` |
-| RFC 6750 | OAuth 2.0 Bearer Token Usage | fetched |
-| RFC 8707 | Resource Indicators for OAuth 2.0 | `scratchpad/rfc/rfc8707.txt` |
-| RFC 6749 | The OAuth 2.0 Authorization Framework (error registries) | `scratchpad/rfc/rfc6749.txt` |
-| MCP spec (draft) | Model Context Protocol — Authorization | fetched |
+| RFC | Title |
+|---|---|
+| RFC 9700 | Best Current Practice for OAuth 2.0 Security |
+| RFC 6819 | OAuth 2.0 Threat Model and Security Considerations |
+| RFC 9207 | OAuth 2.0 Authorization Server Issuer Identification |
+| RFC 9126 | OAuth 2.0 Pushed Authorization Requests (PAR) |
+| RFC 9449 | OAuth 2.0 Demonstrating Proof of Possession (DPoP) |
+| RFC 6750 | OAuth 2.0 Bearer Token Usage |
+| RFC 8707 | Resource Indicators for OAuth 2.0 |
+| RFC 6749 | The OAuth 2.0 Authorization Framework (error registries) |
+| MCP spec (draft) | Model Context Protocol — Authorization |
+
+**The `Local copy` column is deleted rather than repointed.** It named `scratchpad/rfc/rfc*.txt` for
+six of these nine — an authoring machine's working directory, which nothing in this repository can
+dereference — and no copy of any published RFC is checked in here. The two texts that *are* pinned
+are Internet-Drafts, because those move and an RFC does not: `spec/draft-ietf-oauth-v2-1-15.txt` and
+`spec/draft-ietf-oauth-client-id-metadata-document-02.txt`, with `scripts/check-pinned-drafts.py`
+and `.github/workflows/pinned-drafts.yml` going red when a newer revision appears (`U-15`, `U-16`).
+For everything above, the published text is at `https://www.rfc-editor.org/rfc/rfc<number>.txt` and
+a published RFC is immutable, so a pinned copy would buy nothing a URL does not. What is lost with
+the column is the ability to prove *which* bytes were in front of the writer — `U-14` in
+`spec/REQUIREMENTS.md` is one place where that mattered, and it records the discrepancy rather than
+assuming there was none.
 
 > **Reading note.** RFC 9700 is normative *for this AS*. Section 2 is the "do this" list; Section 4 is the "why". Where 9700 says "as described in [RFC6819]", RFC 6819 supplies the concrete control (this is true for clickjacking and for `state`).
 
@@ -854,7 +866,7 @@ Compounding it: RFC 9700 §4.11.2 (H-02) turns your *own* trusted domain into th
 
 1. **Stable, short, memorable AS origin.** One hostname, never per-tenant subdomains that users cannot distinguish. HSTS preload (H-15).
 2. **Never render a password field inside an iframe** — H-09's `frame-ancestors 'none'` is the enforcement.
-3. **Kill the phishing value of passwords entirely.** Passkeys / WebAuthn are origin-bound: a phishing site on another origin cannot produce a valid assertion. This is the only countermeasure that actually solves §4.2.1 rather than mitigating it. `Fido2NetLib` on ASP.NET Core 9; make WebAuthn the primary factor, password the fallback.
+3. **Kill the phishing value of passwords entirely.** Passkeys / WebAuthn are origin-bound: a phishing site on another origin cannot produce a valid assertion. This is the only countermeasure that actually solves §4.2.1 rather than mitigating it. `Fido2NetLib` on ASP.NET Core 10; make WebAuthn the primary factor, password the fallback.
 4. **Consent screen must show what is verifiable**, not what the client claims. Display the exact registered `redirect_uri` origin and the client's registration provenance (pre-registered / CIMD URL / dynamically registered). For DCR clients, label them: "This application registered itself automatically and has not been verified."
 5. **No third-party content on login/consent** (H-10) — an injected script is a credential harvester.
 6. `autocomplete="current-password"`, `autocomplete="username"` so password managers bind to your origin; a password manager that refuses to autofill is a real phishing signal for users.

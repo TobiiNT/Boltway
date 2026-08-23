@@ -1,6 +1,6 @@
 # ChatGPT (OpenAI) as an OAuth client of our Authorization Server
 
-Research date: **2026-08-03**. Target: a from-scratch OAuth 2.1 + OIDC AS in ASP.NET Core 9 that
+Research date: **2026-08-03**. Target: a from-scratch OAuth 2.1 + OIDC AS in ASP.NET Core 10 (`net10.0`) that
 **both** Claude.ai and ChatGPT can drive against an MCP server.
 
 Everything below was fetched, not recalled. Sources with fetch status at the bottom.

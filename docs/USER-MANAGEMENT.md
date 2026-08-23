@@ -56,8 +56,9 @@ test is its own piece of work; it is named so that the next person does not lean
 merely cited here.** Citing what does not exist is the defect above, and a design that assigned
 seventeen endpoint ids to a document that never received them would be committing it a third time.
 
-> `REQUIREMENTS.md` §10 was also written up here as missing, and it is not — it exists, after the
-> appendix, which is why a truncated listing of the headings missed it. The claim was withdrawn on
+> `REQUIREMENTS.md` §10 was also written up here as missing, and it is not — it existed all along,
+> sitting out of numeric order after the appendix, which is why a truncated listing of the headings
+> missed it. It has since been moved into place, so the trap is gone; the claim was withdrawn on
 > measurement rather than left standing. Recording *"we did not look"* as *"it is not there"* is
 > what `LESSONS.md` is about, and it took one careless `head` to do it.
 

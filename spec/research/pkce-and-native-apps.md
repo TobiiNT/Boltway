@@ -1,6 +1,6 @@
 # PKCE (RFC 7636) + Native Apps (RFC 8252) — implementer's reference
 
-Target: from-scratch OAuth 2.1 / OIDC AS in ASP.NET Core 9 that Claude.ai, Claude Code and
+Target: from-scratch OAuth 2.1 / OIDC AS in ASP.NET Core 10 (`net10.0`) that Claude.ai, Claude Code and
 ChatGPT connectors can both talk to.
 
 Primary sources fetched and quoted verbatim below:

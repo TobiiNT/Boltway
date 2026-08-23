@@ -113,9 +113,8 @@ public static class AuthorizationServerPaths
     /// </remarks>
     public const string AdminUserAnonymise = "/admin/users/{handle}/anonymise";
 
-    /// <summary>The administrative audit log. E-32.</summary>
     /// <summary>
-    /// The service account acting as one person. E-33.
+    /// The service account acting as one person. E-50.
     /// </summary>
     /// <remarks>
     /// Singular and under the account, because that is what it is: a property of a person rather
@@ -125,13 +124,13 @@ public static class AuthorizationServerPaths
     /// </remarks>
     public const string AdminUserServiceAccount = "/admin/users/{handle}/service-account";
 
-    /// <summary>The roles a realm defines.</summary>
+    /// <summary>The roles a realm defines. E-48.</summary>
     public const string AdminRoles = "/admin/roles";
 
-    /// <summary>One role, by its immutable id.</summary>
+    /// <summary>One role, by its immutable id. E-49.</summary>
     public const string AdminRole = "/admin/roles/{id}";
 
-    /// <summary>The administrative audit trail.</summary>
+    /// <summary>The administrative audit trail. E-32.</summary>
     public const string AdminAudit = "/admin/audit";
 
     /// <summary>The prefix every administrative route shares.</summary>
