@@ -33,7 +33,7 @@
 
       True is what it already was. Saying so changes no output — it makes the output legible from
       here, which is what StructuralRuleTests.Every_project_says_whether_it_packs now requires of
-      every project under auth/.
+      every project in this repository.
     -->
     <IsPackable>true</IsPackable>
   </PropertyGroup>

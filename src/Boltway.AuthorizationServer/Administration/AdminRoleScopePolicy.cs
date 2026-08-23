@@ -22,7 +22,7 @@ namespace Boltway.AuthorizationServer.Administration;
 /// </para>
 /// <para>
 /// Measured on a running deployment: the admin UI asks for <c>openid users:read users:write</c>, and
-/// a founder account and a would-be test account are offered exactly the same consent screen.
+/// an administrator's account and a would-be test account are offered exactly the same consent screen.
 /// </para>
 /// <para>
 /// <b>The role names come from the deployment and the mechanism from here.</b> This class holds no

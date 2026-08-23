@@ -19,8 +19,8 @@ connects to on the first try, with no vendor-specific patching.
 | IP ranges | `https://platform.claude.com/docs/en/api/ip-addresses` |
 | RFC 8252 §7.3, RFC 6749 §4.1.2.1/§5.2, RFC 6750 §3.1, RFC 8707 §2 | rfc-editor.org (verbatim) |
 
-Field report mined: `/home/user/FictStoryEngine/docs/integration/idp-configuration.md`,
-`/home/user/FictStoryEngine/docs/mcp-connector-build-spec.md`.
+Field report mined: a deployment's own `docs/integration/idp-configuration.md` and
+`docs/mcp-connector-build-spec.md`, written while wiring an MCP connector to this AS.
 
 ---
 

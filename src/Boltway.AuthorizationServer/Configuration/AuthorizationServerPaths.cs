@@ -220,7 +220,7 @@ public static class AuthorizationServerPaths
     /// <summary>The self-service pages' front page. E-46.</summary>
     /// <remarks>
     /// <b>A third prefix, and the reason there are three rather than two.</b> Read literally,
-    /// <c>N-17</c> would mean a founder changing their own password has to run an OAuth client,
+    /// <c>N-17</c> would mean a user changing their own password has to run an OAuth client,
     /// which is absurd — and the way out is not to soften the rule. <c>/admin/</c> and
     /// <c>/account/</c> are bearer-only and refuse a cookie; these are the opposite and refuse a
     /// bearer. Disjoint prefixes make both halves mechanical: an architecture test reads the routing

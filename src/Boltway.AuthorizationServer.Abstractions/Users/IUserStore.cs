@@ -240,7 +240,7 @@ public interface IUserStore
     /// The reverse of <see cref="FindByExternalLoginAsync"/>, and it is a read a person makes about
     /// their own account rather than one a sign-in makes. Without it the self-service page could
     /// offer to connect a provider and could not say whether connecting had already happened —
-    /// measured, on a running deployment: a founder pressed "Link Google", the round trip
+    /// measured, on a running deployment: a user pressed "Link Google", the round trip
     /// succeeded, the page came back identical, and nothing anywhere could tell them it had
     /// worked.
     /// </para>

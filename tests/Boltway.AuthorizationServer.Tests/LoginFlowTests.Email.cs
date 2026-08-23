@@ -11,7 +11,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// <para>
 /// The asymmetry that produced this: <c>/forgot</c> accepted "tên đăng nhập hoặc email" and
-/// <c>/login</c> accepted only the handle, so a founder asked for a reset with their address, set a
+/// <c>/login</c> accepted only the handle, so a user asked for a reset with their address, set a
 /// password, typed the same address to sign in, and was told <i>"that username and password did not
 /// match"</i> — a true sentence about a question they had not asked. Reported after it happened.
 /// </para>

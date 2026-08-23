@@ -47,8 +47,9 @@ public sealed class AdminRoleScopePolicyTests
     /// The case this class exists for.
     /// </summary>
     /// <remarks>
-    /// `employee` is a real role in the deployment this was found on, and it is the role a founder
-    /// would give the first person they hired.
+    /// The roles below are deliberately ordinary ones — the kind a deployment hands to most of its
+    /// directory. A policy tested only against obviously-wrong roles passes and still leaves
+    /// `users:write` with everybody who was given a plausible one.
     /// </remarks>
     [Theory]
     [InlineData("employee")]

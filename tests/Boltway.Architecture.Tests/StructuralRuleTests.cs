@@ -828,7 +828,7 @@ public sealed class StructuralRuleTests
     [Fact]
     public void Every_project_with_code_is_scanned()
     {
-        var root = AuthRoot();
+        var root = RepositoryRoot();
         var src = Path.Combine(root, "src");
 
         var withCode = Directory.EnumerateDirectories(src)
@@ -854,13 +854,13 @@ public sealed class StructuralRuleTests
             + string.Join(Environment.NewLine, missing.Select(m => "  " + m)));
     }
 
-    /// <summary>Walk up from the test binary to the <c>auth/</c> directory.</summary>
+    /// <summary>Walk up from the test binary to the repository root.</summary>
     /// <remarks>
     /// By shape rather than by a relative path with a fixed number of <c>..</c> segments, because
     /// that count changes with the target framework and the configuration in the output path — and a
     /// path that silently resolves to nothing turns the test above into a pass.
     /// </remarks>
-    private static string AuthRoot()
+    private static string RepositoryRoot()
     {
         var directory = new DirectoryInfo(Path.GetDirectoryName(typeof(StructuralRuleTests).Assembly.Location)!);
 
@@ -875,12 +875,12 @@ public sealed class StructuralRuleTests
             directory = directory.Parent;
         }
 
-        Assert.Fail("Could not find the auth/ root above the test binary.");
+        Assert.Fail("Could not find the repository root above the test binary.");
         return null!;
     }
 
     /// <summary>
-    /// Every project under <c>auth/</c> says whether it packs.
+    /// Every project in the repository says whether it packs.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -907,7 +907,7 @@ public sealed class StructuralRuleTests
     [Fact]
     public void Every_project_says_whether_it_packs()
     {
-        var root = AuthRoot();
+        var root = RepositoryRoot();
 
         var projects = Directory.EnumerateFiles(root, "*.csproj", SearchOption.AllDirectories)
             .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
@@ -986,7 +986,7 @@ public sealed class StructuralRuleTests
     [Fact]
     public void What_packs_is_the_approved_set()
     {
-        var root = AuthRoot();
+        var root = RepositoryRoot();
 
         var packing = Directory.EnumerateFiles(root, "*.csproj", SearchOption.AllDirectories)
             .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)

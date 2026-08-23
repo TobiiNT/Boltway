@@ -3,14 +3,14 @@
 
     python3 scripts/check-pinned-drafts.py [spec-dir]
 
-`auth/spec/REQUIREMENTS.md` records U-15: OAuth 2.1 is a draft, not an RFC, its normative text
+`spec/REQUIREMENTS.md` records U-15: OAuth 2.1 is a draft, not an RFC, its normative text
 may still move, and the mitigation written down there is three sentences long. Two of them were
 done and stay done: cite the exact revision, pin a copy in the repo. The third, *"re-diff on each
 new revision"*, is an instruction to a person with nothing to tell them the day it applies.
 
-That is the shape of failure this repository keeps finding. `contract-check.mjs` existed, passed
-when run by hand, and nothing ran it for a day. `--skip-duplicate` was green while dropping the
-build that mattered. An instruction nobody is prompted to follow is indistinguishable from an
+That is the shape of failure this repository keeps finding. A contract check existed, passed when
+run by hand, and nothing ran it for a day. `--skip-duplicate` was green while dropping the build
+that mattered. An instruction nobody is prompted to follow is indistinguishable from an
 instruction nobody follows, and the way you find out is that the pinned copy and the working text
 have disagreed for months.
 
@@ -19,7 +19,7 @@ datatracker reports for that draft today. `draft-ietf-oauth-v2-1-15.txt` says we
 revision 15; if the datatracker says 16, the diff described in U-15 is now owed and this goes red.
 
 **Where the list of drafts comes from: the directory, not a list in this file.** Pinning a new
-draft is `cp` into `auth/spec/` and nothing else. A second place to name them is a second place
+draft is `cp` into `spec/` and nothing else. A second place to name them is a second place
 for them to be wrong, and the one that goes stale is always the one no build reads.
 
 **An unreachable datatracker fails.** It is not evidence that nothing changed, and this check is
@@ -86,7 +86,7 @@ def current_revision(name):
 
 
 def main(argv):
-    spec_dir = argv[1] if len(argv) > 1 else 'auth/spec'
+    spec_dir = argv[1] if len(argv) > 1 else 'spec'
 
     if not os.path.isdir(spec_dir):
         print(f'::error::{spec_dir} is not a directory, so no pinned draft was checked.')
@@ -138,7 +138,7 @@ def main(argv):
 
     for filename, name, revision, latest, title in stale:
         print(f'::error::{title or name} has moved from {revision} to {latest}.')
-        print(f'::error::  U-15 in auth/spec/REQUIREMENTS.md asks for a re-diff on each new')
+        print(f'::error::  U-15 in spec/REQUIREMENTS.md asks for a re-diff on each new')
         print(f'::error::  revision. Fetch {name}-{latest}.txt, diff it against the pinned')
         print(f'::error::  {filename}, act on anything normative that moved, then replace the')
         print(f'::error::  pinned copy and update every citation of the revision number.')

@@ -23,7 +23,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// The mirror of <see cref="AccountSurfaceTests"/>: same account, same rules, opposite
-/// authentication. §7.2 — <c>N-17</c> read literally would mean a founder changing their own
+/// authentication. §7.2 — <c>N-17</c> read literally would mean a user changing their own
 /// password runs an OAuth client, so these are cookie-authenticated with antiforgery and refuse a
 /// bearer, and the prefixes are disjoint so both halves are mechanical.
 /// </remarks>

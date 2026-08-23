@@ -22,7 +22,7 @@ public sealed class ScopeEntitlementTests
 {
     private static readonly CodeVerifier Verifier = CodeVerifier.Generate();
 
-    /// <summary>Grants only what a founder may hold — one deployment's policy, as a test double.</summary>
+    /// <summary>Grants only what one named role may hold — one deployment's policy, as a test double.</summary>
     private sealed class FounderOnly(string role) : IScopeEntitlementPolicy
     {
         public ValueTask<ScopeSet> FilterAsync(

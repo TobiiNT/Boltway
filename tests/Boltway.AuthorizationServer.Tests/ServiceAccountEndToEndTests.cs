@@ -556,7 +556,7 @@ public sealed class ServiceAccountEndToEndTests
     /// The composition production shipped without: <c>ClientAuthenticator</c> takes one secret
     /// store, each source answers only for its own clients, and before the stores chained,
     /// <c>AddStoredClients</c> replaced the configured store outright — so the fix for "service
-    /// accounts cannot authenticate" would have arrived as "the admin UI and Grafana cannot".
+    /// accounts cannot authenticate" would have arrived as "the configured clients cannot".
     /// </para>
     /// <para>
     /// The grant refusing this client is the proof its authentication <b>succeeded</b>: a wrong

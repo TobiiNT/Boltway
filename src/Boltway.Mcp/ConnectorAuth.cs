@@ -139,7 +139,7 @@ public sealed class BearerAuthenticator(Func<string, CancellationToken, Task<Cal
         new((token, _) => Task.FromResult(tokens.TryGetValue(token, out var principal) ? principal : null));
 
     /// <summary>
-    /// Parse <c>DEV_TOKENS="tokenA:ada:founder:ada@example.com,tokenB:bob:founder"</c>.
+    /// Parse <c>DEV_TOKENS="tokenA:ada:editor:ada@example.com,tokenB:bob:editor"</c>.
     /// Entries that are not <c>token:actor[:role[:email]]</c> are skipped rather than
     /// guessed at. A missing email stays null — see <see cref="CallerPrincipal.Email"/>.
     /// </summary>

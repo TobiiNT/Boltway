@@ -451,8 +451,9 @@ public sealed class InMemoryUserStore : IUserStore
                 EmailVerified = false,
                 PasswordHash = null,
 
-                // And what it held. A tombstone carrying `founder` still says something about the
-                // person, and the next token minted for that subject would still carry it.
+                // And what it held. A tombstone still carrying an administrative role says
+                // something about the person, and the next token minted for that subject would
+                // still carry it.
                 Roles = [],
                 DisabledAt = now,
             };

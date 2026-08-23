@@ -1118,8 +1118,8 @@ public sealed class UserAdministration(
     /// so the ceiling was a sentence true of nowhere, and a service account owned by an account
     /// with no administrative role could rewrite the whole directory.
     ///
-    /// What it means for a caller is unchanged: pointing this at a founder creates a credential
-    /// with a founder's reach, and the surface offering it should say so.
+    /// What it means for a caller is unchanged: pointing this at an account that holds every role
+    /// creates a credential with that reach, and the surface offering it should say so.
     /// </para>
     /// </remarks>
     public async Task<ServiceAccountResult> CreateServiceAccountAsync(

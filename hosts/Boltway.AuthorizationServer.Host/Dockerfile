@@ -1,10 +1,10 @@
 # The authorization server, as one image for every deployment.
 #
-# Build context is `auth/`, not the repository root — this host references nothing outside it,
-# and a context that reached further would put `discover/`, `classify/` and the MCP package
-# into the layer cache of a process that has no use for any of them.
+# Build context is the repository root. Every `COPY` below is written from there and it is what CI
+# passes; a narrower context was worth having only while this tree was one directory of a larger
+# repository, and it has been the root long enough that the paths below assume nothing else.
 #
-#   docker build -f hosts/Boltway.AuthorizationServer.Host/Dockerfile -t ck-auth auth/
+#   docker build -f hosts/Boltway.AuthorizationServer.Host/Dockerfile -t boltway-auth .
 
 # A floating tag, and `global.json` has to be written to accept whatever it moves to.
 #

@@ -51,7 +51,7 @@ server, is already signed in there, and comes straight back.
 | `CLIENT_SECRET` | **required.** Mint it with the server's `new-client-secret` — see below. |
 | `ADMIN_RESOURCE` | The admin API's resource URL, sent as RFC 8707 `resource`. Defaults to `AUTHORITY` + `/admin`, which is how the authorization server derives it too — override both together or neither. |
 | `ADMIN_ROLES` | Which roles administer the directory, so the pages can say what a role means. Optional; unset means the pages say nothing about administration rather than naming a set they were never given. |
-| `ADMIN_TEXT_FILE` | A JSON object of key to sentence, keys being the constants on `AdminText`. Optional, and partial: every key falls back to English on its own. `$language` sets the document's `lang`. |
+| `ADMIN_TEXT_FILE` | A JSON object of key to sentence, keys being the constants on `AdminText`. Optional, and partial: every key falls back to English on its own. `$language` sets the document's `lang`. A key this build does not know is named on stderr at startup and then ignored — per-string fallback means a typo renders correct English, so a sentence that did not change is the only other signal there is. |
 | `ADMIN_STYLESHEETS` | What to link, in order. Defaults to `/css/admin.css`, the sheet this app ships. Setting it **replaces** the list — name `/css/admin.css` alongside your own to keep it. Each must be an absolute path on this origin, and one that is not is refused at startup. |
 
 On the authorization server side the matching configuration is `ADMIN_API=true` and a `CLIENTS`
@@ -68,7 +68,7 @@ authorization server with `new-client-secret`; it prints both halves, which go t
 places:
 
 ```
-secret ck_cs_…      → CLIENT_SECRET here
+secret bw_cs_…      → CLIENT_SECRET here
 sha256 …            → secretSha256 in the server's CLIENTS
 ```
 

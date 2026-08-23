@@ -66,7 +66,7 @@ public sealed class UserAccountClaims(IUserStore users, IRoleStore roles) : IAcc
         // data the subject consents to release; a role is what the resource server needs in order
         // to answer at all. Putting it behind a scope would mean a client that forgot to ask gets a
         // token that authenticates fine and then reads nothing, which surfaces as an empty
-        // knowledge base rather than as a missing scope.
+        // result set rather than as a missing scope.
         //
         // Only in the access token. The wiring passes this mapper's output to the access-token
         // descriptor and deliberately not to the ID token: the ID token is the client's proof of

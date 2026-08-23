@@ -177,7 +177,7 @@ public sealed class StaticTokenTests : IAsyncLifetime
         // trouble of writing and the model is told only that something went wrong. This
         // type derived from Exception for a release. Nothing reported it — the tool still
         // "failed", just uselessly.
-        Assert.Contains("`cli-acme` is outside your employee scope", text, StringComparison.Ordinal);
+        Assert.Contains("`doc-42` is outside the scope this token carries", text, StringComparison.Ordinal);
         Assert.Contains("ToolError [forbidden]", text, StringComparison.Ordinal);
         Assert.DoesNotContain("invoking 'refuse'.", text, StringComparison.Ordinal);
     }
@@ -231,5 +231,5 @@ public sealed class WhoAmITool(ConnectorCaller caller)
             + "binds it, on a test whose whole subject is the shape this produces on the wire — "
             + "and it only escapes the rule because refusing happens to need no caller state.")]
     public object Refuse() =>
-        throw new ConnectorToolException("`cli-acme` is outside your employee scope", "forbidden");
+        throw new ConnectorToolException("`doc-42` is outside the scope this token carries", "forbidden");
 }
