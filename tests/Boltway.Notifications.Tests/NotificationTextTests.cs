@@ -12,6 +12,47 @@ namespace Boltway.Notifications.Tests;
 /// </remarks>
 public sealed class NotificationTextTests
 {
+    [Fact]
+    public void Problems_checks_every_string_a_deployment_can_replace()
+    {
+        // The check-list was hand-maintained and had drifted: NewDeviceAuthorizedSubjectText and
+        // NewDeviceAuthorizedBodyText were missing, and the body takes five arguments — the most of
+        // any message here, so the likeliest to be mis-edited. What that costs is narrow and bad:
+        // Problems() is why a host refuses to start rather than failing to deliver mail, and for
+        // the one message that is a security alert the bad translation instead fell back to English
+        // at send time with nothing reporting it.
+        //
+        // Reflection rather than a second list, so adding a message cannot repeat this: a property
+        // nothing checks reports no problem, and this goes red.
+        var properties = typeof(NotificationText)
+            .GetProperties()
+            .Where(p => p.PropertyType == typeof(string) && p.CanWrite)
+            .ToList();
+
+        Assert.NotEmpty(properties);
+
+        var unchecked_ = new List<string>();
+
+        foreach (var property in properties)
+        {
+            // A placeholder no caller can supply. Every check renders with fewer arguments than
+            // this, so a property that is checked at all reports a problem, and one that is not
+            // reports nothing.
+            var broken = new NotificationText();
+            property.SetValue(broken, "sentinel {9}");
+
+            if (!broken.Problems().Any(p => p.StartsWith(property.Name, StringComparison.Ordinal)))
+            {
+                unchecked_.Add(property.Name);
+            }
+        }
+
+        Assert.True(
+            unchecked_.Count == 0,
+            "Problems() does not check these, so a deployment can break them and start anyway: "
+            + string.Join(", ", unchecked_));
+    }
+
     private static readonly DateTimeOffset At =
         new(2026, 8, 12, 7, 37, 0, TimeSpan.Zero);
 

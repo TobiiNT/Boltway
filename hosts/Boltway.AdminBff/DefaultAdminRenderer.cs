@@ -128,12 +128,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var body = new StringBuilder();
-
-        if (model.Notice is { Length: > 0 })
-        {
-            body.Append("<p class=\"notice\">").Append(Encode(model.Notice)).Append("</p>");
-        }
+        var body = new StringBuilder(Notice(model.Notice, model.NoticeValue));
 
         body.Append("<h1>").Append(_text[AdminText.NavAccounts]).Append("</h1>")
             .Append("<p><a href=\"/users/new\">").Append(_text[AdminText.CreateAccount]).Append("</a></p>")
@@ -206,12 +201,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
         var user = model.Account;
         var handle = Text(user, "handle");
         var hidden = Hidden(model.Antiforgery);
-        var body = new StringBuilder();
-
-        if (model.Notice is { Length: > 0 })
-        {
-            body.Append("<p class=\"notice\">").Append(Encode(model.Notice)).Append("</p>");
-        }
+        var body = new StringBuilder(Notice(model.Notice, model.NoticeValue));
 
         body.Append("<h1>").Append(Encode(handle)).Append("</h1>")
             .Append("<dl>")
@@ -663,12 +653,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
         ArgumentNullException.ThrowIfNull(model);
 
         var hidden = Hidden(model.Antiforgery);
-        var body = new StringBuilder();
-
-        if (model.Notice is { Length: > 0 })
-        {
-            body.Append("<p class=\"notice\">").Append(Encode(model.Notice)).Append("</p>");
-        }
+        var body = new StringBuilder(Notice(model.Notice));
 
         body.Append("<h1>").Append(_text[AdminText.NavRoles]).Append("</h1>")
 
@@ -893,8 +878,8 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <para>
     /// <b>The refusal itself is not translated here, and that is deliberate.</b> The API's own
     /// <c>error_description</c> is printed rather than a sentence composed in this app: those
-    /// sentences were written to name the rule that was broken — "`cli-acme` is outside your
-    /// employee scope" — and a friendlier paraphrase would lose the part an operator acts on. They
+    /// sentences were written to name the rule that was broken — "<c>users:write</c> is not one of
+    /// this token's scopes" — and a friendlier paraphrase would lose the part an operator acts on. They
     /// belong to the authorization server, and it is the thing that should learn to say them in
     /// another language; a lookup table here could only ever cover the refusals that existed when it
     /// was written.
@@ -962,6 +947,54 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
                 $"{_layout.GetType().Name}.Wrap did not include the page body for {kind}. A layout must "
                 + "write AdminPage.Body into the document verbatim — it is already-encoded markup, and "
                 + "the page is empty without it.");
+    }
+
+    /// <summary>
+    /// What just happened, as a banner — or nothing.
+    /// </summary>
+    /// <param name="key">
+    /// One of <see cref="AdminText.NoticeKeys"/>, straight off the query string. Anything else,
+    /// including <see langword="null"/>, is no banner.
+    /// </param>
+    /// <param name="value">
+    /// The <c>{0}</c> of the two notices that have one — a count, or the handle an account used to
+    /// have. Encoded here; it is query-string text like the key.
+    /// </param>
+    /// <remarks>
+    /// <para>
+    /// <b>The membership test is the security property, and it has to come first.</b> This argument
+    /// arrives from a link, so before the change it was arbitrary text reflected into this app's own
+    /// banner — encoded, so never an injection, and still a sentence a reader takes as their console
+    /// speaking to them. Matching it against a closed set means a crafted link chooses which of six
+    /// sentences appears and cannot write a seventh. Echoing an unrecognised key, or handing one to
+    /// <see cref="AdminText"/> to see what comes back, hands the channel straight back.
+    /// </para>
+    /// <para>
+    /// It is also what keeps a bad link from being a 500: <see cref="AdminText.Plain"/> throws for a
+    /// key it does not know, on purpose, and asking it about a string somebody else wrote is exactly
+    /// the misuse that documents. <see cref="AdminText.Keys"/> would answer the question and answer
+    /// it too generously — every sentence on these pages is in it, so a link could hoist a
+    /// credential warning over a page with no credential on it.
+    /// </para>
+    /// <para>
+    /// A notice whose value did not arrive renders nothing rather than a sentence with a visible
+    /// <c>{0}</c> in it. The placeholder is the tell: <see cref="AdminText.Format"/> always replaces
+    /// it, so one still standing here means nobody supplied the count or the handle the sentence is
+    /// about — a half-written notice, which is what a hand-typed URL produces.
+    /// </para>
+    /// </remarks>
+    private string Notice(string? key, string? value = null)
+    {
+        if (key is not { Length: > 0 } || !AdminText.NoticeKeys.Contains(key))
+        {
+            return string.Empty;
+        }
+
+        var sentence = value is { Length: > 0 } ? _text.Format(key, Encode(value)) : _text[key];
+
+        return sentence.Contains("{0}", StringComparison.Ordinal)
+            ? string.Empty
+            : "<p class=\"notice\">" + sentence + "</p>";
     }
 
     /// <summary>The antiforgery field, rendered.</summary>

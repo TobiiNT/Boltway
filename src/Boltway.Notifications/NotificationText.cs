@@ -267,6 +267,9 @@ public sealed record NotificationText
             (nameof(PasswordChangedBodyText), () => strict.Format(strict.PasswordChangedBodyText, "", "a", "b", "c")),
             (nameof(PasswordChangedOneSessionText), () => strict.Format(strict.PasswordChangedOneSessionText, "")),
             (nameof(PasswordChangedManySessionsText), () => strict.Format(strict.PasswordChangedManySessionsText, "", "2")),
+            (nameof(NewDeviceAuthorizedSubjectText), () => strict.Format(strict.NewDeviceAuthorizedSubjectText, "")),
+            (nameof(NewDeviceAuthorizedBodyText),
+                () => strict.Format(strict.NewDeviceAuthorizedBodyText, "", "a", "b", "c", "d", "e")),
         ];
 
         var problems = new List<string>();

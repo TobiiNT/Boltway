@@ -383,7 +383,7 @@ public sealed class AuthorizationServerOptions
     /// with opposite authentication. <c>/account/*</c> is bearer-only for programmatic callers;
     /// these are cookie-authenticated pages with antiforgery, for a person in a browser. Either is
     /// useful without the other — a headless deployment wants the API, and a deployment whose users
-    /// are founders rather than programs wants the pages — so one flag would force a choice nobody
+    /// are people rather than programs wants the pages — so one flag would force a choice nobody
     /// asked to make.
     /// </para>
     /// <para>
@@ -426,19 +426,24 @@ public sealed class AuthorizationServerOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>At most one, and startup refuses more.</b> The comment here used to say "locales with a
-    /// shipped resource file", generated "from what exists, not from what is aspired to" — and there
-    /// was no resource file, nothing that read one, and nothing anywhere that read the
-    /// <c>ui_locales</c> request parameter. A deployment could list <c>vi</c> and serve English to
-    /// everyone who asked for it, with the warning against exactly that sitting on the property
-    /// that permitted it. That is <c>N-06</c>, on the field whose own documentation cited
-    /// <c>N-06</c>.
+    /// <b>Every entry is served, and startup refuses the list otherwise.</b> The comment here used
+    /// to say "locales with a shipped resource file", generated "from what exists, not from what is
+    /// aspired to" — and there was no resource file, nothing that read one, and nothing anywhere
+    /// that read the <c>ui_locales</c> request parameter. A deployment could list <c>vi</c> and
+    /// serve English to everyone who asked for it, with the warning against exactly that sitting on
+    /// the property that permitted it. That is <c>N-06</c>, on the field whose own documentation
+    /// cited <c>N-06</c>.
     /// </para>
     /// <para>
-    /// One entry is a claim this server can keep: every page it renders is in that language,
-    /// whether the markup comes from <c>DefaultInteractionRenderer</c> or from a deployment's own
-    /// <c>IInteractionRenderer</c>. <b>Two entries is a claim about per-request selection</b>, and
-    /// there is no mechanism for it — so it is refused at startup rather than published.
+    /// <b>This then said at most one entry, because two would be "a claim about per-request
+    /// selection and there is no mechanism for it".</b> There is one now:
+    /// <c>UiLocalesRequestCultureProvider</c> reads the parameter,
+    /// <c>AddBoltwayInteractionLocalization</c> supplies the tables, and
+    /// <c>AuthorizeEndpoint.LocalReturn</c> carries the resolved culture on to the pages. So the
+    /// count is not the rule — being served is. <c>RequireAdvertisedLocalesAreServed</c> compares
+    /// this list against <c>SupportedUICultures</c> at map time and refuses a mismatch in either
+    /// direction, which catches an advertised locale nobody serves and a served locale nobody
+    /// advertises, without caring which configuration call ran first.
     /// </para>
     /// <para>
     /// Leaving it empty is also honest, and is the default: no claim is not a false claim, and a

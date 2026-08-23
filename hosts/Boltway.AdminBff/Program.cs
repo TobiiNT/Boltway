@@ -14,6 +14,7 @@
 // is what binds users:write to a person entitled to it (§1.3), and an admin UI that skipped it
 // would be the one client exempt from the check.
 
+using System.Globalization;
 using System.Text.Json;
 using System.Security.Claims;
 using Boltway.AdminBff;
@@ -39,24 +40,55 @@ var authority = Required("AUTHORITY", "the authorization server's issuer URL");
 // was never given. It is the same string as the authorization server's ADMIN_ROLES and has to be
 // kept in step with it; there is no way for this app to check that, because the server exposes no
 // endpoint saying which roles it privileges.
-// What the pages say, when a deployment wants them to say it in its own language. The file is a
-// JSON object of key to sentence, keys being the constants on AdminText.
-//
-// Optional, and a partial file is a partial translation rather than a broken page: every key falls
-// back to English on its own. That is the property the authorization server's translation file has
-// and it matters more here, because this app has no equivalent of the boot-time warning about keys
-// it does not recognise — a typo'd key is silently the English sentence.
-var adminText = config["ADMIN_TEXT_FILE"] is { Length: > 0 } textPath
-    ? new AdminText(
-        System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(
-            File.ReadAllText(textPath), System.Text.Json.JsonSerializerOptions.Web)
-        ?? throw new InvalidOperationException($"{textPath} is not a JSON object."))
-    : AdminText.Default;
-
 var adminRoles = (config["ADMIN_ROLES"] ?? string.Empty)
     .Split([',', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     .Distinct(StringComparer.Ordinal)
     .ToArray();
+
+// What the pages say, when a deployment wants them to say it in its own language. The file is a
+// JSON object of key to sentence, keys being the constants on AdminText.
+//
+// Optional, and a partial file is a partial translation rather than a broken page: every key falls
+// back to English on its own. That is the property the authorization server's translation file has,
+// and this now has the other half of it too — see the sweep below.
+var adminText = AdminText.Default;
+
+if (config["ADMIN_TEXT_FILE"] is { Length: > 0 } textPath)
+{
+    var strings = JsonSerializer.Deserialize<Dictionary<string, string>>(
+        File.ReadAllText(textPath), JsonSerializerOptions.Web)
+        ?? throw new InvalidOperationException($"{textPath} is not a JSON object.");
+
+    // Keys this build does not know, named at startup. The authorization server has done this for
+    // its own translation file since that file existed, and the comment here used to record the
+    // asymmetry as a fact of life: "a typo'd key is silently the English sentence". That is the
+    // worst way for this to fail. Per-string fallback means a mistyped key produces a page that is
+    // correct English rather than a page that is broken, so the one signal a translator gets is a
+    // sentence that did not change — and the natural conclusion is that the file is not being read
+    // at all. AdminText.Keys is public for exactly this check.
+    //
+    // Reported, not fatal, for the reason the server gives: a key this version does not have is a
+    // translation written for another one, and refusing to start over it would make upgrading this
+    // app a coordinated change with whoever holds the strings.
+    //
+    // LanguageKey is excluded rather than reported. It is a legal entry and deliberately not in
+    // Keys — it names the language rather than saying anything — so warning about it would train a
+    // reader to ignore this line, which costs more than the line is worth.
+    var known = AdminText.Keys.ToHashSet(StringComparer.Ordinal);
+
+    var unknown = strings.Keys
+        .Where(key => !known.Contains(key) && key != AdminText.LanguageKey)
+        .ToList();
+
+    if (unknown.Count > 0)
+    {
+        Console.Error.WriteLine(
+            $"{textPath} has {unknown.Count} key(s) this build does not know, which will be "
+            + $"ignored: {string.Join(", ", unknown)}");
+    }
+
+    adminText = new AdminText(strings);
+}
 
 // The permission vocabulary the deployment's resource server understands, for the roles page to
 // offer as checkboxes. The same contract as ADMIN_ROLES, including the honest part: this is a
@@ -376,7 +408,12 @@ app.MapGet("/", async (
 
     return result.Ok
         ? Html(renderer.RenderAccounts(new AccountsViewModel(
-            result.Body, Tokens(http, antiforgery), http.Request.Query["notice"], Who(http))))
+            result.Body, Tokens(http, antiforgery), http.Request.Query["notice"], Who(http))
+        {
+            // The key names the sentence and this fills its {0}; neither is the sentence itself.
+            // Both arrive from a link, so the renderer treats them that way — see its Notice.
+            NoticeValue = http.Request.Query["notice_value"],
+        }))
         : Refused(http, result);
 }).RequireAuthorization();
 
@@ -410,10 +447,24 @@ app.MapPost("/users/new", async (
         },
         ct);
 
+    // A taken handle goes back to the form, because it is something to retype rather than something
+    // to give up on, and it carries the server's own sentence saying which field is the problem.
+    //
+    // **Only when there is one.** The `?? "Refused."` this replaces was the last sentence in this
+    // file that no ADMIN_TEXT_FILE could reach — an English word on a translated form, and one that
+    // named nothing an operator could act on. A conflict the server declined to explain is an
+    // unexplained refusal like any other, and the refusal page already has a translated sentence for
+    // exactly that. So what this app puts here is the API's words or nothing.
+    //
+    // Unlike the notice banner, this parameter is still whatever a link says it is — an error on the
+    // create form is the server's sentence rather than one of a closed set, so there is nothing to
+    // match it against, and the renderer encodes it for that reason. What changed is only that this
+    // app has stopped adding a sentence of its own to a channel it cannot translate.
     if (!result.Ok)
     {
         return result.Status is System.Net.HttpStatusCode.Conflict
-            ? Results.Redirect("/users/new?error=" + Uri.EscapeDataString(result.Description ?? "Refused."))
+               && result.Description is { Length: > 0 } conflict
+            ? Results.Redirect("/users/new?error=" + Uri.EscapeDataString(conflict))
             : Refused(http, result);
     }
 
@@ -444,6 +495,9 @@ app.MapGet("/users/{handle}", async (
     return Html(renderer.RenderAccount(new AccountViewModel(
         result.Body, Tokens(http, antiforgery), http.Request.Query["notice"], Who(http))
     {
+        // See the accounts page: a key and its {0}, never a composed sentence.
+        NoticeValue = http.Request.Query["notice_value"],
+
         // Normalised rather than passed through. The API answers 200 with a JSON `null` for an
         // account that holds none, and whether ReadFromJsonAsync turns that into ValueKind.Null or
         // leaves the struct at Undefined is a framework detail this page must not depend on — the
@@ -485,10 +539,14 @@ app.MapPost("/users/{handle}/service-account", async (
         },
         ct);
 
+    // The refusal page rather than a banner, which is what every other write in this app has always
+    // done and what these four should have been doing. The banner carried `error_description` back
+    // through the query string — the one sentence on the page that names the rule that was broken,
+    // travelling by the one route a link can write. It is the API's sentence, so it comes out of the
+    // API's response: RenderRefusal prints it from the body, where nobody else can reach it.
     if (!result.Ok)
     {
-        return Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice="
-            + Uri.EscapeDataString(result.Description ?? "Refused."));
+        return Refused(http, result);
     }
 
     // In the query string, which is the ugly part of showing a secret once and is chosen
@@ -519,13 +577,21 @@ app.MapPost("/users/{handle}/service-account/rotate", async (
 
     var existing = await api.GetServiceAccountAsync(http, handle, ct);
 
-    // Refused, or the account holds none. Rotating something that is not there would create it —
-    // with no scopes, which the server refuses — so this stops rather than turning a stale page
-    // into a confusing error.
-    if (!existing.Ok || existing.Body.ValueKind is not JsonValueKind.Object)
+    // Two failures, and they were one branch because both ended in the same banner. They are not
+    // the same thing: the first is the API refusing and saying why, the second is this app stopping
+    // on its own.
+    if (!existing.Ok)
     {
-        return Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice="
-            + Uri.EscapeDataString(existing.Description ?? "Refused."));
+        return Refused(http, existing);
+    }
+
+    // The account holds no service account. Rotating something that is not there would create it —
+    // with no scopes, which the server refuses — so this stops rather than turning a stale page into
+    // a confusing error, and it is the one refusal in this app that is allowed to say nothing was
+    // changed: the read ran ahead of the write, so the absence is known rather than assumed.
+    if (existing.Body.ValueKind is not JsonValueKind.Object)
+    {
+        return Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice={AdminText.NoticeRefused}");
     }
 
     var result = await api.CreateServiceAccountAsync(
@@ -533,8 +599,7 @@ app.MapPost("/users/{handle}/service-account/rotate", async (
 
     if (!result.Ok)
     {
-        return Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice="
-            + Uri.EscapeDataString(result.Description ?? "Refused."));
+        return Refused(http, result);
     }
 
     // The same one-URL hand-off the create path uses, and the comment there is the argument for it.
@@ -556,8 +621,9 @@ app.MapPost("/users/{handle}/service-account/enabled", async (
     var result = await api.SetServiceAccountEnabledAsync(
         http, handle, new { enabled = form["enabled"].Count > 0 }, ct);
 
-    return Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice="
-        + Uri.EscapeDataString(result.Ok ? "Applied." : result.Description ?? "Refused."));
+    return result.Ok
+        ? Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice={AdminText.NoticeApplied}")
+        : Refused(http, result);
 }).RequireAuthorization();
 
 app.MapPost("/users/{handle}/service-account/delete", async (
@@ -567,8 +633,9 @@ app.MapPost("/users/{handle}/service-account/delete", async (
 
     var result = await api.DeleteServiceAccountAsync(http, handle, ct);
 
-    return Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice="
-        + Uri.EscapeDataString(result.Ok ? "Deleted." : result.Description ?? "Refused."));
+    return result.Ok
+        ? Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice={AdminText.NoticeDeleted}")
+        : Refused(http, result);
 }).RequireAuthorization();
 
 app.MapPost("/users/{handle}/patch", async (
@@ -607,7 +674,7 @@ app.MapPost("/users/{handle}/patch", async (
         ct);
 
     return result.Ok
-        ? Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice=Applied.")
+        ? Results.Redirect($"/users/{Uri.EscapeDataString(handle)}?notice={AdminText.NoticeApplied}")
         : Refused(http, result);
 }).RequireAuthorization();
 
@@ -645,12 +712,13 @@ app.MapPost("/users/{handle}/sessions", async (
 
     // The count, and no claim beyond it. Access tokens already issued keep working until they
     // expire, and telling an operator responding to an incident "signed out" would overstate it by
-    // one token lifetime.
+    // one token lifetime. The sentence saying so is AdminText.NoticeSessionsRevoked, so a deployment
+    // can put it in its own words; what travels here is the number that goes in its {0}.
     var revoked = result.Body.GetProperty("revoked").GetInt32();
 
     return Results.Redirect(
-        $"/users/{Uri.EscapeDataString(handle)}?notice=" + Uri.EscapeDataString(
-            $"{revoked} grant(s) revoked. Access tokens already issued keep working until they expire."));
+        $"/users/{Uri.EscapeDataString(handle)}?notice={AdminText.NoticeSessionsRevoked}"
+        + $"&notice_value={revoked.ToString(CultureInfo.InvariantCulture)}");
 }).RequireAuthorization();
 
 app.MapPost("/users/{handle}/anonymise", async (
@@ -663,9 +731,12 @@ app.MapPost("/users/{handle}/anonymise", async (
 
     var result = await api.AnonymiseAsync(http, handle, ct);
 
+    // To the account list, because the account page this came from no longer names anybody. The
+    // handle is the {0} of the sentence there and is escaped as query-string data — it is a string
+    // an operator typed and this app never validated, like every other value on these pages.
     return result.Ok
-        ? Results.Redirect("/?notice=" + Uri.EscapeDataString(
-            $"{handle} is anonymised. The account row stays so the audit trail keeps its referent."))
+        ? Results.Redirect(
+            $"/?notice={AdminText.NoticeAnonymised}&notice_value={Uri.EscapeDataString(handle)}")
         : Refused(http, result);
 }).RequireAuthorization();
 
@@ -771,7 +842,7 @@ app.MapPost("/roles", async (
         ct);
 
     return result.Ok
-        ? Results.Redirect("/roles?notice=Defined.")
+        ? Results.Redirect($"/roles?notice={AdminText.NoticeDefined}")
         : Refused(http, result);
 }).RequireAuthorization();
 
@@ -796,7 +867,7 @@ app.MapPost("/roles/{id}", async (
         ct);
 
     return result.Ok
-        ? Results.Redirect("/roles?notice=Applied.")
+        ? Results.Redirect($"/roles?notice={AdminText.NoticeApplied}")
         : Refused(http, result);
 }).RequireAuthorization();
 
@@ -808,7 +879,7 @@ app.MapPost("/roles/{id}/delete", async (
     var result = await api.DeleteRoleAsync(http, id, ct);
 
     return result.Ok
-        ? Results.Redirect("/roles?notice=Deleted.")
+        ? Results.Redirect($"/roles?notice={AdminText.NoticeDeleted}")
         : Refused(http, result);
 }).RequireAuthorization();
 

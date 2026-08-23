@@ -7,6 +7,7 @@ using Boltway.OAuth.Primitives.Diagnostics;
 using Boltway.OAuth.Primitives.Pkce;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 
 namespace Boltway.AuthorizationServer.Tests;
 
@@ -497,6 +498,94 @@ public sealed class LocalizationTests
     /// <summary>
     /// Advertising a locale the middleware does not serve refuses at startup.
     /// </summary>
+    [Fact]
+    public void A_deployment_can_supply_its_own_localizer()
+    {
+        // The seam, checked rather than asserted in prose. The XML docs used to say a deployment
+        // overrides the text by registering an IStringLocalizerFactory — the way OrchardCore and
+        // ABP do it — and nothing here has ever resolved a factory. Somebody following that got
+        // English pages and no error, so the sentence now names IStringLocalizer and this is what
+        // keeps it true: registered first, it wins, because the library's own is TryAdd.
+        var services = new ServiceCollection();
+
+        services.AddSingleton<IStringLocalizer>(new PoFileShapedLocalizer());
+        services.AddBoltwayInteractionLocalization(Vietnamese, Translations);
+
+        var resolved = services.BuildServiceProvider().GetRequiredService<IStringLocalizer>();
+
+        Assert.IsType<PoFileShapedLocalizer>(resolved);
+        Assert.Equal("from the deployment", resolved[InteractionText.LoginTitle].Value);
+    }
+
+    /// <summary>Whatever a deployment already keeps its text in — the point is that it is not ours.</summary>
+    private sealed class PoFileShapedLocalizer : IStringLocalizer
+    {
+        public LocalizedString this[string name] => new(name, "from the deployment", resourceNotFound: false);
+
+        public LocalizedString this[string name, params object[] arguments] => this[name];
+
+        public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => [];
+    }
+
+    [Fact]
+    public void A_translation_that_drops_a_placeholder_refuses_to_start()
+    {
+        // ConsentClientAsking carries the host of the client_id URL, which N-14 makes a MUST — it is
+        // the one field on the consent page that says which application is actually asking. A
+        // translation without {0} renders a grammatical sentence with that host silently absent,
+        // and every other check passes: the key is known, the page renders, the renderer contract
+        // is satisfied. Startup is the only place this can be caught.
+        var translations = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            [Vietnamese] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [InteractionText.ConsentClientAsking] = "Ứng dụng này muốn truy cập tài khoản của bạn.",
+            },
+        };
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => new ServiceCollection().AddBoltwayInteractionLocalization(Vietnamese, translations));
+
+        Assert.Contains(InteractionText.ConsentClientAsking, refusal.Message, StringComparison.Ordinal);
+        Assert.Contains("{0}", refusal.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_translation_that_keeps_its_placeholders_starts()
+    {
+        // The control. Without it the test above passes against a build that refuses every
+        // translation, which is the same page in the same language and a much worse bug.
+        var translations = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            [Vietnamese] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [InteractionText.ConsentClientAsking] = "Ứng dụng tại {0} muốn truy cập tài khoản của bạn.",
+                [InteractionText.LoginTitle] = "Đăng nhập",
+            },
+        };
+
+        new ServiceCollection().AddBoltwayInteractionLocalization(Vietnamese, translations);
+    }
+
+    [Fact]
+    public void A_translation_that_invents_a_placeholder_refuses_to_start()
+    {
+        // The other direction, and it reaches the page as the literal text `{1}`: nothing supplies
+        // an argument for a placeholder the English string does not have.
+        var translations = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            [Vietnamese] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [InteractionText.ConsentClientAsking] = "Ứng dụng tại {0} muốn truy cập {1}.",
+            },
+        };
+
+        var refusal = Assert.Throws<InvalidOperationException>(
+            () => new ServiceCollection().AddBoltwayInteractionLocalization(Vietnamese, translations));
+
+        Assert.Contains("{1}", refusal.Message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Advertising_a_locale_nobody_serves_refuses_to_start()
     {
