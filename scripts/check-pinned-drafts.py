@@ -31,6 +31,17 @@ that passes when it could not look is worse than no check, because it is believe
 whether or not anyone intends to revise it, so expiry on its own is not work. It is printed
 because U-15 exists to keep the moving target in view, and a citation to an expired draft is worth
 knowing about before somebody quotes it to a client.
+
+**Exit codes, and they are a contract `pinned-drafts.yml` reads:**
+
+    0  every pinned draft is the current revision
+    1  a pinned draft has been revised, or the check found nothing to check — work owed, and
+       the workflow opens a tracking issue for it
+    2  the datatracker could not be asked about at least one draft — nothing was measured, so
+       the run is red, and the workflow retries rather than filing an issue
+
+The split exists because 1 and 2 ask different things of a person, and one exit code made them the
+same red. See the comment at the bottom of `main`.
 """
 
 import json
@@ -148,8 +159,28 @@ def main(argv):
         print('::error::  That is not evidence the pinned revision is current, so this check')
         print('::error::  fails rather than reporting a green it did not establish.')
 
-    if stale or unreachable:
+    # **Two different answers, and they used to share one exit code.** REVISED is work owed: U-15's
+    # re-diff, and it stays owed until somebody does it. UNREACHABLE is that the datatracker could
+    # not be asked — the third value this repository insists on everywhere else, "could not tell"
+    # rather than yes or no — and it is usually gone by the next run.
+    #
+    # Separated here rather than in the caller because the caller cannot tell them apart from this
+    # output without parsing prose, and what it does with them differs sharply: the workflow opens a
+    # tracking issue for a revision, because a red run in the Actions tab notifies nobody and a
+    # weekly check nobody reads is not a check. Filing that issue over a network blip is how a
+    # signal gets trained out of its reader, which costs more than the blip.
+    #
+    # Both still fail. An unreachable datatracker is not evidence the pinned revision is current,
+    # and the paragraph at the top of this file is the reason: a check that passes when it could not
+    # look is worse than no check, because it is believed.
+    #
+    # Stale wins when both happened — a revision that is known is owed whatever else could not be
+    # reached — and every other failure above returns 1, because a missing directory or an empty
+    # `spec/` is a repository defect rather than somebody else's outage.
+    if stale:
         return 1
+    if unreachable:
+        return 2
 
     print(f'Every pinned draft is the current revision ({len(drafts)} checked).')
     return 0

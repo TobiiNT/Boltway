@@ -15,6 +15,27 @@
 # owed. Nothing is wrong with `main`; there is work to do. Read it the way you would read a
 # dependency advisory rather than a failing test.
 #
+# **And a red here reached nobody, which is the same defect ci.yml was written to fix.** A failing
+# scheduled run produces one entry in the Actions tab: no email, no mention, nothing on the front
+# page of the repository, and nothing on a pull request — the tab is a place you go when you already
+# suspect something. A weekly check whose only output is a place nobody looks is an instruction
+# nobody is prompted to follow, which is exactly what this file's own header says it exists to
+# replace. So a revision now opens or updates a tracking issue, which is the only durable delivery
+# a public repository has that does not need somebody to have configured a notification.
+#
+# **The issue is filed for REVISED and never for UNREACHABLE**, and the script separates those into
+# two exit codes precisely so this file can tell them apart. A datatracker outage is not work owed:
+# filing a spec issue over a network blip is how a signal gets trained out of its reader, and then
+# the real one arrives into a channel somebody has already learned to skip. An outage is retried,
+# and if it persists the run is red having measured nothing — which is the third value this
+# repository insists on everywhere else, rather than a green it did not establish.
+#
+# **Known, not measured: GitHub disables a `schedule` trigger after 60 days of repository
+# inactivity.** It is documented behaviour and it emails the maintainer when it happens; what has
+# not been measured here is whether issue activity resets that clock or only commits do. Treat the
+# schedule as something that can stop silently from this workflow's point of view — if `main` has
+# been quiet for two months, check that this workflow is still enabled before believing its silence.
+#
 # Cheap enough not to think about: two HTTPS requests and no checkout of anything large, well
 # inside the arithmetic in a downstream deployment guide about what a short scheduled job costs.
 
@@ -46,11 +67,157 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    # Two HTTPS requests, up to three times, with a minute between attempts — five minutes on the
+    # worst path this job has. The ceiling exists because the default is 360 minutes of a runner
+    # held by a request that never returns; ci.yml's `test` job carries the full reasoning.
+    timeout-minutes: 15
+
+    # `issues: write` is the delivery, and it is the whole grant: no `contents: write`, nothing that
+    # can touch a ref. A workflow that files an issue about a specification should not be able to
+    # change one.
+    permissions:
+      contents: read
+      issues: write
+
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to a commit rather than a tag — a tag is a mutable pointer in somebody else's
+      # repository. publish-packages.yml carries the argument and .github/dependabot.yml is what
+      # keeps the pin current.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # No setup-python: the runner image ships python3, and the script imports nothing outside
       # the standard library on purpose. A check whose own dependencies can break is a check that
       # goes red for reasons that have nothing to do with what it watches.
+      #
+      # Exit codes are a contract with the script, documented in its docstring: 0 current, 1 a
+      # revision is owed, 2 the datatracker could not be asked. Only 2 is retried, because it is the
+      # only one a retry can change — a revision is still a revision a minute later, and retrying it
+      # would just be three requests to learn what one already established.
+      #
+      # `set +e` around the pipeline because the default shell is `bash -e`: the point here is to
+      # read the status rather than die on it, and `tee` means `$?` is the logger's, not the
+      # script's. The log file is what the issue below quotes.
       - name: Every pinned draft is still the current revision
-        run: python3 scripts/check-pinned-drafts.py spec
+        id: check
+        run: |
+          set -uo pipefail
+
+          attempt=1
+          while : ; do
+            set +e
+            python3 scripts/check-pinned-drafts.py spec 2>&1 | tee check.log
+            status="${PIPESTATUS[0]}"
+            set -e
+
+            if [ "$status" -ne 2 ] || [ "$attempt" -ge 3 ]; then
+              break
+            fi
+
+            echo "::notice::the datatracker could not be asked (attempt $attempt of 3); retrying in 60s."
+            attempt=$((attempt + 1))
+            sleep 60
+          done
+
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      # The delivery. Only on the schedule and on a manual dispatch: a pull request already reports
+      # into itself, where the person who pinned the file is looking, and a fork's token could not
+      # write an issue anyway.
+      #
+      # **Updated in place rather than commented on.** A weekly cron against an unaddressed issue
+      # would leave fifty-two identical comments in a year, which is the same signal-destroying
+      # noise as a false red. The body always carries the latest run's output, so a second draft
+      # moving while the first is unaddressed still shows up.
+      #
+      # **And never closed automatically.** Replacing the pinned copy is what turns this check
+      # green, and it is the cheapest half of what U-15 asks for — auto-closing would retire the
+      # reminder at the exact moment the re-diff is owed and unstarted. A person closes it.
+      #
+      # `gh` rather than curl against the API: it ships in the runner images and is GitHub's own
+      # CLI, and unlike the PyYAML import this repository has already been bitten by, it is a
+      # documented part of the image rather than a transitive accident. If it were ever missing, the
+      # failure lands in the notification path of an already-red run rather than in an irreversible
+      # one.
+      - name: File or update the tracking issue
+        if: ${{ steps.check.outputs.status == '1' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          LABEL='pinned-drafts'
+          TITLE='A pinned Internet-Draft has been revised (U-15)'
+
+          {
+            echo "A draft pinned in \`spec/\` is no longer the revision the IETF datatracker serves,"
+            echo "so the re-diff \`U-15\` in \`spec/REQUIREMENTS.md\` asks for is owed."
+            echo
+            echo '```'
+            cat check.log
+            echo '```'
+            echo
+            echo "U-15 asks for four things, in order: fetch the new revision, diff it against the"
+            echo "pinned copy, act on anything normative that moved, then replace the pinned copy and"
+            echo "update every citation of the revision number."
+            echo
+            echo "Nothing is broken on \`main\`. Read this the way you would read a dependency"
+            echo "advisory rather than a failing test."
+            echo
+            echo "Last checked by [this run]($RUN_URL) at $(date -u '+%Y-%m-%d %H:%M UTC')."
+            echo
+            echo "_Opened and kept up to date by \`.github/workflows/pinned-drafts.yml\`. It is not"
+            echo "closed automatically: replacing the pinned file is what turns the check green, and"
+            echo "that is the cheapest of the four steps above. Close it when the diff is done._"
+          } > issue-body.md
+
+          # `gh issue create --label` fails outright against a label that does not exist, and a
+          # notification that fails because of a missing label is precisely the delivery this step
+          # was added to stop losing. Creating it is idempotent; the `|| true` is every run after
+          # the first.
+          gh label create "$LABEL" \
+            --color 'FBCA04' \
+            --description 'A pinned Internet-Draft has moved and the U-15 re-diff is owed' \
+            >/dev/null 2>&1 || true
+
+          # Found by label rather than by title: a label is an exact match, and a title search is a
+          # fuzzy one that would eventually update somebody else's issue.
+          NUMBER="$(gh issue list --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')"
+
+          if [ -n "$NUMBER" ]; then
+            gh issue edit "$NUMBER" --body-file issue-body.md
+            echo "updated the open tracking issue #$NUMBER" >> "$GITHUB_STEP_SUMMARY"
+          else
+            URL="$(gh issue create --title "$TITLE" --label "$LABEL" --body-file issue-body.md)"
+            echo "opened $URL" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # The run's own verdict, kept separate from the check so that the issue above is filed even
+      # when this fails the job — and it does fail the job. An unreachable datatracker is not
+      # evidence that a pinned revision is current, so a green here would be a green nothing
+      # established, which is the failure the script's own docstring is about.
+      - name: Verdict
+        if: ${{ steps.check.outputs.status != '0' }}
+        env:
+          STATUS: ${{ steps.check.outputs.status }}
+        run: |
+          case "$STATUS" in
+            1)
+              echo "::error::A pinned draft has been revised and the U-15 re-diff is owed. On the"
+              echo "::error::schedule this run also opened or updated the tracking issue; on a pull"
+              echo "::error::request this failure is the delivery."
+              ;;
+            2)
+              echo "::error::The datatracker could not be asked, three times. Nothing was measured,"
+              echo "::error::so this run is red rather than green — but no issue was filed, because"
+              echo "::error::an outage is not work owed. If this repeats for a week it is not an"
+              echo "::error::outage: check that the pinned filename is one the datatracker resolves."
+              ;;
+            *)
+              echo "::error::check-pinned-drafts.py exited $STATUS, which is not one of its"
+              echo "::error::documented codes (0, 1, 2). Read the step above."
+              ;;
+          esac
+          exit 1

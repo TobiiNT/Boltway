@@ -16,18 +16,58 @@ on:
   push:
     branches: [main]
 
+  # Rebuilding a commit's image by hand, which had no route at all until the cancellation rule
+  # below was fixed — and still needs one, because a cancelled `image` job leaves that commit
+  # without `ghcr.io/<owner>/<name>:<sha>` and `release` refuses to tag an image that is not in the
+  # registry. Its error says to wait for the run and re-run it; a run that was *cancelled* is one
+  # waiting never finishes, and a job in a cancelled run cannot be re-run on its own.
+  #
+  # `ref` takes a sha rather than only a branch because the stranded commit is by definition not
+  # the branch head any more — that is what cancelled it. Dispatch this from main with the sha of
+  # the commit that lost its image; the push condition below reads `github.ref`, which is the
+  # branch dispatched from, so building an old commit from main still pushes and building it from
+  # anywhere else still does not.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit or branch to build. Empty means the branch this was dispatched on.'
+        required: false
+        type: string
+
 permissions:
   contents: read
 
 # A second push to the same branch makes the first run's answer worthless. Cancelling it is not
 # only about minutes — a queue of superseded runs is how a red that mattered gets scrolled past.
+#
+# **Except on main, where the same reasoning is backwards.** Every push to main is a commit that is
+# permanently addressable, and the `image` job below is the only thing that ever builds its
+# container image. Two merges in quick succession cancelled the first one's `image` job, and that
+# commit then had no `ghcr.io/…:<sha>` — not late, never. `release` requires exactly that image, by
+# sha and by digest, so the commit was unreleasable and the only route back was a fresh commit.
+# Superseded is a property of a branch tip; it is not a property of a commit that is already on
+# main and may still be tagged.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    # WHY EVERY JOB HERE CARRIES A CEILING
+    # ------------------------------------
+    # The default is 360 minutes, which is not a ceiling anybody chose. The failure it permits is
+    # specific rather than theoretical: the known intermittent SQLite failure documented below is a
+    # concurrency defect, and a concurrency defect's other shape is a deadlock — a test that never
+    # returns rather than one that returns wrong. That run holds a runner for six hours and, because
+    # cancellation is now off for main, holds this workflow's concurrency group with it.
+    #
+    # Sized well above the honest duration, so that reaching it means "stuck" rather than "slow" —
+    # a timeout tight enough to trip on a slow runner is a flake generator, and this repository's
+    # rule is that a red must mean something. Measured against what these jobs actually take, not
+    # guessed: raise it if a legitimate run ever gets close, rather than deleting it.
+    timeout-minutes: 30
 
     # The storage contract suite fails rather than skipping when there is no server, on the grounds
     # that its purpose is proving two implementations answer identically — a stand-in here would
@@ -48,9 +88,28 @@ jobs:
           --health-retries 12
 
     steps:
-      - uses: actions/checkout@v4
+      # PINNED TO COMMITS, NOT TAGS
+      # ---------------------------
+      # Every third-party action in this repository names a commit sha, with the version it was as
+      # a trailing comment. A tag is a mutable pointer in somebody else's repository: `v4` is
+      # whatever its owner last pointed it at, and the `image` job below runs one of these with
+      # `packages: write` and a registry password on stdin. `Directory.Packages.props` already makes
+      # this argument about NuGet dependencies — floating a version is "one silent minor bump away
+      # from a different security posture than the one that was reviewed" — and an action is a
+      # dependency that appears in no lockfile at all.
+      #
+      # A pin rots, which is the honest cost. `.github/dependabot.yml` is the other half of the
+      # trade: it moves the sha and the trailing comment together, so the pin becomes something
+      # reviewed rather than something frozen.
+      #
+      # `inputs.ref` is empty on push and pull_request — the `inputs` context exists on every event
+      # and answers empty for a name it does not have — and empty is what checkout reads as "the ref
+      # that started this run". So those two paths behave exactly as they did.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ inputs.ref }}
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
 
@@ -79,8 +138,92 @@ jobs:
       # Not a known failure any more: CimdFetchControlTests.One_caller_cancelling_does_not_abort_
       # the_shared_fetch reddened this workflow once with no defect present. It was two sleeps
       # betting against a saturated thread pool, and it is now gated.
+      #
+      # `--logger trx`, because until now this job produced nothing an investigation could read. A
+      # failure was a line in a log that scrolls, and the log goes with the run's retention; a
+      # `.trx` names every test, its duration and its output, which is what you want on the
+      # intermittent failure above rather than a second run and a hope.
+      #
+      # **No `--collect:"XPlat Code Coverage"`, and this is a measurement rather than a preference.**
+      # `coverlet.collector` is referenced by every test project here and produces nothing without
+      # it, which looks exactly like a package that restored and did nothing. Turning it on breaks
+      # the architecture suite. Measured 2026-08-23 on this tree, .NET SDK 10.0.111, running
+      # `Boltway.Architecture.Tests` with and without the flag and nothing else changed: with it,
+      # `No_redirect_preserves_the_request_method` and
+      # `Only_the_rejection_writer_produces_an_error_response` both go red; without it, both pass.
+      #
+      # **Measured effect, inferred cause, and the two are kept apart on purpose.** What was
+      # measured is the pair of runs above. What fits it: both rules read the constant pool with
+      # Mono.Cecil and treat an `ldc.i4` of 307/308, or of 400-599, as an HTTP status code — their
+      # own comments say the whole point is that the rule "cannot tell the difference" — and the
+      # failure named integers 590 to 593 inside `AccessTokenValidator.Classify` and `.Describe`,
+      # which are not status codes anybody wrote. A coverage collector instruments the assemblies
+      # under test and records a hit per sequence point by index, and in a module with several
+      # hundred of them those indices land in exactly those ranges. That is a reading of somebody
+      # else's tool rather than something read out of it, so treat the second paragraph as the fact
+      # and this one as the explanation.
+      #
+      # Either way the consequence is the same: the suite that is this repository's strongest signal
+      # goes red for a defect that is not there.
+      #
+      # Coverage is therefore not "unwired here": it is incompatible with an IL-constant scan that
+      # runs in the same process, and wiring it up would mean a second `dotnet test` invocation that
+      # excludes the architecture project — a whole second build to produce a number nothing gates
+      # on. That trade can be made later and deliberately; it is not a line in this command.
       - name: Test
-        run: dotnet test Boltway.slnx --configuration Release
+        run: dotnet test Boltway.slnx --configuration Release --logger trx
+
+      # `if: always()`, because the run whose results anybody wants is the one that failed. A step
+      # that uploads only after a green test run is an artefact of the case nobody investigates.
+      #
+      # No --results-directory: each project writes into its own TestResults/ by default, and that
+      # is collision-free by construction. A shared directory is not — the trx logger's default
+      # filename is the machine and a timestamp, so two projects finishing in the same second write
+      # the same name and the second silently wins, which would lose exactly one suite's results
+      # and say nothing.
+      #
+      # And no `--artifacts-path` either, which was the other way to keep them apart: it moves the
+      # test binary outside the repository, and three `StructuralRuleTests` walk up from that binary
+      # to find the repository root. Measured 2026-08-23: they fail with "Could not find the
+      # repository root above the test binary" for that reason alone.
+      - name: Test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: test-results
+          path: '**/TestResults/**'
+          if-no-files-found: warn
+          retention-days: 14
+
+      # **Packing is a build surface `dotnet test` never touches, and until now the first pack of a
+      # commit happened after its tag was cut.** `dotnet pack` runs its own set of checks — the
+      # NU5xxx family — against metadata this repository actually uses: `PackageReadmeFile` names a
+      # file that has to be there, `PackageLicenseExpression` has to be a valid SPDX expression,
+      # a snupkg is produced beside every library, and warnings are errors here. None of that is
+      # exercised by compiling and running tests, so a release could fail on the one step that
+      # comes after the irreversible ones.
+      #
+      # This is the same argument the `image` job below makes for the Dockerfile and fixes the same
+      # way: the only way to know a build surface works is to run it on every commit rather than on
+      # the way out. It is a rebuild rather than `--no-build` on purpose — `dotnet test` builds the
+      # test projects and what they reference, which is not the same set as what packs.
+      - name: Pack
+        run: dotnet pack Boltway.slnx --configuration Release -o packages
+
+      # Deliberately not a count. What packs is `StructuralRuleTests.PackableProjects`, checked by a
+      # test, and a number written here would be a second place to maintain it — one that goes stale
+      # the day a package is added or a project starts multi-targeting. "Something was produced" is
+      # the part this step can honestly assert; a pack that silently produced nothing would
+      # otherwise read as a pass.
+      - name: What was packed
+        run: |
+          ls -1 packages
+          ls -1 packages/*.nupkg >/dev/null 2>&1 || {
+            echo "::error::dotnet pack produced no .nupkg. Every packable project answers to"
+            echo "::error::StructuralRuleTests.PackableProjects — if that list is not empty, this"
+            echo "::error::is a packaging failure rather than an empty repository."
+            exit 1
+          }
 
   # The image: built on every branch, pushed from main.
   #
@@ -115,6 +258,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
 
+    # A ceiling for the same reason the `test` job has one — see the comment there. Lower, because
+    # this job restores, builds and publishes one image and nothing here waits on a database; a
+    # docker build that has been going twenty minutes is not a slow build, it is a hung one.
+    timeout-minutes: 20
+
     strategy:
       fail-fast: false
       matrix:
@@ -133,7 +281,10 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to a commit rather than a tag, for the reason spelled out in the `test` job above —
+      # and most of all here, where the next step hands a registry password to a third-party action
+      # in a job holding `packages: write`.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # Full history, for the build number computed below. On the default shallow clone
           # `git rev-list --count` answers 1 — not an error, just wrong — and the guard in the
@@ -141,8 +292,13 @@ jobs:
           # overwriting the real first build's.
           fetch-depth: 0
 
+          # Empty on push and pull_request; a sha only when somebody dispatches this to rebuild an
+          # image a cancelled run never produced. `fetch-depth: 0` above is what makes an arbitrary
+          # sha resolvable here as well as making the build number right.
+          ref: ${{ inputs.ref }}
+
       # Only on main: a pull request needs the build, not the credential.
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         if: github.ref == 'refs/heads/main'
         with:
           registry: ghcr.io
@@ -160,6 +316,15 @@ jobs:
           IMAGE=ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}
           IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+          # The sha of what was checked out, not `github.sha`. They are the same value on push and
+          # on pull_request — and they are not on the dispatch that exists to rebuild a stranded
+          # commit, where `github.sha` is the head of the branch the dispatch was made from and the
+          # tree being built is an older commit. Tagging that image with the branch head's sha
+          # would put the wrong bytes behind the one name a deploy is supposed to pin, which is a
+          # worse outcome than the missing image this rebuild path was added to fix.
+          SHA="$(git rev-parse HEAD)"
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
 
           # The build number: commits behind this one on the first-parent chain. A function of
           # the commit rather than of CI state — the same commit rebuilt gets the same number,
@@ -187,9 +352,9 @@ jobs:
           # rides along under the same rule.
           docker build \
             -f ${{ matrix.dockerfile }} \
-            --build-arg BUILD_SHA="${{ github.sha }}" \
+            --build-arg BUILD_SHA="$SHA" \
             --build-arg BUILD_NUMBER="$BUILD_NUMBER" \
-            -t "$IMAGE:${{ github.sha }}" \
+            -t "$IMAGE:$SHA" \
             -t "$IMAGE:b$BUILD_NUMBER" \
             -t "$IMAGE:latest" \
             .
@@ -197,11 +362,22 @@ jobs:
       - name: Push
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:$SHA"
           docker push "$IMAGE:b$BUILD_NUMBER"
-          docker push "$IMAGE:latest"
 
-          echo "pushed $IMAGE:${{ github.sha }} (b$BUILD_NUMBER)"
+          # `latest` moves only when this run built the branch head. A dispatched rebuild exists to
+          # restore an older commit's missing `:<sha>` image, and that commit is by definition one
+          # main has moved past — putting `latest` back on it would send every compose file that
+          # names `latest` backwards on the next pull, silently, for a tag nobody re-reads. The two
+          # tags above are identities of a commit and are safe to write at any time; this one is a
+          # pointer, and a pointer is only correct in one direction.
+          if [ "$SHA" = "${{ github.sha }}" ]; then
+            docker push "$IMAGE:latest"
+          else
+            echo "::notice::not moving :latest — this run rebuilt $SHA and the branch head is ${{ github.sha }}."
+          fi
+
+          echo "pushed $IMAGE:$SHA (b$BUILD_NUMBER)"
 
       # **This repository no longer deploys anything, and that is deliberate.**
       #

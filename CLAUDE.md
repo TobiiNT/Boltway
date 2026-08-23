@@ -172,11 +172,13 @@ sentence in this repository saying what has been published is a claim, and this 
 
 What packs is `StructuralRuleTests.PackableProjects`, checked by a test rather than counted by
 hand. Adding a package is an edit to that list, made deliberately — an id cannot be taken back.
-and a version already on the feed is pushed with `--skip-duplicate`, which reports success and
-drops the package. nuget.org has no delete, only unlist, so a version published low cannot be taken
-back. One `curl https://api.nuget.org/v3-flatcontainer/<id.lower()>/index.json` settles what is
-actually out there; a sentence in this repository saying what has been published is a claim, and
-this one has already been wrong.
+
+**A break is a decision, not an accident.** `EnablePackageValidation` diffs every packable project
+against the 0.1.0 already on the feed, so a removed or re-signatured public member fails the pack
+with `CP0002`. At 0.x a break is allowed — `VERSIONING.md` says so — and the gate exists to make it
+something somebody chose. Its own error suggests `ApiCompatGenerateSuppressionFile`, which writes
+the break into a file nobody reads again; record it in `CHANGELOG.md` instead, where the consumer
+about to hit it will see it.
 
 `tests/Boltway.PublicApi.Tests` compiles a consumer's-eye implementation of the seams in an
 assembly with **no** `InternalsVisibleTo` grant, so it builds only while every member it touches is

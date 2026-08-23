@@ -94,10 +94,19 @@ annotated tag and nothing else, so the changelog is the release notes.
 **Once, and not from this repository:** nuget.org Trusted Publishing has to be set up — a policy
 registered on nuget.org naming this repository and the publish workflow, and the `NUGET_USER`
 repository variable set to the nuget.org profile name, the profile name rather than the email
-address. With either missing the nuget.org push **skips**; GitHub Packages is still written, and
-GitHub Packages needs a token to read even a public package, so a release that looks green went out
-to a feed no outside consumer can restore from. Nothing reports it, because skipping is the correct
-behaviour in a fork.
+address.
+
+`NUGET_USER` being unset is now the publish workflow's **first** step and it fails there, before
+the checkout — deliberately, because failing after the GitHub Packages push would leave one feed
+written and the other not, with the version numbers burned on the half that succeeded. It used to
+skip instead: GitHub Packages was still written, GitHub Packages needs a token to read even a
+public package, and so a release that looked green went out to a feed no outside consumer can
+restore from, with nothing reporting it because skipping is the correct behaviour in a fork. The
+guard distinguishes the two — a fork still skips, the canonical repository stops.
+
+Registering the Trusted Publishing policy is the half that cannot be checked from here at all: it
+is a setting on nuget.org, and the workflow only finds out when `NuGet/login` fails to exchange
+the token.
 
 Then, per release, in this order:
 

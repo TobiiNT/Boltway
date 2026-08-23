@@ -38,10 +38,24 @@ Verified against the outage above and against a rebuild, which is the pair that 
 added, and `Boltway.Mcp 0.4.0` — the same source built twice, once here and once on a runner —
 reports no change at all.
 
+**And the nuspec's `<dependencies>`, because names alone miss the half of this that has no
+assembly.** A ProjectReference packs as a dependency on the referenced project's version, so a
+project whose own source never changed still needs a bump when something it references moves —
+`Directory.Build.props` says exactly that, in the comment beside the number. When that bump is
+forgotten the packed nuspec names a newer dependency while every assembly in the package is
+byte-for-byte what is published: the name comparison above reports `unchanged`, the push skips, and
+the corrected nuspec is dropped. What a consumer then restores is a package pinning a dependency
+version that is merely old, and no amount of publishing the newer one can reach them.
+
+That is the same outage as the one above seen from the other end. `Boltway.Mcp` was caught because
+its own version was new; a sibling package that only *referenced* the changed project would not have
+been caught by anything here at all. Comparing the element is cheap and exact — the nuspec is
+generated, so it does not churn between two builds of the same source the way a metadata heap can.
+
 Be clear about what that does not cover: a signature changed without any name changing — the same
 member taking an `int` where it took a `long` — has the same names and passes here, and is still a
 `MissingMethodException` for a consumer. Comparing full signatures needs a metadata reader rather
-than a heap scan. This catches the shape that actually bit; it is not a compatibility checker.
+than a heap scan. This catches the two shapes that actually bit; it is not a compatibility checker.
 
 Exits 1 if any package drifted, naming each one and what moved.
 """
@@ -56,6 +70,7 @@ import urllib.parse
 import urllib.request
 import base64
 import zipfile
+from xml.etree import ElementTree
 
 def section_table(data, pe):
     """(virtual address, virtual size, raw offset) for each PE section, to resolve an RVA."""
@@ -166,6 +181,66 @@ def assemblies(nupkg_bytes):
             for n in z.namelist()
             if n.startswith('lib/') and n.endswith('.dll')
         }
+
+
+def local(tag):
+    """An element's name without its XML namespace.
+
+    The nuspec schema URL carries a year in it and has been revised more than once, so matching
+    `{http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd}dependency` would be matching the
+    version of the schema NuGet happened to emit under. The local name is the stable half.
+    """
+    return tag.rsplit('}', 1)[-1]
+
+
+def dependencies(nupkg_bytes):
+    """Every dependency the nuspec declares, as sorted `<framework> | <id> <range>` lines.
+
+    Read from the nuspec rather than from the assemblies, because this is the part of a package that
+    has no assembly: a ProjectReference becomes a `<dependency>` on the referenced project's
+    version, and moving that version changes nothing about the bytes in `lib/`.
+
+    Grouped by target framework and kept in the comparison, because a dependency that moved from one
+    framework group to another is a real change to what a consumer resolves — flattening the groups
+    would report that as no change at all.
+
+    Returns an empty list for a package with no nuspec or no dependencies. Both compare equal to the
+    same absence on the other side, which is what "nothing to say about this" has to mean here.
+    """
+    with zipfile.ZipFile(io.BytesIO(nupkg_bytes)) as archive:
+        name = next((n for n in archive.namelist() if n.endswith('.nuspec')), None)
+        if name is None:
+            return []
+        raw = archive.read(name)
+
+    root = ElementTree.fromstring(raw)
+
+    node = next((e for e in root.iter() if local(e.tag) == 'dependencies'), None)
+    if node is None:
+        return []
+
+    found = []
+
+    def record(framework, dependency):
+        found.append(
+            f'{framework} | {dependency.get("id", "?")} {dependency.get("version", "(any)")}'
+        )
+
+    for child in node:
+        if local(child.tag) == 'group':
+            # `targetFramework` is optional on a group and means "every framework not named by
+            # another group". Spelling that absence as a word keeps it distinguishable from a group
+            # that names a framework called nothing.
+            framework = child.get('targetFramework') or '(all frameworks)'
+            for dependency in child:
+                if local(dependency.tag) == 'dependency':
+                    record(framework, dependency)
+        elif local(child.tag) == 'dependency':
+            # The pre-group flat form. Still legal, still produced by older tooling, and a package
+            # in the feed may well have been packed by some.
+            record('(all frameworks)', child)
+
+    return sorted(found)
 
 
 def identity(nupkg_path):
@@ -283,6 +358,24 @@ def compare(fresh_assemblies, published_assemblies):
     return changes
 
 
+def dependency_changes(fresh, published):
+    """What moved in the nuspec's `<dependencies>` element, as readable lines.
+
+    Both sides are printed in full rather than as a count. A dependency drift is almost always one
+    version number in one line, and the whole question a reader has is "from what, to what" — a
+    summary saying `1 added, 1 removed` would make them download both packages to answer it.
+    """
+    added = sorted(set(fresh) - set(published))
+    removed = sorted(set(published) - set(fresh))
+    if not added and not removed:
+        return []
+
+    lines = ['the nuspec <dependencies> element has moved:']
+    lines += [f'    in the feed:     {entry}' for entry in removed]
+    lines += [f'    in this build:   {entry}' for entry in added]
+    return lines
+
+
 def main():
     if len(sys.argv) != 3:
         print(__doc__.strip().splitlines()[2].strip(), file=sys.stderr)
@@ -315,10 +408,17 @@ def main():
             continue
 
         with open(path, 'rb') as handle:
-            fresh_assemblies = assemblies(handle.read())
+            fresh_package = handle.read()
+
+        fresh_assemblies = assemblies(fresh_package)
+        fresh_dependencies = dependencies(fresh_package)
 
         for feed, body in existing:
-            changes = compare(fresh_assemblies, assemblies(body))
+            # Two comparisons rather than one, because they catch different failures: the assemblies
+            # catch a member that appeared or vanished, the nuspec catches a referenced version that
+            # moved while every assembly stayed identical. A package can drift on either alone.
+            changes = (compare(fresh_assemblies, assemblies(body))
+                       + dependency_changes(fresh_dependencies, dependencies(body)))
             if changes:
                 drifted.append((pid, version, feed, changes))
                 print(f'  DRIFTED   {pid} {version} ({feed})')
