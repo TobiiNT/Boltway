@@ -124,9 +124,32 @@ jobs:
       # move. That stays true and stays useful; what makes it safe is the step above, which is the
       # difference between "skipped because it is unchanged" and "skipped, and the change is being
       # dropped on the floor" — two things this flag reports identically.
-      - name: Push
+      - name: Push to GitHub Packages
         run: |
           dotnet nuget push 'packages/*.nupkg' \
             --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
             --api-key "${{ secrets.GITHUB_TOKEN }}" \
+            --skip-duplicate
+
+      # nuget.org, and it is a separate step rather than a second `--source` because the two feeds
+      # are not the same kind of thing. GitHub Packages is private and its token is minted for this
+      # run; nuget.org is the public index and its key is a stored secret with a long life.
+      #
+      # Conditional on the secret existing, so the workflow keeps working before anybody has set
+      # one up: a fork, or this repository on the day before the key was created, publishes to
+      # GitHub Packages and skips this rather than failing red for a thing it was never configured
+      # to do. `secrets` cannot be used in a job-level `if`, so the guard is on the step.
+      #
+      # **A version pushed here can never be unpublished.** nuget.org's delete is a de-list: the
+      # package stops appearing in search and keeps restoring for anyone who names the version,
+      # forever, which is the correct behaviour and is why it cannot be undone. The step above
+      # already refuses to push a version whose contents changed; this one inherits that.
+      - name: Push to nuget.org
+        if: ${{ env.NUGET_API_KEY != '' }}
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push 'packages/*.nupkg' \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key "$NUGET_API_KEY" \
             --skip-duplicate
