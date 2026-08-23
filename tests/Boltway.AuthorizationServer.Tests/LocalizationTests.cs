@@ -70,18 +70,62 @@ public sealed class LocalizationTests
     /// <summary>A marker, so the fixture's service hook has something to register.</summary>
     private sealed class AuthorizationServerOptionsHook;
 
-    private static string LoginUrl(string? uiLocales)
+    /// <summary>The authorization request a client actually sends, with an optional language ask.</summary>
+    private static string AuthorizeUrl(string? uiLocales)
     {
-        var returnUrl = "/authorize?response_type=code"
+        var url = "/authorize?response_type=code"
             + "&client_id=" + HttpUtility.UrlEncode("https://claude.ai/.well-known/oauth-client")
             + "&redirect_uri=" + HttpUtility.UrlEncode("https://claude.ai/api/mcp/auth_callback")
             + "&scope=openid&state=xyz"
+            + "&resource=" + HttpUtility.UrlEncode(Build.Resource)
             + "&code_challenge=" + Verifier.ComputeS256Challenge()
             + "&code_challenge_method=S256";
 
-        var url = "/login?returnUrl=" + Uri.EscapeDataString(returnUrl);
-
         return uiLocales is null ? url : url + "&ui_locales=" + HttpUtility.UrlEncode(uiLocales);
+    }
+
+    /// <summary>
+    /// The sign-in page as a client reaches it: <c>/authorize</c>, then the redirect it answers with.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Both hops, because the defect lived between them.</b> These tests used to build
+    /// <c>/login?returnUrl=…&amp;ui_locales=vi</c> and request that directly — a URL no client
+    /// constructs, since /login is only ever reached through this redirect. Against it the
+    /// parameter was read straight off the query and every assertion below passed, while a real
+    /// client got an English page: /authorize puts its whole query inside a single percent-encoded
+    /// <c>returnUrl</c>, so nothing named <c>ui_locales</c> survives to the page.
+    /// </para>
+    /// <para>
+    /// Driving the real shape is what makes these tests able to fail. They go red against the code
+    /// as it was.
+    /// </para>
+    /// </remarks>
+    private static async Task<HttpResponseMessage> SignInPageAsync(FlowFixture fixture, string? uiLocales)
+    {
+        var redirect = await fixture.Client.GetAsync(new Uri(AuthorizeUrl(uiLocales), UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.SeeOther, redirect.StatusCode);
+
+        var location = (redirect.Headers.Location
+            ?? throw new InvalidOperationException("/authorize answered 303 with no Location.")).ToString();
+
+        // A 303 is also how an OAuth error leaves /authorize, and that one goes to the client's
+        // redirect_uri. Asserting the destination keeps a broken request from arriving here as a
+        // 404 on claude.ai rather than as the refusal it is.
+        Assert.StartsWith("/login?returnUrl=", location, StringComparison.Ordinal);
+
+        return await fixture.Client.GetAsync(new Uri(location, UriKind.Relative));
+    }
+
+    /// <summary>The sign-in page's body, reached the way a client reaches it.</summary>
+    private static async Task<string> SignInHtmlAsync(FlowFixture fixture, string? uiLocales)
+    {
+        var response = await SignInPageAsync(fixture, uiLocales);
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
     }
 
     [Fact]
@@ -93,7 +137,7 @@ public sealed class LocalizationTests
         // carries `&#272;&#259;ng nh&#7853;p` — correct, and what the renderer contract's
         // "encoded exactly once" assertion is about. Decoding here asserts what a reader sees.
         var page = System.Net.WebUtility.HtmlDecode(
-            await fixture.Client.GetStringAsync(LoginUrl(Vietnamese)));
+            await SignInHtmlAsync(fixture, Vietnamese));
 
         Assert.Contains("Đăng nhập", page, StringComparison.Ordinal);
         Assert.Contains("Tên đăng nhập", page, StringComparison.Ordinal);
@@ -112,7 +156,7 @@ public sealed class LocalizationTests
     {
         await using var fixture = await StartAsync();
 
-        var page = await fixture.Client.GetStringAsync(LoginUrl(Vietnamese));
+        var page = await SignInHtmlAsync(fixture, Vietnamese);
 
         Assert.Contains("Password", page, StringComparison.Ordinal);
         Assert.DoesNotContain(InteractionText.LoginPassword, page, StringComparison.Ordinal);
@@ -134,7 +178,7 @@ public sealed class LocalizationTests
     {
         await using var fixture = await StartAsync();
 
-        var page = await fixture.Client.GetStringAsync(LoginUrl(requested));
+        var page = await SignInHtmlAsync(fixture, requested);
 
         Assert.Contains($"<html lang=\"{expected}\"", page, StringComparison.Ordinal);
     }
@@ -151,7 +195,7 @@ public sealed class LocalizationTests
     {
         await using var fixture = await StartAsync();
 
-        var response = await fixture.Client.GetAsync(LoginUrl("ja"));
+        var response = await SignInPageAsync(fixture, "ja");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("Sign in", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
@@ -277,7 +321,7 @@ public sealed class LocalizationTests
     {
         await using var fixture = await StartAsync(Vietnamese, Translations);
 
-        var page = WebUtility.HtmlDecode(await fixture.Client.GetStringAsync(LoginUrl("en")));
+        var page = WebUtility.HtmlDecode(await SignInHtmlAsync(fixture, "en"));
 
         Assert.Contains("<html lang=\"vi\"", page, StringComparison.Ordinal);
         Assert.Contains("Đăng nhập", page, StringComparison.Ordinal);
@@ -312,14 +356,14 @@ public sealed class LocalizationTests
 
         await using var fixture = await StartAsync(Vietnamese, withEnglishListed);
 
-        var page = WebUtility.HtmlDecode(await fixture.Client.GetStringAsync(LoginUrl("en")));
+        var page = WebUtility.HtmlDecode(await SignInHtmlAsync(fixture, "en"));
 
         Assert.Contains("<html lang=\"en\"", page, StringComparison.Ordinal);
         Assert.Contains("Sign in", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Đăng nhập", page, StringComparison.Ordinal);
 
         // And the default is still Vietnamese: listing a culture offers it, it does not promote it.
-        var byDefault = WebUtility.HtmlDecode(await fixture.Client.GetStringAsync(LoginUrl(null)));
+        var byDefault = WebUtility.HtmlDecode(await SignInHtmlAsync(fixture, null));
 
         Assert.Contains("<html lang=\"vi\"", byDefault, StringComparison.Ordinal);
     }

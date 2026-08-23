@@ -226,12 +226,22 @@ public static class InteractionLocalization
             options.SupportedCultures = supported;
             options.SupportedUICultures = supported;
 
-            // ui_locales first — the client said it about this request. Then the framework's cookie
-            // provider, which is what carries the choice across /authorize → /login → /consent:
-            // those are three requests and the parameter arrives on the first, so without it the
-            // consent page — the one N-14 requires to be read carefully — reverts to the default
-            // mid-flow. Accept-Language and the query-string provider stay where the framework put
-            // them, last.
+            // ui_locales first — the client said it about this request. The framework's own
+            // providers keep the order it gave them: query string, then cookie, then
+            // Accept-Language.
+            //
+            // The query-string one is load-bearing rather than incidental, and this comment used to
+            // credit the cookie provider instead. /authorize, /login and /consent are three
+            // requests and `ui_locales` arrives only on the first, so something has to carry the
+            // choice; the claim was that the cookie did. Nothing in this repository ever wrote that
+            // cookie, so nothing carried it, and the consent page — the one N-14 requires to be
+            // read carefully — rendered in the default language for every real client while
+            // `ui_locales_supported` advertised otherwise.
+            //
+            // What carries it is `AuthorizeEndpoint.LocalReturn`, which appends the culture this
+            // middleware resolved to the interaction URL. The comment there has the rest.
+            // A deployment that would rather use the cookie can still write one: the framework's
+            // provider is registered and will read it.
             options.RequestCultureProviders.Insert(0, new UiLocalesRequestCultureProvider());
         });
 
