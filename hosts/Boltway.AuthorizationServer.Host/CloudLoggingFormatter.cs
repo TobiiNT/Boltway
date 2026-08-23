@@ -44,10 +44,10 @@ public sealed class CloudLoggingOptions
 /// are from Google's Cloud Run logging sample, not from memory.
 /// </para>
 /// <para>
-/// <b>This file exists twice</b>, here and in the connector's repository, and is a copy rather than
-/// a shared type on purpose: it is deployment-specific — it knows the name of a logging product —
-/// and the libraries underneath it are meant not to. The same argument <c>RejectionResult</c> makes
-/// about its own duplicated declaration.
+/// <b>A copy rather than a shared type, on purpose.</b> It is deployment-specific — it knows the
+/// name of a logging product — and the libraries underneath it are meant not to, so it stays in the
+/// host that needs it even where a second process wants the same thing. The same argument
+/// <c>RejectionResult</c> makes about its own duplicated declaration.
 /// </para>
 /// </remarks>
 public sealed class CloudLoggingFormatter(IOptions<CloudLoggingOptions> options)

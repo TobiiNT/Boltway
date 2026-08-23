@@ -12,6 +12,7 @@
 // problem that signing in cannot fix. Every required setting below is checked before the host
 // binds a port.
 
+using System.Globalization;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Text.Json;
@@ -158,7 +159,7 @@ if (args is [ "new-key", var kid, ..])
 //
 // It cannot be a passphrase somebody invents. `ClientAuthenticator` parses the presented value as
 // an OpaqueSecret with TokenPurpose.ClientSecret before it hashes anything, so a secret without the
-// `ck_cs_` prefix and 32 bytes of base64url behind it fails authentication whatever its hash says —
+// `bw_cs_` prefix and 32 bytes of base64url behind it fails authentication whatever its hash says —
 // and the refusal is the same `invalid_client` as a wrong password, which is a bad afternoon.
 // Measured while wiring the admin BFF, which is the first confidential client this repository has.
 //
@@ -406,7 +407,7 @@ if (resources.Count == 0) throw new InvalidOperationException("RESOURCES names n
 // N-06 falls out rather than being enforced. The resource exists when a surface serves it and
 // does not exist otherwise, so there is no state in which its scopes are advertised, consented
 // to, or minted into a token that every call would 404 — which is what this measured before,
-// including a consent screen asking a founder to approve `users:write` on a server that would
+// including a consent screen asking somebody to approve `users:write` on a server that would
 // then refuse it, and tokens that would come alive if the flag were ever set back.
 var adminResource = config["ADMIN_RESOURCE"] is { Length: > 0 } overridden
     ? overridden
@@ -493,7 +494,7 @@ builder.Services.AddSingleton<IResourceRegistry>(ConfiguredResourceRegistry.Crea
 // before hashing it, so a secret this server did not mint fails authentication whatever its hash
 // says. Run this host with `new-client-secret`, which prints both halves:
 //
-//   secret ck_cs_…      → the client's own configuration
+//   secret bw_cs_…      → the client's own configuration
 //   sha256 …            → this value
 //
 // ── A resource server, for revocation ────────────────────────────────────────
@@ -524,8 +525,9 @@ builder.Services.AddSingleton<IResourceRegistry>(ConfiguredResourceRegistry.Crea
 // then uses `client_credentials` and nothing else, carries no redirect URI, and is issued exactly
 // the scopes named here — see ConfiguredClient.GrantTypes for why the two sets do not overlap.
 //
-// **The owner's roles are the ceiling.** A service account owned by a founder is a non-expiring
-// credential with a founder's reach; owned by an account holding one narrow role, it can only do
+// **The owner's roles are the ceiling.** A service account owned by an account that holds every
+// role is a non-expiring credential with that reach; owned by an account holding one narrow role,
+// it can only do
 // that role's work. Make it its own account, with `new-user`, and give it the least role that does
 // the job. Configuring one is also what turns the grant on: `grant_types_supported` gains
 // `client_credentials` when at least one client names an owner, so there is no second knob to
@@ -764,6 +766,17 @@ builder.Services.AddBoltwayAuthorizationServer(options =>
 {
     options.Issuer = issuer;
 
+    // Settable in the library since it was written, and settable from this image only now. A
+    // consumer referencing the package could tune any of these; a consumer running the container —
+    // which the README offers as the ordinary way to deploy — could not, so the two audiences got
+    // different products from one codebase. Unset leaves the library's default, and each is
+    // validated by AuthorizationServerOptions against its own floor and ceiling rather than here.
+    if (Duration(config, "ACCESS_TOKEN_LIFETIME") is { } accessTokens) options.AccessTokenLifetime = accessTokens;
+    if (Duration(config, "REFRESH_TOKEN_LIFETIME") is { } refreshTokens) options.RefreshTokenLifetime = refreshTokens;
+    if (Duration(config, "AUTH_CODE_LIFETIME") is { } codes) options.AuthorizationCodeLifetime = codes;
+    if (Duration(config, "SESSION_REVALIDATION") is { } revalidation) options.SessionRevalidation = revalidation;
+    if (Duration(config, "REAUTH_FRESHNESS") is { } freshness) options.ReauthenticationFreshness = freshness;
+
     // Derived rather than read from a variable of its own, and that is the whole point: two knobs
     // that have to agree are two knobs that eventually do not.
     //
@@ -863,7 +876,7 @@ builder.Services.AddBoltwayAuthorizationServer(options =>
 
     // The pages, which are a third surface rather than a rendering of the second: cookie plus
     // antiforgery instead of a bearer token, so they need no scope and a deployment can want them
-    // without wanting the API. A founder in a browser is the case they exist for.
+    // without wanting the API. A person in a browser is the case they exist for.
     options.SelfServicePagesEnabled = Flag(config, "SELF_SERVICE_PAGES", @default: false);
 
     // The email flows. Off, and the one surface flag with a prerequisite the server checks: turning
@@ -1015,12 +1028,13 @@ builder.Services.AddSubjectClaimsFromAccounts();
 // Nothing was composing there. The library registers `PermissiveScopeEntitlementPolicy` with
 // `TryAdd` so the seam exists in every deployment, and this host never replaced it, so the answer
 // to "who may administer the directory" was **anyone who can sign in**. Measured on a running
-// server: an account created to test the knowledge base was offered the same consent screen for
-// `users:read users:write` as the founder, and would have been able to disable the founder.
+// server: an account created for a throwaway test was offered the same consent screen for
+// `users:read users:write` as the deployment's own administrator, and could have disabled them.
 //
 // So the roles are required rather than defaulted, and the server refuses to start without them.
 // The alternative shapes are both worse. A default like `admin` silently disagrees with a
-// deployment whose founders are `founder` and locks everyone out at the next sign-in; leaving it
+// deployment whose administrators hold some other role, and locks everyone out at the next
+// sign-in; leaving it
 // unset and permissive is the state this paragraph is about. This is the same trade
 // `PASSWORD_RECOVERY` makes with a mail sender — refuse loudly at startup rather than be wrong
 // quietly, later, on somebody else's afternoon.
@@ -1057,9 +1071,33 @@ if (adminApi)
 // as a named property precisely so that "how many AccessTokenRejected in the last hour, and did
 // they all name the same kid" is a query — and the console provider was flattening all of it
 // back into a sentence at the last step.
-builder.Services.Configure<CloudLoggingOptions>(o => o.ProjectId = config["GOOGLE_CLOUD_PROJECT"]);
-builder.Logging.AddConsole(o => o.FormatterName = CloudLoggingFormatter.FormatterName);
-builder.Logging.AddConsoleFormatter<CloudLoggingFormatter, ConsoleFormatterOptions>();
+//
+// **Which shape, though, is the deployment's to pick.** This used to install the Google formatter
+// unconditionally, in an image the README calls one image for every deployment: the field names it
+// emits are Google's — `severity`, `logging.googleapis.com/trace` — and its own doc says they are
+// not interchangeable. GOOGLE_CLOUD_PROJECT only ever gated the trace fields, so a deployment on
+// anything else got a payload shaped for a product it does not run and no way back to the
+// framework's own formatters short of editing this file.
+//
+// `json` is the default because it is the one that is right everywhere: structured, queryable, and
+// vendor-neutral. `cloud-logging` is the same idea with Google's spelling, and a deployment that
+// wants it now says so. `simple` is the framework's human-readable console, for a terminal.
+switch (LogFormat(config))
+{
+    case "cloud-logging":
+        builder.Services.Configure<CloudLoggingOptions>(o => o.ProjectId = config["GOOGLE_CLOUD_PROJECT"]);
+        builder.Logging.AddConsole(o => o.FormatterName = CloudLoggingFormatter.FormatterName);
+        builder.Logging.AddConsoleFormatter<CloudLoggingFormatter, ConsoleFormatterOptions>();
+        break;
+
+    case "simple":
+        builder.Logging.AddSimpleConsole();
+        break;
+
+    default:
+        builder.Logging.AddJsonConsole();
+        break;
+}
 
 // Traces from the framework's own instrumentation, and nothing hand-rolled. That line is often
 // attributed here to DESIGN.md; it is not in DESIGN.md, which says nothing about OpenTelemetry at
@@ -1840,7 +1878,12 @@ if (args is [var attempted, ..] && subcommands.Contains(attempted, StringCompare
 // and compiling a no-op tells you nothing.
 //
 // The rest of what was written here is now on the function, where a test can hold it.
-app.UseForwardedHeaders(ProxyHeaders.BehindOneProxy());
+// The hop count is a deployment's topology, not this image's. BehindOneProxy has taken it as a
+// parameter all along and its own XML doc calls it "the number to change if a CDN is ever put in
+// front" — nothing here read a value for it, so the sentence described a knob no operator could
+// reach. Getting it wrong is silent: behind a CDN plus a proxy, a limit of 1 attributes every
+// request to the proxy's neighbour and the per-source login limit degrades to per-deployment.
+app.UseForwardedHeaders(ProxyHeaders.BehindOneProxy(Hops(config)));
 
 // The stylesheet the pages link, served from this origin because `default-src 'self'` is the
 // only place it can come from. Files only — this serves what exists under wwwroot and never
@@ -2029,6 +2072,72 @@ static bool Flag(IConfiguration config, string key, bool @default)
     if (bool.TryParse(value, out var parsed)) return parsed;
 
     throw new InvalidOperationException($"{key} is `{value}`. It is `true` or `false`.");
+}
+
+// Named values rather than a boolean, and refused rather than guessed, on the same reasoning as
+// Flag: an operator who typed `cloud_logging` and got the default back has configured nothing and
+// been told nothing.
+static string LogFormat(IConfiguration config)
+{
+    var value = config["LOG_FORMAT"];
+    if (value is not { Length: > 0 }) return "json";
+
+    return value.Trim().ToLowerInvariant() switch
+    {
+        "json" => "json",
+        "simple" => "simple",
+        "cloud-logging" or "cloudlogging" or "gcp" => "cloud-logging",
+        _ => throw new InvalidOperationException(
+            $"LOG_FORMAT is `{value}`. It is `json` (the default, structured and vendor-neutral), "
+            + "`cloud-logging` (the same fields under Google Cloud Logging's names), or `simple` "
+            + "(the framework's human-readable console)."),
+    };
+}
+
+// How many proxies stand in front, for X-Forwarded-For. Refused rather than clamped: a value that
+// does not parse is a topology somebody meant to describe, and silently using 1 is how the
+// per-source login limit becomes per-deployment without anybody being told.
+static int Hops(IConfiguration config)
+{
+    var value = config["FORWARDED_HOPS"];
+    if (value is not { Length: > 0 }) return 1;
+
+    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var hops) || hops < 1)
+    {
+        throw new InvalidOperationException(
+            $"FORWARDED_HOPS is `{value}`. It is a whole number of proxies in front of this server, "
+            + "at least 1 — the default. Behind a CDN and a reverse proxy it is 2.");
+    }
+
+    return hops;
+}
+
+// A duration, or null when unset. One spelling only — a count and a unit, `30s`, `15m`, `24h`,
+// `30d` — because the two obvious alternatives each have a silent failure: a bare number leaves
+// "seconds or minutes" to whoever reads it next, and TimeSpan.Parse takes `30` as thirty *days*.
+static TimeSpan? Duration(IConfiguration config, string key)
+{
+    var value = config[key];
+    if (value is not { Length: > 0 }) return null;
+
+    var text = value.Trim();
+    var unit = text.Length > 0 ? char.ToLowerInvariant(text[^1]) : ' ';
+    var count = text[..^1];
+
+    if (int.TryParse(count, NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n > 0)
+    {
+        switch (unit)
+        {
+            case 's': return TimeSpan.FromSeconds(n);
+            case 'm': return TimeSpan.FromMinutes(n);
+            case 'h': return TimeSpan.FromHours(n);
+            case 'd': return TimeSpan.FromDays(n);
+            default: break;
+        }
+    }
+
+    throw new InvalidOperationException(
+        $"{key} is `{value}`. It is a positive whole number and a unit — `30s`, `15m`, `24h`, `30d`.");
 }
 
 // Named values rather than a boolean, and refused rather than guessed, for the reason above: a
@@ -2309,7 +2418,8 @@ internal sealed class ClientEntry
     /// a redirect URI.
     ///
     /// The owner's roles are the ceiling on what its token can do, which is the reason to give a
-    /// service account its own narrow-role account rather than hanging one off a founder's.
+    /// service account its own narrow-role account rather than hanging one off an account that
+    /// holds every role.
     /// </remarks>
     public string? Owner { get; set; }
 

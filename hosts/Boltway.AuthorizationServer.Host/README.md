@@ -48,6 +48,12 @@ scale event, which is a data-loss bug wearing a default's clothing.
 | `UI_STYLESHEETS` | Space-separated absolute paths on this origin. Defaults to `/css/authorization.css`, the sheet in this image; set it to `""` for the bare unstyled pages. |
 | `UI_LOGO_PATH` | Optional. An absolute path on this origin, shown above the page. |
 | `UI_CSP_NONCE` | `true` adds a per-response nonce to `script-src` and `style-src`. Only needed by a replacement layout with inline script or style; the pages this image serves have neither. |
+| `UI_PROVIDERS_FIRST` | `true` puts the federated buttons above the password form. It reorders the markup rather than the stylesheet, so the tab order moves with them. |
+| `UI_DEFAULT_LOCALE` | The language the pages are served in when nothing else applies. `en` if unset. **Setting it on its own advertises that language and still serves English words** — it is the translations that supply the words. |
+| `UI_TRANSLATIONS_FILE` | Path to a JSON object of culture → key → sentence, the keys being the constants on `InteractionText`. Partial on purpose: anything left out falls back to English one string at a time. Prefer this to the variable — a translation is a document, and it is reviewed in a diff. |
+| `UI_TRANSLATIONS` | The same JSON inline, for a deployment with nowhere to mount a file. **Setting this and `UI_TRANSLATIONS_FILE` together is refused at startup**, rather than one of them silently winning. |
+| `NOTIFICATION_TEXT_FILE` | Path to a JSON object of property → sentence for the mail this server sends, the keys being the properties of `NotificationText`. Partial per property. One set per deployment rather than one per recipient — [`docs/LOCALIZATION.md`](../../docs/LOCALIZATION.md) says why. |
+| `NOTIFICATION_TEXT` | The same JSON inline. **Setting this and `NOTIFICATION_TEXT_FILE` together is refused at startup**, and so is a sentence carrying a placeholder the message does not supply — that one would otherwise surface as a reset mail that silently never arrives. |
 
 ### The two account surfaces, and why each is a separate setting
 
@@ -72,7 +78,7 @@ so the surface answers 403 to everyone and reads as a permissions bug in whateve
 holding. Startup refuses that configuration rather than serving it.
 
 `SELF_SERVICE_PAGES` serves the third surface: `/me`, `/me/password`, `/me/sessions` and
-`/me/consents`, which are the pages a founder uses in a browser. They are cookie-authenticated with
+`/me/consents`, which are the pages a person uses in a browser. They are cookie-authenticated with
 antiforgery and **refuse a bearer token**, which is the mirror image of the other two — `N-17` read
 literally would mean a person changing their own password has to run an OAuth client, and the way
 out is a third prefix rather than a softened rule. They advertise no scope, because there is no
@@ -161,11 +167,11 @@ front proxy or a client depends on the endpoint being absent.
 
 ### The sign-in and consent pages
 
-These four settings are the lowest of Boltway's three UI tiers, and the one to reach for
+These settings are the lowest of Boltway's three UI tiers, and the one to reach for
 first: nothing here can touch the part of the consent page that says which host is asking and
 where the authorization code will be sent, so a deployment gets its own look without acquiring
 N-14. The two tiers above — `IInteractionLayout` and `IInteractionRenderer` — need code, and
-`auth/README.md` covers what each of them costs.
+the repository `README.md` covers what each of them costs.
 
 **Every path must be an absolute path on this origin**, and a URL anywhere else is refused at
 startup with the setting named. That is not fussiness: these pages send `default-src 'self'`, so
@@ -401,7 +407,7 @@ of `AddSubjectClaimsFromAccounts()`. Nothing in this server needs changing for t
 
 **An account with no role gets a token with no `role` claim**, which a resource server answers
 with whatever it treats as least privileged. `new-user` says so when it creates one, because the
-alternative is discovering it as "the knowledge base is empty" during a demo.
+alternative is discovering it as "nothing is readable" during a demo.
 
 **Tokens already issued keep the old role until they expire** — 30 minutes by default. A role is
 copied into the token at issue, not looked up per request, which is what makes the resource
@@ -448,7 +454,7 @@ POST /login                                                                    �
 GET  /consent     "See your email address. | Read the knowledge base. | Write to it.
                    | Stay connected without asking you again."
 POST /consent     decision=approve  → 303 https://claude.ai/api/mcp/auth_callback
-                                        code=ck_ac_j4Y5mI…  state ok  iss=…
+                                        code=bw_ac_j4Y5mI…  state ok  iss=…
 POST /token       → 200  scope="email docs:read docs:write offline_access"
                     sub=01KZB0MH1074XVDAQEJH924RBM  preferred_username=ada
                     email=ada@example.com          email_verified=false
