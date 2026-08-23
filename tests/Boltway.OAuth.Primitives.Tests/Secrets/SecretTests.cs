@@ -6,16 +6,47 @@ namespace Boltway.OAuth.Primitives.Tests.Secrets;
 public sealed class SecretTests
 {
     [Theory]
-    [InlineData(TokenPurpose.AuthorizationCode, "ck_ac_")]
-    [InlineData(TokenPurpose.RefreshToken, "ck_rt_")]
-    [InlineData(TokenPurpose.RegistrationAccessToken, "ck_rat_")]
-    [InlineData(TokenPurpose.ClientSecret, "ck_cs_")]
+    [InlineData(TokenPurpose.AuthorizationCode, "bw_ac_")]
+    [InlineData(TokenPurpose.RefreshToken, "bw_rt_")]
+    [InlineData(TokenPurpose.RegistrationAccessToken, "bw_rat_")]
+    [InlineData(TokenPurpose.ClientSecret, "bw_cs_")]
     public void Each_purpose_has_its_own_wire_prefix(TokenPurpose purpose, string prefix)
     {
         var secret = OpaqueSecret.Generate(purpose);
 
         Assert.StartsWith(prefix, secret.Wire, StringComparison.Ordinal);
         Assert.Equal(purpose, secret.Purpose);
+    }
+
+    [Theory]
+    [InlineData(TokenPurpose.AuthorizationCode, "ck_ac_")]
+    [InlineData(TokenPurpose.RefreshToken, "ck_rt_")]
+    [InlineData(TokenPurpose.RegistrationAccessToken, "ck_rat_")]
+    [InlineData(TokenPurpose.ClientSecret, "ck_cs_")]
+    public void A_secret_minted_before_the_rename_still_parses(TokenPurpose purpose, string legacy)
+    {
+        // `ck` is ConnectorKit, the name this project had when these prefixes reached the wire.
+        // Refusing the old spelling on the deploy that changed it would sign out every session and
+        // break every confidential client, so it is accepted on the way in and never minted.
+        // The last 43 characters, not a split on '_': base64url's alphabet contains '_', so a
+        // split takes a random suffix of the body roughly a third of the time.
+        var wire = legacy + OpaqueSecret.Generate(purpose).Wire[^43..];
+
+        Assert.True(OpaqueSecret.TryParse(wire, purpose, out var parsed));
+        Assert.Equal(purpose, parsed.Purpose);
+        Assert.Equal(wire, parsed.Wire);
+    }
+
+    [Fact]
+    public void The_legacy_prefix_does_not_widen_what_a_purpose_accepts()
+    {
+        // The control for the test above, and the reason it is not a hole. Accepting a second
+        // spelling must not accept a second *kind*: a registration access token under either name
+        // is still refused at a refresh-token call site, which is the separation N-16 exists for.
+        var body = OpaqueSecret.Generate(TokenPurpose.RegistrationAccessToken).Wire[^43..];
+
+        Assert.False(OpaqueSecret.TryParse("ck_rat_" + body, TokenPurpose.RefreshToken, out _));
+        Assert.False(OpaqueSecret.TryParse("bw_rat_" + body, TokenPurpose.RefreshToken, out _));
     }
 
     [Fact]
@@ -52,9 +83,9 @@ public sealed class SecretTests
 
     [Theory]
     [InlineData("")]
-    [InlineData("ck_rt_")]                            // prefix only
-    [InlineData("ck_rt_tooshort")]
-    [InlineData("ck_rt_!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")]   // exactly 43 chars, not base64url
+    [InlineData("bw_rt_")]                            // prefix only
+    [InlineData("bw_rt_tooshort")]
+    [InlineData("bw_rt_!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")]   // exactly 43 chars, not base64url
     [InlineData("nonsense")]
     public void Malformed_values_do_not_parse(string wire)
     {
@@ -71,7 +102,7 @@ public sealed class SecretTests
             var secret = OpaqueSecret.Generate(TokenPurpose.RefreshToken);
             Assert.True(seen.Add(secret.Wire));
             // 32 bytes -> 43 unpadded base64url characters.
-            Assert.Equal("ck_rt_".Length + 43, secret.Wire.Length);
+            Assert.Equal("bw_rt_".Length + 43, secret.Wire.Length);
         }
     }
 

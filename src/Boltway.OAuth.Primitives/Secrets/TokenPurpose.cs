@@ -7,7 +7,7 @@ namespace Boltway.OAuth.Primitives.Secrets;
 /// Every purpose gets a distinct wire prefix, and parsing checks the prefix <b>before</b> hashing.
 /// That is what makes a registration access token unable to be valid at <c>/token</c>: the refresh
 /// store only ever receives a value that parsed as <see cref="RefreshToken"/>, and a
-/// <c>ck_rat_</c> string never gets that far.
+/// <c>bw_rat_</c> string never gets that far.
 /// <para>
 /// Registration access tokens are the case that motivates this. They are the sole authenticator for
 /// full control of a client record — read, rewrite, delete — so a bug that let one be accepted

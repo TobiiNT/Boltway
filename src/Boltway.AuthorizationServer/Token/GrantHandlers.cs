@@ -100,7 +100,7 @@ public sealed class AuthorizationCodeGrant(
                 "The 'code' parameter is required.");
         }
 
-        // The `ck_ac_` prefix check refuses a refresh token presented as a code before any storage
+        // The `bw_ac_` prefix check refuses a refresh token presented as a code before any storage
         // is touched — a wrong-purpose credential should not become a database lookup.
         if (!OpaqueSecret.TryParse(rawCode, TokenPurpose.AuthorizationCode, out var code))
         {
@@ -559,6 +559,22 @@ public sealed class RefreshTokenGrant(
                 // something any client can act on. Constant-time via Sha256Hash.Matches, though the
                 // timing here leaks nothing an attacker could use — the comparison is against a
                 // value they would already have to hold.
+                //
+                // A row written before the `ck_` wire prefix was retired holds the hash of the old
+                // spelling, and the material is identical — the prefix sits outside the MAC. So a
+                // mismatch is checked against the old name before it is treated as a mismatch at
+                // all. This is not a second chance for a wrong key: a wrong key produces material
+                // that matches neither spelling, and the refusal below still fires. What it buys is
+                // that the refusal's sentence stays true, since every other route into it really is
+                // a derivation-key problem and this one would not have been.
+                //
+                // Reachable only by a family whose successor was minted inside the 45-second grace
+                // window spanning the upgrade, and it goes when the legacy prefix does.
+                if (!grace.Successor.TokenHash.Matches(replayed))
+                {
+                    replayed = _deriver.DeriveLegacy(grace.Successor.FamilyId, grace.Successor.Generation);
+                }
+
                 if (!grace.Successor.TokenHash.Matches(replayed))
                 {
                     // The one refusal in this file that is almost certainly the operator's fault

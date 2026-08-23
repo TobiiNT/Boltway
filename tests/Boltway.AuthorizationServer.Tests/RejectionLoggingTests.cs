@@ -457,7 +457,7 @@ public sealed partial class RejectionLoggingTests
                     Content = Form(
                         ("grant_type", "authorization_code"),
                         ("client_id", ClientId),
-                        ("client_secret", "ck_cs_whatever")),
+                        ("client_secret", "bw_cs_whatever")),
                 };
 
                 request.Headers.TryAddWithoutValidation("Authorization", "Basic " + Base64("a:b"));
@@ -502,7 +502,7 @@ public sealed partial class RejectionLoggingTests
             f => f.Client.PostAsync("/token", Form(
                 ("grant_type", "authorization_code"),
                 ("client_id", ClientId),
-                ("client_secret", "ck_cs_whatever")))),
+                ("client_secret", "bw_cs_whatever")))),
 
         new(
             ReasonCode.ClientCredentialsMissing,
@@ -532,7 +532,7 @@ public sealed partial class RejectionLoggingTests
             f => f.Client.PostAsync("/token", Form(
                 ("grant_type", "authorization_code"),
                 ("client_id", ClientId),
-                ("client_secret", "ck_cs_" + new string('A', 43))))),
+                ("client_secret", "bw_cs_" + new string('A', 43))))),
 
         // ── /token, the authorization_code grant ─────────────────────────────
         new(ReasonCode.AuthorizationCodeMissing, Plain,
@@ -541,13 +541,13 @@ public sealed partial class RejectionLoggingTests
 
         new(ReasonCode.AuthorizationCodeMalformed, Plain,
             f => f.Client.PostAsync("/token", Form(
-                ("grant_type", "authorization_code"), ("client_id", ClientId), ("code", "ck_rt_not-a-code")))),
+                ("grant_type", "authorization_code"), ("client_id", ClientId), ("code", "bw_rt_not-a-code")))),
 
         new(ReasonCode.AuthorizationCodeUnknown, Plain,
             f => f.Client.PostAsync("/token", Form(
                 ("grant_type", "authorization_code"),
                 ("client_id", ClientId),
-                ("code", "ck_ac_" + new string('A', 43))))),
+                ("code", "bw_ac_" + new string('A', 43))))),
 
         new(
             ReasonCode.AuthorizationCodeRedirectUriMismatch,
@@ -656,7 +656,7 @@ public sealed partial class RejectionLoggingTests
             f => f.Client.PostAsync("/token", Form(
                 ("grant_type", "refresh_token"),
                 ("client_id", ClientId),
-                ("refresh_token", "ck_rt_" + new string('A', 43))))),
+                ("refresh_token", "bw_rt_" + new string('A', 43))))),
 
         new(
             ReasonCode.RefreshTokenScopeMalformed,
@@ -1127,7 +1127,7 @@ public sealed partial class RejectionLoggingTests
             seed.ConfigureOptions = o => o.TokenEndpointAuthMethods.Add(ClientAuthMethod.ClientSecretPost);
         }))
         {
-            const string Secret = "ck_cs_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
+            const string Secret = "bw_cs_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
 
             using var response = await fixture.Client.PostAsync("/token", Form(
                 ("grant_type", "authorization_code"), ("client_id", ClientId), ("client_secret", Secret)));

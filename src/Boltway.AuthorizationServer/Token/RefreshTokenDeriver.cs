@@ -112,9 +112,37 @@ public sealed class RefreshTokenDeriver
     {
         ArgumentException.ThrowIfNullOrEmpty(familyId);
 
-        var label = StrictUtf8.GetBytes($"boltway/refresh\0{familyId}\0{generation}");
-        var material = HMACSHA256.HashData(_key, label);
+        return OpaqueSecret.FromDerivedMaterial(TokenPurpose.RefreshToken, Material(familyId, generation));
+    }
 
-        return OpaqueSecret.FromDerivedMaterial(TokenPurpose.RefreshToken, material);
+    /// <summary>
+    /// The same successor, spelled the way it was before the <c>ck_</c> wire prefix was retired.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The material is identical — the prefix sits outside the MAC — so this is the same token
+    /// under its old name rather than a second credential. It exists for one branch: the grace
+    /// window checks a reconstructed successor against the hash the store holds and fails closed
+    /// when they differ, and a row written before the rename holds the hash of the old spelling.
+    /// </para>
+    /// <para>
+    /// Without it that refusal fires on an upgrade and blames the operator's
+    /// <c>RefreshTokenDerivationKey</c>, which would be the one route into it where that sentence
+    /// is false. Retire this with <c>OpaqueSecret</c>'s legacy prefix, or sooner: only a family
+    /// whose successor was minted inside the grace window spanning the upgrade can reach it.
+    /// </para>
+    /// </remarks>
+    public OpaqueSecret DeriveLegacy(string familyId, int generation)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(familyId);
+
+        return OpaqueSecret.FromLegacyDerivedMaterial(TokenPurpose.RefreshToken, Material(familyId, generation));
+    }
+
+    private byte[] Material(string familyId, int generation)
+    {
+        var label = StrictUtf8.GetBytes($"boltway/refresh\0{familyId}\0{generation}");
+
+        return HMACSHA256.HashData(_key, label);
     }
 }

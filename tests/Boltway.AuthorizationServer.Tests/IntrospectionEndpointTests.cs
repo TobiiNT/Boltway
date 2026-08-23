@@ -198,7 +198,7 @@ public sealed class IntrospectionEndpointTests
     [Theory]
     [InlineData("not-a-token-at-all")]
     [InlineData("eyJhbGciOiJSUzI1NiJ9.e30.bm90LWEtc2lnbmF0dXJl")]
-    [InlineData("ck_rt_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")]
+    [InlineData("bw_rt_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")]
     public async Task A_token_this_server_cannot_vouch_for_is_inactive_rather_than_an_error(string token)
     {
         // Three shapes: nonsense, a forged JWT, and something shaped like one of our refresh

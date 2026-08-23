@@ -23,7 +23,7 @@ public sealed class DerivedSecretTests
     public void Material_that_is_not_exactly_the_entropy_length_is_refused(int length)
     {
         // 32 bytes is exactly 43 unpadded base64url characters, and TryParse accepts a body of
-        // that length and nothing else. So material of any other size mints a `ck_rt_…` this
+        // that length and nothing else. So material of any other size mints a `bw_rt_…` this
         // server cannot parse back: a refresh token that is dead the moment it is handed out,
         // and dead in the one place a client cannot recover from — the refresh it makes after a
         // 401. The failure is silent at mint time and surfaces as invalid_grant a month later.
@@ -64,7 +64,7 @@ public sealed class DerivedSecretTests
 
         var secret = OpaqueSecret.FromDerivedMaterial(TokenPurpose.RefreshToken, material);
 
-        Assert.StartsWith("ck_rt_", secret.Wire, StringComparison.Ordinal);
+        Assert.StartsWith("bw_rt_", secret.Wire, StringComparison.Ordinal);
         Assert.True(OpaqueSecret.TryParse(secret.Wire, TokenPurpose.RefreshToken, out var parsed));
         Assert.Equal(TokenPurpose.RefreshToken, parsed.Purpose);
     }
