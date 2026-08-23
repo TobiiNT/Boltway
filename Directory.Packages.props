@@ -107,7 +107,7 @@
     <!-- Architecture tests: N-03 (no System.Uri in the redirect matcher) and
          N-12 (no 307/308 after a credential POST) are enforced by reflecting
          over the compiled assemblies, so a violation fails the build. -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.6" />
   </ItemGroup>
 
