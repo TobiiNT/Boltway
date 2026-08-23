@@ -192,6 +192,16 @@ internal static class Build
         options.ScopesSupported.Add("openid");
         options.ScopesSupported.Add("offline_access");
         options.ScopesSupported.Add("mcp:tools");
+
+        // Described, because the doctor's scope-descriptions check reads this and a fixture called
+        // "healthy" has to be. It was not: all three scopes were advertised with no sentence for
+        // the consent screen, which A-14 renders as the bare scope name plus a note saying there is
+        // no description — correct, and useless to the person approving it. The check went in and
+        // this is what it found first.
+        options.ScopeDescriptions["openid"] = "Confirm who you are.";
+        options.ScopeDescriptions["offline_access"] = "Stay connected without asking you again.";
+        options.ScopeDescriptions["mcp:tools"] = "Use the tools this server exposes.";
+
         options.RefreshTokenDerivationKey = Build.DerivationKey;
         tweak?.Invoke(options);
         return options;

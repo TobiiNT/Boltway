@@ -34,7 +34,7 @@ public sealed class ConfigurationDoctorCoverageTests
     }
 
     /// <summary>
-    /// A healthy run reports exactly these five checks — no more and, more to the point, no fewer.
+    /// A healthy run reports exactly these six checks — no more and, more to the point, no fewer.
     /// </summary>
     /// <remarks>
     /// Every <c>checks.Add(...)</c> in <c>Run</c> could be deleted without a test failing.
@@ -49,18 +49,18 @@ public sealed class ConfigurationDoctorCoverageTests
         var checks = ConfigurationDoctor.Run(Build.Options(), TestKeys.Ring());
 
         Assert.Equal(
-            ["config", "issuer-agreement", "metadata", "registration-profile", "signing-keys"],
+            ["config", "issuer-agreement", "metadata", "registration-profile", "scope-descriptions", "signing-keys"],
             checks.Select(c => c.Id).Order(StringComparer.Ordinal));
     }
 
     /// <summary>
-    /// When the configuration fails, all three dependent checks are reported as NotMeasured.
+    /// When the configuration fails, every dependent check is reported as NotMeasured.
     /// </summary>
     /// <remarks>
     /// <c>Checks_hidden_by_a_configuration_failure_are_not_measured</c> asserts two of the three and
     /// omits <c>issuer-agreement</c>, so deleting its <c>NotMeasured</c> line survived. The check
-    /// vanishing entirely is worse than it being wrong: a summary that lists four checks instead of
-    /// five reads as a clean bill of health for something nobody looked at.
+    /// vanishing entirely is worse than it being wrong: a summary one check short reads as a clean
+    /// bill of health for something nobody looked at.
     /// </remarks>
     [Fact]
     public void A_configuration_failure_leaves_no_check_unaccounted_for()
@@ -69,12 +69,17 @@ public sealed class ConfigurationDoctorCoverageTests
             new AuthorizationServerOptions { Issuer = "http://nope" }, TestKeys.Ring());
 
         Assert.Equal(
-            ["config", "issuer-agreement", "metadata", "registration-profile", "signing-keys"],
+            ["config", "issuer-agreement", "metadata", "registration-profile", "scope-descriptions", "signing-keys"],
             checks.Select(c => c.Id).Order(StringComparer.Ordinal));
 
         Assert.Equal(DoctorStatus.NotMeasured, Check(checks, "issuer-agreement").Status);
         Assert.Equal(DoctorStatus.NotMeasured, Check(checks, "metadata").Status);
         Assert.Equal(DoctorStatus.NotMeasured, Check(checks, "registration-profile").Status);
+
+        // scope-descriptions depends on the configuration for a subtler reason than the three
+        // above: the list it reads is populated *by* TryValidate, so a failed run may never have
+        // reached the scope parse and an empty list would read as "everything is described".
+        Assert.Equal(DoctorStatus.NotMeasured, Check(checks, "scope-descriptions").Status);
     }
 
     /// <summary>

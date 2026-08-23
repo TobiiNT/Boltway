@@ -76,6 +76,13 @@ public static class ConfigurationDoctor
             checks.Add(NotMeasured("metadata", "Discovery document", "The configuration did not validate."));
             checks.Add(NotMeasured("registration-profile", "Exactly one registration mechanism", "The configuration did not validate."));
             checks.Add(NotMeasured("issuer-agreement", "Endpoint URLs share the issuer prefix", "The configuration did not validate."));
+
+            // Scope descriptions belong here for a subtler reason than the three above: the list
+            // this reads is populated *by* TryValidate, so a run that failed may never have reached
+            // the scope parse. An empty list would then mean "not computed" while reading exactly
+            // like "every scope is described" — a check that could not run, rendered green, which
+            // is the case this enum exists for.
+            checks.Add(NotMeasured("scope-descriptions", "Every advertised scope has a description", "The configuration did not validate."));
         }
         else
         {
@@ -83,6 +90,7 @@ public static class ConfigurationDoctor
             checks.Add(CheckMetadata(document));
             checks.Add(CheckRegistrationProfile(document));
             checks.Add(CheckIssuerAgreement(document));
+            checks.Add(ScopeDescriptions(options));
         }
 
         checks.Add(CheckKeyRing(options, keyRing));
@@ -277,6 +285,41 @@ public static class ConfigurationDoctor
                 "A signing key is active and published",
                 DoctorStatus.Warn,
                 ringError!);
+    }
+
+    /// <summary>Scopes a consent screen has no sentence for.</summary>
+    /// <remarks>
+    /// <para>
+    /// <c>AuthorizationServerOptions</c> has collected these since validation was written, and the
+    /// sample's own comment says an undescribed scope is "collect[ed] into
+    /// <c>ScopesWithoutDescriptions</c> for the doctor to report". Nothing read it — three
+    /// references in the whole repository, being the property, the assignment, and that comment. A
+    /// promise with nothing behind it, which is the shape <c>N-06</c> is about.
+    /// </para>
+    /// <para>
+    /// Warn rather than Fail, and that is <c>A-14</c> holding rather than being relaxed: a scope
+    /// with no description renders as its bare name plus a note saying so, because inventing text
+    /// by parsing a scope name is the thing A-14 forbids. The page is correct and unhelpful — which
+    /// is exactly what a doctor is for, since nothing else in the system can tell the difference.
+    /// </para>
+    /// </remarks>
+    private static DoctorCheck ScopeDescriptions(AuthorizationServerOptions options)
+    {
+        var undescribed = options.ScopesWithoutDescriptions;
+
+        return undescribed.Count == 0
+            ? new DoctorCheck(
+                "scope-descriptions",
+                "Every advertised scope has a description",
+                DoctorStatus.Pass,
+                "Each one has a sentence for the consent screen.")
+            : new DoctorCheck(
+                "scope-descriptions",
+                "Every advertised scope has a description",
+                DoctorStatus.Warn,
+                $"No description configured for: {string.Join(", ", undescribed)}. The consent screen "
+                + "shows the bare scope name and says so, rather than inventing text by parsing it "
+                + "(A-14) — so the page is correct and the person approving it learns nothing.");
     }
 
     private static DoctorCheck NotMeasured(string id, string title, string why) =>

@@ -597,8 +597,21 @@ window work only when two racing requests land on the same node, which presents 
       rather than a threshold: `credential_rejected` is this resource server's own secret being
       wrong, it never recovers on its own, and it presents as revocation quietly doing nothing
       forever.
-- [ ] **Run the doctor.** `ConfigurationDoctor.Run(options, keyRing)` reports what is legal but
-      wrong, and distinguishes `NotMeasured` from `Pass`.
+- [ ] **Run the doctor.** The container image has it as a subcommand, against the configuration it
+      would actually start with:
+
+      ```bash
+      docker run --rm --env-file .env ghcr.io/<owner>/boltway-auth doctor
+      ```
+
+      It prints every check rather than stopping at the first, exits non-zero on any `Fail`, and
+      distinguishes `NotMeasured` from `Pass` — a check that could not run is never rendered green.
+      `Warn` does not fail the exit code: telling "wrong" from "worth a look" is the job, and
+      collapsing the two makes it a thing people stop running. Hosting the library yourself,
+      the same report is `ConfigurationDoctor.Run(options, keyRing)`.
+
+      This entry named only that method for as long as the doctor has existed, and there was no way
+      to run it — no subcommand, no endpoint, and no caller outside `src/` and `tests/`.
 - [ ] **Check what your discovery document promises.** Every URL in it should answer. That is the one
       failure mode this project has paid for most often.
 

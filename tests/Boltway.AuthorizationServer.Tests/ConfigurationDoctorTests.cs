@@ -126,6 +126,55 @@ public sealed class ConfigurationDoctorTests
         Assert.Contains("RS256", check.Detail, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// A scope with no description is reported, because nothing else can tell you.
+    /// </summary>
+    /// <remarks>
+    /// <c>ScopesWithoutDescriptions</c> was computed by validation and read by nothing — three
+    /// references in the repository: the property, the assignment, and a sample comment promising
+    /// "the doctor" would report it. Warn rather than Fail is <c>A-14</c> holding: an undescribed
+    /// scope renders as its bare name plus a note saying so, because inventing text by parsing a
+    /// scope name is what A-14 forbids. The page is correct and useless, which is the one state a
+    /// doctor exists for.
+    /// </remarks>
+    [Fact]
+    public void A_scope_with_no_description_is_reported()
+    {
+        var options = Build.Options(o =>
+        {
+            o.ScopesSupported.Add("reports:read");
+            o.ScopeDescriptions.Remove("reports:read");
+        });
+
+        var check = Check(ConfigurationDoctor.Run(options, Ring()), "scope-descriptions");
+
+        Assert.Equal(DoctorStatus.Warn, check.Status);
+        Assert.Contains("reports:read", check.Detail, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The control: describing every scope passes, so the warning means something.
+    /// </summary>
+    [Fact]
+    public void Scopes_that_all_have_descriptions_pass()
+    {
+        var options = Build.Options(o =>
+        {
+            o.ScopesSupported.Add("reports:read");
+            o.ScopeDescriptions["reports:read"] = "Read your reports.";
+        });
+
+        Assert.Equal(DoctorStatus.Pass, Check(ConfigurationDoctor.Run(options, Ring()), "scope-descriptions").Status);
+    }
+
+    /// <summary>A ring good enough for the checks that are not about keys.</summary>
+    private static SigningKeyRing Ring()
+    {
+        var handle = new SigningKeyHandle("rs-1", SigningAlgorithm.RS256, new RsaSecurityKey(RSA.Create(2048)));
+
+        return new SigningKeyRing([new ManagedSigningKey(handle, SigningKeyState.Active, DateTimeOffset.UtcNow.AddDays(-2))]);
+    }
+
     /// <summary>The profile check names the mechanism in use.</summary>
     /// <remarks>
     /// One profile rather than a theory over two, because dynamic registration is refused by options

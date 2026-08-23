@@ -75,6 +75,7 @@ const string usage = """
                        new-key <kid> [pending]           mint a key entry for the SIGNING_KEYS secret
                        new-client-secret                 mint a client secret and print its hash for CLIENTS
                        migrate                           apply pending migrations and exit
+                       doctor                            report what is legal but wrong, and exit
                        new-user <handle> [email] [role]  create a local account and print its password once
                        set-role <handle> <role|->        change what an account's tokens claim it is
                        set-roles <handle> <role...|->    the same, for an account holding several
@@ -128,7 +129,7 @@ if (args is [var asked, ..] && asked is "help" or "--help" or "-h" or "-?" or "/
 // the comment above the usage string is already about, and it is not worth having a third copy.
 string[] subcommands =
 [
-    "new-key", "new-client-secret", "migrate",
+    "new-key", "new-client-secret", "migrate", "doctor",
     "new-user", "set-role", "set-roles", "set-password",
     "roles", "new-role", "set-role-name", "set-role-permissions", "delete-role",
     "service-account", "service-account-off", "service-account-on",
@@ -951,6 +952,22 @@ builder.Services.AddBoltwayAuthorizationServer(options =>
     // Routed and advertised move together in the library, so either value keeps N-06.
     options.IntrospectionEnabled = Flag(config, "INTROSPECTION", @default: false);
 
+    // RFC 7009. Implemented, routed and advertised from the option — and until now this image read
+    // no variable for it, so the one deployment shape the README calls the ordinary way to run this
+    // could not turn it on at all. That is the same defect the two entries above are about, one
+    // layer out: an endpoint nothing can enable is an endpoint nobody has, whatever the library
+    // does.
+    //
+    // Off by default, matching the option. Confidential clients only, and `none` is never advertised
+    // for it: an endpoint that accepted an unauthenticated caller would revoke on anyone's say-so.
+    options.RevocationEnabled = Flag(config, "REVOCATION", @default: false);
+
+    // On by default, and the variable exists to turn it *off* — the mirror of the case above, and
+    // it was equally unreachable. `/userinfo` is the one endpoint here that discloses only what the
+    // caller's own access token already carries, so leaving it on is right for almost everybody;
+    // "almost" is the reason a deployment gets a say.
+    options.UserInfoEnabled = Flag(config, "USERINFO", @default: true);
+
     // ─────────────────────────────────────────────────────────────────────────
     // How the sign-in and consent pages look
     // ─────────────────────────────────────────────────────────────────────────
@@ -1101,8 +1118,9 @@ switch (LogFormat(config))
 
 // Traces from the framework's own instrumentation, and nothing hand-rolled. That line is often
 // attributed here to DESIGN.md; it is not in DESIGN.md, which says nothing about OpenTelemetry at
-// all. It is in `docs/proposals/proposal-c-operability-first.md` — one of three competing
-// proposals, none of them recorded as adopted. So it is a reason, not an instruction.
+// all. It came from one of three competing architecture proposals, none of them recorded as
+// adopted, and those files have since been deleted for describing a system that was not built. So
+// it is a reason somebody once gave, not an instruction anybody issued.
 //
 // OTEL_EXPORTER_OTLP_ENDPOINT unset means no exporter is added at all. The alternative — always
 // exporting, to a default that is not reachable — is a background thread retrying forever and a
@@ -1745,6 +1763,45 @@ if (args is [ "anonymise", var anonHandle, ..])
         "The account row is still there and disabled, so audit entries and grant history keep "
         + "their referent. Access tokens already issued keep working until they expire.");
 
+    return;
+}
+
+// README's production checklist has said "Run the doctor. ConfigurationDoctor.Run(options, keyRing)"
+// for as long as ConfigurationDoctor has existed, and there was no way to run it: zero callers
+// outside src/ and tests/, no endpoint, and not a verb. An instruction with nothing behind it is
+// the same defect as an advertised endpoint that 404s, on the operator's surface instead of the
+// protocol's.
+//
+// Here rather than beside `new-key`, because it needs the configured graph — which is the point:
+// it reports what this deployment's own settings and key ring add up to, not what is legal in
+// general.
+//
+// Exits non-zero on any Fail so a deploy can gate on it, and prints every check rather than
+// stopping at the first, for the same reason MapBoltwayAuthorizationServer reports all missing
+// services at once. Warn does not fail: distinguishing "wrong" from "worth a look" is the whole
+// job, and collapsing the two makes it a thing people stop running.
+if (args is ["doctor", ..])
+{
+    // GetRequiredService<AuthorizationServerOptions>, not IOptions<> — AddBoltwayAuthorizationServer
+    // registers the configured instance with AddSingleton rather than through the options pattern,
+    // so IOptions<> hands back a fresh default. Measured: the doctor then reported "The issuer is
+    // required" against a host whose ISSUER was set, which is a diagnostic lying about the thing it
+    // exists to diagnose. Every other call site in the repository resolves it this way.
+    var report = ConfigurationDoctor.Run(
+        app.Services.GetRequiredService<AuthorizationServerOptions>(),
+        app.Services.GetRequiredService<SigningKeyRing>());
+
+    foreach (var check in report)
+    {
+        Console.WriteLine($"{check.Status,-12} {check.Id,-26} {check.Title}");
+
+        if (check.Detail is { Length: > 0 })
+        {
+            Console.WriteLine($"{"",-12} {check.Detail}");
+        }
+    }
+
+    Environment.Exit(report.Any(c => c.Status is DoctorStatus.Fail) ? 1 : 0);
     return;
 }
 
