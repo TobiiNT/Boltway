@@ -47,7 +47,7 @@
 
       The docs stay required because this *is* an API surface now. A customer deriving from these
       types sees the summaries in IntelliSense, and "what is this assertion for" is exactly the
-      question the seam exists to answer. `auth/tests/Directory.Build.props` turns both off, for
+      question the seam exists to answer. `tests/Directory.Build.props` turns both off, for
       tests that nobody outside this repository reads; only one of its two reasons applies here.
     -->
     <NoWarn>$(NoWarn);CA1707</NoWarn>

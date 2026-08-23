@@ -2,9 +2,9 @@
 #
 # A real PostgreSQL server for `dotnet test`, on whatever this machine can run.
 #
-#   ./auth/scripts/postgres.sh up       # start one, create the login, wait until it answers
-#   ./auth/scripts/postgres.sh status   # which backend, which version, reachable or not
-#   ./auth/scripts/postgres.sh down     # stop it, keep the data
+#   ./scripts/postgres.sh up       # start one, create the login, wait until it answers
+#   ./scripts/postgres.sh status   # which backend, which version, reachable or not
+#   ./scripts/postgres.sh down     # stop it, keep the data
 #
 # Why this exists
 # ---------------
@@ -206,7 +206,7 @@ case "${1:-up}" in
             -d postgres -tAc 'show server_version')  on 127.0.0.1:${PG_PORT} as ${PG_USER}"
         say ""
         say "This is what the tests use by default. Run them with:"
-        say "    dotnet test auth/Boltway.Auth.slnx"
+        say "    dotnet test Boltway.slnx"
         ;;
 
     down)

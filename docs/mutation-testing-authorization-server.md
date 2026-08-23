@@ -273,7 +273,7 @@ rather than left to be discovered.
 M=<scratch>/mut/as
 dotnet-stryker --solution $M/as.slnx \
   --project Boltway.AuthorizationServer.csproj \
-  --test-project auth/tests/Boltway.AuthorizationServer.Tests/Boltway.AuthorizationServer.Tests.csproj \
+  --test-project tests/Boltway.AuthorizationServer.Tests/Boltway.AuthorizationServer.Tests.csproj \
   --mutate '**/Token/*.cs' --mutate '**/Endpoints/TokenEndpoint.cs' \
   --reporter cleartext --reporter json --output $M/out-token --concurrency 3
 ```

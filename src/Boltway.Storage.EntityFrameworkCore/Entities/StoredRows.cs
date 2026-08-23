@@ -445,7 +445,7 @@ internal sealed class UserRoleRow
 /// <para>
 /// <b>A-08 is why this table is small and why nothing writes to it on the CIMD path.</b> A hundred
 /// sequential CIMD connections must leave it unchanged; caching a resolved metadata document here
-/// is the obvious move and it breaks the property the product is sold on. Rows arrive from
+/// is the obvious move and it breaks the zero-registration property CIMD exists for. Rows arrive from
 /// administration only.
 /// </para>
 /// <para>

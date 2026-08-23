@@ -1,5 +1,11 @@
 # Boltway — OAuth 2.1 authorization server for MCP connectors
 
+[![ci](https://github.com/TobiiNT/Boltway/actions/workflows/ci.yml/badge.svg)](https://github.com/TobiiNT/Boltway/actions/workflows/ci.yml)
+[![Boltway.AuthorizationServer on NuGet](https://img.shields.io/nuget/v/Boltway.AuthorizationServer?label=Boltway.AuthorizationServer&color=004880)](https://www.nuget.org/packages/Boltway.AuthorizationServer)
+[![Boltway.Mcp on NuGet](https://img.shields.io/nuget/v/Boltway.Mcp?label=Boltway.Mcp&color=004880)](https://www.nuget.org/packages/Boltway.Mcp)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](https://github.com/TobiiNT/Boltway/blob/main/LICENSE)
+
 An OAuth 2.1 + OpenID Connect authorization server, written from scratch in C# for .NET 10, aimed
 at one job: putting an MCP server behind authentication that Claude and ChatGPT can complete without
 an administrator in the loop. It ships as libraries you host, plus a resource-server half your MCP

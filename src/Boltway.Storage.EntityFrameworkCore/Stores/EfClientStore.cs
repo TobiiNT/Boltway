@@ -13,7 +13,8 @@ namespace Boltway.Storage.EntityFrameworkCore.Stores;
 /// <para>
 /// <b>Nothing on the CIMD path calls any of this.</b> A-08: a hundred sequential CIMD connections
 /// must leave the client table unchanged, and "just cache the resolved document here" is the
-/// obvious move that breaks the property the product is sold on. Rows arrive from administration.
+/// obvious move that breaks the zero-registration property CIMD exists for. Rows arrive from
+/// administration.
 /// </para>
 /// <para>
 /// The secret hash is read from the same row through <c>FindSecretAsync</c> rather than from a

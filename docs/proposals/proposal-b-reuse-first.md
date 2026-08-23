@@ -286,7 +286,7 @@ string (§3.2.4).
 the client-table row count unchanged. `CimdClientResolver` produces a **transient** `ResolvedClient`
 from `ClampedTtlCache`; nothing is persisted. This is the single most important thing to not get
 wrong in the storage layer, because "just cache it in the clients table" is the obvious move and it
-breaks the property the product is sold on.
+breaks the zero-registration property CIMD exists for.
 
 ### 3.2 EF Core mapping across SQLite and PostgreSQL
 

@@ -110,7 +110,7 @@ third value in a test summary. `Passed! Failed: 0` is what a person sees, and
 the leg that never ran is the one that deploys — every green run on this machine
 exercised SQLite as the only relational store, while PostgreSQL is what the
 deploy configures. The fix is not a better skip message: **make the suite fail,
-and make the thing it needs easy to start** — `auth/scripts/postgres.sh`, one
+and make the thing it needs easy to start** — `scripts/postgres.sh`, one
 command, container or native. A dependency that is hard to set up will be
 skipped, and then it will be skipped forever.
 

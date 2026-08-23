@@ -66,7 +66,8 @@ public enum ClientAuthMethod
 /// </para>
 /// <para>
 /// A-08: a hundred sequential CIMD connections must leave the client table unchanged. "Just cache
-/// it in the clients table" is the obvious move and it breaks the property the product is sold on.
+/// it in the clients table" is the obvious move and it breaks the zero-registration property CIMD
+/// exists for.
 /// </para>
 /// </remarks>
 public sealed record ClientRecord

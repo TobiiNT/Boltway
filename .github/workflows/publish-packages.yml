@@ -1,4 +1,4 @@
-# Pack and publish to GitHub Packages.
+# Pack and publish: GitHub Packages, then nuget.org.
 #
 # This exists because the packages had no home. `Boltway.Mcp` was consumed by a connector in
 # another repository at version 0.3.0, and that version existed only as a `dotnet pack` output in
@@ -7,15 +7,14 @@
 # on the CI runner, and `NU1101 Unable to find package Boltway.Mcp` inside the image. Neither
 # had ever been seen, because no image had ever been built.
 #
-# Private, and no token is stored anywhere: `GITHUB_TOKEN` is minted for this run and expires with
-# it. Consuming repositories are granted read access to the package rather than being handed a
-# personal access token, which is the same preference the connector applies to GitHub Apps — if a
-# credential has to exist, make it the one that expires.
+# No token is stored anywhere. `GITHUB_TOKEN` is minted for this run and expires with it, and the
+# nuget.org push trades an OIDC token for a key that lives an hour. If a credential has to exist,
+# make it the one that expires — the same preference that picks a GitHub App over a PAT.
 #
-# Publishing does NOT make anything public. Packages inherit the repository's visibility, and this
-# repository is private. Worth knowing for later: GitHub Packages requires a token to install even
-# a *public* NuGet package, so the day Boltway is sold to someone outside this org, the feed
-# moves to nuget.org. That is one URL in the consumer's NuGet.config, not a redesign.
+# Two feeds, and they are not interchangeable. GitHub Packages requires a token to install even a
+# package that is public, so it can never be the feed an outside consumer restores from: that is
+# what nuget.org is for, and reaching it is one URL in a NuGet.config rather than a redesign.
+# GitHub Packages stays as the feed this project's own CI restores from.
 
 name: publish packages
 
@@ -138,8 +137,9 @@ jobs:
             --skip-duplicate
 
       # nuget.org, and it is a separate step rather than a second `--source` because the two feeds
-      # are not the same kind of thing. GitHub Packages is private and its token is minted for this
-      # run; nuget.org is the public index.
+      # are not the same kind of thing. GitHub Packages needs a token to read even when the package
+      # is public, and that token is minted for this run; nuget.org is the open index anyone
+      # restores from unauthenticated.
       #
       # **Trusted Publishing, so there is no long-lived key to leak.** This exchanges the job's OIDC
       # token for an API key that expires in an hour, against a policy registered on nuget.org that
