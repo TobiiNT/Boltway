@@ -1,3 +1,29 @@
+> **Archived.** This is a snapshot of one Stryker run on **2026-08-05**, kept for what it measured
+> that day. Nothing in CI or [`CONTRIBUTING.md`](../../CONTRIBUTING.md) runs mutation testing, so
+> nothing has been keeping it current — and it is not current.
+>
+> **The chunk globs no longer partition the assembly.** `src/Boltway.AuthorizationServer` held the
+> **40** source files the seven `--mutate` patterns below were verified to cover exactly once each.
+> It holds **77** now. At least nineteen of them fall outside every pattern this document records:
+> the twelve files in `Endpoints/` it never names (`Endpoints/` was chunked file by file, and five
+> of its seventeen files appear here), the six in `Administration/`, and the one in `Requests/`.
+> Six of the seven patterns are not written down at all — only `token`'s pair survives, in
+> *Reproducing* — so the rest cannot be checked by anyone reading this. Running that section as
+> written would report a score for an assembly it did not mutate, which is the failure the second
+> paragraph below says a chunking scheme must not have. Even where a directory glob still matches,
+> it now matches files that did not exist, so today's percentages would not be comparable to the
+> ones tabled here.
+>
+> **The suite is stale the same way.** The 619 tests scored below are now 717 `[Fact]` and 98
+> `[Theory]` methods declared in `tests/Boltway.AuthorizationServer.Tests`, and a `[Theory]` runs
+> once per case.
+>
+> **The body is not corrected, deliberately.** It is honest about what it measured on the day, and
+> that is its value: the twelve equivalent mutants in `ConfigurationDoctor`, the control run that
+> applied a `??` mutator nobody was surviving, the timeouts that moved with the machine rather than
+> with the tests. Rebuild the chunks against the current file list before quoting any number here as
+> a measurement of the assembly as it stands.
+
 # Mutation testing: Boltway.AuthorizationServer
 
 Stryker.NET 4.16.0, .NET 10, `--concurrency 3`, default (Standard) mutation level.

@@ -58,9 +58,11 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// number this code invented.</description></item>
 /// </list>
 /// <para>
-/// The specification is also <c>proposal-c-operability-first.md</c> — one of three competing
-/// proposals — and nothing records which was adopted. So these are built because they measure things
-/// that exist, and named after a proposal rather than in obedience to one.
+/// The names came from one of three competing architecture proposals, none of which was ever
+/// recorded as adopted — the proposals have since been deleted (they described projects and
+/// namespaces that were not built; <c>docs/DESIGN.md</c> §1 is the surviving decision record, and
+/// git history has the files). So these are built because they measure things that exist, and the
+/// naming is an inheritance rather than an instruction.
 /// </para>
 /// </remarks>
 public sealed class AuthorizationServerMetrics : IDisposable

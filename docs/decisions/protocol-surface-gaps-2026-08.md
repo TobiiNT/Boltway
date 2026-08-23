@@ -1,6 +1,19 @@
 # Protocol-surface gaps — an upgrade plan, read against better-auth 1.7.x
 
-**Date:** 2026-08-22 · **Status:** proposal · **Scope:** the authorization server
+**Date:** 2026-08-22 · **Status:** closed, kept as a decision record · **Scope:** the authorization server
+
+> **Why this sits in `docs/decisions/` and not in `docs/proposals/`.** Every item below has closed:
+> shipped, decided, or converted into a trigger. One gap stays open on purpose — conditional
+> revalidation in §3.2 — and §3.2 says what it is waiting for. What is left is §3, *Won't do, and
+> the reasons matter more than the list*, plus the per-item markers recording where the plan was
+> wrong. That is a record of decisions taken, and stopping one of them from being re-proposed from
+> scratch is the job it does now.
+>
+> **Citations name a file and a symbol, and no longer a line.** They were written with line numbers
+> and several had already drifted: `AuthorizationServerOptions.cs:192` had moved off
+> `RevocationEnabled` into the `<remarks>` of the property above it, `:668` onto a closing brace,
+> `:442` onto a blank line. A line number is a claim that expires on the next edit anywhere above it
+> and nothing checks it; a file plus a symbol survives the refactor that moves both.
 
 ## 0. Why this document exists
 
@@ -15,11 +28,21 @@ output is not a feature list. It is a ranked answer to *which of our gaps are re
 **Confidence.** Everything stated here about better-auth is `stated`, not `measured` — read from
 their published documentation on 2026-08-22. Nothing in this repository has run against a
 better-auth instance. Every claim about *this* codebase is `measured`, by reading it, with file and
-line cited. Rule 1 of `LESSONS.md` applies in both directions.
+symbol cited. Rule 1 of `LESSONS.md` applies in both directions.
 
 ---
 
-## 1. A correction that comes before the plan
+## 1. A correction that comes before the plan — **done, 2026-08-22**
+
+The README no longer prints the sentence quoted below. `client_credentials` moved out of *What is
+deliberately not implemented* into a third list, **What is built and off by default**, which exists
+because two lists had no room for *present, and not switched on* — so a capability that grew a
+default got filed under "absent" and stayed there. `/revoke` and `private_key_jwt` joined it on
+2026-08-23, found by the same sweep this entry asked for.
+
+One thing here is still true and worth keeping: **nothing tests any of it.** The three lists are
+prose. `MetadataHonestyTests` proves the *document* is honest; a person reading is what proves the
+README is. The original entry follows.
 
 `README.md` says, under **What is deliberately not implemented**:
 
@@ -30,11 +53,11 @@ That is wrong now. `client_credentials` is implemented:
 - `src/Boltway.AuthorizationServer/Token/ClientCredentialsGrant.cs` — a full handler, in a
   deliberately narrowed shape (the client names an owner; a client acting purely for itself is
   refused with `ReasonCode.ClientHasNoOwner`).
-- `Endpoints/TokenEndpoint.cs:169` — an arm in the dispatch switch.
-- `Configuration/AuthorizationServerOptions.cs:668` — a row in `KnownGrantTypes`.
+- `Endpoints/TokenEndpoint.cs` — an arm in the dispatch switch.
+- `Configuration/AuthorizationServerOptions.cs` — a row in `KnownGrantTypes`.
 
 It is *off by default*, because `_grantTypesSupported` defaults to two names
-(`AuthorizationServerOptions.cs:442`). **"Not in the default set" and "not implemented" are different
+(`AuthorizationServerOptions.cs`). **"Not in the default set" and "not implemented" are different
 sentences, and the README prints the second.**
 
 This is N-06 turned inward: a capability document that is wrong about what we have. It happens to be
@@ -54,7 +77,32 @@ trigger today?** Not "does better-auth have it".
 
 ### Tier 1 — real, small, and the parts already exist
 
-#### 1.1 `/revoke` — RFC 7009, E-16
+#### 1.1 `/revoke` — RFC 7009, E-16 · **done, 2026-08-22**
+
+`Endpoints/RevocationEndpoint.cs` routes from `RevocationEnabled`, the same flag `MetadataBuilder`
+gates the advertisement on, so the flag both routes and advertises. The README's *built and off by
+default* table gained the row on 2026-08-23.
+
+**Two rules came out broader than the entry planned, and both are the same decision twice.** RFC
+7009 §2.1's "an unrecognised token is 200" was extended to a token belonging to a *different*
+client — also an empty 200, nothing revoked, written down as X-39. Answering "that is not yours"
+would turn the endpoint into an oracle confirming a stolen token is real and naming whose it is. And
+revoking either token type revokes the grant behind it: the denylist a resource server consults is
+`IGrantStore.IsRevokedAsync`, keyed on the grant, and access tokens are signed rather than stored,
+so "revoke this access token and leave the session running" is not a state this server can represent
+and pretending otherwise would answer 200 while the token kept working.
+
+**The control moved further than the entry said, and running out of flags is the good outcome.** It
+was to be repointed at `IntrospectionEnabled`; by the time this shipped, `/userinfo`, `/introspect`,
+`/logout` and `/revoke` all routed and advertised from one flag apiece, so no flag of that kind was
+left to break on purpose. `MetadataHonestyTests.The_sweep_catches_an_endpoint_that_is_advertised_but_not_routed`
+now serves a deliberately broken discovery document from a stub, which is what that test's own note
+said to do when this day came. What it tests is the sweep — that it walks a document, probes what it
+finds, and can tell a 404 from an answer.
+
+The original entry follows.
+
+#### 1.1a The original entry — `/revoke`, the last advertised path nothing routes
 
 The last endpoint whose flag advertises a path nothing routes.
 
@@ -62,9 +110,9 @@ The last endpoint whose flag advertises a path nothing routes.
 
 | Part | Where |
 |---|---|
-| The flag, wired into the metadata document | `Configuration/AuthorizationServerOptions.cs:192`, `Metadata/MetadataBuilder.cs:112` |
-| Grant revocation | `IGrantStore.RevokeAsync` (`Abstractions/Stores/IGrantStores.cs:336`) |
-| Refresh-family revocation | `IRefreshTokenStore.RevokeFamilyAsync` (same file, :236) |
+| The flag, wired into the metadata document | `RevocationEnabled` in `Configuration/AuthorizationServerOptions.cs`, read by `Metadata/MetadataBuilder.cs` |
+| Grant revocation | `IGrantStore.RevokeAsync` (`Abstractions/Stores/IGrantStores.cs`) |
+| Refresh-family revocation | `IRefreshTokenStore.RevokeFamilyAsync` (same file) |
 | Client authentication, confidential-only | `Token/ClientAuthentication.cs` — shared with introspection |
 | The endpoint shape to copy | `Endpoints/IntrospectionEndpoint.cs`, 426 lines, same client-auth rule and the same "never tell the caller whether the token was real" rule |
 
@@ -106,7 +154,7 @@ original entry follows.
 
 #### 1.2a The original entry — pairwise `sub`, decide, do not build
 
-`ISubjectIdentifierService` exists (`Boltway.Identity/Subjects/SubjectIds.cs:61`) and nothing on
+`ISubjectIdentifierService` exists (`Boltway.Identity/Subjects/SubjectIds.cs`) and nothing on
 the token path calls it. README says so, so this is not dishonest — it is dead.
 
 We have two relying-party populations, both of them AI clients, and no correlation threat model that
@@ -119,7 +167,36 @@ Not a build item. It is in this document so it stops being re-discovered.
 
 ### Tier 2 — real, medium, and one of them has already been paid for
 
-#### 2.1 A JWKS-backed key source for the resource server
+#### 2.1 A JWKS-backed key source for the resource server · **done, 2026-08-23**
+
+`Boltway.OAuth.Net.JwksKeySource` fetches, caches and refreshes; `Boltway.Mcp.AddJwksSigningKeys`
+fills `ProtectedResourceOptions.SigningKeySource` from it, reading `jwks_uri` out of the
+authorization server's discovery document rather than guessing a path. The scheduled outage this
+entry named is closed.
+
+**The cache lifetime is derived rather than chosen.** Five minutes, because a signing key is
+published for at least `PublishLeadTime` before it signs anything — 24 hours by default, floor of
+ten minutes — so the question is not "how fast can a new key be noticed" but "inside the shortest
+lead time a deployment may configure", and five is inside ten with the margin a failed fetch needs.
+
+**The two failure rules point opposite ways on purpose.** `AddJwksSigningKeys` refuses to start a
+connector holding no keys, because serving with an empty key set means refusing every request as a
+401 — a startup failure presented as the caller's problem, in the one shape that makes them retry
+forever. `JwksKeySource.CurrentKeys` never throws, because throwing at lookup returns 500 to
+somebody holding a perfectly good token. `RefreshAsync` is the startup call and the one that reports
+a failure rather than absorbing it.
+
+**And it replaced a second implementation rather than filling an empty seam.** A `JwksRefresher` in
+`Boltway.Mcp` was already doing this job with its own fetch loop, parse and key diffing, and had
+already drifted: it hardcoded `/.well-known/jwks.json` instead of reading `jwks_uri`, so it could not
+follow an authorization server that published its key set anywhere else — including this
+repository's own, whose path is configurable — and it had no backoff, so a dead issuer was refetched
+on every tick forever. Reading `ProtectedResourceOptions` showed an unfilled seam; the duplicate was
+one package away. Two implementations of one thing agree for about a month.
+
+The original entry follows.
+
+#### 2.1a The original entry — a JWKS-backed key source
 
 **The highest value per day in this document.** Today `ProtectedResourceOptions.SigningKeys` is a
 list the host fills, and nothing refreshes it — so a resource server stops accepting tokens the
@@ -129,7 +206,7 @@ scheduled outage rather than a hypothetical one.
 
 **It is a seam, not a rewrite.** `ProtectedResourceOptions.SigningKeySource` is already a
 `Func<IReadOnlyList<SecurityKey>>` and `CurrentSigningKeys()` reads through it
-(`Configuration/ProtectedResourceOptions.cs:159-167`). The work is a refresher behind that seam:
+(`Configuration/ProtectedResourceOptions.cs`). The work is a refresher behind that seam:
 fetch the AS's `jwks_uri` from discovery, cache, refresh on a `kid` miss with a floor so a miss
 storm cannot become a fetch storm, and fail closed on a bad document rather than emptying the list.
 
@@ -175,7 +252,7 @@ fact was not: we still cannot authenticate such a client.
 - `Clients/CimdDocument.cs` parses **and validates** `jwks` and `jwks_uri` — refuses both together
   (RFC 7591 §2), refuses a non-HTTPS `jwks_uri` (CIMD §8.6), refuses symmetric keys and private key
   material (CIMD §4.1), and **already refuses `private_key_jwt` with no `jwks_uri`** (CIMD §8.2,
-  `CimdDocument.cs:209`).
+  `CimdDocument.cs`).
 - `ClientRecord.JwksUri` is carried through.
 - `ClientAuthentication.cs` already reasons about `private_key_jwt` in its 401-vs-400 comment — a
   body-carried credential has no RFC 7235 challenge form, so it answers 400.
@@ -193,7 +270,7 @@ auth methods.
    accepted the issuer; live clients differ. Write the parser to accept the specification's shape
    and pin the observed values in a dated fixture — `LESSONS.md` #8 exactly, and
    `spec/cimd-live-*.json` is the precedent for where a dated observation belongs.
-2. **Inline `jwks`.** `CimdDocument.cs:205` records that `ClientRecord` "carries a `jwks_uri` and has
+2. **Inline `jwks`.** `CimdDocument.cs` records that `ClientRecord` "carries a `jwks_uri` and has
    nowhere to put" an inline set. Either add the field or keep refusing inline-`jwks` clients
    explicitly. Do not leave it validated-then-dropped.
 
@@ -242,11 +319,28 @@ or accept n× every number"* — and stop there. Revisit at the replica, not at 
 
 ### Tier 3 — prepare, do not ship
 
-#### 3.1 DPoP — RFC 9449
+#### 3.1 DPoP — RFC 9449 · **tripwire written, 2026-08-22**
 
-`ResourceServer/Metadata/ProtectedResourceMetadata.cs:28-30` already records that setting
+`CimdClientResolverTests.No_captured_vendor_document_asks_for_dpop` reads every
+`spec/cimd-live-*.json` capture and fails when one mentions `dpop` in any spelling. A substring
+match rather than a parse, deliberately: any `dpop`-prefixed member is interesting, including ones
+neither the test nor the resolver knows the name of yet. RFC 9449 §5.2 registers
+`dpop_bound_access_tokens` as client metadata, so a vendor that starts sender-constraining says so
+in that document first.
+
+The captures are enumerated from disk rather than listed in the test, and
+`Every_capture_in_spec_is_read` asserts both by name — a theory over an empty set passes while
+measuring nothing, which is the failure that arrangement exists to prevent.
+
+**The rest of the entry stands unchanged: not enforced, not advertised, seam kept.** When the
+tripwire goes red, the comments asserting that neither vendor sends DPoP are the thing to fix, not
+the assertion. The original entry follows.
+
+#### 3.1a The original entry — DPoP, prepare do not ship
+
+`ResourceServer/Metadata/ProtectedResourceMetadata.cs` already records that setting
 `dpop_bound_access_tokens_required: true` **breaks both Claude and ChatGPT today, since neither
-sends DPoP**. `OAuth.Tokens/TokenDescriptors.cs:28` marks the seam where a `cnf`/`jkt` would go.
+sends DPoP**. `OAuth.Tokens/TokenDescriptors.cs` marks the seam where a `cnf`/`jkt` would go.
 
 better-auth shipping DPoP is evidence about where the MCP profile is heading. It is **not** evidence
 that any client we serve sends it. Those are different claims and conflating them is rule 1.
@@ -329,6 +423,10 @@ narrow server that does one job into a broad one that does none of them as well.
 ---
 
 ## 4. Suggested order
+
+**Read as it was written on 2026-08-22.** Every row has since closed: 1–6 shipped or were decided,
+7 is sitting on its trigger, 8 was decided and deleted. The one thing still open anywhere in this
+document is §3.2's conditional revalidation, and §3.2 says what it is waiting for.
 
 | # | Item | Effort | Why here |
 |---|---|---|---|
