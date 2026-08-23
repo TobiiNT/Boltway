@@ -133,12 +133,13 @@ public sealed class RendererTests
             (AdminText.BackToAccounts, "Quay lại danh sách tài khoản"));
 
         var once = Render.Decoded(Render.With(vi).RenderRefusal(new RefusalViewModel(
-            Render.Refusal(HttpStatusCode.Forbidden, "forbidden", "`cli-acme` is outside your employee scope"),
+            Render.Refusal(
+                HttpStatusCode.Forbidden, "forbidden", "`users:write` is not one of this token's scopes"),
             Render.Tokens, "ada")));
 
         Assert.Contains("Không thực hiện được", once, StringComparison.Ordinal);
         Assert.Contains("Quay lại danh sách tài khoản", once, StringComparison.Ordinal);
-        Assert.Contains("`cli-acme` is outside your employee scope", once, StringComparison.Ordinal);
+        Assert.Contains("`users:write` is not one of this token's scopes", once, StringComparison.Ordinal);
         Assert.DoesNotContain("That did not work", once, StringComparison.Ordinal);
     }
 
@@ -191,7 +192,7 @@ public sealed class RendererTests
                               {"handle":"mai","role":"contractor","disabled_at":"2026-08-13T00:00:00+00:00"}],
                      "next":"01K"}
                     """),
-                Render.Tokens, "notice", "ada")),
+                Render.Tokens, AdminText.NoticeApplied, "ada")),
             renderer.RenderAccount(new AccountViewModel(Render.Account("founder"), Render.Tokens, null, "ada")),
             renderer.RenderAccount(new AccountViewModel(federatedAndDisabled, Render.Tokens, null, "ada")),
 
@@ -234,7 +235,7 @@ public sealed class RendererTests
                     {"roles":[{"id":"founder","name":"Founder","permissions":["docs:write","reports:read"]},
                               {"id":"member","name":"Member","permissions":[]}]}
                     """),
-                Render.Tokens, "notice", "ada")
+                Render.Tokens, AdminText.NoticeApplied, "ada")
             {
                 Accounts = Render.Json("""[{"handle":"ada","role":["founder"]}]"""),
                 HoldersTruncated = true,
@@ -254,7 +255,17 @@ public sealed class RendererTests
                 Render.Refusal(HttpStatusCode.Forbidden, "forbidden", "nope"), Render.Tokens,
                 "ada")),
             renderer.RenderRefusal(new RefusalViewModel(
-                Render.Refusal(HttpStatusCode.InternalServerError, null, null), Render.Tokens, "ada")));
+                Render.Refusal(HttpStatusCode.InternalServerError, null, null), Render.Tokens, "ada")),
+
+            // Every notice, driven off the set the renderer matches against rather than a list
+            // written out here — a notice added to that set and to no endpoint is still a sentence
+            // this build ships, and it should be swept like the rest. Each gets a value, because two
+            // of them are a sentence with a hole in it and render nothing without one.
+            string.Concat(AdminText.NoticeKeys.Select(key => renderer.RenderAccounts(
+                new AccountsViewModel(Render.Json("""{"users":[]}"""), Render.Tokens, key, "ada")
+                {
+                    NoticeValue = "1",
+                }))));
 
         var missing = AdminText.Keys
             .Where(k => !rendered.Contains("[[" + k + "]]", StringComparison.Ordinal))
@@ -834,5 +845,161 @@ public sealed class RendererTests
             });
 
         Assert.DoesNotContain("<script>", page, StringComparison.Ordinal);
+    }
+
+    // ── the banner a write lands on ─────────────────────────────────────────
+    //
+    // `?notice=` used to be the finished sentence: an endpoint composed it, the query string carried
+    // it and the page printed it. That cost two things at once. Every write in a fully translated
+    // console produced one English line, because a sentence written in Program.cs is the one string
+    // on these pages an ADMIN_TEXT_FILE cannot reach. And the banner was whatever a link said it
+    // was — encoded, so never an injection, and still this app's own voice saying somebody else's
+    // words. It is a key now, matched against a closed set.
+
+    /// <summary>A key becomes the sentence it names.</summary>
+    [Fact]
+    public void A_notice_key_is_rendered_as_its_sentence()
+    {
+        var html = Render.With().RenderAccounts(new AccountsViewModel(
+            Render.Json("""{"users":[]}"""), Render.Tokens, AdminText.NoticeApplied, "ada"));
+
+        Assert.Contains("Applied.", html, StringComparison.Ordinal);
+
+        // The key is what travelled, and it is not what a person reads.
+        Assert.DoesNotContain("NoticeApplied", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// And in the deployment's words, which is the whole reason it is a key.
+    /// </summary>
+    /// <remarks>
+    /// The symptom this closes: a console translated end to end, and then a Vietnamese account page
+    /// answering every save with "Applied." — which is the case AdminText's own remarks describe the
+    /// table as existing to prevent, arriving through the one channel that had been left out of it.
+    /// </remarks>
+    [Fact]
+    public void A_notice_is_said_in_the_deployment_s_words()
+    {
+        var vi = Render.Text((AdminText.NoticeApplied, "Đã lưu."));
+
+        var once = Render.Decoded(Render.With(vi).RenderAccounts(new AccountsViewModel(
+            Render.Json("""{"users":[]}"""), Render.Tokens, AdminText.NoticeApplied, "ada")));
+
+        Assert.Contains("Đã lưu.", once, StringComparison.Ordinal);
+        Assert.DoesNotContain("Applied.", once, StringComparison.Ordinal);
+    }
+
+    /// <summary>The roles page says its own three the same way.</summary>
+    /// <remarks>
+    /// A control on the sibling above rather than a repeat of it: the roles page is a second call
+    /// site, and a helper wired into one page and not the other is the ordinary way this rots.
+    /// </remarks>
+    [Fact]
+    public void A_roles_notice_is_rendered_too()
+    {
+        var html = Render.With().RenderRoles(new RolesViewModel(
+            Render.Json("""{"roles":[]}"""), Render.Tokens, AdminText.NoticeDefined, "ada"));
+
+        Assert.Contains("Defined.", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("NoticeDefined", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Anything that is not a notice key renders no banner at all.
+    /// </summary>
+    /// <remarks>
+    /// The property the rest of it rests on. A link is the only thing that puts a value in this
+    /// parameter, so echoing an unrecognised one back hands anybody a sentence in this app's own
+    /// voice, on the page an operator trusts most. Encoding it was never the answer to that — it
+    /// stops the markup and keeps the sentence.
+    /// </remarks>
+    [Fact]
+    public void An_unrecognised_notice_is_not_echoed()
+    {
+        var html = Render.With().RenderAccounts(new AccountsViewModel(
+            Render.Json("""{"users":[]}"""), Render.Tokens,
+            "Your session expired. Sign in again at admin.example.test.", "ada"));
+
+        Assert.DoesNotContain("Sign in again", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("admin.example.test", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("class=\"notice\"", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>Markup in that parameter is gone rather than escaped into the page.</summary>
+    [Fact]
+    public void A_notice_carrying_markup_renders_nothing()
+    {
+        var html = Render.With().RenderAccounts(new AccountsViewModel(
+            Render.Json("""{"users":[]}"""), Render.Tokens, "<img src=x onerror=alert(1)>", "ada"));
+
+        Assert.DoesNotContain("onerror", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A sentence that belongs to a page is not a notice, even though it is a key.
+    /// </summary>
+    /// <remarks>
+    /// Why the check is <c>AdminText.NoticeKeys</c> and not <c>AdminText.Keys</c>, which is the
+    /// obvious one and is too generous by every sentence on these pages. With it, a link could hoist
+    /// "this is the only time it is shown" over an account page with no credential on it — a warning
+    /// about something that did not happen, in the console's own voice.
+    /// </remarks>
+    [Fact]
+    public void A_page_sentence_is_not_a_notice()
+    {
+        var html = Render.With().RenderAccounts(new AccountsViewModel(
+            Render.Json("""{"users":[]}"""), Render.Tokens, AdminText.NewPasswordOnlyTime, "ada"));
+
+        Assert.DoesNotContain("only time it is shown", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("NewPasswordOnlyTime", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>The two notices with a hole in them take the value beside the key.</summary>
+    [Fact]
+    public void A_notice_takes_its_value()
+    {
+        var html = Render.With().RenderAccount(new AccountViewModel(
+            Render.Account(), Render.Tokens, AdminText.NoticeSessionsRevoked, "ada")
+        {
+            NoticeValue = "3",
+        });
+
+        Assert.Contains("3 grant(s) revoked.", html, StringComparison.Ordinal);
+
+        // The clause an operator working an incident needs, which is why it is in the table rather
+        // than composed at the endpoint: a translation that drops it is a translation to argue with.
+        Assert.Contains("keep working until they expire", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>That value is a string somebody else wrote, and it is escaped like one.</summary>
+    [Fact]
+    public void A_notice_value_is_encoded()
+    {
+        var html = Render.With().RenderAccounts(new AccountsViewModel(
+            Render.Json("""{"users":[]}"""), Render.Tokens, AdminText.NoticeAnonymised, "ada")
+        {
+            NoticeValue = "<b>ada</b>",
+        });
+
+        Assert.Contains("&lt;b&gt;ada&lt;/b&gt;", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<b>ada</b>", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A notice whose value did not arrive renders nothing, not a sentence with a hole in it.
+    /// </summary>
+    /// <remarks>
+    /// Half a URL, typed or truncated. "{0} is anonymised" on the account list is worse than no
+    /// banner: it says an account was anonymised and declines to say which.
+    /// </remarks>
+    [Fact]
+    public void A_notice_missing_its_value_renders_nothing()
+    {
+        var html = Render.With().RenderAccounts(new AccountsViewModel(
+            Render.Json("""{"users":[]}"""), Render.Tokens, AdminText.NoticeAnonymised, "ada"));
+
+        Assert.DoesNotContain("is anonymised", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("{0}", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("class=\"notice\"", html, StringComparison.Ordinal);
     }
 }

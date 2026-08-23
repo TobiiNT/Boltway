@@ -115,7 +115,7 @@ public sealed record RoleDefinition
     /// </summary>
     /// <remarks>
     /// <b>Whitespace is allowed here and refused for the other two, which is the whole point of the
-    /// split.</b> A name is stored in its own column and nothing matches on it, so `Nhà phân tích`
+    /// split.</b> A name is stored in its own column and nothing matches on it, so <c>Nhà phân tích</c>
     /// is exactly what it is for. Applying the token rule to all three fields — which this type did
     /// until a test wrote a two-word name — made the editable half unable to hold the kind of value
     /// it exists to hold.

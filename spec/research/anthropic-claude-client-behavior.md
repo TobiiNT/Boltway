@@ -1,9 +1,15 @@
 # Anthropic Claude MCP connector — client wire behavior
 
-**Purpose:** build an OAuth 2.1 + OIDC Authorization Server in C# / ASP.NET Core 9 that Claude
+**Purpose:** build an OAuth 2.1 + OIDC Authorization Server in C# / ASP.NET Core 10 (`net10.0`) that Claude
 connects to on the first try, with no vendor-specific patching.
 
-**Sources fetched 2026-08-03** (raw copies in `./raw/`):
+**Sources fetched 2026-08-03.** ~~raw copies in `./raw/`~~ — **there is no such directory, and git
+history has never held one.** What is checked in is this distillation and the URLs it was made
+from; where the raw bodies went is not recorded anywhere, so a claim below that rests on wording
+rather than on a quoted URL cannot currently be re-checked against the fetched text. The two
+vendor CIMD documents are the exception and are captured verbatim, at
+`../cimd-live-2026-08-03.json` and `../cimd-live-2026-08-17.json`, which
+`CimdClientResolverTests` reads.
 
 | Source | URL |
 |---|---|
@@ -19,8 +25,8 @@ connects to on the first try, with no vendor-specific patching.
 | IP ranges | `https://platform.claude.com/docs/en/api/ip-addresses` |
 | RFC 8252 §7.3, RFC 6749 §4.1.2.1/§5.2, RFC 6750 §3.1, RFC 8707 §2 | rfc-editor.org (verbatim) |
 
-Field report mined: `/home/user/FictStoryEngine/docs/integration/idp-configuration.md`,
-`/home/user/FictStoryEngine/docs/mcp-connector-build-spec.md`.
+Field report mined: a deployment's own `docs/integration/idp-configuration.md` and
+`docs/mcp-connector-build-spec.md`, written while wiring an MCP connector to this AS.
 
 ---
 

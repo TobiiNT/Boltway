@@ -10,6 +10,11 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      Google as an upstream identity provider: the configured values for Boltway.Federation.Oidc, and
+      nothing else. It carries no protocol code of its own, which is what makes Google not a special
+      case here — another provider is a package this size.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

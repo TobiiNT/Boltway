@@ -35,7 +35,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// </para>
 /// <para>
 /// <b>These are the API, and the pages are <c>/me/*</c>.</b> Taken literally <c>N-17</c> would mean
-/// a founder changing their own password needs an OAuth client, which is absurd; the way out is a
+/// a user changing their own password needs an OAuth client, which is absurd; the way out is a
 /// second surface with cookies and antiforgery, calling the same service in process, not a softened
 /// rule here. §7.2, and it is why nothing below reads a cookie.
 /// </para>

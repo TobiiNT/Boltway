@@ -591,8 +591,9 @@ internal sealed class EfUserStore(
             .Where(e => e.Subject == subjectValue)
             .ExecuteDeleteAsync(cancellationToken);
 
-        // And what it held. A tombstone carrying `founder` is a row that still says something about
-        // the person, and the next token minted for that subject would still carry the permissions.
+        // And what it held. A tombstone still carrying an administrative role is a row that says
+        // something about the person, and the next token minted for that subject would still carry
+        // the permissions.
         await context.UserRoles
             .Where(r => r.Subject == subjectValue)
             .ExecuteDeleteAsync(cancellationToken);

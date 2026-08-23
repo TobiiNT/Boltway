@@ -499,7 +499,7 @@ public sealed record VerifyEmailPageModel(bool Verified, string? Email, string? 
 /// <para>
 /// <b><paramref name="Linked"/> shipped as an absence first, and the absence was the defect.</b>
 /// The page could offer to connect a provider and could not say whether connecting had already
-/// happened, so a founder pressed the button, the round trip succeeded, the page came back
+/// happened, so a user pressed the button, the round trip succeeded, the page came back
 /// identical, and nothing anywhere told them it had worked. Closing it needed
 /// <c>IUserStore.ListExternalLoginsAsync</c> — a method every implementation has to grow, which is
 /// why it was a limitation for a day rather than a line.

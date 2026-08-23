@@ -1,6 +1,6 @@
 # RFC 9728 (Protected Resource Metadata) + MCP Authorization — Implementer's Distillation
 
-**Target:** from-scratch OAuth 2.1 + OIDC Authorization Server in C# / ASP.NET Core 9, plus the
+**Target:** from-scratch OAuth 2.1 + OIDC Authorization Server in C# / ASP.NET Core 10 (`net10.0`), plus the
 resource-server (MCP) side that must trust it. Must interop with Claude.ai and ChatGPT connectors.
 
 **Sources fetched (not from memory):**
@@ -106,7 +106,7 @@ static Uri PrmUrl(Uri resourceId)
 ```
 
 ```csharp
-// ASP.NET Core 9: a single catch-all route serves every path-inserted variant.
+// ASP.NET Core 10: a single catch-all route serves every path-inserted variant.
 // {*rest} is REQUIRED — a plain "/.well-known/oauth-protected-resource" route will 404
 // the "/mcp" suffix form and silently break discovery.
 app.MapGet("/.well-known/oauth-protected-resource/{*rest}", (string? rest, HttpContext ctx) => { ... })
@@ -222,7 +222,7 @@ Content-Length: 0
 ```
 
 ```csharp
-// ASP.NET Core 9 — JwtBearer's default challenge does NOT include resource_metadata.
+// ASP.NET Core 10 — JwtBearer's default challenge does NOT include resource_metadata.
 // You must add it in OnChallenge or via JwtBearerOptions.Challenge.
 options.Events = new JwtBearerEvents
 {
@@ -741,7 +741,7 @@ Location: https://claude.ai/api/mcp/auth_callback?code=SplxlO...&state=af0ifjsld
 
 ---
 
-# PART D — ASP.NET Core 9 build checklist
+# PART D — ASP.NET Core 10 build checklist
 
 ## D.1 Endpoints the AUTHORIZATION SERVER must expose
 

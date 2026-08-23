@@ -1,6 +1,6 @@
 # Dynamic Client Registration — RFC 7591 / RFC 7592 implementer notes
 
-Target: from-scratch OAuth 2.1 + OIDC AS in C# / ASP.NET Core 9, must interop with
+Target: from-scratch OAuth 2.1 + OIDC AS in C# / ASP.NET Core 10 (`net10.0`), must interop with
 Claude.ai MCP connectors and ChatGPT connectors/Apps SDK.
 
 Primary sources fetched: RFC 7591 (text + html), RFC 7592 (text + html), IANA OAuth
@@ -798,7 +798,7 @@ both a disk-exhaustion vector and a slow poison for any query that scans clients
 `429` is not defined by RFC 7591 (which specifies `400` for *registration error conditions*), but
 rate limiting is a transport-level condition, not a metadata validation error — `429` with
 `Retry-After` is correct and is what Anthropic's own troubleshooting doc tells server operators to
-look for. In ASP.NET Core 9 use the built-in
+look for. In ASP.NET Core 10 use the built-in
 `builder.Services.AddRateLimiter(...)` with a `PartitionedRateLimiter` partitioned on
 `(clientIp, redirectUriHost)`, and a sliding-window limiter. Put it in front of the endpoint via
 `.RequireRateLimiting("dcr")`.

@@ -91,8 +91,9 @@ public sealed class StoredClientSecretStore(IClientStore clients) : IClientSecre
 /// only for its own: <c>ConfiguredClientSecretStore</c> knows the configured entries and nothing
 /// else, <see cref="StoredClientSecretStore"/> knows the table and nothing else. Before this type,
 /// registering the second replaced the first — so turning stored clients on took away the
-/// configured confidential clients' ability to authenticate, which on the deployment that found
-/// this is the admin UI and Grafana. Resolvers already chain; secrets now chain the same way.
+/// configured confidential clients' ability to authenticate; on the deployment that found this,
+/// two first-party clients that had authenticated fine the moment before. Resolvers already chain;
+/// secrets now chain the same way.
 /// </para>
 /// <para>
 /// The order is the resolvers' order — configured first — though in any sane deployment the id

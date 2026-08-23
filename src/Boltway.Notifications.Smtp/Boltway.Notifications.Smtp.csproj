@@ -10,6 +10,11 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      One implementation of the Boltway.Notifications sender, over SMTP with MailKit. A separate package
+      so that referencing the seam does not drag a mail client in: a deployment that sends through an
+      API references neither this nor MailKit.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

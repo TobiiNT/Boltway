@@ -3,7 +3,7 @@ using Boltway.OAuth.Primitives.Ids;
 using Boltway.OAuth.Primitives.Scopes;
 using Boltway.OAuth.Primitives.Secrets;
 
-namespace Boltway.Storage.Tests;
+namespace Boltway.Storage.Testing;
 
 /// <summary>
 /// The <see cref="IClientStore"/> contract, run against every implementation.
@@ -59,6 +59,14 @@ public abstract class ClientStoreContract
 
     private static Sha256Hash Secret(string material) => Sha256Hash.OfString(material);
 
+    /// <summary>
+    /// A stored client reads back with its owner and its allowed scopes, and it is enabled.
+    /// </summary>
+    /// <remarks>
+    /// The record under test never sets <c>IsEnabled</c>, so the last assertion is about the default
+    /// surviving storage: a client that came back disabled could not authorize, and nothing about the
+    /// registration that created it would say why.
+    /// </remarks>
     [Fact]
     public async Task A_stored_client_comes_back_with_its_owner_and_scopes()
     {
@@ -75,6 +83,9 @@ public abstract class ClientStoreContract
         Assert.True(found.IsEnabled);
     }
 
+    /// <summary>
+    /// A client nobody registered is <see langword="null"/> from both reads, not an exception.
+    /// </summary>
     [Fact]
     public async Task An_unknown_client_is_null_rather_than_an_error()
     {
@@ -87,6 +98,13 @@ public abstract class ClientStoreContract
             ClientIdentifier.ForPreRegistered("nobody"), CancellationToken.None));
     }
 
+    /// <summary>
+    /// The digest handed to the store is the digest that comes back, and no other.
+    /// </summary>
+    /// <remarks>
+    /// The second comparison is the control — a store answering with one fixed digest would satisfy
+    /// the first on its own.
+    /// </remarks>
     [Fact]
     public async Task The_secret_round_trips_as_a_digest()
     {
@@ -141,6 +159,9 @@ public abstract class ClientStoreContract
         Assert.NotEqual(Secret("first"), hash.Value);
     }
 
+    /// <summary>
+    /// A service account is reachable from the person it acts as, and from nobody else.
+    /// </summary>
     [Fact]
     public async Task A_client_is_found_by_the_account_it_acts_as()
     {
@@ -179,6 +200,9 @@ public abstract class ClientStoreContract
         Assert.True((await store.FindAsync(id, CancellationToken.None))!.IsEnabled);
     }
 
+    /// <summary>
+    /// Disabling a client that is not there answers <see langword="false"/> rather than success.
+    /// </summary>
     [Fact]
     public async Task Disabling_an_unknown_client_reports_that_rather_than_succeeding()
     {
@@ -188,6 +212,10 @@ public abstract class ClientStoreContract
             ClientIdentifier.ForPreRegistered("nobody"), false, CancellationToken.None));
     }
 
+    /// <summary>
+    /// Deleting takes the record, its secret and the owner lookup together, and says whether it found
+    /// anything to delete.
+    /// </summary>
     [Fact]
     public async Task Deleting_removes_the_client_and_its_secret()
     {
@@ -206,11 +234,4 @@ public abstract class ClientStoreContract
         // deletion actually landed.
         Assert.False(await store.DeleteAsync(id, CancellationToken.None));
     }
-}
-
-/// <summary>The client-store contract, against the in-memory store.</summary>
-public sealed class InMemoryClientStoreTests : ClientStoreContract
-{
-    /// <inheritdoc />
-    protected override IClientStore NewClientStore() => new InMemory.InMemoryClientStore();
 }

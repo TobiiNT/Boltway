@@ -76,7 +76,7 @@ public sealed record ConfiguredClient(
 /// <para>
 /// <b>This existed as a seam and as a test double and nowhere a deployment could reach.</b>
 /// <c>IClientResolver</c>, <c>IClientSecretStore</c> and <c>client_secret_basic</c> were all
-/// shipped, `CimdClientResolver` was the only implementation in <c>src/</c>, and §7.1 says of the
+/// shipped, <c>CimdClientResolver</c> was the only implementation in <c>src/</c>, and §7.1 says of the
 /// admin BFF that "it uses the client store and <c>client_secret_basic</c> that already exist".
 /// Measured while building that BFF: they did not. This is them.
 /// </para>

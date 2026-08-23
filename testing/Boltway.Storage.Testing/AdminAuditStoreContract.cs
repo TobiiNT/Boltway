@@ -1,7 +1,7 @@
 using Boltway.AuthorizationServer.Abstractions.Administration;
 using Boltway.OAuth.Primitives.Ids;
 
-namespace Boltway.Storage.Tests;
+namespace Boltway.Storage.Testing;
 
 /// <summary>
 /// <see cref="IAdminAuditStore"/>, run against every implementation.
@@ -39,6 +39,10 @@ public abstract class AdminAuditStoreContract
             Detail = "role=founder",
         };
 
+    /// <summary>
+    /// One recorded entry reads back with its time, actor, action, realm, handle, outcome,
+    /// correlation id and detail.
+    /// </summary>
     [Fact]
     public async Task Every_field_survives_a_round_trip()
     {
@@ -81,6 +85,13 @@ public abstract class AdminAuditStoreContract
         Assert.Equal(["later", "second", "first"], read.Select(e => e.Action));
     }
 
+    /// <summary>
+    /// Each of the three filters — realm, target subject and <c>Since</c> — narrows on its own.
+    /// </summary>
+    /// <remarks>
+    /// One log in which a different entry answers each filter, so a store that ignores one of the
+    /// three hands back rows the caller did not ask for rather than failing where somebody sees it.
+    /// </remarks>
     [Fact]
     public async Task A_query_can_narrow_by_realm_subject_and_time()
     {
@@ -106,6 +117,13 @@ public abstract class AdminAuditStoreContract
         Assert.Equal(["recent"], since.Select(e => e.Action));
     }
 
+    /// <summary>
+    /// The limit caps the read, and the entries it keeps are the newest ones.
+    /// </summary>
+    /// <remarks>
+    /// The cap applies after the ordering rather than before it. A store that truncated first would
+    /// honour the count and answer an incident with the two oldest lines it holds.
+    /// </remarks>
     [Fact]
     public async Task The_limit_is_honoured()
     {
@@ -166,11 +184,4 @@ public abstract class AdminAuditStoreContract
                 || name.Contains("Remove", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("Purge", StringComparison.OrdinalIgnoreCase));
     }
-}
-
-/// <summary>The in-memory implementation against the contract.</summary>
-public sealed class InMemoryAdminAuditStoreTests : AdminAuditStoreContract
-{
-    /// <inheritdoc />
-    protected override IAdminAuditStore NewAuditStore() => new InMemory.InMemoryAdminAuditStore();
 }

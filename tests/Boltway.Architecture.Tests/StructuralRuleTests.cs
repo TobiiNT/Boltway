@@ -828,7 +828,7 @@ public sealed class StructuralRuleTests
     [Fact]
     public void Every_project_with_code_is_scanned()
     {
-        var root = AuthRoot();
+        var root = RepositoryRoot();
         var src = Path.Combine(root, "src");
 
         var withCode = Directory.EnumerateDirectories(src)
@@ -854,13 +854,13 @@ public sealed class StructuralRuleTests
             + string.Join(Environment.NewLine, missing.Select(m => "  " + m)));
     }
 
-    /// <summary>Walk up from the test binary to the <c>auth/</c> directory.</summary>
+    /// <summary>Walk up from the test binary to the repository root.</summary>
     /// <remarks>
     /// By shape rather than by a relative path with a fixed number of <c>..</c> segments, because
     /// that count changes with the target framework and the configuration in the output path — and a
     /// path that silently resolves to nothing turns the test above into a pass.
     /// </remarks>
-    private static string AuthRoot()
+    private static string RepositoryRoot()
     {
         var directory = new DirectoryInfo(Path.GetDirectoryName(typeof(StructuralRuleTests).Assembly.Location)!);
 
@@ -875,12 +875,12 @@ public sealed class StructuralRuleTests
             directory = directory.Parent;
         }
 
-        Assert.Fail("Could not find the auth/ root above the test binary.");
+        Assert.Fail("Could not find the repository root above the test binary.");
         return null!;
     }
 
     /// <summary>
-    /// Every project under <c>auth/</c> says whether it packs.
+    /// Every project in the repository says whether it packs.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -907,7 +907,7 @@ public sealed class StructuralRuleTests
     [Fact]
     public void Every_project_says_whether_it_packs()
     {
-        var root = AuthRoot();
+        var root = RepositoryRoot();
 
         var projects = Directory.EnumerateFiles(root, "*.csproj", SearchOption.AllDirectories)
             .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
@@ -932,6 +932,88 @@ public sealed class StructuralRuleTests
             + string.Join(Environment.NewLine, silent.Select(s => "  " + s)));
     }
 
+
+    /// <summary>
+    /// The package ids this repository publishes, and no others.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The rule above proves every project <i>answers</i> the question. It does not prove the
+    /// answers add up to the intended set, and <c>Boltway.Storage.Tests</c> is what that gap costs:
+    /// it answered <c>true</c>, satisfied that rule, and published to nuget.org carrying
+    /// <c>Microsoft.NET.Test.Sdk</c>, the xunit runner, coverlet, a <c>runtimeconfig.json</c> and
+    /// seven of this repository's own store tests. A customer referencing the storage contracts ran
+    /// Boltway's tests inside their own suite. nuget.org has no delete, so that id is spent.
+    /// </para>
+    /// <para>
+    /// So the set is written down. Adding a package is an edit here, made by somebody who had to
+    /// read this paragraph — which is the same default-deny shape as
+    /// <see cref="TestAssembliesAllowedToSeeInternals"/>, and for the same reason: the failure is
+    /// silent on the publishing side and permanent on the consuming side.
+    /// </para>
+    /// </remarks>
+    private static readonly HashSet<string> PackableProjects = new(StringComparer.Ordinal)
+    {
+        "Boltway.AuthorizationServer",
+        "Boltway.AuthorizationServer.Abstractions",
+        "Boltway.Federation.Google",
+        "Boltway.Federation.Oidc",
+        "Boltway.Identity",
+        "Boltway.Interaction.Testing",
+        "Boltway.Mcp",
+        "Boltway.Notifications",
+        "Boltway.Notifications.Smtp",
+        "Boltway.OAuth.Net",
+        "Boltway.OAuth.Primitives",
+        "Boltway.OAuth.Tokens",
+        "Boltway.ResourceServer",
+        "Boltway.Storage.EntityFrameworkCore",
+        "Boltway.Storage.InMemory",
+        "Boltway.Storage.PostgreSql",
+        "Boltway.Storage.Sqlite",
+        "Boltway.Storage.Testing",
+    };
+
+    /// <summary>
+    /// What packs is exactly <see cref="PackableProjects"/> — nothing joined the feed unnoticed.
+    /// </summary>
+    /// <remarks>
+    /// Read off the project files rather than off a pack, because the point is to fail before a
+    /// pack happens. That is sound only because the rule above guarantees every project states a
+    /// value: a project inheriting the SDK default would be invisible to this scan, and that
+    /// inherited default is exactly how the id above was spent.
+    /// </remarks>
+    [Fact]
+    public void What_packs_is_the_approved_set()
+    {
+        var root = RepositoryRoot();
+
+        var packing = Directory.EnumerateFiles(root, "*.csproj", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                     && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Where(f => XDocument.Load(f).Descendants("IsPackable")
+                .Any(e => string.Equals(e.Value.Trim(), "true", StringComparison.OrdinalIgnoreCase)))
+            .Select(Path.GetFileNameWithoutExtension)
+            .Where(n => n is not null)
+            .Select(n => n!)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var joined = packing.Except(PackableProjects, StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        var left = PackableProjects.Except(packing, StringComparer.Ordinal).OrderBy(n => n, StringComparer.Ordinal).ToList();
+
+        Assert.True(
+            joined.Count == 0,
+            "These projects pack and are not on the approved list. A package id cannot be taken back "
+            + "once it is on nuget.org, so decide before the first publish rather than after:"
+            + Environment.NewLine + string.Join(Environment.NewLine, joined.Select(n => "  " + n)));
+
+        Assert.True(
+            left.Count == 0,
+            "These are on the approved list and no longer pack. If that is deliberate, remove them "
+            + "here too — a consumer restoring the id will otherwise sit on a version that stopped "
+            + "moving with no signal:"
+            + Environment.NewLine + string.Join(Environment.NewLine, left.Select(n => "  " + n)));
+    }
 
     /// <summary>
     /// Every assembly under test was actually loaded.
@@ -969,10 +1051,17 @@ public sealed class StructuralRuleTests
     /// Every name here is a test assembly that legitimately reaches inside the thing it tests. What
     /// must never join them is an assembly whose job is to prove a seam is reachable from outside:
     /// <c>Boltway.PublicApi.Tests</c>, which exists solely to compile against the public
-    /// surface, and <c>Boltway.Interaction.Tests</c> and <c>Boltway.Storage.Tests</c>,
-    /// which ship to customers as packages and must compile against exactly what a customer has. A
-    /// grant to any of those three would not fail a test — it would make their compilation stop
-    /// meaning anything, which is the failure mode the whole arrangement exists to prevent.
+    /// surface, and the two contract packages under <c>testing/</c> —
+    /// <c>Boltway.Interaction.Testing</c> and <c>Boltway.Storage.Testing</c> — which ship to
+    /// customers and must compile against exactly what a customer has. A grant to any of those
+    /// three would not fail a test — it would make their compilation stop meaning anything, which
+    /// is the failure mode the whole arrangement exists to prevent.
+    /// </para>
+    /// <para>
+    /// This paragraph named <c>Boltway.Interaction.Tests</c> and <c>Boltway.Storage.Tests</c>,
+    /// which are the <i>derivations</i> and pack nothing. Both contract sets have since moved to
+    /// <c>testing/</c>; the storage one moved after its <c>*.Tests</c> project had already reached
+    /// nuget.org carrying a test runner and this repository's own seven store tests.
     /// </para>
     /// </remarks>
     private static readonly HashSet<string> TestAssembliesAllowedToSeeInternals = new(StringComparer.Ordinal)
@@ -1114,6 +1203,91 @@ public sealed class StructuralRuleTests
     [
         "Boltway.AuthorizationServer.Endpoints.InteractionEndpoints",
     ];
+
+    /// <summary>
+    /// No XML doc comment quotes code with Markdown backticks.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>These files have two comment vocabularies and only one of them renders.</b> A backtick is
+    /// how the Markdown in this repository writes a code span, and every one of these projects sets
+    /// <c>GenerateDocumentationFile</c> — so a <c>///</c> line goes into the shipped
+    /// <c>.xml</c> beside the package and reaches a consumer through IntelliSense, where a backtick
+    /// is a backtick. <c>&lt;c&gt;</c> is the tag that means there what the backtick means in the
+    /// prose. Nothing warns: the comment is well-formed XML either way, and the author of the line
+    /// never sees the surface it lands on.
+    /// </para>
+    /// <para>
+    /// Measured on 2026-08-23, the day this rule was written: twelve spans across six files under
+    /// <c>src/</c> and <c>hosts/</c> had drifted this way, including one in
+    /// <c>IRoleStore</c> — a public seam whose whole doc comment exists to show a consumer what
+    /// kind of value a role name may hold.
+    /// </para>
+    /// <para>
+    /// <b>Pairs, not lone backticks.</b> An unmatched one in prose is a quote mark or part of a
+    /// shell fragment inside a <c>&lt;code&gt;</c> block, and failing on it would make this rule
+    /// the kind that gets suppressed rather than obeyed. A genuine need to render a literal
+    /// backtick pair in documentation is the point at which this rule should be argued with, not
+    /// worked around.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Doc_comments_do_not_quote_code_with_backticks()
+    {
+        var root = RepositoryRoot();
+
+        var scanned = 0;
+        var offenders = new List<string>();
+
+        foreach (var directory in new[] { "src", "hosts", "testing" })
+        {
+            var path = Path.Combine(root, directory);
+
+            if (!Directory.Exists(path))
+            {
+                continue;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                    || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var number = 0;
+
+                foreach (var line in File.ReadLines(file))
+                {
+                    number++;
+
+                    if (!line.TrimStart().StartsWith("///", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    scanned++;
+
+                    if (line.Count(c => c == '`') >= 2)
+                    {
+                        offenders.Add($"{Path.GetRelativePath(root, file)}:{number}  {line.Trim()}");
+                    }
+                }
+            }
+        }
+
+        // The control. A moved directory or a changed extension would leave nothing to look at, and
+        // an empty list is how an absence assertion reports a pass over a walk that measured nothing.
+        Assert.True(scanned > 1000, $"Only {scanned} doc-comment lines were found under {root}.");
+
+        Assert.True(
+            offenders.Count == 0,
+            "A doc comment quotes code with Markdown backticks. These reach a consumer through the "
+            + "generated .xml, where a backtick renders as a backtick — use <c>…</c>:"
+            + Environment.NewLine
+            + string.Join(Environment.NewLine, offenders.Select(o => "  " + o)));
+    }
 
     private static bool IsInternalsVisibleTo(CustomAttribute attribute) =>
         string.Equals(

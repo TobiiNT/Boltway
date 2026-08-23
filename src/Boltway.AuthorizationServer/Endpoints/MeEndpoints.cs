@@ -20,7 +20,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <para>
 /// <b>Cookie-authenticated, with antiforgery, and they refuse a bearer token — the mirror image of
 /// <see cref="AccountEndpoints"/>.</b> Read literally, <c>N-17</c> would cover <c>/account/*</c> as
-/// well and mean a founder changing their own password has to run an OAuth client. That is absurd,
+/// well and mean a user changing their own password has to run an OAuth client. That is absurd,
 /// and the way out is a third prefix rather than a softened rule: <c>/admin/</c> and
 /// <c>/account/</c> refuse cookies, <c>/me/</c> refuses bearers, and the prefixes are disjoint so an
 /// architecture test decides both without judgement.
@@ -101,7 +101,7 @@ public static class MeEndpoints
 
         // The link forms are the reason this page carries antiforgery tokens at all. POST
         // /external/{scheme}/link is state-changing and refuses without a session, so it is exactly
-        // the shape a page on another origin would like to submit on a signed-in founder's behalf.
+        // the shape a page on another origin would like to submit on a signed-in user's behalf.
         var tokens = InteractionEndpoints.AntiforgeryTokensFor(http);
 
         List<AccountProviderLink> providers = [];
@@ -127,7 +127,7 @@ public static class MeEndpoints
                     link.UpstreamIssuer, provider.Issuer, StringComparison.Ordinal))));
 
             // The sign-in page needs this for the same reason and says why there. This page needed
-            // it first in practice: linking is the step a founder reaches before they have ever
+            // it first in practice: linking is the step a user reaches before they have ever
             // signed in with the provider, so it is the button that gets pressed first.
             SecurityHeaders.AllowFormActionTo(
                 http, await provider.GetChallengeOriginAsync(cancellationToken));

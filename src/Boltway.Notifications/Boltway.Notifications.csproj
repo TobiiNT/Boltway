@@ -10,6 +10,11 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      The notification seam and the messages that cross it, and nothing that sends mail. No transport
+      dependency of its own, so an authorization server referencing it takes no mail library, and a
+      deployment sending through an API or its own queue replaces one package rather than forking.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

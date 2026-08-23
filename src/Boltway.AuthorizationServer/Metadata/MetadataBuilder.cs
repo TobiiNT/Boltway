@@ -142,10 +142,12 @@ public static class MetadataBuilder
             AuthorizationResponseIssParameterSupported = true,
 
             SubjectTypesSupported = ["public"],
-            // What this server issues, not what it accepts. Filling this from the verifier
-            // allow-list advertised ES256 that TokenIssuer never mints — N-06 through a
-            // category error rather than through a stale list.
-            IdTokenSigningAlgValuesSupported = SigningAlgorithms.Issued,
+            // What this server issues, not what it accepts, and read off the same option TokenIssuer
+            // mints with so the two cannot disagree. Filling this from the verifier allow-list
+            // advertised ES256 that TokenIssuer never mints — N-06 through a category error rather
+            // than through a stale list; a hand-maintained second list would be the same defect
+            // waiting for somebody to make the issuing algorithm configurable, which it now is.
+            IdTokenSigningAlgValuesSupported = [options.TokenSigningAlgorithm.ToJwaName()],
             ClaimsSupported = ClaimsSupported,
             ClaimTypesSupported = ["normal"],
 

@@ -321,7 +321,7 @@ public sealed class ClientAssertionAuthenticationTests
         await using var fixture = await StartAsync();
 
         var fields = ExchangeFields(await CodeAsync(fixture));
-        fields["client_secret"] = "ck_cs_whatever";
+        fields["client_secret"] = "bw_cs_whatever";
 
         await AssertRefusedAsync(await PostAsync(fixture, fields));
     }

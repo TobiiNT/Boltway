@@ -5,7 +5,7 @@ using Boltway.OAuth.Primitives.Pkce;
 using Boltway.OAuth.Primitives.Scopes;
 using Boltway.OAuth.Primitives.Secrets;
 
-namespace Boltway.Storage.Tests;
+namespace Boltway.Storage.Testing;
 
 /// <summary>
 /// The store contract, run against every implementation.
@@ -123,6 +123,10 @@ public abstract class GrantStoreContract
 
     // ------------------------------------------------------------------ N-07
 
+    /// <summary>
+    /// N-07: a redeemed code is retained and stamped, still carrying the challenge and binding a replay is
+    /// validated against.
+    /// </summary>
     [Fact]
     public async Task A_redeemed_code_is_retained_not_deleted()
     {
@@ -146,6 +150,7 @@ public abstract class GrantStoreContract
         Assert.Equal(code.RedirectUriUsed, found.RedirectUriUsed);
     }
 
+    /// <summary>N-07: four concurrent redemptions of one code leave exactly one winner and three retries.</summary>
     [Fact]
     public async Task Only_one_of_two_concurrent_redemptions_succeeds()
     {
@@ -187,6 +192,7 @@ public abstract class GrantStoreContract
             results.Where(r => r is not CodeRedemption.Redeemed),
             r => Assert.IsType<CodeRedemption.ReplayedWithinGrace>(r));
 
+    /// <summary>N-07: sixteen threads on one code still leave exactly one winner, and fifteen retries.</summary>
     [Fact]
     public async Task Redeeming_many_times_in_parallel_still_succeeds_exactly_once()
     {
@@ -205,6 +211,7 @@ public abstract class GrantStoreContract
         }
     }
 
+    /// <summary>A hash the store never issued does not redeem: the answer is <c>ReplayedOutsideGrace</c>.</summary>
     [Fact]
     public async Task An_unknown_code_does_not_redeem()
     {
@@ -224,6 +231,10 @@ public abstract class GrantStoreContract
     /// </remarks>
     private static readonly TimeSpan CodeGrace = TimeSpan.FromSeconds(10);
 
+    /// <summary>
+    /// N-07: a code presented again three seconds after redemption is a retry, and one presented five minutes
+    /// after it is not.
+    /// </summary>
     [Fact]
     public async Task A_code_replayed_inside_the_grace_window_is_a_retry_not_an_incident()
     {
@@ -257,6 +268,10 @@ public abstract class GrantStoreContract
             await store.RedeemAsync(code.CodeHash, now.AddMinutes(5), CodeGrace, CancellationToken.None));
     }
 
+    /// <summary>
+    /// The code grace window runs from the redemption, so a retry at eight seconds does not hold it open at
+    /// sixteen.
+    /// </summary>
     [Fact]
     public async Task A_retry_inside_the_code_grace_window_does_not_slide_it()
     {
@@ -283,6 +298,9 @@ public abstract class GrantStoreContract
             await store.RedeemAsync(code.CodeHash, now.AddSeconds(16), CodeGrace, CancellationToken.None));
     }
 
+    /// <summary>
+    /// N-07: a redemption stamped an hour ahead by a fast clock does not make the next presentation a retry.
+    /// </summary>
     [Fact]
     public async Task A_code_redemption_stamped_in_the_future_does_not_widen_the_window()
     {
@@ -308,6 +326,9 @@ public abstract class GrantStoreContract
 
     // ------------------------------------------------------------------ N-08
 
+    /// <summary>
+    /// N-08: redemption yields one successor in the same family, at the next generation, naming its parent.
+    /// </summary>
     [Fact]
     public async Task A_refresh_token_rotates_to_exactly_one_successor()
     {
@@ -326,6 +347,10 @@ public abstract class GrantStoreContract
         Assert.Equal(original.TokenHash, rotated.Successor.PredecessorHash);
     }
 
+    /// <summary>
+    /// N-08: four concurrent redemptions rotate once and hand every caller the same successor, so the family
+    /// cannot fork.
+    /// </summary>
     [Fact]
     public async Task Two_concurrent_redemptions_produce_one_successor_and_both_callers_get_it()
     {
@@ -362,6 +387,9 @@ public abstract class GrantStoreContract
         }
     }
 
+    /// <summary>
+    /// N-08: a replay twenty seconds in returns the winner's successor again rather than minting a third token.
+    /// </summary>
     [Fact]
     public async Task A_replay_inside_the_grace_window_is_idempotent_not_an_incident()
     {
@@ -387,6 +415,9 @@ public abstract class GrantStoreContract
         Assert.Equal(rotated.Successor.TokenHash, replayed.Successor.TokenHash);
     }
 
+    /// <summary>
+    /// N-08: a replay five minutes on is reuse, reported with the family and grant the caller has to revoke.
+    /// </summary>
     [Fact]
     public async Task A_replay_outside_the_grace_window_is_reuse_detection()
     {
@@ -410,6 +441,7 @@ public abstract class GrantStoreContract
         Assert.Equal("grant-1", reuse.GrantId);
     }
 
+    /// <summary>N-08: once its family is revoked, a token that was never consumed answers <c>NotFound</c>.</summary>
     [Fact]
     public async Task A_revoked_family_stops_refreshing()
     {
@@ -586,6 +618,10 @@ public abstract class GrantStoreContract
         Assert.Empty(await store.LastIssuedForGrantsAsync([], CancellationToken.None));
     }
 
+    /// <summary>
+    /// An expired refresh token answers <c>NotFound</c> rather than <c>ReuseDetected</c>: expiry is ordinary and
+    /// must not revoke a family.
+    /// </summary>
     [Fact]
     public async Task An_expired_refresh_token_is_not_found_rather_than_reused()
     {
@@ -602,6 +638,7 @@ public abstract class GrantStoreContract
         Assert.IsType<RefreshRedemption.NotFound>(outcome);
     }
 
+    /// <summary>A refresh token hash the store never issued answers <c>NotFound</c>.</summary>
     [Fact]
     public async Task An_unknown_refresh_token_is_not_found()
     {
@@ -615,6 +652,9 @@ public abstract class GrantStoreContract
         Assert.IsType<RefreshRedemption.NotFound>(outcome);
     }
 
+    /// <summary>
+    /// A second rotation chains onto the first: generation two, the first successor as predecessor, same family.
+    /// </summary>
     [Fact]
     public async Task A_second_rotation_chains_from_the_first()
     {
@@ -638,6 +678,10 @@ public abstract class GrantStoreContract
 
     // ------------------------------------------------- what an adversarial review found missing
 
+    /// <summary>
+    /// Replaying a parent whose successor has itself been consumed is reuse, even inside the parent's own grace
+    /// window.
+    /// </summary>
     [Fact]
     public async Task A_consumed_successor_means_the_chain_moved_on_so_this_is_reuse()
     {
@@ -668,6 +712,9 @@ public abstract class GrantStoreContract
         Assert.IsType<RefreshRedemption.ReuseDetected>(replay);
     }
 
+    /// <summary>
+    /// A stolen root replayed after three legitimate hops is reuse, not a step towards the live head of the chain.
+    /// </summary>
     [Fact]
     public async Task An_attacker_cannot_walk_the_chain_to_the_live_token()
     {
@@ -695,6 +742,10 @@ public abstract class GrantStoreContract
         Assert.IsType<RefreshRedemption.ReuseDetected>(outcome);
     }
 
+    /// <summary>
+    /// A revoked family answers <c>NotFound</c> to a consumed token's replay, and revoking it again transitions
+    /// nothing.
+    /// </summary>
     [Fact]
     public async Task Replaying_a_consumed_token_after_revocation_still_reports_reuse()
     {
@@ -722,6 +773,10 @@ public abstract class GrantStoreContract
         Assert.Equal(0, await store.RevokeFamilyAsync(root.FamilyId, now, CancellationToken.None));
     }
 
+    /// <summary>
+    /// A consumption stamped an hour ahead by a fast clock does not widen the window: the next replay is still
+    /// reuse.
+    /// </summary>
     [Fact]
     public async Task A_consumption_stamped_in_the_future_does_not_widen_the_window()
     {
@@ -745,6 +800,9 @@ public abstract class GrantStoreContract
         Assert.IsType<RefreshRedemption.ReuseDetected>(outcome);
     }
 
+    /// <summary>
+    /// Storing a refresh token hash the store already holds throws, rather than overwriting the consumed row.
+    /// </summary>
     [Fact]
     public async Task Storing_an_existing_token_is_refused_rather_than_resurrecting_it()
     {
@@ -763,6 +821,7 @@ public abstract class GrantStoreContract
             () => store.StoreAsync(root, CancellationToken.None));
     }
 
+    /// <summary>Storing a code hash the store already holds throws, rather than overwriting its redemption.</summary>
     [Fact]
     public async Task Storing_an_existing_code_is_refused_rather_than_resetting_replay_protection()
     {
@@ -776,6 +835,9 @@ public abstract class GrantStoreContract
             () => store.StoreAsync(code, CancellationToken.None));
     }
 
+    /// <summary>
+    /// N-07: an expired but unredeemed code still redeems — expiry is the caller's check, after <c>FindAsync</c>.
+    /// </summary>
     [Fact]
     public async Task An_expired_but_unredeemed_code_still_redeems_and_that_is_deliberate()
     {
@@ -791,6 +853,7 @@ public abstract class GrantStoreContract
         Assert.IsType<CodeRedemption.Redeemed>(await store.RedeemAsync(code.CodeHash, now, CodeGrace, CancellationToken.None));
     }
 
+    /// <summary>N-08: the last second of the grace window is inside it — 45 is a retry, 46 is reuse.</summary>
     [Theory]
     [InlineData(44, true)]   // inside
     [InlineData(45, true)]   // exactly at the boundary — inclusive
@@ -820,6 +883,9 @@ public abstract class GrantStoreContract
         }
     }
 
+    /// <summary>
+    /// Revoking a family of three rows with one live token reports one, not the family's whole row count.
+    /// </summary>
     [Fact]
     public async Task Revoking_a_family_counts_only_the_tokens_it_actually_killed()
     {
@@ -851,6 +917,9 @@ public abstract class GrantStoreContract
         Assert.Equal(1, await store.RevokeFamilyAsync(root.FamilyId, now.AddMinutes(2), CancellationToken.None));
     }
 
+    /// <summary>
+    /// A token stored into a family that was already revoked is revoked too, and answers <c>NotFound</c>.
+    /// </summary>
     [Fact]
     public async Task A_token_stored_into_a_revoked_family_is_revoked_too()
     {
@@ -877,6 +946,7 @@ public abstract class GrantStoreContract
             now, TimeSpan.FromSeconds(45), CancellationToken.None));
     }
 
+    /// <summary>Revoking one family leaves another one rotating: revocation is scoped to the family.</summary>
     [Fact]
     public async Task Revoking_one_family_leaves_another_refreshing()
     {
@@ -899,6 +969,7 @@ public abstract class GrantStoreContract
             now, TimeSpan.FromSeconds(45), CancellationToken.None));
     }
 
+    /// <summary>The sweep removes the expired code and counts one, and leaves the unexpired one alone.</summary>
     [Fact]
     public async Task Expired_codes_are_swept_and_unexpired_ones_are_not()
     {
@@ -916,6 +987,10 @@ public abstract class GrantStoreContract
         Assert.NotNull(await store.FindAsync(fresh.CodeHash, CancellationToken.None));
     }
 
+    /// <summary>
+    /// N-07: a sweep racing a redemption reports no deletion that did not stick, and leaves no row behind a
+    /// redemption that reported success.
+    /// </summary>
     [Fact]
     public async Task A_sweep_racing_a_redemption_does_not_report_a_row_it_did_not_remove()
     {
@@ -953,6 +1028,9 @@ public abstract class GrantStoreContract
         }
     }
 
+    /// <summary>
+    /// A redeemed code survives the sweep past its own expiry, so a retry inside the grace window still finds it.
+    /// </summary>
     [Fact]
     public async Task A_redeemed_code_outlives_its_expiry_so_a_retry_still_finds_it()
     {
@@ -980,6 +1058,10 @@ public abstract class GrantStoreContract
 
     // ------------------------------------------------------------------ grants
 
+    /// <summary>
+    /// Revoking a grant puts it on the denylist once — a second revoke is not a second event — and the record
+    /// stays findable and inactive.
+    /// </summary>
     [Fact]
     public async Task A_revoked_grant_is_on_the_denylist()
     {
@@ -1003,6 +1085,10 @@ public abstract class GrantStoreContract
         Assert.False((await store.FindAsync("grant-1", CancellationToken.None))!.IsActive);
     }
 
+    /// <summary>
+    /// E-30: revoking by subject counts only the grants this call transitioned, and leaves another subject's
+    /// alone.
+    /// </summary>
     [Fact]
     public async Task Revoking_by_subject_takes_that_subject_and_leaves_everyone_else()
     {
@@ -1042,6 +1128,7 @@ public abstract class GrantStoreContract
         Assert.False(await store.IsRevokedAsync("bob-1", CancellationToken.None));
     }
 
+    /// <summary>A second revoke-by-subject reports zero, so the count is what this call did.</summary>
     [Fact]
     public async Task Revoking_by_subject_twice_reports_nothing_the_second_time()
     {
@@ -1062,6 +1149,7 @@ public abstract class GrantStoreContract
         Assert.Equal(0, await store.RevokeAllForSubjectAsync(subject, now, CancellationToken.None));
     }
 
+    /// <summary>A subject who has authorized nothing revokes zero, rather than the call failing.</summary>
     [Fact]
     public async Task Revoking_by_a_subject_with_no_grants_is_zero_rather_than_an_error()
     {
@@ -1077,6 +1165,10 @@ public abstract class GrantStoreContract
                 CancellationToken.None));
     }
 
+    /// <summary>
+    /// E-35: the listing carries one subject's live grants — a revoked one is gone from it, another subject's
+    /// never in it.
+    /// </summary>
     [Fact]
     public async Task Listing_a_subjects_grants_returns_theirs_and_only_the_live_ones()
     {
@@ -1184,6 +1276,7 @@ public abstract class GrantStoreContract
                 SubjectId.FromStorage("nobody"), CancellationToken.None));
     }
 
+    /// <summary>A subject with no grants lists empty, rather than throwing or answering null.</summary>
     [Fact]
     public async Task Listing_grants_for_a_subject_with_none_is_empty_rather_than_an_error()
     {
@@ -1195,6 +1288,9 @@ public abstract class GrantStoreContract
             SubjectId.FromStorage("01J8XKQ7M3N4P5R6S7T8V9W0XY"), CancellationToken.None));
     }
 
+    /// <summary>
+    /// An id the store has never seen is not revoked, and revoking it reports false rather than a silent success.
+    /// </summary>
     [Fact]
     public async Task An_unknown_grant_is_not_reported_as_revoked()
     {
@@ -1208,16 +1304,4 @@ public abstract class GrantStoreContract
         // detection needs to know the revocation landed.
         Assert.False(await store.RevokeAsync("never-existed", DateTimeOffset.UtcNow, CancellationToken.None));
     }
-}
-
-/// <summary>The contract, against the in-memory store.</summary>
-public sealed class InMemoryGrantStoreTests : GrantStoreContract
-{
-    // A fresh store per call, not one shared instance. The repeated concurrency tests need an
-    // empty store each iteration, and sharing one also lets a test see rows another test wrote.
-    protected override IAuthorizationCodeStore NewCodeStore() => new InMemory.InMemoryAuthorizationCodeStore();
-
-    protected override IRefreshTokenStore NewRefreshStore() => new InMemory.InMemoryRefreshTokenStore();
-
-    protected override IGrantStore NewGrantStore() => new InMemory.InMemoryGrantStore();
 }

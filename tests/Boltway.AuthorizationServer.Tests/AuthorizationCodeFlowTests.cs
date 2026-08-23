@@ -851,7 +851,7 @@ public sealed class AuthorizationCodeFlowTests
     {
         await using var fixture = await FlowFixture.StartAsync();
 
-        var response = await fixture.Client.PostAsync("/token", Refresh("ck_rt_" + new string('a', 43)));
+        var response = await fixture.Client.PostAsync("/token", Refresh("bw_rt_" + new string('a', 43)));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("invalid_grant", (await ReadJsonAsync(response)).GetProperty("error").GetString());

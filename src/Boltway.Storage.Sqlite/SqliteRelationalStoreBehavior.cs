@@ -156,7 +156,7 @@ public sealed class SqliteRelationalStoreBehavior : IRelationalStoreBehavior
     /// </para>
     /// <para>
     /// <b>Twelve runs was not enough, and the paragraph above should be read as a fix that removed
-    /// one route rather than the route.</b> Re-measured later: with the whole <c>auth/</c> solution
+    /// one route rather than the route.</b> Re-measured later: with the whole <c>Boltway.slnx</c> solution
     /// running in parallel, <c>Redeeming_many_times_in_parallel_still_succeeds_exactly_once</c>
     /// failed in <b>three of four</b> Release runs, and once in three Debug runs of that test alone
     /// — with the same <c>SQLite Error 1: 'cannot start a transaction within a transaction'</c>.

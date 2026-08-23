@@ -76,6 +76,13 @@ public static class ConfigurationDoctor
             checks.Add(NotMeasured("metadata", "Discovery document", "The configuration did not validate."));
             checks.Add(NotMeasured("registration-profile", "Exactly one registration mechanism", "The configuration did not validate."));
             checks.Add(NotMeasured("issuer-agreement", "Endpoint URLs share the issuer prefix", "The configuration did not validate."));
+
+            // Scope descriptions belong here for a subtler reason than the three above: the list
+            // this reads is populated *by* TryValidate, so a run that failed may never have reached
+            // the scope parse. An empty list would then mean "not computed" while reading exactly
+            // like "every scope is described" — a check that could not run, rendered green, which
+            // is the case this enum exists for.
+            checks.Add(NotMeasured("scope-descriptions", "Every advertised scope has a description", "The configuration did not validate."));
         }
         else
         {
@@ -83,6 +90,7 @@ public static class ConfigurationDoctor
             checks.Add(CheckMetadata(document));
             checks.Add(CheckRegistrationProfile(document));
             checks.Add(CheckIssuerAgreement(document));
+            checks.Add(ScopeDescriptions(options));
         }
 
         checks.Add(CheckKeyRing(options, keyRing));
@@ -224,9 +232,15 @@ public static class ConfigurationDoctor
                 "The JWKS would be empty, so no client can validate any token this server issues.");
         }
 
+        // The configured algorithm, not RS256 — a deployment that set TokenSigningAlgorithm to
+        // ES256 and holds only an EC key is correct, and asking the ring for RS256 would report it
+        // as broken. What must hold is that the ring can sign with what this server advertises,
+        // and both come off the same option.
+        var issuing = options.TokenSigningAlgorithm;
+
         try
         {
-            _ = keyRing.ActiveKey(SigningAlgorithm.RS256);
+            _ = keyRing.ActiveKey(issuing);
         }
         catch (InvalidOperationException ex)
         {
@@ -234,9 +248,13 @@ public static class ConfigurationDoctor
                 "signing-keys",
                 "A signing key is active and published",
                 DoctorStatus.Fail,
-                $"No active RS256 key: {ex.Message} RS256 is the interop floor — RFC 9068 §2.1 makes "
-                + "it mandatory to implement and OIDC Discovery §3 requires it in "
-                + "id_token_signing_alg_values_supported.");
+                $"No active {issuing.ToJwaName()} key: {ex.Message} That is the algorithm "
+                + "TokenSigningAlgorithm names, so it is what every token would be signed with and "
+                + "what id_token_signing_alg_values_supported advertises."
+                + (issuing is SigningAlgorithm.RS256
+                    ? " RS256 is also the interop floor — RFC 9068 §2.1 makes it mandatory to implement."
+                    : " RS256 is the interop floor (RFC 9068 §2.1); a relying party that cannot verify "
+                      + "this algorithm has nothing to fall back to."));
         }
 
         var rendered = JsonWebKeySet.Render(published);
@@ -267,6 +285,41 @@ public static class ConfigurationDoctor
                 "A signing key is active and published",
                 DoctorStatus.Warn,
                 ringError!);
+    }
+
+    /// <summary>Scopes a consent screen has no sentence for.</summary>
+    /// <remarks>
+    /// <para>
+    /// <c>AuthorizationServerOptions</c> has collected these since validation was written, and the
+    /// sample's own comment says an undescribed scope is "collect[ed] into
+    /// <c>ScopesWithoutDescriptions</c> for the doctor to report". Nothing read it — three
+    /// references in the whole repository, being the property, the assignment, and that comment. A
+    /// promise with nothing behind it, which is the shape <c>N-06</c> is about.
+    /// </para>
+    /// <para>
+    /// Warn rather than Fail, and that is <c>A-14</c> holding rather than being relaxed: a scope
+    /// with no description renders as its bare name plus a note saying so, because inventing text
+    /// by parsing a scope name is the thing A-14 forbids. The page is correct and unhelpful — which
+    /// is exactly what a doctor is for, since nothing else in the system can tell the difference.
+    /// </para>
+    /// </remarks>
+    private static DoctorCheck ScopeDescriptions(AuthorizationServerOptions options)
+    {
+        var undescribed = options.ScopesWithoutDescriptions;
+
+        return undescribed.Count == 0
+            ? new DoctorCheck(
+                "scope-descriptions",
+                "Every advertised scope has a description",
+                DoctorStatus.Pass,
+                "Each one has a sentence for the consent screen.")
+            : new DoctorCheck(
+                "scope-descriptions",
+                "Every advertised scope has a description",
+                DoctorStatus.Warn,
+                $"No description configured for: {string.Join(", ", undescribed)}. The consent screen "
+                + "shows the bare scope name and says so, rather than inventing text by parsing it "
+                + "(A-14) — so the page is correct and the person approving it learns nothing.");
     }
 
     private static DoctorCheck NotMeasured(string id, string title, string why) =>

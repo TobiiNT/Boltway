@@ -117,8 +117,8 @@ public static class AdminEndpoints
     /// A page of accounts, oldest first.
     /// </summary>
     /// <remarks>
-    /// <b>Keyset, and the cursor is the last subject on the page.</b> `?after=<![CDATA[<subject>]]>`
-    /// rather than `?page=3`: subjects are ULIDs so ordering by subject is ordering by creation, and
+    /// <b>Keyset, and the cursor is the last subject on the page.</b> <c>?after=<![CDATA[<subject>]]></c>
+    /// rather than <c>?page=3</c>: subjects are ULIDs so ordering by subject is ordering by creation, and
     /// an offset would make the last page read every page before it — on the one table that grows
     /// for the life of the deployment, paged through exactly when somebody is trying to find
     /// something out.

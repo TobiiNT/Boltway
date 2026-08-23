@@ -462,7 +462,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <remarks>
     /// <para>
     /// Linking adds a credential that signs in forever, and it recorded nothing — while changing a
-    /// password, asking for a reset link and verifying an address all did. Noticed when a founder
+    /// password, asking for a reset link and verifying an address all did. Noticed when a user
     /// linked Google, the page said nothing, and there was nowhere to look to find out whether it
     /// had happened.
     /// </para>

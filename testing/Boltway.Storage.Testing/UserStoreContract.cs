@@ -1,7 +1,7 @@
 using Boltway.AuthorizationServer.Abstractions.Users;
 using Boltway.OAuth.Primitives.Ids;
 
-namespace Boltway.Storage.Tests;
+namespace Boltway.Storage.Testing;
 
 /// <summary>
 /// The <see cref="IUserStore"/> contract, run against every implementation.
@@ -22,7 +22,6 @@ namespace Boltway.Storage.Tests;
 /// </remarks>
 public abstract class UserStoreContract
 {
-    /// <summary>A fresh, empty user store.</summary>
     /// <summary>
     /// Both stores over one database, because they are one aggregate as far as this contract is
     /// concerned.
@@ -64,13 +63,6 @@ public abstract class UserStoreContract
 
     // -------------------------------------------------- what an account holds
 
-    /// <summary>Every link an account holds comes back.</summary>
-    /// <remarks>
-    /// The reverse of <c>FindByExternalLoginAsync</c>, and the read a person makes about their own
-    /// account. Without it the self-service page could offer to connect a provider and could not
-    /// say whether connecting had already happened — measured, on a running deployment, by a
-    /// founder linking Google and getting back an identical page.
-    /// </remarks>
     /// <summary>The stamp round-trips, and an unknown account reports that it was not found.</summary>
     /// <remarks>
     /// <b>Null before anything writes it, and that is a value rather than an absence.</b> Every
@@ -106,6 +98,16 @@ public abstract class UserStoreContract
                 SubjectId.FromStorage("nobody-at-all"), at, CancellationToken.None));
     }
 
+    /// <summary>
+    /// Every link an account holds comes back, each keeping the issuer and upstream subject it was
+    /// made with, and every one naming this account.
+    /// </summary>
+    /// <remarks>
+    /// The reverse of <c>FindByExternalLoginAsync</c>, and the read a person makes about their own
+    /// account. Without it a self-service page can offer to connect a provider and cannot say
+    /// whether connecting already happened — measured on a running deployment, where a user linked
+    /// an upstream account and got back an identical page.
+    /// </remarks>
     [Fact]
     public async Task An_accounts_links_come_back()
     {
@@ -128,8 +130,8 @@ public abstract class UserStoreContract
 
     /// <summary>Somebody else's links are not this account's.</summary>
     /// <remarks>
-    /// The check that matters most, because the failure it catches is a page telling one founder
-    /// that another founder's Google account is connected to theirs.
+    /// The check that matters most, because the failure it catches is a page telling one user that
+    /// another user's upstream account is connected to theirs.
     /// </remarks>
     [Fact]
     public async Task Another_accounts_links_are_not_returned()
@@ -386,6 +388,7 @@ public abstract class UserStoreContract
         Assert.Equal(ada.Username, stored.Username);
     }
 
+    /// <summary>An address and its verified flag are one write, and both lookups show both.</summary>
     [Fact]
     public async Task An_email_and_its_verification_move_together()
     {
@@ -408,6 +411,12 @@ public abstract class UserStoreContract
         Assert.True(byUsername.EmailVerified);
     }
 
+    /// <summary>Clearing the address clears the verified flag with it.</summary>
+    /// <remarks>
+    /// The flag is a claim about an address, so one left standing over a null one is a proof about an
+    /// address the account no longer holds — and <c>email_verified</c> is the claim a resource server
+    /// is most likely to trust without checking.
+    /// </remarks>
     [Fact]
     public async Task Clearing_an_email_clears_its_verification()
     {
@@ -424,6 +433,12 @@ public abstract class UserStoreContract
         Assert.False(stored.EmailVerified);
     }
 
+    /// <summary>Disabling and setting an address both report false for an account nothing stored.</summary>
+    /// <remarks>
+    /// The same contract the password and role setters state, and the one the stamp test above
+    /// records: false rather than an exception, because the caller's next move is to report a handle
+    /// that does not exist.
+    /// </remarks>
     [Fact]
     public async Task Setting_state_on_an_account_that_does_not_exist_says_so()
     {
@@ -489,6 +504,12 @@ public abstract class UserStoreContract
         Assert.Empty(subjects.Except(walked, StringComparer.Ordinal));
     }
 
+    /// <summary>The limit bounds the page: five accounts asked for two come back two.</summary>
+    /// <remarks>
+    /// The control for the walk above, which passes against a store that ignores the limit and returns
+    /// the whole directory in one page — set equality and no repeats both survive that. Nothing else
+    /// here would notice.
+    /// </remarks>
     [Fact]
     public async Task A_page_is_no_longer_than_the_limit()
     {
@@ -635,6 +656,12 @@ public abstract class UserStoreContract
 
     // -------------------------------------------------------------------- roles
 
+    /// <summary>An assigned role comes back on both lookups, by subject and by username.</summary>
+    /// <remarks>
+    /// Assigned after creation rather than at it, which is the shape of every role test here:
+    /// <c>StoreAsync</c> refuses an account carrying roles, so assignment is <c>SetRolesAsync</c>'s
+    /// job and nothing else's.
+    /// </remarks>
     [Fact]
     public async Task A_role_set_at_creation_comes_back_on_both_lookups()
     {
@@ -650,6 +677,7 @@ public abstract class UserStoreContract
         Assert.Equal(["founder"], (await store.FindByUsernameAsync(RealmId.Default, "ada", CancellationToken.None))!.Roles);
     }
 
+    /// <summary>An account created without a role holds none, and the store supplies no default.</summary>
     [Fact]
     public async Task An_account_created_without_a_role_has_none_rather_than_a_default()
     {
@@ -663,6 +691,10 @@ public abstract class UserStoreContract
         Assert.Empty((await store.FindBySubjectAsync(Subject("XY"), CancellationToken.None))!.Roles);
     }
 
+    /// <summary>
+    /// Setting roles replaces them on both lookups, and leaves the credential, the address and the
+    /// handle exactly as they were.
+    /// </summary>
     [Fact]
     public async Task Setting_a_role_changes_it_on_both_lookups_and_leaves_the_credential_alone()
     {
@@ -691,6 +723,11 @@ public abstract class UserStoreContract
         Assert.Equal(ada.Username, bySubject.Username);
     }
 
+    /// <summary>Setting an empty set clears every role, and reports that it did.</summary>
+    /// <remarks>
+    /// The direction a replace-everything setter has to keep open. Taking a role away is expressible
+    /// only because the set the caller passes is the set the account ends with.
+    /// </remarks>
     [Fact]
     public async Task A_role_can_be_cleared()
     {
@@ -705,6 +742,10 @@ public abstract class UserStoreContract
         Assert.Empty((await store.FindBySubjectAsync(ada.Subject, CancellationToken.None))!.Roles);
     }
 
+    /// <summary>
+    /// Setting a password hash changes it on both lookups, and leaves the roles, the address and the
+    /// handle exactly as they were.
+    /// </summary>
     [Fact]
     public async Task Setting_a_password_changes_it_on_both_lookups_and_leaves_everything_else_alone()
     {
@@ -733,6 +774,11 @@ public abstract class UserStoreContract
         Assert.Equal(ada.Subject, bySubject.Subject);
     }
 
+    /// <summary>An unknown subject reports false, and no account is created by the attempt.</summary>
+    /// <remarks>
+    /// The second assertion is the one worth making: a store that upserted here would mint an account
+    /// holding a password and nothing else, and report success for a handle somebody mistyped.
+    /// </remarks>
     [Fact]
     public async Task Setting_a_password_on_an_account_that_does_not_exist_says_so_rather_than_creating_one()
     {
@@ -742,6 +788,7 @@ public abstract class UserStoreContract
         Assert.Null(await store.FindBySubjectAsync(Subject("ZZ"), CancellationToken.None));
     }
 
+    /// <summary>Assigning a role to a subject nothing stored reports false and creates no row.</summary>
     [Fact]
     public async Task Setting_a_role_on_an_account_that_does_not_exist_says_so_rather_than_creating_one()
     {
@@ -755,6 +802,7 @@ public abstract class UserStoreContract
 
     // ------------------------------------------------------------------ lookups
 
+    /// <summary>A stored account comes back whole from either lookup, field for field.</summary>
     [Fact]
     public async Task An_account_is_found_by_subject_and_by_username()
     {
@@ -779,6 +827,10 @@ public abstract class UserStoreContract
         Assert.Equal(ada.Roles, byUsername.Roles);
     }
 
+    /// <summary>
+    /// All three lookups answer null for something nothing stored: subject, username and upstream
+    /// identity alike.
+    /// </summary>
     [Fact]
     public async Task An_account_not_stored_is_not_found()
     {
@@ -791,6 +843,7 @@ public abstract class UserStoreContract
         Assert.Null(await store.FindByExternalLoginAsync(RealmId.Default, Google, "unknown", CancellationToken.None));
     }
 
+    /// <summary>A username reaches its account whatever case it was typed in.</summary>
     [Theory]
     [InlineData("ADA")]
     [InlineData("Ada")]
@@ -805,6 +858,7 @@ public abstract class UserStoreContract
         Assert.NotNull(await store.FindByUsernameAsync(RealmId.Default, typed, CancellationToken.None));
     }
 
+    /// <summary>An empty username answers null rather than throwing.</summary>
     [Fact]
     public async Task An_empty_username_is_not_found_rather_than_an_error()
     {
@@ -818,6 +872,10 @@ public abstract class UserStoreContract
 
     // ------------------------------------------------------------------ uniqueness
 
+    /// <summary>
+    /// A second account whose username differs from an existing one only by case is refused, not
+    /// stored beside it.
+    /// </summary>
     [Fact]
     public async Task A_second_account_with_the_same_username_is_refused_even_in_a_different_case()
     {
@@ -831,6 +889,10 @@ public abstract class UserStoreContract
             () => store.StoreAsync(Account("ADA", "BB"), CancellationToken.None));
     }
 
+    /// <summary>
+    /// Storing an account whose subject is already taken is refused, and the account already there
+    /// keeps its username and its credential.
+    /// </summary>
     [Fact]
     public async Task Storing_an_existing_subject_is_refused_rather_than_replacing_its_credentials()
     {
@@ -849,6 +911,12 @@ public abstract class UserStoreContract
         Assert.Equal("ada", still!.Username);
     }
 
+    /// <summary>A blank username and an empty subject are both refused.</summary>
+    /// <remarks>
+    /// <see cref="ArgumentException"/> rather than the <see cref="InvalidOperationException"/> the
+    /// uniqueness rules throw, and the two say different things: one that the caller passed something
+    /// that is not an account, the other that the directory already holds one.
+    /// </remarks>
     [Fact]
     public async Task An_account_needs_a_username_and_a_subject()
     {
@@ -865,6 +933,16 @@ public abstract class UserStoreContract
 
     // ------------------------------------------------------------------ D-10: external logins
 
+    /// <summary>
+    /// D-10: an upstream identity resolves through the link somebody made for it, and the local
+    /// subject is what comes back.
+    /// </summary>
+    /// <remarks>
+    /// The property underneath it is the one federation rests on: a local account is reached by the
+    /// <c>(issuer, subject)</c> pair and by nothing looser — never by the address the upstream
+    /// asserted, which is the classic federated takeover. This measures the positive half. That no
+    /// caller resolves a federated sign-in by address is enforced where the callers are, not here.
+    /// </remarks>
     [Fact]
     public async Task An_upstream_identity_resolves_to_the_local_account_it_is_linked_to()
     {
@@ -882,6 +960,10 @@ public abstract class UserStoreContract
         Assert.Equal(ada.Subject, found!.Subject);
     }
 
+    /// <summary>
+    /// The upstream issuer and subject are matched ordinally, so a differently-cased pair resolves to
+    /// nothing rather than to the account the exact pair reaches.
+    /// </summary>
     [Fact]
     public async Task An_upstream_subject_is_matched_ordinally()
     {
@@ -899,6 +981,10 @@ public abstract class UserStoreContract
         Assert.Null(await store.FindByExternalLoginAsync(RealmId.Default, Google.ToUpperInvariant(), "abcDEF", CancellationToken.None));
     }
 
+    /// <summary>
+    /// One account may hold links from several upstream issuers, and each of them resolves back to
+    /// it.
+    /// </summary>
     [Fact]
     public async Task One_account_may_carry_links_from_several_upstream_issuers()
     {
@@ -919,6 +1005,10 @@ public abstract class UserStoreContract
             (await store.FindByExternalLoginAsync(RealmId.Default, "https://www.facebook.com", "f-1", CancellationToken.None))!.Subject);
     }
 
+    /// <summary>
+    /// A link already pointing at one account cannot be repointed at another: the second link is
+    /// refused, and the identity still resolves to the account that holds it.
+    /// </summary>
     [Fact]
     public async Task An_upstream_identity_cannot_be_moved_to_a_different_account()
     {
@@ -937,6 +1027,10 @@ public abstract class UserStoreContract
         Assert.Equal(Subject("AA"), (await store.FindByExternalLoginAsync(RealmId.Default, Google, "g-1", CancellationToken.None))!.Subject);
     }
 
+    /// <summary>
+    /// Linking the same identity to the same account a second time is accepted, and the identity
+    /// still resolves.
+    /// </summary>
     [Fact]
     public async Task Linking_the_same_identity_to_the_same_account_twice_is_not_an_error()
     {
@@ -952,6 +1046,7 @@ public abstract class UserStoreContract
         Assert.NotNull(await store.FindByExternalLoginAsync(RealmId.Default, Google, "g-1", CancellationToken.None));
     }
 
+    /// <summary>A link naming a local account nothing stored is refused rather than left dangling.</summary>
     [Fact]
     public async Task A_link_to_an_account_that_does_not_exist_is_refused()
     {
@@ -963,6 +1058,10 @@ public abstract class UserStoreContract
             () => store.LinkExternalLoginAsync(new ExternalLogin(Google, "g-1", Subject("ZZ")), CancellationToken.None));
     }
 
+    /// <summary>
+    /// An account carrying no password hash can be stored and linked, and comes back active — the
+    /// shape an account reachable only through an upstream provider has.
+    /// </summary>
     [Fact]
     public async Task An_account_with_no_password_can_still_be_linked()
     {
@@ -982,6 +1081,10 @@ public abstract class UserStoreContract
 
     // ------------------------------------------------------------------ disabled accounts
 
+    /// <summary>
+    /// A disabled account is still returned by a lookup and reports itself inactive, rather than being
+    /// hidden.
+    /// </summary>
     [Fact]
     public async Task A_disabled_account_is_still_found_but_reports_itself_inactive()
     {
@@ -1137,17 +1240,5 @@ public abstract class UserStoreContract
         var found = await store.FindByUsernameAsync(RealmId.Default, "ada", CancellationToken.None);
 
         Assert.Equal(Subject("ZZ"), found!.Subject);
-    }
-}
-
-/// <summary>The contract, against the in-memory store.</summary>
-public sealed class InMemoryUserStoreTests : UserStoreContract
-{
-    // A fresh store per call, so no test can see a row another test wrote.
-    protected override (IUserStore Users, IRoleStore Roles) NewStores()
-    {
-        var roles = new InMemory.InMemoryRoleStore();
-
-        return (new InMemory.InMemoryUserStore(roles), roles);
     }
 }

@@ -1,8 +1,7 @@
 using Boltway.AuthorizationServer.Abstractions.Stores;
 using Boltway.OAuth.Primitives.Ids;
-using Boltway.Storage.InMemory;
 
-namespace Boltway.Storage.Tests;
+namespace Boltway.Storage.Testing;
 
 /// <summary>
 /// The <see cref="IClientAssertionReplayStore"/> contract, run against every implementation.
@@ -36,6 +35,13 @@ public abstract class ClientAssertionReplayStoreContract
 
     private static readonly DateTimeOffset Now = new(2026, 8, 22, 12, 0, 0, TimeSpan.Zero);
 
+    /// <summary>
+    /// A <c>jti</c> this store has not seen is claimed — single use is once, not never.
+    /// </summary>
+    /// <remarks>
+    /// The control for every refusal below: a store that answered <see langword="false"/> to
+    /// everything would pass all of them, and refuse every assertion on its first presentation.
+    /// </remarks>
     [Fact]
     public async Task A_jti_never_seen_is_claimed()
     {
@@ -150,11 +156,4 @@ public abstract class ClientAssertionReplayStoreContract
 
         Assert.Equal(0, await store.DeleteExpiredAsync(Now, CancellationToken.None));
     }
-}
-
-/// <summary>The replay contract, against the in-memory store.</summary>
-public sealed class InMemoryClientAssertionReplayStoreTests : ClientAssertionReplayStoreContract
-{
-    /// <inheritdoc />
-    protected override IClientAssertionReplayStore NewReplayStore() => new InMemoryClientAssertionReplayStore();
 }

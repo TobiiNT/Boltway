@@ -181,7 +181,7 @@ internal sealed class GrantRow
     /// <remarks>
     /// Nullable and never backfilled. Every grant created before this column existed has none, and
     /// nobody can say afterwards what device approved them — the same reason the connector's
-    /// `actor` ledger column was left blank on its older rows.
+    /// <c>actor</c> ledger column was left blank on its older rows.
     /// </remarks>
     public string? UserAgent { get; set; }
 }
@@ -397,7 +397,7 @@ internal sealed class RoleRow
     /// No normalized twin, unlike a username. A role id is not typed at a login page by somebody
     /// who might shift-lock it — it is written once into configuration and compared to a claim, and
     /// every consumer compares ordinally. Folding here would make this store answer a question no
-    /// consumer asks, and make `Founder` and `founder` one role on this side while they stay two on
+    /// consumer asks, and make <c>Founder</c> and <c>founder</c> one role on this side while they stay two on
     /// the other.
     /// </remarks>
     public required string Id { get; set; }
@@ -491,8 +491,8 @@ internal sealed class ClientRow
     /// issued and the ones already out live until they expire.
     ///
     /// Ticks rather than a DateTimeOffset, matching every other instant in this schema. PostgreSQL
-    /// would otherwise get a `timestamptz`, which holds microseconds where a .NET tick is 100ns —
-    /// measured lossy on this server, and `PostgreSqlSchemaTests` fails the whole schema if any
+    /// would otherwise get a <c>timestamptz</c>, which holds microseconds where a .NET tick is 100ns —
+    /// measured lossy on this server, and <c>PostgreSqlSchemaTests</c> fails the whole schema if any
     /// column is a timestamp of any kind.
     /// </remarks>
     public long? DisabledAt { get; set; }

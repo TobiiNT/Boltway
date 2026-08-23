@@ -443,7 +443,7 @@ internal sealed class AuthorizationServerOptionsSeed
     /// Empty by default, which keeps every existing fixture a public-client fixture. A test that
     /// seeds one gets a client that can actually authenticate — the case the suite could not
     /// express at all until mutation testing showed the success branch of <c>SecretAsync</c> had
-    /// never executed. The value must be a real <c>ck_cs_</c> secret: the server parses it as an
+    /// never executed. The value must be a real <c>bw_cs_</c> secret: the server parses it as an
     /// <c>OpaqueSecret</c> before comparing, so an arbitrary string fails on shape and never
     /// reaches the hash comparison the test means to exercise.
     /// </remarks>

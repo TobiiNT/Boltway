@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Net;
 
 namespace Boltway.AdminBff;
@@ -87,11 +88,8 @@ public sealed class AdminText
 
     /// <summary>The sentence for a key, HTML-encoded and ready for the page.</summary>
     /// <param name="key">One of the constants on this class.</param>
-    public string this[string key] =>
-        WebUtility.HtmlEncode(
-            _strings.TryGetValue(key, out var translated) && translated.Length > 0
-                ? translated
-                : English.TryGetValue(key, out var fallback) ? fallback : key);
+    /// <exception cref="ArgumentOutOfRangeException">No such key. See <see cref="Plain"/>.</exception>
+    public string this[string key] => WebUtility.HtmlEncode(Plain(key));
 
     /// <summary>The sentence for a key, <b>unencoded</b>, for a caller that encodes on its own.</summary>
     /// <param name="key">One of the constants on this class.</param>
@@ -108,11 +106,32 @@ public sealed class AdminText
     /// the authorization server's renderer documents, and it landed here the moment the titles
     /// stopped being English literals.
     /// </para>
+    /// <para>
+    /// <b>A key with no English behind it throws instead of rendering itself</b>, which is what
+    /// <c>InteractionText.Default</c> in the library does and is the direction chosen on purpose.
+    /// Returning the key is the quieter of the two and the more expensive: it puts
+    /// <c>RoleHoldersTruncated</c> on a page as though it were a sentence, in front of the operator,
+    /// with nothing in any log saying so — the same defect the library's <c>Localized</c> records
+    /// arriving from a localizer that answers with the key, and the reason its fallback is explicit
+    /// there. Throwing costs nothing a deployment can trip over, because the only keys that reach
+    /// here are the constants on this class: a deployment's file is data on the other side of
+    /// <see cref="Keys"/>, its unknown entries are warned about at startup and never looked up, and
+    /// a missing one falls back to English one string at a time. What is left is a key this build
+    /// ships with no sentence behind it, and <c>Every_key_is_reachable_from_a_page</c> renders every
+    /// page in the suite — so that becomes a red test rather than a page an operator screenshots.
+    /// </para>
+    /// <para>
+    /// A caller holding a string that <i>might</i> not be a key — the <c>?notice=</c> query
+    /// parameter is the one — asks <see cref="NoticeKeys"/> first rather than handing it here.
+    /// </para>
     /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">No such key.</exception>
     public string Plain(string key) =>
         _strings.TryGetValue(key, out var translated) && translated.Length > 0
             ? translated
-            : English.TryGetValue(key, out var fallback) ? fallback : key;
+            : English.TryGetValue(key, out var fallback)
+                ? fallback
+                : throw new ArgumentOutOfRangeException(nameof(key), key, "No such admin string.");
 
     /// <summary>A sentence with one already-safe value spliced into its <c>{0}</c>.</summary>
     /// <param name="key">One of the constants on this class.</param>
@@ -446,6 +465,88 @@ public sealed class AdminText
     /// <summary>Said when the realm defines no roles at all.</summary>
     public const string RolesNone = nameof(RolesNone);
 
+    // ── what just happened ──────────────────────────────────────────────────
+    //
+    // The banner a write redirects to its page with. These are the sentences that were literals in
+    // Program.cs — written straight into `?notice=` and printed by the renderer — so every write in
+    // a fully translated console produced one English line, which is the exact symptom this table
+    // was built to stop.
+    //
+    // **Redirecting with the key rather than the sentence closes a second thing.** `?notice=` was
+    // text from the query string reflected into the page, so any link could make this app's own
+    // banner say anything: encoded, so never an injection, and still a sentence an operator reads as
+    // their own console speaking. Now the parameter is matched against NoticeKeys and anything else
+    // renders nothing at all — a crafted link can choose which of six sentences appears, and cannot
+    // compose one. That property only holds while an unknown key renders nothing; echoing it back,
+    // or handing it to the table, gives the channel straight back.
+    //
+    // The API's own refusals do not travel this way and must not start: `error_description` names
+    // the rule that was broken, it is the authorization server's sentence rather than this app's,
+    // and a write the API refused renders RenderRefusal — where the sentence comes out of the
+    // response body instead of a query string somebody else can write.
+
+    /// <summary>A write landed, and there is nothing more to say about it.</summary>
+    public const string NoticeApplied = nameof(NoticeApplied);
+
+    /// <summary>A role now exists.</summary>
+    public const string NoticeDefined = nameof(NoticeDefined);
+
+    /// <summary>A role or a service account is gone.</summary>
+    public const string NoticeDeleted = nameof(NoticeDeleted);
+
+    /// <summary>
+    /// This app stopped before calling the API, and can say so.
+    /// </summary>
+    /// <remarks>
+    /// The only refusal that reaches a banner, because it is the only one with no server sentence
+    /// behind it — rotating a secret on an account whose service account is already gone, from a
+    /// page that was open while somebody deleted it. It claims nothing was changed, and the claim is
+    /// sound rather than assumed: the check runs ahead of the call, so there is no write whose
+    /// outcome is unknown. Everything the API refused keeps the API's own words on the refusal page.
+    /// </remarks>
+    public const string NoticeRefused = nameof(NoticeRefused);
+
+    /// <summary>
+    /// Sessions ended, with <c>{0}</c> as the count.
+    /// </summary>
+    /// <remarks>
+    /// The second clause is the same one <see cref="OpSessionsCaveat"/> and
+    /// <see cref="SignInAllowedNote"/> carry and may not be dropped in a translation. An operator
+    /// pressing this is usually working an incident, and "signed out" overstates what happened by
+    /// one access-token lifetime.
+    /// </remarks>
+    public const string NoticeSessionsRevoked = nameof(NoticeSessionsRevoked);
+
+    /// <summary>
+    /// An account became a tombstone, with <c>{0}</c> as the handle it had.
+    /// </summary>
+    /// <remarks>
+    /// Said on the account list, because the account page it was sent from no longer names anybody.
+    /// The second clause answers the question the first one raises — why the row is still there —
+    /// before an operator concludes the deletion half-failed.
+    /// </remarks>
+    public const string NoticeAnonymised = nameof(NoticeAnonymised);
+
+    /// <summary>
+    /// The keys an endpoint may put in <c>?notice=</c>, and the only ones a banner will render.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A closed set rather than <see cref="Keys"/>, which would be the obvious check and the wrong
+    /// one: every sentence on these pages is in <see cref="Keys"/>, so a link could raise
+    /// <see cref="NewPasswordOnlyTime"/> as a banner over a page with no password on it. What
+    /// belongs here is what a write actually says when it finishes.
+    /// </para>
+    /// <para>
+    /// Public because the check is part of the seam: a deployment replacing
+    /// <see cref="IAdminRenderer"/> takes on this page's escaping obligations, and this is the one
+    /// it cannot see by reading its own markup.
+    /// </para>
+    /// </remarks>
+    public static IReadOnlySet<string> NoticeKeys { get; } = FrozenSet.ToFrozenSet(
+        [NoticeApplied, NoticeDefined, NoticeDeleted, NoticeRefused, NoticeSessionsRevoked, NoticeAnonymised],
+        StringComparer.Ordinal);
+
     // ── the pages that report a failure ─────────────────────────────────────
 
     /// <summary>The title of the page a refused request lands on.</summary>
@@ -607,6 +708,15 @@ public sealed class AdminText
             + "everyone who holds it, including you.",
         [RolesNone] = "This directory defines no roles yet. An account can only hold a role that "
             + "exists here.",
+
+        [NoticeApplied] = "Applied.",
+        [NoticeDefined] = "Defined.",
+        [NoticeDeleted] = "Deleted.",
+        [NoticeRefused] = "Refused. Nothing was changed — reload the page and try again.",
+        [NoticeSessionsRevoked] = "{0} grant(s) revoked. Access tokens already issued keep working "
+            + "until they expire.",
+        [NoticeAnonymised] = "{0} is anonymised. The account row stays so the audit trail keeps its "
+            + "referent.",
 
         [RefusedTitle] = "Refused",
         [RefusedHeading] = "That did not work",

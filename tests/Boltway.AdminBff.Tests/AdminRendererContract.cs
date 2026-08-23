@@ -178,8 +178,8 @@ public abstract class AdminRendererContract
     /// A refusal keeps the sentence naming the rule that was broken.
     /// </summary>
     /// <remarks>
-    /// The admin API's refusals are written to say what an operator can act on — "`cli-acme` is
-    /// outside your employee scope". A renderer replacing it with its own wording loses the only
+    /// The admin API's refusals are written to say what an operator can act on — "`users:write` is
+    /// not one of this token's scopes". A renderer replacing it with its own wording loses the only
     /// part of the page that was actionable, and this is the one page where there is nothing else to
     /// try.
     /// </remarks>
@@ -187,10 +187,11 @@ public abstract class AdminRendererContract
     public void A_refusal_keeps_the_api_s_own_words()
     {
         var html = Renderer.RenderRefusal(new RefusalViewModel(
-            Render.Refusal(HttpStatusCode.Forbidden, "forbidden", "`cli-acme` is outside your employee scope"), Render.Tokens,
-            "ada"));
+            Render.Refusal(
+                HttpStatusCode.Forbidden, "forbidden", "`users:write` is not one of this token's scopes"),
+            Render.Tokens, "ada"));
 
-        Assert.Contains("outside your employee scope", Render.Decoded(html), StringComparison.Ordinal);
+        Assert.Contains("not one of this token's scopes", Render.Decoded(html), StringComparison.Ordinal);
     }
 
     /// <summary>

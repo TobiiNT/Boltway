@@ -15,10 +15,22 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// <para>
 /// <b>.NET has no first-class way for an application to override a library's resources</b>, because
 /// satellite assemblies belong to the assembly that owns the <c>.resx</c> — a customer cannot add a
-/// language to ours. The documented seam is to replace <see cref="IStringLocalizerFactory"/>, which
-/// is what OrchardCore does with PO files and ABP with its own file system. This is that seam
-/// filled, not replaced: it is an implementation of the framework's interface, and a deployment that
-/// prefers PO files, a database or its own resx registers its own factory instead.
+/// language to ours. So the text comes from a dictionary a deployment supplies, and this is an
+/// implementation of the framework's <see cref="IStringLocalizer"/> over it.
+/// </para>
+/// <para>
+/// <b>The seam is <see cref="IStringLocalizer"/> itself, registered before
+/// <c>AddBoltwayInteractionLocalization</c>.</b> A deployment that prefers PO files, a database or
+/// its own resx registers its own implementation and this one stands aside, because the
+/// registration below is <c>TryAdd</c>.
+/// </para>
+/// <para>
+/// This paragraph said the seam was a replaced <see cref="IStringLocalizerFactory"/>, the way
+/// OrchardCore and ABP do it. Nothing here has ever resolved a factory: the three consumption sites
+/// resolve the bare non-generic <see cref="IStringLocalizer"/>, which <c>AddLocalization()</c> does
+/// not register at all. A consumer following that sentence got English pages and no error — a
+/// documented extension point with nothing behind it, which is the shape of defect <c>N-06</c> is
+/// about, on the customization surface rather than the protocol one.
 /// </para>
 /// <para>
 /// <b>A missing key reports itself.</b> <c>ResourceNotFound</c> is what
@@ -32,8 +44,16 @@ public sealed class DictionaryStringLocalizer : IStringLocalizer
 
     /// <summary>Create a localizer over translations keyed by culture name.</summary>
     /// <param name="translations">
-    /// Culture name to key-to-text. Looked up by the current UI culture and then by its parent, so
-    /// <c>vi-VN</c> finds a <c>vi</c> dictionary without a deployment listing both.
+    /// Culture name to key-to-text, looked up by the current UI culture.
+    /// <para>
+    /// <b>Do not rely on a parent-culture walk.</b> This said <c>vi-VN</c> would find a <c>vi</c>
+    /// dictionary without a deployment listing both. Measured 2026-08-23 on .NET SDK 10.0.111:
+    /// under this build's <c>InvariantGlobalization</c>, <c>GetCultureInfo("vi-VN").Parent.Name</c>
+    /// is the empty string, so the walk ends immediately — and the framework's middleware does not
+    /// fall back either, with or without ICU, so a request for <c>vi-VN</c> resolves to the default
+    /// culture before it ever reaches this dictionary. List the region-specific tag too, or list
+    /// the neutral one and let clients ask for it.
+    /// </para>
     /// </param>
     public DictionaryStringLocalizer(
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations)
@@ -216,6 +236,24 @@ public static class InteractionLocalization
         ArgumentException.ThrowIfNullOrEmpty(defaultCulture);
         ArgumentNullException.ThrowIfNull(translations);
 
+        // Refused here rather than reported to a host that may not ask. A translation that drops a
+        // placeholder deletes the value it was carrying — on the consent page that is the host of
+        // the client_id URL, which N-14 makes a MUST — and the page still renders, so there is no
+        // later moment at which anybody finds out. InteractionText.Problems explains the check;
+        // this is the line that makes it a refusal to start.
+        //
+        // All of them at once, like every other startup check here: a translator fixes one file in
+        // one pass rather than one restart per key.
+        var problems = InteractionText.Problems(translations);
+
+        if (problems.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "These translations would render a page missing something the caller supplied:"
+                + Environment.NewLine
+                + string.Join(Environment.NewLine, problems.Select(p => "  " + p)));
+        }
+
         var supported = SupportedCultures(defaultCulture, translations)
             .Select(CultureInfo.GetCultureInfo)
             .ToList();
@@ -226,12 +264,22 @@ public static class InteractionLocalization
             options.SupportedCultures = supported;
             options.SupportedUICultures = supported;
 
-            // ui_locales first — the client said it about this request. Then the framework's cookie
-            // provider, which is what carries the choice across /authorize → /login → /consent:
-            // those are three requests and the parameter arrives on the first, so without it the
-            // consent page — the one N-14 requires to be read carefully — reverts to the default
-            // mid-flow. Accept-Language and the query-string provider stay where the framework put
-            // them, last.
+            // ui_locales first — the client said it about this request. The framework's own
+            // providers keep the order it gave them: query string, then cookie, then
+            // Accept-Language.
+            //
+            // The query-string one is load-bearing rather than incidental, and this comment used to
+            // credit the cookie provider instead. /authorize, /login and /consent are three
+            // requests and `ui_locales` arrives only on the first, so something has to carry the
+            // choice; the claim was that the cookie did. Nothing in this repository ever wrote that
+            // cookie, so nothing carried it, and the consent page — the one N-14 requires to be
+            // read carefully — rendered in the default language for every real client while
+            // `ui_locales_supported` advertised otherwise.
+            //
+            // What carries it is `AuthorizeEndpoint.LocalReturn`, which appends the culture this
+            // middleware resolved to the interaction URL. The comment there has the rest.
+            // A deployment that would rather use the cookie can still write one: the framework's
+            // provider is registered and will read it.
             options.RequestCultureProviders.Insert(0, new UiLocalesRequestCultureProvider());
         });
 

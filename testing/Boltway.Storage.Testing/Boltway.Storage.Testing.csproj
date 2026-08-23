@@ -1,0 +1,83 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The storage contracts, as something a customer can reference.
+
+    They lived in Boltway.Storage.Tests, which was `IsPackable=true` with the right reason written
+    on it — a store contract nobody outside this repository can run is a contract only this
+    repository is held to. What it published was not usable, and it is the same three defects
+    Boltway.Interaction.Testing was split out to fix, measured again on the packed output:
+
+      * dependencies included Microsoft.NET.Test.Sdk, xunit.runner.visualstudio and
+        coverlet.collector, so referencing the contract dragged a test *runner* and a coverage
+        collector into the customer's project;
+      * the assembly shipped a runtimeconfig.json, because it was packaged as an executable test
+        project rather than as a library;
+      * and it carried this repository's own seven InMemory*Tests classes, so a customer running
+        `dotnet test` ran Boltway's tests inside their own suite and read the results as being
+        about their store.
+
+    The fix was written once and applied to the interaction half only. This is the storage half,
+    and it is the half that reached nuget.org: Boltway.Storage.Tests 0.1.0 is on the feed with all
+    three defects in it, and nuget.org has no delete. That package is superseded by this one rather
+    than replaced — the id stays taken.
+
+    So: the abstract contracts live here, with xunit and nothing else. The derivations stay next
+    door, where they are this repository's tests rather than anybody's contract.
+
+    No test runner here on purpose. This assembly is never executed by itself — a customer's own
+    test project supplies the runner, and adding one would put a second copy in their build.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+
+    <!--
+      No package validation, because there is nothing to validate against. Every other id here has
+      a 0.1.0 on nuget.org that a consumer may already have restored, and Directory.Build.props
+      makes that the ApiCompat baseline; this id has never been published, so asking for the
+      baseline is a restore failure rather than a check. Remove this the release after the first
+      one that ships it — at which point there is a baseline and it should be held to it.
+    -->
+    <EnablePackageValidation>false</EnablePackageValidation>
+    <IsTestProject>false</IsTestProject>
+    <Description>
+      The IGrantStore, IUserStore, IClientStore, IConsentStore, IUserTokenStore, IAdminAuditStore
+      and IClientAssertionReplayStore contracts, as xunit base classes. Derive from them, supply
+      your implementation, and the suite that defines each seam runs against it.
+    </Description>
+
+    <!--
+      CA1707 (no underscores in a public member name) off, CS1591 (missing XML comment) left on,
+      and the split is the point — the same reasoning as Boltway.Interaction.Testing.
+
+      The names are underscored because a contract method's name is what a customer reads in their
+      own test runner when it fails: `Redeeming_many_times_in_parallel_still_succeeds_exactly_once`
+      is the finding. The docs stay required because this is an API surface now.
+    -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The assertion library only. Not Microsoft.NET.Test.Sdk, not the runner, not coverlet:
+         those belong to whatever project executes tests, which is never this one. -->
+    <PackageReference Include="xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    The seams only, and deliberately not Boltway.Storage.InMemory: a contract that referenced an
+    implementation would hand every customer a second one they did not ask for, and the in-memory
+    stores are what this repository's own derivations use, not what the contract is about.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Boltway.AuthorizationServer.Abstractions\Boltway.AuthorizationServer.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

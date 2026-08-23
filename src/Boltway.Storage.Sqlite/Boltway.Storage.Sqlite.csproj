@@ -16,6 +16,12 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      The SQLite provider for Boltway.Storage.EntityFrameworkCore: its migrations, and the one class
+      that says how this provider makes a read-decide-write sequence atomic. A development provider
+      rather than a deployment one — it does not meet the concurrent-redemption requirement, and that
+      intermittent failure is undiagnosed; run PostgreSQL for a deployment.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

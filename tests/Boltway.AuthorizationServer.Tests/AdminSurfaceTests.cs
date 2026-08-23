@@ -188,7 +188,7 @@ public sealed class AdminSurfaceTests
     /// <remarks>
     /// <para>
     /// <c>N-17</c>'s other half, and the reason the rule survived meeting a page that has to be
-    /// cookie-authenticated. §7.2: read literally the rule would mean a founder changing their own
+    /// cookie-authenticated. §7.2: read literally the rule would mean a user changing their own
     /// password runs an OAuth client, and the way out is a third prefix rather than a softened rule.
     /// The prefixes are disjoint, so both directions are mechanical and neither needs judgement.
     /// </para>

@@ -171,12 +171,12 @@ public sealed class ThemeRenderingTests
             PasswordRecoveryEnabled = false,
         });
 
-        Assert.Contains("<p class=\"ck-warning\">", consent, StringComparison.Ordinal);
-        Assert.Contains("<p class=\"ck-warning\">", login, StringComparison.Ordinal);
+        Assert.Contains("<p class=\"bw-warning\">", consent, StringComparison.Ordinal);
+        Assert.Contains("<p class=\"bw-warning\">", login, StringComparison.Ordinal);
 
         // Exactly one on the consent page: the hostnames are information, not warnings, and a page
         // where everything is emphasised has emphasised nothing.
-        Assert.Equal(1, consent.Split("ck-warning", StringSplitOptions.None).Length - 1);
+        Assert.Equal(1, consent.Split("bw-warning", StringSplitOptions.None).Length - 1);
     }
 
     /// <summary>A consent page with no device redirect has no warning to carry the hook.</summary>
@@ -185,7 +185,7 @@ public sealed class ThemeRenderingTests
     {
         var html = new DefaultInteractionRenderer().RenderConsent(Model with { RedirectsToThisDevice = false });
 
-        Assert.DoesNotContain("ck-warning", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("bw-warning", html, StringComparison.Ordinal);
     }
 
     [Fact]

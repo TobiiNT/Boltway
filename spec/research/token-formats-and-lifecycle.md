@@ -1,6 +1,6 @@
 # Token Formats & Lifecycle — Implementer Reference
 
-Target: from-scratch OAuth 2.1 + OIDC Authorization Server in C# / ASP.NET Core 9, trusted by
+Target: from-scratch OAuth 2.1 + OIDC Authorization Server in C# / ASP.NET Core 10 (`net10.0`), trusted by
 Claude.ai MCP connectors and ChatGPT connectors. Auth0 replacement.
 
 Primary sources fetched and quoted below:
@@ -180,7 +180,7 @@ RFC 7519 §7.2 closing note — the reason you must pin algorithms:
 > issued using the client credentials grant, the authorization server should prevent clients from
 > registering an arbitrary client_id value."
 
-### 1.6 ASP.NET Core 9 notes
+### 1.6 ASP.NET Core 10 notes
 
 Issuing (`Microsoft.IdentityModel.JsonWebTokens`):
 

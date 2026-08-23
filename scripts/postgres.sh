@@ -25,10 +25,10 @@
 
 set -euo pipefail
 
-# Matches the `postgres:17-alpine` service container in .github/workflows/ci.yml and deploy-auth.yml.
-# Change both when changing this.
-PG_VERSION="${CK_PG_VERSION:-17}"
-PG_PORT="${CK_PG_PORT:-5432}"
+# Matches the `postgres:17-alpine` service container in .github/workflows/ci.yml and
+# .github/workflows/publish-packages.yml. Change all three when changing this.
+PG_VERSION="${BOLTWAY_PG_VERSION:-17}"
+PG_PORT="${BOLTWAY_PG_PORT:-5432}"
 
 # `PostgresDatabase.ServerConnectionString` defaults to exactly these. They are test credentials for
 # a server bound to loopback; they are not a secret and there is no environment where this login

@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Text;
 
 using static Boltway.AdminBff.AdminMarkup;
@@ -74,12 +75,49 @@ public sealed class DefaultAdminLayout : IAdminLayout
         }
 
         return $"""
-            <!DOCTYPE html><html lang="{Encode(_text.Language)}"><head><meta charset="utf-8">
+            <!DOCTYPE html><html lang="{Encode(_text.Language)}"{Direction(_text.Language)}><head><meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>{Encode(page.Title)}</title>{links}</head>
             <body>{Header(page)}<main>{page.Body}</main></body></html>
             """;
     }
+
+    /// <summary><c> dir="rtl"</c> when the page's language reads right to left, or nothing.</summary>
+    /// <remarks>
+    /// <para>
+    /// The stylesheet was converted to logical properties — <c>padding-inline-start</c> and its
+    /// siblings — which do nothing at all until the document says which way it reads. Without this
+    /// the admin pages render an Arabic translation left to right with every gutter on the wrong
+    /// edge, and the sheet looks like it was never converted.
+    /// </para>
+    /// <para>
+    /// <b>A copy of the list in <c>DefaultInteractionLayout</c> rather than a shared type, on
+    /// purpose.</b> This app has no project reference to anything — it is an OAuth client of the
+    /// authorization server and talks to it over HTTP, which is what keeps <c>N-17</c> true — so
+    /// sharing nine strings would mean taking a dependency on the server to render a page. Same
+    /// trade as <c>CloudLoggingFormatter</c>. The two lists can drift; what that costs is one
+    /// language mirroring on one of the two surfaces, which is visible the moment anybody looks at
+    /// it, and the alternative costs the boundary.
+    /// </para>
+    /// <para>
+    /// Absent rather than <c>dir="ltr"</c> everywhere else: the default is already left to right,
+    /// and a language this list does not know renders that way, which is the direction to be wrong
+    /// in.
+    /// </para>
+    /// </remarks>
+    private static string Direction(string language)
+    {
+        var separator = language.IndexOf('-', StringComparison.Ordinal);
+        var primary = separator < 0 ? language : language[..separator];
+
+        return RightToLeftLanguages.Contains(primary) ? " dir=\"rtl\"" : string.Empty;
+    }
+
+    /// <summary>The primary subtags this shell mirrors for, matched ordinally and case-insensitively.</summary>
+    private static readonly FrozenSet<string> RightToLeftLanguages =
+        FrozenSet.ToFrozenSet(
+            ["ar", "he", "fa", "ur", "ps", "sd", "yi", "ckb", "dv"],
+            StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// The navigation, the operator, and sign-out.

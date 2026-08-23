@@ -5,10 +5,10 @@
 # principal, so the UI has to be an OAuth client. Two processes that authenticate differently
 # should not be one artifact that could be started with the wrong environment and become the other.
 #
-# Build context is `auth/`, the same as the authorization server's, and for the same reason: this
-# host references nothing outside that tree.
+# Build context is the repository root, the same as the authorization server's and for the same
+# reason: the `COPY` paths below are written from there, and it is what CI passes.
 #
-#   docker build -f hosts/Boltway.AdminBff/Dockerfile -t ck-adminbff auth/
+#   docker build -f hosts/Boltway.AdminBff/Dockerfile -t boltway-adminbff .
 
 # A floating tag against a `global.json` written to accept whatever it moves to — see the note on
 # the authorization server's Dockerfile, where a `latestPatch` pin met this tag moving a feature
@@ -44,7 +44,7 @@ RUN apk add --no-cache curl
 
 # **No Data Protection volume, and that is a decision rather than an omission.**
 #
-# The authorization server mounts one because its cookie is a person's session with the company's
+# The authorization server mounts one because its cookie is a person's session with the deployment's
 # identity provider, and signing everyone out on each deploy would be felt. This app's cookie is a
 # key into an in-memory ticket store that a restart empties anyway — README's "the shipped store is
 # in memory, which is the honest limit of it". Persisting the keys would preserve cookies whose

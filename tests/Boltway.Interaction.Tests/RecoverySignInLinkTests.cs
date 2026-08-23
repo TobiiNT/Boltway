@@ -154,7 +154,7 @@ public sealed class AccountProviderLinkTests
     /// A provider already connected says so instead of offering to connect it again.
     /// </summary>
     /// <remarks>
-    /// The page could not say this at all until <c>ListExternalLoginsAsync</c> existed, so a founder
+    /// The page could not say this at all until <c>ListExternalLoginsAsync</c> existed, so a user
     /// linked Google, the page came back identical, and the only way to find out whether it had
     /// worked was to sign out and try. Asserted as the button being gone as well as the sentence
     /// being there: leaving both would send somebody round the whole round trip to learn nothing

@@ -258,7 +258,7 @@ public sealed class SubjectClaimsTests
     /// Deliberate asymmetry, pinned here because it looks like an oversight. An address is personal
     /// data the subject consents to release; a role is what the resource server needs in order to
     /// answer at all, and putting it behind a scope means a client that forgot to ask gets a token
-    /// that authenticates and then reads nothing — which surfaces as an empty knowledge base rather
+    /// that authenticates and then reads nothing — which surfaces as an empty result set rather
     /// than as a missing scope.
     /// </remarks>
     [Fact]

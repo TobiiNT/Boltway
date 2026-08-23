@@ -87,6 +87,36 @@ public sealed class RefreshTokenDeriverTests
     }
 
     [Fact]
+    public void The_legacy_spelling_is_the_same_credential_under_its_old_name()
+    {
+        // The property the refresh grace window depends on across the rename. A row written before
+        // the `ck_` prefix was retired holds the hash of the old spelling, and the grace path
+        // reconstructs a successor and fails closed when the hashes disagree. That check is only
+        // safe to keep if the two spellings really are one credential — same key, same label, same
+        // material — with the prefix outside the MAC. If the material differed, accepting the
+        // legacy form would be accepting a second, independently-derivable token.
+        var deriver = new RefreshTokenDeriver(Key());
+
+        var current = deriver.Derive("family-1", 7).Wire;
+        var legacy = deriver.DeriveLegacy("family-1", 7).Wire;
+
+        Assert.StartsWith("bw_rt_", current, StringComparison.Ordinal);
+        Assert.StartsWith("ck_rt_", legacy, StringComparison.Ordinal);
+        Assert.Equal(current[^43..], legacy[^43..]);
+    }
+
+    [Fact]
+    public void A_legacy_successor_still_parses_at_the_token_endpoint()
+    {
+        // The half that matters to the racing client: it is holding the old spelling, so the value
+        // the grace path hands back has to survive TryParse the next time it is presented.
+        var wire = new RefreshTokenDeriver(Key()).DeriveLegacy("family-1", 1).Wire;
+
+        Assert.True(OpaqueSecret.TryParse(wire, TokenPurpose.RefreshToken, out var parsed));
+        Assert.Equal(TokenPurpose.RefreshToken, parsed.Purpose);
+    }
+
+    [Fact]
     public void A_derived_token_parses_back_as_a_refresh_token()
     {
         // End to end: what Derive returns has to survive the round trip through the wire, because

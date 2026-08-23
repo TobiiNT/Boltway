@@ -113,9 +113,8 @@ public static class AuthorizationServerPaths
     /// </remarks>
     public const string AdminUserAnonymise = "/admin/users/{handle}/anonymise";
 
-    /// <summary>The administrative audit log. E-32.</summary>
     /// <summary>
-    /// The service account acting as one person. E-33.
+    /// The service account acting as one person. E-50.
     /// </summary>
     /// <remarks>
     /// Singular and under the account, because that is what it is: a property of a person rather
@@ -125,13 +124,13 @@ public static class AuthorizationServerPaths
     /// </remarks>
     public const string AdminUserServiceAccount = "/admin/users/{handle}/service-account";
 
-    /// <summary>The roles a realm defines.</summary>
+    /// <summary>The roles a realm defines. E-48.</summary>
     public const string AdminRoles = "/admin/roles";
 
-    /// <summary>One role, by its immutable id.</summary>
+    /// <summary>One role, by its immutable id. E-49.</summary>
     public const string AdminRole = "/admin/roles/{id}";
 
-    /// <summary>The administrative audit trail.</summary>
+    /// <summary>The administrative audit trail. E-32.</summary>
     public const string AdminAudit = "/admin/audit";
 
     /// <summary>The prefix every administrative route shares.</summary>
@@ -220,7 +219,7 @@ public static class AuthorizationServerPaths
     /// <summary>The self-service pages' front page. E-46.</summary>
     /// <remarks>
     /// <b>A third prefix, and the reason there are three rather than two.</b> Read literally,
-    /// <c>N-17</c> would mean a founder changing their own password has to run an OAuth client,
+    /// <c>N-17</c> would mean a user changing their own password has to run an OAuth client,
     /// which is absurd — and the way out is not to soften the rule. <c>/admin/</c> and
     /// <c>/account/</c> are bearer-only and refuse a cookie; these are the opposite and refuse a
     /// bearer. Disjoint prefixes make both halves mechanical: an architecture test reads the routing

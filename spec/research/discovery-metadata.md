@@ -392,7 +392,7 @@ MCP client registration priority order, verbatim:
 > 3. Use Dynamic Client Registration as a fallback if the Authorization Server supports it (via `registration_endpoint` in OAuth Authorization Server Metadata)
 > 4. Prompt the user to enter the client information if no other option is available"
 
-Support **both** CIMD and DCR: Claude's route in the FictStory deployment is CIMD; ChatGPT
+Support **both** CIMD and DCR: Claude's route on the deployment measured here is CIMD; ChatGPT
 historically requires DCR.
 
 ---

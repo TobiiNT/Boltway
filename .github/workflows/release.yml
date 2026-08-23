@@ -53,6 +53,11 @@ jobs:
   tag:
     runs-on: ubuntu-latest
 
+    # A clone and a `git tag`. Anything past ten minutes is a hung fetch, not a slow one, and the
+    # default ceiling of 360 minutes would hold the release for six hours before saying so. The
+    # reasoning for putting a ceiling on every job is written out once, in ci.yml's `test` job.
+    timeout-minutes: 10
+
     # The only job here that needs to write, and the only thing it writes is one ref.
     permissions:
       contents: write
@@ -61,9 +66,13 @@ jobs:
       sha: ${{ steps.cut.outputs.sha }}
 
     steps:
+      # Pinned to a commit rather than a tag: a tag is a mutable pointer in somebody else's
+      # repository, and this job holds `contents: write` on this one. The full argument, and the
+      # dependabot half that keeps a pin from rotting, is in publish-packages.yml.
+      #
       # Full history and every tag: the existence check below is worthless against a shallow clone
       # that fetched none, and it would pass by seeing nothing rather than by finding nothing.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
           ref: ${{ inputs.ref || github.ref }}
@@ -92,6 +101,27 @@ jobs:
             exit 1
           fi
 
+          # The tag names a version, and until now nothing checked that it named *this* one.
+          # `Directory.Build.props` is the single literal every package publishes at and
+          # CONTRIBUTING requires bumping it in the commit that changed the surface, so the tag is
+          # purely derivative — which makes this an equality check rather than a judgement.
+          #
+          # Without it, dispatching `v0.3.0` against a tree still reading 0.2.0 cuts the tag,
+          # publishes every package at 0.2.0, and reports success. The header at the top of this
+          # file says the old process needed "the discipline to type the version twice"; the second
+          # typing was removed and this is the check that replaced it.
+          VERSION="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | head -1)"
+          if [ -z "$VERSION" ]; then
+            echo "::error::No <Version> in Directory.Build.props, so $TAG cannot be checked against it."
+            exit 1
+          fi
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "::error::$TAG names a release of $VERSION. Bump <Version> in Directory.Build.props,"
+            echo "::error::or cut v$VERSION — publishing $VERSION under $TAG leaves the tag pointing"
+            echo "::error::at packages that do not carry its number."
+            exit 1
+          fi
+
           SHA="$(git rev-parse HEAD)"
 
           # Annotated, not lightweight. An annotated tag carries a message, an author and a date, so
@@ -113,9 +143,21 @@ jobs:
   publish:
     needs: tag
 
+    # No `timeout-minutes` here, and it is not an oversight: a job that calls a reusable workflow
+    # takes no job-level keys beyond the few listed for `uses`, so writing one is a syntax error
+    # rather than a ceiling. The ceiling for this work lives on the `publish` job inside
+    # publish-packages.yml, which is the job that actually runs.
+    #
+    # A called workflow's own `permissions:` block can only narrow what this job grants — it cannot
+    # widen it. `publish-packages.yml` declares `id-token: write` for nuget.org Trusted Publishing,
+    # and that declaration is ignored on this path, so omitting it here left `NuGet/login` with no
+    # OIDC token: the tag-push path published to nuget.org and the documented release path could
+    # not, with nothing testing the difference. It failed after the tag was pushed and after
+    # GitHub Packages was written, neither of which is reversible.
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     uses: ./.github/workflows/publish-packages.yml
     with:
@@ -140,16 +182,24 @@ jobs:
     needs: [tag, publish]
     runs-on: ubuntu-latest
 
+    # Two registry writes against manifests that already exist — no build, no push of bytes. A
+    # ceiling for the reason ci.yml's `test` job writes out; this one is low because there is
+    # nothing here that legitimately takes long.
+    timeout-minutes: 15
+
     permissions:
       contents: read
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to commits rather than tags — see publish-packages.yml for the argument. The login
+      # below is the sharpest case in this repository: a third-party action, `packages: write`, and
+      # a registry password on its input.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: ${{ needs.tag.outputs.sha }}
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -167,19 +217,53 @@ jobs:
           # says a second hand-written copy is where two things stop being identical — and the drift
           # here would be silent in the worst way: a new image would build, push and test on every
           # commit, and simply never receive a version tag.
-          python3 - <<'PARSE' > names.txt
-          import yaml
-          with open('.github/workflows/ci.yml') as f:
-              ci = yaml.safe_load(f)
-          for row in ci['jobs']['image']['strategy']['matrix']['include']:
-              print(row['name'])
-          PARSE
+          #
+          # **`yq` rather than python, and the dependency is the whole reason.** This was a heredoc
+          # whose first line was `import yaml`. PyYAML is not in the standard library and nothing
+          # here installed it: the step worked only because the runner image happens to ship it. An
+          # undeclared dependency is a step that breaks when somebody else changes an image, and
+          # this is the last step of a release — the tag is pushed, both feeds are written, and none
+          # of that can be taken back. `pinned-drafts.yml` states the rule out loud for a much
+          # cheaper job: a check whose own dependencies can break goes red for reasons that have
+          # nothing to do with what it watches.
+          #
+          # yq is preinstalled on the GitHub-hosted runner images, so this removes a dependency
+          # rather than swapping one for another. Named explicitly when it is absent all the same,
+          # because `yq: command not found` is a two-word failure at the most expensive moment this
+          # workflow has.
+          command -v yq >/dev/null || {
+            echo "::error::yq is not on this runner. It ships in the GitHub-hosted images; a"
+            echo "::error::self-hosted runner has to install it. Do not reach back for python and"
+            echo "::error::PyYAML here — that undeclared import is what this step replaced."
+            exit 1
+          }
+
+          yq '.jobs.image.strategy.matrix.include[].name' .github/workflows/ci.yml > names.txt
 
           # A parse that found nothing would tag nothing and report success, which is the failure
           # this whole job exists to stop happening to somebody else.
           [ -s names.txt ] || { echo "::error::no image names found in ci.yml"; exit 1; }
 
           while read -r NAME; do
+            # Each name goes into a registry reference and then into a write, so it is checked
+            # rather than trusted. A yq that ever returned something quoted, null, or a whole
+            # sub-document would otherwise produce a reference that is *almost* right, and the
+            # symptom would be a missing image tag on a release nobody re-reads. Cheap, exact, and
+            # it fails naming the value rather than passing it on.
+            #
+            # Uppercase is allowed here even though a registry will not take it: the line below
+            # lowercases the whole reference, exactly as ci.yml does, so a capital in the matrix is
+            # legal today. Narrowing this to what a registry accepts would reject a configuration
+            # that currently works — a check that invents a rule is a check that fails a release
+            # for no defect.
+            case "$NAME" in
+              ''|*[!a-zA-Z0-9._-]*)
+                echo "::error::'$NAME' is not a plain image name. It came out of the matrix in"
+                echo "::error::ci.yml, so either that matrix changed shape or yq printed something"
+                echo "::error::other than a bare scalar — check the step's output above."
+                exit 1 ;;
+            esac
+
             IMAGE="$(echo "ghcr.io/$OWNER/$NAME" | tr '[:upper:]' '[:lower:]')"
 
             # Named separately from the failure below, because the cure is different: this one means

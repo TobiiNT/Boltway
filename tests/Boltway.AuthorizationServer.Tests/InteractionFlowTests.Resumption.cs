@@ -33,7 +33,7 @@ public sealed partial class InteractionFlowTests
     /// is the seam a deployment uses for a client blocklist, a per-tenant allowlist or a risk
     /// engine. Measured before the fix: <c>/authorize</c> redirected with <c>access_denied</c>, and
     /// <c>GET /consent</c> on the same returnUrl rendered a full approve form whose POST returned
-    /// <c>?code=ck_ac_…</c>. No CSRF and no interception needed — any signed-in user, one URL.
+    /// <c>?code=bw_ac_…</c>. No CSRF and no interception needed — any signed-in user, one URL.
     /// </remarks>
     [Fact]
     public async Task A_denied_policy_cannot_be_bypassed_by_posting_to_the_consent_page()

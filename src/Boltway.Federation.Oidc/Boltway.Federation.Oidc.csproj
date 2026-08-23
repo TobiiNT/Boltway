@@ -18,6 +18,12 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
+    <Description>
+      The generic OpenID Connect relying-party leg: signing a user in against any upstream identity
+      provider, behind the IExternalIdentityProvider seam. It does not reference
+      Boltway.AuthorizationServer, so a provider cannot reach the server's endpoints, cookies or
+      pipeline.
+    </Description>
   </PropertyGroup>
 
   <!--

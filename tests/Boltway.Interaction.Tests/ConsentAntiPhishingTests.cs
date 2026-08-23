@@ -89,7 +89,7 @@ public sealed class ConsentAntiPhishingTests
     {
         var html = Render(Model(name: null));
 
-        Assert.DoesNotContain("ck-name", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("bw-name", html, StringComparison.Ordinal);
         Assert.DoesNotContain("is not verified.", html, StringComparison.Ordinal);
     }
 
@@ -106,9 +106,9 @@ public sealed class ConsentAntiPhishingTests
     {
         var html = Render(Model(name: "Claude"));
 
-        var host = html.IndexOf("ck-client", StringComparison.Ordinal);
-        var name = html.IndexOf("ck-name", StringComparison.Ordinal);
-        var redirect = html.IndexOf("ck-redirect", StringComparison.Ordinal);
+        var host = html.IndexOf("bw-client", StringComparison.Ordinal);
+        var name = html.IndexOf("bw-name", StringComparison.Ordinal);
+        var redirect = html.IndexOf("bw-redirect", StringComparison.Ordinal);
 
         Assert.True(host >= 0 && name >= 0 && redirect >= 0, "all three paragraphs render");
         Assert.True(host < name, "the proven host leads the self-asserted name");
@@ -129,9 +129,9 @@ public sealed class ConsentAntiPhishingTests
     {
         var html = Render(Model(name: "Claude", logo: "/client-logo/abc"));
 
-        var host = html.IndexOf("ck-client", StringComparison.Ordinal);
-        var img = html.IndexOf("<img class=\"ck-client-logo\"", StringComparison.Ordinal);
-        var redirect = html.IndexOf("ck-redirect", StringComparison.Ordinal);
+        var host = html.IndexOf("bw-client", StringComparison.Ordinal);
+        var img = html.IndexOf("<img class=\"bw-client-logo\"", StringComparison.Ordinal);
+        var redirect = html.IndexOf("bw-redirect", StringComparison.Ordinal);
         var caveat = html.IndexOf("is not verified.", StringComparison.Ordinal);
 
         Assert.True(img > 0, "the client logo renders");

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using Boltway.OAuth.Primitives.Diagnostics;
 using Microsoft.Extensions.Localization;
@@ -14,7 +15,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// <c>vi</c> resolves to the neutral value, not to the key. What it also brings is satellite
 /// assemblies, which belong to the assembly owning the resx, so a customer still cannot add a
 /// language to <i>ours</i>. Since the override route is a registered
-/// <see cref="IStringLocalizerFactory"/> either way, the resx would have bought a packaging story
+/// <see cref="IStringLocalizer"/> either way, the resx would have bought a packaging story
 /// and no capability. English lives here, and a missing translation falls back to it explicitly
 /// rather than through a resource chain.
 /// </para>
@@ -690,7 +691,7 @@ public static class InteractionText
     /// actions in response to them: start again, wait, tell whoever runs the application, ask an
     /// administrator, or nothing because they declined on purpose. Twenty-six sentences would be
     /// twenty-six translations of "a redirect URI registration is unusable" — accurate, and useless
-    /// to the founder reading it.
+    /// to the person reading it.
     /// </para>
     /// <para>
     /// <b>The precise cause is not lost, it moves to where it is useful.</b> Every refusal is logged
@@ -743,6 +744,108 @@ public static class InteractionText
     /// </remarks>
     public static IReadOnlyCollection<string> Keys => English.Keys;
 
+    /// <summary>
+    /// What is wrong with a deployment's translations, as sentences naming the culture and the key.
+    /// </summary>
+    /// <param name="translations">Culture to key-to-text, the shape a deployment supplies.</param>
+    /// <returns>Empty when there is nothing wrong.</returns>
+    /// <remarks>
+    /// <para>
+    /// <b>A translation that drops a placeholder deletes what the placeholder was carrying, and
+    /// nothing downstream can tell.</b> <see cref="Format"/> encodes the text and then substitutes
+    /// into <c>{0}</c>; no <c>{0}</c> means no substitution and a sentence that reads fine. On
+    /// <see cref="ConsentClientAsking"/> the value being dropped is the host of the
+    /// <c>client_id</c> URL — the field <c>N-14</c> makes a MUST, the one thing on the consent page
+    /// that says which application is actually asking. A deployment could delete it by editing a
+    /// JSON file, and the page would still render, still pass the renderer contract, and still look
+    /// finished.
+    /// </para>
+    /// <para>
+    /// The arity is not a rule this adds: it is read off the English table, which is what
+    /// <see cref="Format"/>'s callers are written against. A key with more placeholders than
+    /// English is a problem too — the extra one has no argument, so it reaches the page as the
+    /// literal text <c>{1}</c>.
+    /// </para>
+    /// <para>
+    /// Reported rather than thrown, and reported <i>all at once</i>, so a translator fixes a file
+    /// in one pass instead of one restart per key. <c>AddBoltwayInteractionLocalization</c> is what
+    /// turns the list into a refusal to start, on the same reasoning as every other startup check
+    /// here: a page that silently lost a security field is worse than a host that did not come up.
+    /// </para>
+    /// </remarks>
+    public static IReadOnlyList<string> Problems(
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> translations)
+    {
+        ArgumentNullException.ThrowIfNull(translations);
+
+        var problems = new List<string>();
+
+        foreach (var (culture, table) in translations)
+        {
+            if (table is null)
+            {
+                continue;
+            }
+
+            foreach (var (key, text) in table)
+            {
+                // An unknown key is a separate complaint, made by the host that loaded the file —
+                // it can name the file. Here it simply has no English arity to be checked against.
+                if (text is null || !English.TryGetValue(key, out var english))
+                {
+                    continue;
+                }
+
+                var expected = Placeholders(english);
+                var actual = Placeholders(text);
+
+                if (expected.SetEquals(actual))
+                {
+                    continue;
+                }
+
+                var missing = expected.Except(actual).Order().ToList();
+                var extra = actual.Except(expected).Order().ToList();
+
+                if (missing.Count > 0)
+                {
+                    problems.Add(
+                        $"{culture}/{key} drops {Placeholders(missing)}, so the value it carried is "
+                        + "silently absent from the rendered page.");
+                }
+
+                if (extra.Count > 0)
+                {
+                    problems.Add(
+                        $"{culture}/{key} adds {Placeholders(extra)}, which no caller supplies, so it "
+                        + "reaches the page as literal text.");
+                }
+            }
+        }
+
+        return problems;
+    }
+
+    /// <summary>The placeholder indices a string carries.</summary>
+    private static HashSet<int> Placeholders(string text)
+    {
+        var found = new HashSet<int>();
+
+        for (var i = 0; i + 2 < text.Length; i++)
+        {
+            if (text[i] == '{' && text[i + 2] == '}' && char.IsAsciiDigit(text[i + 1]))
+            {
+                found.Add(text[i + 1] - '0');
+            }
+        }
+
+        return found;
+    }
+
+    /// <summary>Placeholder indices as they are written, for a message a translator reads.</summary>
+    private static string Placeholders(IEnumerable<int> indices) =>
+        string.Join(", ", indices.Select(i => "{" + i.ToString(CultureInfo.InvariantCulture) + "}"));
+
     /// <summary>The English text for a key.</summary>
     /// <param name="key">One of the constants on this type.</param>
     /// <exception cref="ArgumentOutOfRangeException">No such key.</exception>
@@ -776,7 +879,7 @@ public static class InteractionText
         for (var i = 0; i < safeHtml.Length; i++)
         {
             encoded = encoded.Replace(
-                "{" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "}",
+                "{" + i.ToString(CultureInfo.InvariantCulture) + "}",
                 safeHtml[i],
                 StringComparison.Ordinal);
         }

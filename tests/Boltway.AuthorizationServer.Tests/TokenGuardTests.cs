@@ -316,7 +316,7 @@ public sealed class TokenGuardTests
 
         if (bodySecret)
         {
-            fields.Add(("client_secret", "ck_cs_" + new string('A', 43)));
+            fields.Add(("client_secret", "bw_cs_" + new string('A', 43)));
         }
 
         if (assertion)

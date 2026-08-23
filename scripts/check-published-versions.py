@@ -38,10 +38,24 @@ Verified against the outage above and against a rebuild, which is the pair that 
 added, and `Boltway.Mcp 0.4.0` — the same source built twice, once here and once on a runner —
 reports no change at all.
 
+**And the nuspec's `<dependencies>`, because names alone miss the half of this that has no
+assembly.** A ProjectReference packs as a dependency on the referenced project's version, so a
+project whose own source never changed still needs a bump when something it references moves —
+`Directory.Build.props` says exactly that, in the comment beside the number. When that bump is
+forgotten the packed nuspec names a newer dependency while every assembly in the package is
+byte-for-byte what is published: the name comparison above reports `unchanged`, the push skips, and
+the corrected nuspec is dropped. What a consumer then restores is a package pinning a dependency
+version that is merely old, and no amount of publishing the newer one can reach them.
+
+That is the same outage as the one above seen from the other end. `Boltway.Mcp` was caught because
+its own version was new; a sibling package that only *referenced* the changed project would not have
+been caught by anything here at all. Comparing the element is cheap and exact — the nuspec is
+generated, so it does not churn between two builds of the same source the way a metadata heap can.
+
 Be clear about what that does not cover: a signature changed without any name changing — the same
 member taking an `int` where it took a `long` — has the same names and passes here, and is still a
 `MissingMethodException` for a consumer. Comparing full signatures needs a metadata reader rather
-than a heap scan. This catches the shape that actually bit; it is not a compatibility checker.
+than a heap scan. This catches the two shapes that actually bit; it is not a compatibility checker.
 
 Exits 1 if any package drifted, naming each one and what moved.
 """
@@ -56,6 +70,7 @@ import urllib.parse
 import urllib.request
 import base64
 import zipfile
+from xml.etree import ElementTree
 
 def section_table(data, pe):
     """(virtual address, virtual size, raw offset) for each PE section, to resolve an RVA."""
@@ -168,6 +183,66 @@ def assemblies(nupkg_bytes):
         }
 
 
+def local(tag):
+    """An element's name without its XML namespace.
+
+    The nuspec schema URL carries a year in it and has been revised more than once, so matching
+    `{http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd}dependency` would be matching the
+    version of the schema NuGet happened to emit under. The local name is the stable half.
+    """
+    return tag.rsplit('}', 1)[-1]
+
+
+def dependencies(nupkg_bytes):
+    """Every dependency the nuspec declares, as sorted `<framework> | <id> <range>` lines.
+
+    Read from the nuspec rather than from the assemblies, because this is the part of a package that
+    has no assembly: a ProjectReference becomes a `<dependency>` on the referenced project's
+    version, and moving that version changes nothing about the bytes in `lib/`.
+
+    Grouped by target framework and kept in the comparison, because a dependency that moved from one
+    framework group to another is a real change to what a consumer resolves — flattening the groups
+    would report that as no change at all.
+
+    Returns an empty list for a package with no nuspec or no dependencies. Both compare equal to the
+    same absence on the other side, which is what "nothing to say about this" has to mean here.
+    """
+    with zipfile.ZipFile(io.BytesIO(nupkg_bytes)) as archive:
+        name = next((n for n in archive.namelist() if n.endswith('.nuspec')), None)
+        if name is None:
+            return []
+        raw = archive.read(name)
+
+    root = ElementTree.fromstring(raw)
+
+    node = next((e for e in root.iter() if local(e.tag) == 'dependencies'), None)
+    if node is None:
+        return []
+
+    found = []
+
+    def record(framework, dependency):
+        found.append(
+            f'{framework} | {dependency.get("id", "?")} {dependency.get("version", "(any)")}'
+        )
+
+    for child in node:
+        if local(child.tag) == 'group':
+            # `targetFramework` is optional on a group and means "every framework not named by
+            # another group". Spelling that absence as a word keeps it distinguishable from a group
+            # that names a framework called nothing.
+            framework = child.get('targetFramework') or '(all frameworks)'
+            for dependency in child:
+                if local(dependency.tag) == 'dependency':
+                    record(framework, dependency)
+        elif local(child.tag) == 'dependency':
+            # The pre-group flat form. Still legal, still produced by older tooling, and a package
+            # in the feed may well have been packed by some.
+            record('(all frameworks)', child)
+
+    return sorted(found)
+
+
 def identity(nupkg_path):
     """The package id and version, read from the nuspec rather than parsed out of the filename.
 
@@ -211,17 +286,15 @@ class DropAuthOnCrossHostRedirect(urllib.request.HTTPRedirectHandler):
 OPENER = urllib.request.build_opener(DropAuthOnCrossHostRedirect)
 
 
-def published(owner, pid, version, auth_header):
-    """The package already in the feed, or None if this version is new.
+def fetch(url, auth_header=None):
+    """The bytes at `url`, or None when the feed answers 404.
 
-    GitHub Packages lowercases ids in flat-container URLs. 404 is the answer that means "new";
-    anything else is raised, because a feed that cannot be read is not evidence that a version is
-    absent — that is the whole failure mode this file exists to close, one layer up.
+    404 is the answer that means "new"; anything else is raised, because a feed that cannot be read
+    is not evidence that a version is absent — that is the whole failure mode this file exists to
+    close, one layer up.
     """
-    lower = pid.lower()
-    url = (f'https://nuget.pkg.github.com/{owner}/download/'
-           f'{lower}/{version}/{lower}.{version}.nupkg')
-    request = urllib.request.Request(url, headers={'Authorization': auth_header})
+    headers = {'Authorization': auth_header} if auth_header else {}
+    request = urllib.request.Request(url, headers=headers)
     try:
         with OPENER.open(request, timeout=60) as response:
             return response.read()
@@ -229,6 +302,78 @@ def published(owner, pid, version, auth_header):
         if error.code == 404:
             return None
         raise
+
+
+def published(owner, pid, version, auth_header):
+    """Every feed that already holds this id and version, as (feed name, package bytes).
+
+    **Both feeds, and nuget.org first, because they are not equally forgiving.** A version on
+    GitHub Packages can be deleted; a version on nuget.org can only be unlisted, and unlisting does
+    not free the number or un-restore it for anybody who already has it. Reading only the deletable
+    one was this check measuring the cheap half: prune a version from GitHub Packages and the
+    lookup answers 404, the caller prints `new`, the push goes to nuget.org where that version does
+    exist, and `--skip-duplicate` drops it exactly as described at the top of this file.
+
+    Both are flat-container URLs and both lowercase the id; nuget.org lowercases the version too,
+    and needs no credential to read.
+    """
+    lower, lowver = pid.lower(), version.lower()
+
+    feeds = [
+        ('nuget.org',
+         f'https://api.nuget.org/v3-flatcontainer/'
+         f'{lower}/{lowver}/{lower}.{lowver}.nupkg',
+         None),
+        ('GitHub Packages',
+         f'https://nuget.pkg.github.com/{owner}/download/'
+         f'{lower}/{version}/{lower}.{version}.nupkg',
+         auth_header),
+    ]
+
+    found = []
+    for name, url, header in feeds:
+        body = fetch(url, header)
+        if body is not None:
+            found.append((name, body))
+    return found
+
+
+def compare(fresh_assemblies, published_assemblies):
+    """What moved between a packed assembly set and a published one, as readable lines."""
+    changes = []
+    for name in sorted(set(fresh_assemblies) | set(published_assemblies)):
+        if name not in published_assemblies:
+            changes.append(f'{name} is new in this build')
+            continue
+        if name not in fresh_assemblies:
+            changes.append(f'{name} is in the feed and not in this build')
+            continue
+        added = names(fresh_assemblies[name]) - names(published_assemblies[name])
+        removed = names(published_assemblies[name]) - names(fresh_assemblies[name])
+        if added or removed:
+            changes.append(
+                f'{name}: {len(added)} name(s) added, {len(removed)} removed'
+                + sample('added', added) + sample('removed', removed)
+            )
+    return changes
+
+
+def dependency_changes(fresh, published):
+    """What moved in the nuspec's `<dependencies>` element, as readable lines.
+
+    Both sides are printed in full rather than as a count. A dependency drift is almost always one
+    version number in one line, and the whole question a reader has is "from what, to what" — a
+    summary saying `1 added, 1 removed` would make them download both packages to answer it.
+    """
+    added = sorted(set(fresh) - set(published))
+    removed = sorted(set(published) - set(fresh))
+    if not added and not removed:
+        return []
+
+    lines = ['the nuspec <dependencies> element has moved:']
+    lines += [f'    in the feed:     {entry}' for entry in removed]
+    lines += [f'    in this build:   {entry}' for entry in added]
+    return lines
 
 
 def main():
@@ -258,42 +403,34 @@ def main():
         pid, version = identity(path)
         existing = published(owner, pid, version, auth_header)
 
-        if existing is None:
+        if not existing:
             print(f'  new       {pid} {version}')
             continue
 
         with open(path, 'rb') as handle:
-            fresh_assemblies = assemblies(handle.read())
-        published_assemblies = assemblies(existing)
+            fresh_package = handle.read()
 
-        changes = []
-        for name in sorted(set(fresh_assemblies) | set(published_assemblies)):
-            if name not in published_assemblies:
-                changes.append(f'{name} is new in this build')
-                continue
-            if name not in fresh_assemblies:
-                changes.append(f'{name} is in the feed and not in this build')
-                continue
-            added = names(fresh_assemblies[name]) - names(published_assemblies[name])
-            removed = names(published_assemblies[name]) - names(fresh_assemblies[name])
-            if added or removed:
-                changes.append(
-                    f'{name}: {len(added)} name(s) added, {len(removed)} removed'
-                    + sample('added', added) + sample('removed', removed)
-                )
+        fresh_assemblies = assemblies(fresh_package)
+        fresh_dependencies = dependencies(fresh_package)
 
-        if changes:
-            drifted.append((pid, version, changes))
-            print(f'  DRIFTED   {pid} {version}')
-        else:
-            print(f'  unchanged {pid} {version}')
+        for feed, body in existing:
+            # Two comparisons rather than one, because they catch different failures: the assemblies
+            # catch a member that appeared or vanished, the nuspec catches a referenced version that
+            # moved while every assembly stayed identical. A package can drift on either alone.
+            changes = (compare(fresh_assemblies, assemblies(body))
+                       + dependency_changes(fresh_dependencies, dependencies(body)))
+            if changes:
+                drifted.append((pid, version, feed, changes))
+                print(f'  DRIFTED   {pid} {version} ({feed})')
+            else:
+                print(f'  unchanged {pid} {version} ({feed})')
 
     if not drifted:
         return 0
 
     print()
-    for pid, version, changes in drifted:
-        print(f'::error::{pid} {version} is already in the feed with different contents.')
+    for pid, version, feed, changes in drifted:
+        print(f'::error::{pid} {version} is already on {feed} with different contents.')
         for change in changes:
             print(f'::error::  {change}')
         print(f'::error::  `--skip-duplicate` would drop this build and keep the published one, so')

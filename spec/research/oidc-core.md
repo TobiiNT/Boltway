@@ -7,7 +7,7 @@ RFC 6750 §2–3, RFC 6749 §4.1.2.1/§5.2, RFC 9700 §2.1.1 / §4.2.4 / §4.14.
 
 Scope of this doc: **only** what an AS must implement to be a conformant OP for
 `response_type=code`. Implicit and hybrid are called out only where they change a rule you
-would otherwise get wrong. Target: C# / ASP.NET Core 9.
+would otherwise get wrong. Target: C# / ASP.NET Core 10 (`net10.0`).
 
 ---
 
@@ -768,7 +768,7 @@ fall back to token-expiry-driven renewal.
 
 ---
 
-## 15. ASP.NET Core 9 implementation notes
+## 15. ASP.NET Core 10 implementation notes
 
 | Concern | Do this |
 |---|---|

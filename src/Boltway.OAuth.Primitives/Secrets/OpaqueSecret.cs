@@ -53,7 +53,7 @@ public readonly struct OpaqueSecret
     /// override does. Overriding <c>ToString</c> stops string interpolation; it does nothing about
     /// <c>JsonSerializer.Serialize(secret)</c>, Serilog's <c>{@secret}</c> destructuring, or any
     /// structured-logging provider that reflects over properties — all of which would have emitted
-    /// <c>{"Purpose":2,"Wire":"ck_rt_…"}</c> with the live token in it.
+    /// <c>{"Purpose":2,"Wire":"bw_rt_…"}</c> with the live token in it.
     /// </remarks>
     [JsonIgnore]
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -86,7 +86,7 @@ public readonly struct OpaqueSecret
     /// <para>
     /// <b>And narrow by accessibility, because "deliberately narrow" was not true while it was
     /// public.</b> A review measured it: <c>FromDerivedMaterial(TokenPurpose.RefreshToken,
-    /// SHA256("user@example.com"))</c> minted a valid <c>ck_rt_…</c> that <see cref="TryParse"/>
+    /// SHA256("user@example.com"))</c> minted a valid <c>bw_rt_…</c> that <see cref="TryParse"/>
     /// accepted, and <c>TokenPurpose.RegistrationAccessToken</c> — the sole authenticator for full
     /// control of a client record — behaved identically. The 32-byte check is the right guard for
     /// the stated purpose, wire indistinguishability, and no guard whatsoever for the one the name
@@ -113,6 +113,46 @@ public readonly struct OpaqueSecret
     }
 
     /// <summary>
+    /// The same derivation, spelled the way it was before the <c>ck_</c> prefix was retired.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Only the refresh grace window needs this, and only because of what it does with the result.
+    /// A successor is derived rather than generated so that two racing redemptions compute the same
+    /// plaintext, and the grace path then checks the reconstruction against the hash the store
+    /// holds and <b>fails closed</b> if they differ — a check that exists because a wrong
+    /// derivation key otherwise hands a client a token belonging to no row.
+    /// </para>
+    /// <para>
+    /// A row written before the rename holds the hash of a <c>ck_rt_</c> string. Reconstructing it
+    /// as <c>bw_rt_</c> mismatches, and the refusal would then tell an operator their
+    /// <c>RefreshTokenDerivationKey</c> disagrees with the one that wrote the row — true of every
+    /// route into that refusal except this one. A rename that makes a diagnostic lie is worse than
+    /// the branding it removes, so the reconstruction tries both spellings and the message stays
+    /// true.
+    /// </para>
+    /// <para>
+    /// It expires with <see cref="LegacyPrefixFor"/>, and sooner: only a family whose successor was
+    /// minted in the grace window that spans the upgrade can reach it.
+    /// </para>
+    /// </remarks>
+    internal static OpaqueSecret FromLegacyDerivedMaterial(TokenPurpose purpose, ReadOnlySpan<byte> material)
+    {
+        if (purpose == TokenPurpose.None)
+        {
+            throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "A secret needs a real purpose.");
+        }
+
+        if (material.Length != EntropyBytes)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(material), material.Length, $"Derived material must be exactly {EntropyBytes} bytes.");
+        }
+
+        return new OpaqueSecret(purpose, LegacyPrefixFor(purpose) + Base64Url.Encode(material));
+    }
+
+    /// <summary>
     /// Parse a presented secret, checking that it is the kind of secret the caller expects.
     /// </summary>
     /// <param name="wire">The value as presented by the client.</param>
@@ -133,11 +173,18 @@ public readonly struct OpaqueSecret
             return false;
         }
 
+        // Either spelling, and the current one first so the legacy comparison falls away as tokens
+        // turn over. See LegacyPrefixFor for why the old one is still accepted and when it goes.
         var prefix = PrefixFor(expected);
 
         if (!wire.StartsWith(prefix, StringComparison.Ordinal))
         {
-            return false;
+            prefix = LegacyPrefixFor(expected);
+
+            if (!wire.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                return false;
+            }
         }
 
         var body = wire[prefix.Length..];
@@ -155,10 +202,41 @@ public readonly struct OpaqueSecret
 
     /// <summary>The prefix identifying each kind of secret on the wire.</summary>
     /// <remarks>
-    /// No prefix is a prefix of another — <c>ck_rt_</c> and <c>ck_rat_</c> diverge at index 4 —
+    /// No prefix is a prefix of another — <c>bw_rt_</c> and <c>bw_rat_</c> diverge at index 4 —
     /// which is what makes the <c>StartsWith</c> check in <see cref="TryParse"/> unambiguous.
     /// </remarks>
     private static string PrefixFor(TokenPurpose purpose) => purpose switch
+    {
+        TokenPurpose.AuthorizationCode => "bw_ac_",
+        TokenPurpose.RefreshToken => "bw_rt_",
+        TokenPurpose.RegistrationAccessToken => "bw_rat_",
+        TokenPurpose.ClientSecret => "bw_cs_",
+        _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unknown token purpose."),
+    };
+
+    /// <summary>The prefix these secrets carried before the project was named Boltway.</summary>
+    /// <remarks>
+    /// <para>
+    /// <c>ck</c> is ConnectorKit, a previous name for this project, and it reached the wire: every
+    /// authorization code, refresh token, registration access token and client secret ever minted
+    /// carries it. A published library whose credentials are branded for a product it is not is a
+    /// rename left half-finished, and the cost of finishing it only goes up — the prefix is in
+    /// deployments' databases and in clients' hands, so this is the cheapest it will ever be.
+    /// </para>
+    /// <para>
+    /// <b>Accepted on the way in, never minted.</b> A refresh token or client secret handed out
+    /// before the rename is still a valid credential, and refusing it would sign out every session
+    /// and break every confidential client on the deploy that renamed a string. So
+    /// <see cref="TryParse"/> takes either spelling and everything mints the current one, which
+    /// retires the old prefix as fast as tokens turn over rather than all at once.
+    /// </para>
+    /// <para>
+    /// Removable once no deployment can still hold one: that is one refresh-token lifetime after
+    /// the upgrade for tokens, and a re-issue for client secrets. Deleting it early is not a
+    /// tidy-up — it is a forced re-authorization for everyone.
+    /// </para>
+    /// </remarks>
+    private static string LegacyPrefixFor(TokenPurpose purpose) => purpose switch
     {
         TokenPurpose.AuthorizationCode => "ck_ac_",
         TokenPurpose.RefreshToken => "ck_rt_",

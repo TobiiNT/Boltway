@@ -85,6 +85,56 @@ this case different — not in a suppression file where nobody reads it.
 - Public API changes: `tests/Boltway.PublicApi.Tests` holds the approved surface. Update it in the
   same commit, so the diff shows what a consumer sees.
 
+## Releasing
+
+[`VERSIONING.md`](VERSIONING.md) says what the number promises; this is how it goes out.
+[`CHANGELOG.md`](CHANGELOG.md) is what a consumer reads afterwards — the release itself produces an
+annotated tag and nothing else, so the changelog is the release notes.
+
+**Once, and not from this repository:** nuget.org Trusted Publishing has to be set up — a policy
+registered on nuget.org naming this repository and the publish workflow, and the `NUGET_USER`
+repository variable set to the nuget.org profile name, the profile name rather than the email
+address.
+
+`NUGET_USER` being unset is now the publish workflow's **first** step and it fails there, before
+the checkout — deliberately, because failing after the GitHub Packages push would leave one feed
+written and the other not, with the version numbers burned on the half that succeeded. It used to
+skip instead: GitHub Packages was still written, GitHub Packages needs a token to read even a
+public package, and so a release that looked green went out to a feed no outside consumer can
+restore from, with nothing reporting it because skipping is the correct behaviour in a fork. The
+guard distinguishes the two — a fork still skips, the canonical repository stops.
+
+Registering the Trusted Publishing policy is the half that cannot be checked from here at all: it
+is a setting on nuget.org, and the workflow only finds out when `NuGet/login` fails to exchange
+the token.
+
+Then, per release, in this order:
+
+1. **Bump `<Version>` in `Directory.Build.props` in the commit that moved the surface** — the rule
+   above under *Pull requests*, restated because this is where forgetting it is discovered. Skip it
+   and step 4 refuses. Skip it *and* the check, and you pack a version the feed already holds:
+   `--skip-duplicate` reports success, drops the package, and the workflow stays green while the new
+   assembly never ships.
+2. **Date the version's section in `CHANGELOG.md`.** It is written as the surface moves, so by now
+   it is a heading and a date rather than an archaeology exercise. Skip it and the file says
+   `unreleased` about a version people are restoring — and `SECURITY.md` credits reporters there.
+3. **Wait for `ci` to finish on the exact sha you are about to tag.** Its image job builds and
+   pushes each image tagged with the commit sha, and the release adds the version tag to those
+   manifests by digest rather than rebuilding — so the versioned image is the same bytes CI tested.
+   Dispatch before that run finishes and the image step fails because the sha is not in the
+   registry, **after** the tag is pushed and the packages are published, neither of which can be
+   taken back.
+4. **Dispatch the `release` workflow.** Three inputs: `tag`, which must be `v` followed by exactly
+   the version in `Directory.Build.props` and is checked against it — dispatching `v0.3.0` against a
+   tree reading `0.2.0` used to cut the tag, publish every package at `0.2.0` and report success;
+   `message`, which becomes the annotated tag message; and `ref`, what to tag, defaulting to the
+   branch it was dispatched on. A tag that already exists is refused rather than moved: it is what a
+   consumer resolved a package version through, and cutting another one is cheap.
+
+Do not publish by dispatching `publish packages` directly. It builds whatever the branch head is at
+that moment and leaves no ref naming what went out, which is why nothing records the tree that
+0.1.0 was built from.
+
 ## Language
 
 Code, comments, identifiers, commit messages and log lines are **English**. So is anything matched

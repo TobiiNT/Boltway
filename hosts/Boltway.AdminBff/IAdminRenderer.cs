@@ -5,19 +5,46 @@ namespace Boltway.AdminBff;
 /// <summary>The account list. <c>E-25</c>.</summary>
 /// <param name="Page">The page of accounts, as the admin API returned it.</param>
 /// <param name="Antiforgery">This request's tokens. Every page needs them — see <see cref="AntiforgeryTokens"/>.</param>
-/// <param name="Notice">What just happened, or <see langword="null"/>.</param>
+/// <param name="Notice">
+/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> — not a sentence. See
+/// <see cref="NoticeValue"/>.
+/// </param>
 /// <param name="OperatorName">Who is signed in, for the shell. See <see cref="AdminPage.OperatorName"/>.</param>
 public sealed record AccountsViewModel(
-    JsonElement Page, AntiforgeryTokens Antiforgery, string? Notice, string? OperatorName);
+    JsonElement Page, AntiforgeryTokens Antiforgery, string? Notice, string? OperatorName)
+{
+    /// <summary>
+    /// The <c>{0}</c> of a notice that has one — here, the handle an account used to have.
+    /// </summary>
+    /// <remarks>
+    /// <b>A key and a value rather than the finished sentence, and the split is the point.</b> Both
+    /// halves reach this page across a redirect, so both are text somebody could have written into a
+    /// link; the key is checked against a closed set and the value is escaped into a slot in a
+    /// sentence this app chose. What was here before was the whole sentence, which made this app's
+    /// own banner a surface for anything a link wanted it to say. It is also what makes the banner
+    /// translatable at all — a sentence composed in an endpoint is the one string on these pages an
+    /// <c>ADMIN_TEXT_FILE</c> cannot reach.
+    /// </remarks>
+    public string? NoticeValue { get; init; }
+}
 
 /// <summary>One account, and every operation on it.</summary>
 /// <param name="Account">The account, as the admin API returned it.</param>
 /// <param name="Antiforgery">This request's tokens, for the five forms this page draws.</param>
-/// <param name="Notice">What just happened, or <see langword="null"/>.</param>
+/// <param name="Notice">
+/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> — not a sentence. See
+/// <see cref="NoticeValue"/>.
+/// </param>
 /// <param name="OperatorName">Who is signed in, for the shell.</param>
 public sealed record AccountViewModel(
     JsonElement Account, AntiforgeryTokens Antiforgery, string? Notice, string? OperatorName)
 {
+    /// <summary>
+    /// The <c>{0}</c> of a notice that has one — here, how many grants were revoked.
+    /// </summary>
+    /// <inheritdoc cref="AccountsViewModel.NoticeValue" path="/remarks"/>
+    public string? NoticeValue { get; init; }
+
     /// <summary>
     /// This account's service account, or a JSON null when it holds none.
     /// </summary>
@@ -87,7 +114,11 @@ public sealed record AuditViewModel(
 /// </summary>
 /// <param name="Roles">The roles, as the admin API returned them.</param>
 /// <param name="Antiforgery">This request's tokens.</param>
-/// <param name="Notice">What just happened, or <see langword="null"/>.</param>
+/// <param name="Notice">
+/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> — not a sentence. There is no
+/// value beside it as there is on the two account pages, because no notice a role write produces
+/// has a <c>{0}</c>: defined, applied and deleted each say only that they happened.
+/// </param>
 /// <param name="OperatorName">Who is signed in, for the shell.</param>
 /// <remarks>
 /// One page rather than a list and a detail page each. A realm has a handful of roles and the whole

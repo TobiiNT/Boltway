@@ -663,7 +663,7 @@ public static class ExternalLoginEndpoints
     /// <para>
     /// <b>Linking adds a way into an account and left no trace.</b> Changing a password is recorded,
     /// asking for a reset link is recorded, verifying an address is recorded — and granting a second
-    /// credential that signs in forever was not. Noticed when a founder linked Google, the page said
+    /// credential that signs in forever was not. Noticed when a user linked Google, the page said
     /// nothing, and there was nowhere to look to find out whether it had happened. "Who attached
     /// this, and when" is exactly the question an audit trail exists for, and it could not be
     /// answered.

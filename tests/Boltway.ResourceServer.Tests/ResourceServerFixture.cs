@@ -270,7 +270,7 @@ internal sealed class ResourceServerFixture : IAsyncDisposable
                     {
                         options.Resource = Build.Resource;
                         options.AuthorizationServer = Build.Issuer;
-                        options.ResourceName = "FictStory MCP";
+                        options.ResourceName = "Example MCP";
                         options.ResourceDocumentation = "https://example.com/docs/mcp";
                         options.ScopesSupported.Add(Build.ToolScope);
                         options.ScopesSupported.Add(Build.WriteScope);

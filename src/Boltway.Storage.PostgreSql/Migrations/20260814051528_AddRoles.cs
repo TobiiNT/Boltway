@@ -59,13 +59,13 @@ namespace Boltway.Storage.PostgreSql.Migrations
             // deletion of every account's role: the column goes, the join table is empty, and the
             // next token every person is issued carries nothing. EF said so — "an operation was
             // scaffolded that may result in the loss of data" — and that warning is the only thing
-            // standing between a scaffold and a directory that has forgotten who its founders are.
+            // standing between a scaffold and a directory that has forgotten who its administrators are.
             //
             // A role row per distinct value already in use, id and name both that value. Permissions
             // are empty on purpose: this library has never known what a role means, so it cannot
             // invent what one stood for. A resource server reading these gets ids it recognises and
             // no permissions claim, which is exactly the state it was in before this migration —
-            // the connector's own table is what resolved them, and still does until somebody writes
+            // the resource server's own table is what resolved them, and still does until somebody writes
             // permissions here.
             migrationBuilder.Sql(
                 """

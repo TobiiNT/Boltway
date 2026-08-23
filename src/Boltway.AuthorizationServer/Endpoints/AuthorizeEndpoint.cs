@@ -1,9 +1,10 @@
+using System.Globalization;
 using Boltway.AuthorizationServer.Abstractions.Consent;
 using Boltway.AuthorizationServer.Abstractions.Users;
 using Boltway.AuthorizationServer.Authorize;
-using Boltway.AuthorizationServer.Interaction;
 using Boltway.AuthorizationServer.Configuration;
 using Boltway.AuthorizationServer.Diagnostics;
+using Boltway.AuthorizationServer.Interaction;
 using Boltway.AuthorizationServer.Requests;
 using Boltway.OAuth.Primitives.Diagnostics;
 using Boltway.OAuth.Primitives.Errors;
@@ -444,7 +445,41 @@ public static class AuthorizeEndpoint
     {
         var self = http.Request.Path.Value + http.Request.QueryString.Value;
 
-        return QueryHelpers.AddQueryString(page, "returnUrl", self);
+        var url = QueryHelpers.AddQueryString(page, "returnUrl", self);
+
+        // Carry the language across the redirect, or it is lost here.
+        //
+        // `ui_locales` arrives on /authorize and the pages are /login and /consent, which are
+        // separate requests. The whole of this request's query goes into `returnUrl` as one
+        // percent-encoded value, so `Request.Query["ui_locales"]` on the page is empty and the
+        // page renders in the default language — with `ui_locales_supported` advertised and the
+        // startup check that every advertised locale is served passing. Measured: a deployment
+        // serving `vi` answered `/authorize?...&ui_locales=vi` with an English login page.
+        //
+        // This was believed to be handled by the framework's cookie provider. Nothing writes that
+        // cookie, here or anywhere, so the mechanism named in the comment on
+        // `AddBoltwayInteractionLocalization` did not exist.
+        //
+        // What is forwarded is `CurrentUICulture`, which the localization middleware has already
+        // matched against `SupportedUICultures` — a value this server chose, never the tag the
+        // caller sent. The framework's own `QueryStringRequestCultureProvider` reads it back on the
+        // page, so the matching stays the framework's on both hops. Each pass through /authorize
+        // re-resolves from the `ui_locales` still inside `returnUrl`, which is what carries the
+        // language on to /consent after sign-in.
+        //
+        // Only when the request actually asked. Appending a culture to every redirect would put a
+        // parameter on hosts that have no localization configured, where it means nothing.
+        if (!string.IsNullOrEmpty(http.Request.Query["ui_locales"].ToString()))
+        {
+            var resolved = CultureInfo.CurrentUICulture.Name;
+
+            if (!string.IsNullOrEmpty(resolved))
+            {
+                url = QueryHelpers.AddQueryString(url, "ui-culture", resolved);
+            }
+        }
+
+        return url;
     }
 }
 

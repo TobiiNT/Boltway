@@ -25,8 +25,8 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// resource server verifies them offline and never asks us anything. That is fast and it has one
 /// consequence: <b>ending a session does not cut access</b>, because the token keeps verifying
 /// until it expires. <c>IGrantStore.IsRevokedAsync</c> — the denylist — existed for a resource
-/// server to consult and, measured across this repository and the connector that consumes it, had
-/// no production caller, because there was no channel to reach it through. This is that channel.
+/// server to consult and, measured across this repository and a deployment consuming it, had no
+/// production caller, because there was no channel to reach it through. This is that channel.
 /// </para>
 /// <para>
 /// <b>An unusable token is <c>{"active": false}</c> with status 200, never an error.</b> RFC 7662

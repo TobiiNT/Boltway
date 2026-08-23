@@ -52,6 +52,13 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
+    # Every job in this repository carries a ceiling, and this one carries the widest: it restores,
+    # builds, runs the whole suite against a live Postgres, packs, and pushes two feeds. The default
+    # is 360 minutes, which is not a ceiling — it is six hours of a hung step holding a runner and,
+    # here, holding a release that has already cut its tag. Sized well above the honest duration so
+    # that hitting it means "stuck", not "slow".
+    timeout-minutes: 45
+
     # The storage contract suite runs against a real Postgres, not a double — the whole point of
     # `GrantStoreContract` is that two implementations answer identically, and an in-memory stand-in
     # here would test the stand-in. Credentials match the tests' default connection string, so
@@ -71,27 +78,115 @@ jobs:
           --health-retries 12
 
     steps:
+      # **The two skips are not the same skip, and they used to be one condition.** `NUGET_USER`
+      # was ANDed into the guard on the `NuGet/login` step below, so an unset variable on this
+      # repository skipped the login, skipped the push, and reported a green release with nothing on
+      # nuget.org — while every sentence in this file described a workflow that publishes there.
+      # Nothing in this repository ever told anybody to set that variable, so the state that
+      # produces the silent skip was also the state a fresh clone is in.
+      #
+      # That is the same shape as `--skip-duplicate` reporting success while dropping the build that
+      # mattered, which is the incident this file spends thirty lines on. A fork is a deliberate
+      # absence and stays a skip; a missing variable on the canonical repository is a
+      # misconfiguration, and it is now red.
+      #
+      # First step in the job, before the checkout, because it needs nothing and because failing
+      # late is its own defect: a variable checked after the GitHub Packages push would leave one
+      # feed written, the other not, and the version numbers burned on the half that succeeded.
+      - name: nuget.org is configured
+        if: ${{ github.repository == 'TobiiNT/Boltway' && vars.NUGET_USER == '' }}
+        run: |
+          echo "::error::The repository variable NUGET_USER is unset, so the nuget.org push at the"
+          echo "::error::end of this job would be skipped and the release would report success"
+          echo "::error::having published nothing to the feed outside consumers restore from."
+          echo "::error::"
+          echo "::error::NUGET_USER is the nuget.org account name that owns these package ids — the"
+          echo "::error::'user' input of NuGet/login, and the account the Trusted Publishing policy"
+          echo "::error::is registered under. It is a variable rather than a secret because it is a"
+          echo "::error::username: there is no long-lived key to store, which is the point."
+          echo "::error::"
+          echo "::error::One-time setup, most of it on nuget.org rather than here:"
+          echo "::error::  1. Sign in to nuget.org as the account that owns these ids."
+          echo "::error::  2. Account settings -> Trusted Publishing -> add a policy naming this"
+          echo "::error::     repository (${{ github.repository }}) and this workflow file"
+          echo "::error::     (publish-packages.yml). The policy is what the OIDC token is traded"
+          echo "::error::     against; without it the exchange is refused."
+          echo "::error::  3. Here: Settings -> Secrets and variables -> Actions -> Variables ->"
+          echo "::error::     New repository variable, NUGET_USER = that account name."
+          echo "::error::"
+          echo "::error::A fork reaches neither this step nor the push: it has no policy on"
+          echo "::error::nuget.org and is not meant to publish there. It still gets its own"
+          echo "::error::GitHub Packages feed, which is the half of this workflow a fork can run."
+          exit 1
+
+      # PINNED TO COMMITS, NOT TAGS
+      # ---------------------------
+      # Every third-party action below names a commit sha, with the version it was as a trailing
+      # comment. A tag is a mutable pointer in somebody else's repository: whoever can move `v1` can
+      # replace the code that runs in this job, and this job is the one that receives an OIDC token
+      # which mints a nuget.org publishing key for these package ids. `Directory.Packages.props`
+      # already makes this argument about NuGet dependencies — "one silent minor bump away from a
+      # different security posture than the one that was reviewed" — and an action is a dependency
+      # that appears in no lockfile at all.
+      #
+      # `.github/dependabot.yml` is the other half: it moves the sha and the trailing comment
+      # together, so a pin is something reviewed on a schedule rather than something frozen and
+      # forgotten. A pin without that is how a workflow ends up running two-year-old code.
+      #
+      # One trap, because it costs a red release to learn: `NuGet/login`'s `v1` is an *annotated*
+      # tag, so `git ls-remote` reports the tag object's sha and `uses:` will not resolve it. Peel
+      # it — `git ls-remote https://github.com/NuGet/login 'v1^{}'` — or read the sha off the
+      # release tag it points at, which is what the pin below is.
+      #
       # `ref` is empty for a tag push and for a manual dispatch, and empty is what checkout reads as
       # "the ref that started this run" — so those two paths behave exactly as before.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: ${{ inputs.ref }}
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
 
       # Before packing, never after. A package pushed to a feed cannot be unpublished in any way
       # that helps — a consumer who restored it already has it — so the tests are the last moment
       # anything is reversible.
+      #
+      # `--logger trx` because a release that fails here fails on the one path where re-running to
+      # read the console output costs another full run against a live Postgres. The `.trx` files are
+      # uploaded below whatever the outcome.
+      #
+      # Deliberately without `--collect:"XPlat Code Coverage"`, for the reason measured and written
+      # out in ci.yml's `Test` step: the collector's injected `RecordHit(<index>)` calls are
+      # `ldc.i4` operands in the ranges two architecture rules read as HTTP status codes, and the
+      # suite goes red for a defect that is not there. Keep the two commands the same — a release
+      # that runs the tests differently from CI is a release testing something else.
       - name: Test
-        run: |
-          dotnet test Boltway.slnx --configuration Release
+        run: dotnet test Boltway.slnx --configuration Release --logger trx
 
-      # Two solutions, because Boltway.Mcp lives in one and reaches across a ProjectReference
-      # into Boltway.ResourceServer in the other. Packing only the first produces a package
-      # whose dependency is not in the feed — which restores cleanly on a machine that happens to
-      # have it cached and fails on every other one.
+      # `if: always()`, because the run that failed is the only one whose results anybody wants.
+      #
+      # No --results-directory: each project writes into its own TestResults/ by default, and that
+      # is collision-free by construction. A shared directory is not — the trx logger's default
+      # filename is the machine and a timestamp, so two projects finishing in the same second write
+      # the same name and the second silently wins.
+      - name: Test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: test-results-publish
+          path: '**/TestResults/**'
+          if-no-files-found: warn
+          retention-days: 14
+
+      # The solution, not a list of projects. Boltway.Mcp reaches across a ProjectReference into
+      # Boltway.ResourceServer, and packing a subset produces a package whose dependency is not in
+      # the feed — which restores cleanly on a machine that happens to have it cached and fails on
+      # every other one. This said "two solutions" while there has been one since the trees were
+      # folded together, which is the change that let the architecture scan reach Boltway.Mcp.
+      #
+      # What comes out is StructuralRuleTests.PackableProjects, and that test is what stops a
+      # project joining the feed by inheriting the SDK's default.
       - name: Pack
         run: |
           dotnet pack Boltway.slnx --configuration Release -o packages
@@ -154,10 +249,14 @@ jobs:
       # Guarded on the repository rather than on a secret, because there is no longer a secret to
       # test. A fork building this workflow has no policy on nuget.org and would fail red for
       # something it was never meant to do; it publishes to its own GitHub Packages and skips here.
+      #
+      # The variable this needs is checked in the job's first step, before anything is built or
+      # pushed — see *nuget.org is configured* up there for why an unset one is red rather than a
+      # skip.
       - name: NuGet login (OIDC to a one-hour key)
         id: nuget_login
-        if: ${{ github.repository == 'TobiiNT/Boltway' && vars.NUGET_USER != '' }}
-        uses: NuGet/login@v1
+        if: ${{ github.repository == 'TobiiNT/Boltway' }}
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
           user: ${{ vars.NUGET_USER }}
 

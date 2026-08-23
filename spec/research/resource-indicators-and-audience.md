@@ -1,6 +1,6 @@
 # Resource Indicators (RFC 8707) & Audience Restriction — Implementer's Reference
 
-Target: from-scratch OAuth 2.1 + OIDC AS in C# / ASP.NET Core 9, must interop with
+Target: from-scratch OAuth 2.1 + OIDC AS in C# / ASP.NET Core 10 (`net10.0`), must interop with
 Claude.ai MCP connectors and ChatGPT connectors.
 
 **Primary sources fetched and quoted below (not from memory):**

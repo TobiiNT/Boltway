@@ -4,6 +4,7 @@ using Boltway.AuthorizationServer.Token;
 using Boltway.OAuth.Net;
 using Boltway.OAuth.Primitives.Ids;
 using Boltway.OAuth.Primitives.Scopes;
+using Boltway.OAuth.Tokens;
 
 namespace Boltway.AuthorizationServer.Configuration;
 
@@ -265,6 +266,33 @@ public sealed class AuthorizationServerOptions
     public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromMinutes(30);
 
     /// <summary>
+    /// Which algorithm signs the tokens this server issues.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>RS256 because it is the interop floor</b> — RFC 9068 §2.1 makes it mandatory to
+    /// implement, so it is the one every relying party can verify. It is a default rather than a
+    /// rule: the key ring, the JWKS document and the verifier already handle ES256, and a
+    /// deployment whose key policy is elliptic-curve could not use this server at all while the
+    /// minting site named one algorithm directly.
+    /// </para>
+    /// <para>
+    /// <b>It sets what is advertised as well as what is minted, and that is the point.</b>
+    /// <c>id_token_signing_alg_values_supported</c> is built from this, so the document cannot come
+    /// to promise an algorithm the issuer will not produce. That has happened here before, the
+    /// other way round: the list was filled from the verifier's allow-list, so the server
+    /// advertised ES256 while minting RS256 and nothing else, and a relying party configuring
+    /// <c>id_token_signed_response_alg=ES256</c> from that document would reject every token this
+    /// server can make. <c>SigningAlgorithms.Issued</c> carries the argument.
+    /// </para>
+    /// <para>
+    /// The ring must hold an active key for it. <c>ConfigurationDoctor</c> reports a ring that does
+    /// not, which is otherwise a failure on the first token rather than at startup.
+    /// </para>
+    /// </remarks>
+    public SigningAlgorithm TokenSigningAlgorithm { get; set; } = SigningAlgorithm.RS256;
+
+    /// <summary>
     /// How long an authorization code is valid.
     /// </summary>
     /// <remarks>
@@ -383,7 +411,7 @@ public sealed class AuthorizationServerOptions
     /// with opposite authentication. <c>/account/*</c> is bearer-only for programmatic callers;
     /// these are cookie-authenticated pages with antiforgery, for a person in a browser. Either is
     /// useful without the other — a headless deployment wants the API, and a deployment whose users
-    /// are founders rather than programs wants the pages — so one flag would force a choice nobody
+    /// are people rather than programs wants the pages — so one flag would force a choice nobody
     /// asked to make.
     /// </para>
     /// <para>
@@ -426,19 +454,24 @@ public sealed class AuthorizationServerOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>At most one, and startup refuses more.</b> The comment here used to say "locales with a
-    /// shipped resource file", generated "from what exists, not from what is aspired to" — and there
-    /// was no resource file, nothing that read one, and nothing anywhere that read the
-    /// <c>ui_locales</c> request parameter. A deployment could list <c>vi</c> and serve English to
-    /// everyone who asked for it, with the warning against exactly that sitting on the property
-    /// that permitted it. That is <c>N-06</c>, on the field whose own documentation cited
-    /// <c>N-06</c>.
+    /// <b>Every entry is served, and startup refuses the list otherwise.</b> The comment here used
+    /// to say "locales with a shipped resource file", generated "from what exists, not from what is
+    /// aspired to" — and there was no resource file, nothing that read one, and nothing anywhere
+    /// that read the <c>ui_locales</c> request parameter. A deployment could list <c>vi</c> and
+    /// serve English to everyone who asked for it, with the warning against exactly that sitting on
+    /// the property that permitted it. That is <c>N-06</c>, on the field whose own documentation
+    /// cited <c>N-06</c>.
     /// </para>
     /// <para>
-    /// One entry is a claim this server can keep: every page it renders is in that language,
-    /// whether the markup comes from <c>DefaultInteractionRenderer</c> or from a deployment's own
-    /// <c>IInteractionRenderer</c>. <b>Two entries is a claim about per-request selection</b>, and
-    /// there is no mechanism for it — so it is refused at startup rather than published.
+    /// <b>This then said at most one entry, because two would be "a claim about per-request
+    /// selection and there is no mechanism for it".</b> There is one now:
+    /// <c>UiLocalesRequestCultureProvider</c> reads the parameter,
+    /// <c>AddBoltwayInteractionLocalization</c> supplies the tables, and
+    /// <c>AuthorizeEndpoint.LocalReturn</c> carries the resolved culture on to the pages. So the
+    /// count is not the rule — being served is. <c>RequireAdvertisedLocalesAreServed</c> compares
+    /// this list against <c>SupportedUICultures</c> at map time and refuses a mismatch in either
+    /// direction, which catches an advertised locale nobody serves and a served locale nobody
+    /// advertises, without caring which configuration call ran first.
     /// </para>
     /// <para>
     /// Leaving it empty is also honest, and is the default: no claim is not a false claim, and a

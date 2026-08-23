@@ -33,9 +33,15 @@
 
       True is what it already was. Saying so changes no output — it makes the output legible from
       here, which is what StructuralRuleTests.Every_project_says_whether_it_packs now requires of
-      every project under auth/.
+      every project in this repository.
     -->
     <IsPackable>true</IsPackable>
+    <Description>
+      The one outbound HTTP client allowed to fetch a URL the server does not control: absolute https
+      only, RFC 6890 special-use addresses refused, redirects refused, response bytes capped and
+      timeouts applied. Also carries JwksKeySource, which points a resource server's verification keys
+      at an issuer's published key set.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

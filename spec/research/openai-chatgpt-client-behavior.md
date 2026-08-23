@@ -1,6 +1,6 @@
 # ChatGPT (OpenAI) as an OAuth client of our Authorization Server
 
-Research date: **2026-08-03**. Target: a from-scratch OAuth 2.1 + OIDC AS in ASP.NET Core 9 that
+Research date: **2026-08-03**. Target: a from-scratch OAuth 2.1 + OIDC AS in ASP.NET Core 10 (`net10.0`) that
 **both** Claude.ai and ChatGPT can drive against an MCP server.
 
 Everything below was fetched, not recalled. Sources with fetch status at the bottom.
@@ -98,7 +98,7 @@ reading a log and looking for the id they tested with.
 
 ### Measured from a live failed connection, 2026-08-17
 
-Not reproduced from outside — the authorization server's own rejection log, from a founder's
+Not reproduced from outside — the authorization server's own rejection log, from a user's
 connection attempts:
 
 ```
@@ -125,7 +125,7 @@ deployment. The token exchange is the whole of it.
 
 ### Measured from a live successful connection, 2026-08-17 — three UNVERIFIED items closed
 
-The fix above was deployed and a founder linked the connector. The handshake completed:
+The fix above was deployed and a user linked the connector. The handshake completed:
 `server/discover` ×4, `tools/list` ×2, `resources/read` ×2, all `200`. That run answers three
 questions this document had been carrying as unverified, and **one of the answers is the opposite
 of what the vendor documentation implied**.

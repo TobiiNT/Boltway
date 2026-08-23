@@ -1,21 +1,42 @@
-# Consolidated Requirements — OAuth 2.1 + OIDC Authorization Server (C# / ASP.NET Core 9)
+# Consolidated Requirements — OAuth 2.1 + OIDC Authorization Server (C# / ASP.NET Core on .NET 10)
 
 **Product goal:** a reusable, industrial-grade authorization server (an Auth0 replacement) that
 Claude.ai / Claude Code and ChatGPT MCP connectors can both drive with **zero vendor-specific
 patching and zero out-of-band admin steps per connection**.
 
-**Consolidated from** twelve primary-source research passes in
-`/tmp/claude-0/-home-user/51f380fe-5935-5606-81f1-a5c47ba07ccc/scratchpad/research/`:
-`oauth21-core.md`, `pkce-and-native-apps.md`, `discovery-metadata.md`,
-`protected-resource-metadata-and-mcp.md`, `dynamic-client-registration.md`,
-`client-id-metadata-document.md`, `token-formats-and-lifecycle.md`,
-`resource-indicators-and-audience.md`, `oidc-core.md`, `security-bcp-and-hardening.md`,
-`anthropic-claude-client-behavior.md`, `openai-chatgpt-client-behavior.md`.
+**Consolidated from** twelve primary-source research passes, checked in at
+[`spec/research/`](./research/): `oauth21-core.md`, `pkce-and-native-apps.md`,
+`discovery-metadata.md`, `protected-resource-metadata-and-mcp.md`,
+`dynamic-client-registration.md`, `client-id-metadata-document.md`,
+`token-formats-and-lifecycle.md`, `resource-indicators-and-audience.md`, `oidc-core.md`,
+`security-bcp-and-hardening.md`, `anthropic-claude-client-behavior.md`,
+`openai-chatgpt-client-behavior.md`. (This line pointed at
+`/tmp/…/scratchpad/research/` — an authoring machine's working directory — for as long as the files
+have been in the repository. A provenance pointer nobody can dereference is provenance nobody can
+check.)
+
+Those twelve were written against **ASP.NET Core 9** and their target lines now say .NET 10, because
+that is what `Directory.Build.props` sets and a stale target line is a false statement about this
+project. **What was not re-done is the research**: no framework-specific note in them has been
+re-measured against .NET 10, so read a "the default is X" or "the built-in Y" claim there as dated
+to when it was written. The `.NET 9` mentions that remain are deliberate and are a different kind of
+statement — they say when an API *appeared* (`System.Buffers.Text.Base64Url`), which is why the
+struck multi-target row in `docs/DESIGN.md` §1.2 rests on one.
 
 **Requirement ID scheme.** `S-nn` conformance/spec, `E-nn` endpoint, `X-nn` error code,
 `N-nn` non-negotiable, `C-nn` client compatibility, `A-nn` Auth0-trap, `D-nn` deferred,
-`U-nn` unverified/open. Total: **207 numbered requirements** (43 S, 24 E, 41 X, 16 N, 32 C,
-22 A, 12 D, 17 U — U rows are questions, not requirements; 190 are binding).
+`U-nn` unverified/open. `U` rows are questions rather than requirements; everything else is binding
+unless its own row says otherwise.
+
+~~Total: **207 numbered requirements** (43 S, 24 E, 41 X, 16 N, 32 C, 22 A, 12 D, 17 U … 190 are
+binding).~~ **The per-prefix counts are deleted rather than corrected.** They were wrong on five of
+the eight prefixes — S, E, X, N and D had each grown since the tally was written — and no test, no
+script and no CI job reads this document, so nothing would have caught the sixth. A hand-maintained
+count that has drifted once will drift again, and a wrong number here is worse than no number:
+`docs/DESIGN.md` §6 quoted a *third* figure back at this file as though it were a build artifact.
+Count them from the tables if a count is needed; the tables are the fact. A number may go back here
+when something asserts it — that would be the requirement-coverage test `DESIGN.md` §6 lists under
+"never cut" and which has never been built.
 
 **Reference deployment used in all examples**
 (a path-less issuer — see S-08 for why this is a *requirement*, not a convenience):
@@ -210,14 +231,21 @@ single object eliminates drift between the two documents.
 
   // RFC 8414 §2 OPTIONAL — **MUST be published explicitly**, because the spec default is
   // ["authorization_code","implicit"] and silence would advertise implicit from an OAuth 2.1 server.
-  // The jwt-bearer URN is required by Claude Enterprise Managed Auth: "The grant type must be
-  // listed here for the feature to be offered to the customer, even if your token endpoint would
-  // already accept it silently."
+  //
+  // CORRECTED. This array listed `client_credentials` and the jwt-bearer URN, and neither belonged
+  // in a document headed "what we publish":
+  //   - the shipped default is exactly ["authorization_code","refresh_token"];
+  //   - `client_credentials` has a handler and is opt-in, so it appears only where a deployment
+  //     added it;
+  //   - the jwt-bearer URN CANNOT be published at all — `KnownGrantTypes` names only the grants
+  //     `TokenEndpoint` has an arm for, and configuring anything else fails startup. That is N-06
+  //     working, and the array above was N-06 broken on the document N-06 is about.
+  // Claude Enterprise Managed Auth does require it: "The grant type must be listed here for the
+  // feature to be offered to the customer, even if your token endpoint would already accept it
+  // silently." That is C-32, it is unmet, and S-26(b) is where it says so.
   "grant_types_supported": [
     "authorization_code",
-    "refresh_token",
-    "client_credentials",
-    "urn:ietf:params:oauth:grant-type:jwt-bearer"
+    "refresh_token"
   ],
 
   // RFC 8414 §2 OPTIONAL, default ["client_secret_basic"]. Published explicitly.
@@ -324,7 +352,7 @@ single object eliminates drift between the two documents.
   "authorization_servers": ["https://auth.example.com"], // OPTIONAL in 9728, MUST in MCP.
                                                        // Claude uses ONLY the first entry.
   "scopes_supported": ["mcp:tools", "story:read", "story:write"], // RECOMMENDED. NO `offline_access`.
-  "resource_name": "FictStory MCP",                    // RECOMMENDED
+  "resource_name": "Example MCP",                      // RECOMMENDED
   "bearer_methods_supported": ["header"],              // OPTIONAL; header only — no body, no query
   "resource_documentation": "https://example.com/docs/mcp"
 }
@@ -390,7 +418,6 @@ it, which was the same fault one endpoint over.
 | X-21 | `unsupported_grant_type` | 400 | json | Unknown `grant_type`, including `password` (permanently unimplemented). **Not `invalid_request`** — §3.2.4 explicitly excludes grant type from that code |
 | X-22 | `invalid_scope` | 400 | json | Requested scope exceeds the grant; effective scope at the resolved resource is empty |
 | X-23 | `invalid_target` | 400 | json | `resource` malformed/unknown/not permitted; `resource` not in this code's or this refresh token's **grant set**; more than one `resource` at `/token` under the single-resource policy. **Never `invalid_grant`** — clients treat that as "refresh token is dead" and discard it, turning a recoverable error into a re-consent loop |
-
 | X-43 | *(none)* | **503** + `Retry-After` | empty | The store backing the exchange could not be reached — a transient driver failure, a name-resolution failure, a connect timeout. **Not `server_error`**: nothing about the request was wrong and the same request succeeds once the dependency returns, so the client must be told to come back rather than to give up. Body is empty; the status and `Retry-After` carry the whole meaning |
 
 `access_denied`, `unsupported_response_type`, `server_error`, `temporarily_unavailable`,
@@ -419,33 +446,6 @@ RFC 6750 register nothing that means this, while §4.1.2.1 registers `temporaril
 `/authorize` says it and the rest say nothing. Anything else on those rows — an empty body, a
 `Retry-After`, one log line naming the requirement — is identical by construction: they share
 `StoreLoadShed` and `TransientStoreFailure`.
-
-### 4.6 The interaction and management surfaces
-
-Not OAuth endpoints, and they have no rows in the error table — see `OAuthSurface.Interaction` and
-`OAuthSurface.Administration`. X-43 reaches them anyway, because a store is a store.
-
-| ID | `error` | HTTP | Delivery | Exact condition |
-|---|---|---|---|---|
-| X-43 | *(none)* | **503** + `Retry-After` | **html** | `Interaction`: the sign-in, consent, recovery and self-service pages. The deployment's own error page is rendered, in the reader's language — a bare status reaches a browser as the browser's error page, which says nothing about coming back |
-| X-43 | *(none)* | **503** + `Retry-After` | empty | `Administration`: `/admin/*`, `/account/*`. A script in a page branches on the status and can use nothing else |
-
-**The sign-in page is why this is a row and not a tidy-up.** Every other X-43 surface is a machine
-being told something false; here it is a person, on the page where the only available conclusion is
-about themselves. The lookup throws today, so the answer is a bare `500` — no `UseExceptionHandler`
-is registered anywhere in this server — and one refactor away sits the branch that re-renders the
-form saying *"that username and password did not match"*, which is the exact sentence the outage
-behind X-43 put in front of somebody whose credentials were fine.
-
-**Applied as an endpoint filter, not forty `catch` blocks.** The protocol endpoints each hold their
-own because each had something to decide; these forty-odd all answer the same way, and forty copies
-is forty chances for the next route to be added without one. The filter returns an `IResult`, so
-`RejectionResult` still writes and logs it — A-09's chokepoint is about who writes, not where the
-`catch` sits.
-
-Still **not** covered, stated rather than implied: a handler that has already begun writing its
-response rethrows instead, the same call `/authorize`'s boundary makes, because a second write
-produces a body the caller cannot parse.
 
 ### 4.3 Registration endpoints (E-11..E-14)
 
@@ -490,6 +490,38 @@ header and eats `resource_metadata`**, which is the discovery entry point.
 | X-40 | `unsupported_token_type` | 400 | json | Token type this AS refuses to revoke |
 | X-43 | *(none)* | **503** + `Retry-After` | empty | The store backing the lookup could not be reached. **Neither X-36 nor an active response is available**: `{"active":true}` fails open on the denylist this endpoint exists to consult, and `{"active":false}` is a definite answer built from no information — a resource server acting on it drops a live session. RFC 7662 §2.3 defers to RFC 6749 §5.2, whose set is closed, so there is no `error` to send. Applies to introspection only; revocation is idempotent and X-39 already covers a token it could not find |
 | X-41 | *(none)* | 503 + `Retry-After` | — | Revocation endpoint overloaded; client must assume the token still exists |
+
+### 4.6 The interaction and management surfaces
+
+Not OAuth endpoints, and they have no rows in the error table — see `OAuthSurface.Interaction` and
+`OAuthSurface.Administration`. X-43 reaches them anyway, because a store is a store.
+
+| ID | `error` | HTTP | Delivery | Exact condition |
+|---|---|---|---|---|
+| X-43 | *(none)* | **503** + `Retry-After` | **html** | `Interaction`: the sign-in, consent, recovery and self-service pages. The deployment's own error page is rendered, in the reader's language — a bare status reaches a browser as the browser's error page, which says nothing about coming back |
+| X-43 | *(none)* | **503** + `Retry-After` | empty | `Administration`: `/admin/*`, `/account/*`. A script in a page branches on the status and can use nothing else |
+
+**The sign-in page is why this is a row and not a tidy-up.** Every other X-43 surface is a machine
+being told something false; here it is a person, on the page where the only available conclusion is
+about themselves. ~~The lookup throws today, so the answer is a bare `500`~~ — that was the state
+this row was written against, and one refactor away sat the branch that re-renders the form saying
+*"that username and password did not match"*, which is the exact sentence the outage behind X-43 put
+in front of somebody whose credentials were fine. **It is closed**: `InteractionEndpoints` maps its
+pages into `ShedsOnStoreFailure(OAuthSurface.Interaction, rendered: true)`, so a store that cannot
+be reached renders the deployment's error page at `503` instead. What has not changed is the
+surrounding fact — **no `UseExceptionHandler` is registered anywhere in this server**, and the filter
+catches only what `TransientStoreFailure.Describes` recognises, so any *other* unhandled exception on
+these pages is still a bare `500`.
+
+**Applied as an endpoint filter, not forty `catch` blocks.** The protocol endpoints each hold their
+own because each had something to decide; these forty-odd all answer the same way, and forty copies
+is forty chances for the next route to be added without one. The filter returns an `IResult`, so
+`RejectionResult` still writes and logs it — A-09's chokepoint is about who writes, not where the
+`catch` sits.
+
+Still **not** covered, stated rather than implied: a handler that has already begun writing its
+response rethrows instead, the same call `/authorize`'s boundary makes, because a second write
+produces a body the caller cannot parse.
 
 ---
 
@@ -599,7 +631,7 @@ write, compare exactly on read (A-13/19/22).
 
 | ID | Not in v1 | One-line reason | Seam that must exist now |
 |---|---|---|---|
-| D-01 | **PAR (RFC 9126)** | Absent from the entire MCP authorization spec; neither vendor sends `request_uri`; advertising `require_pushed_authorization_requests: true` would break both immediately | **`IAuthorizationRequestSource`** in `/authorize`, with `QueryStringSource` as the only v1 implementation. Adding `ParRequestUriSource` is then additive. This is the *one* deferral that costs real rework later — FAPI 2.0 requires PAR, so regulated customers will ask |
+| D-01 | **PAR (RFC 9126)** | Absent from the entire MCP authorization spec; neither vendor sends `request_uri`; advertising `require_pushed_authorization_requests: true` would break both immediately | ~~**`IAuthorizationRequestSource`** in `/authorize`, with `QueryStringSource` as the only v1 implementation. Adding `ParRequestUriSource` is then additive.~~ **The seam does not exist.** Neither name appears anywhere in `src/` or `tests/`; `/authorize` reads its parameters directly in `AuthorizeEndpoint.ReadRequest`, and `docs/DESIGN.md` §3.3 records the same absence from the design side. This row said the deferral was *the one that costs real rework later* — FAPI 2.0 requires PAR, so regulated customers will ask — and then named a mitigation that was never built, which makes the cost the whole of it rather than the additive part. **This column is what a deferral is worth**, so a seam named here and absent from the tree is worse than an undeferred feature: it is the same work, plus a document saying it was handled |
 | D-02 | **DPoP (RFC 9449)** | Not in the MCP spec; both vendors send `Authorization: Bearer`; issuing `token_type: DPoP` breaks them outright. RFC 9700 §2.2.1 is a SHOULD and §2.2.2's MUST is discharged by rotation (N-08) | Keep the access-token minting path pluggable so a `cnf`/`jkt` claim can be injected without restructuring. **Advertise nothing DPoP-related** — an advertised `dpop_signing_alg_values_supported` invites proofs we would reject. Guarded on three sides: `MetadataTests.The_document_advertises_nothing_dpop_related` (prefix match over the AS document), `ProtectedResourceMetadataEndpointTests.Optional_members_that_are_not_configured_are_absent` (the two named RFC 9728 members), and `CimdClientResolverTests.No_captured_vendor_document_asks_for_dpop` — **the tripwire**, which reads the dated `spec/cimd-live-*.json` captures and goes red when a vendor starts advertising RFC 9449 §5.2's `dpop_bound_access_tokens`. The first two say we have not shipped it; the third says nobody is asking for it yet, and it is the one with an expiry date |
 | D-03 | **mTLS client auth / certificate-bound tokens (RFC 8705)** | No consumer-connector demand; requires ingress-level cert plumbing | The `token_endpoint_auth_method` dispatch is a strategy interface; add `tls_client_auth` as another strategy |
 | D-04 | **Token Exchange (RFC 8693)** | Not used by either vendor. Note it is the only spec where `audience` is a standard parameter, and only at `/token` | The grant dispatcher is table-driven on `grant_type`; `resource`/`audience` parsing already returns `string[]` |
@@ -640,16 +672,63 @@ Honest list. Nothing here should be turned into a confident requirement without 
 
 ---
 
+# 10. Live measurement, 2026-08-03 — corrections to §6 and §9
+
+All four CIMD documents fetched directly. Bodies recorded verbatim in
+[`spec/cimd-live-2026-08-03.json`](./cimd-live-2026-08-03.json) — the captures live beside this file,
+not under `research/`, and `spec/cimd-live-2026-08-17.json` is the later one `D-02`'s tripwire also
+reads. Three rows above are **wrong or overstated** and are
+corrected here; this section wins on conflict.
+
+| Row | Said | Measured | Correction |
+|---|---|---|---|
+| C-03 / C-05 | ChatGPT **requires** `private_key_jwt`; a `none`-only AS locks it out | ChatGPT declares `"token_endpoint_auth_methods_supported":["none","private_key_jwt"]` — **both** | ChatGPT can authenticate as a public client. Supporting both is still right, but `private_key_jwt` is **not** a lockout risk. Downgrade "REQUIRED by ChatGPT" to "offered by ChatGPT" |
+| C-06 / U-04 | ChatGPT redirect is a template `https://chatgpt.com/connector/oauth/{callback_id}` | Concrete: `https://chatgpt.com/connector_platform_oauth_redirect` and `https://chatgpt.com/connector/oauth/mcp` | Both are exact-matchable literals from the document. No template handling needed. U-04 drops to low risk |
+| U-03 | Charset tolerance on metadata fetch unverified | `chatgpt.com` serves `application/json; charset=utf-8`; `claude.ai` serves bare `application/json` | **Resolved: tolerating a charset parameter is mandatory.** A fetcher comparing the Content-Type by equality against `application/json` rejects every ChatGPT document. Parse the media type, ignore parameters |
+
+**Confirmed unchanged by measurement:** Claude Code declares portless `http://localhost/callback`
+and `http://127.0.0.1/callback` (N-04/A-19 are real, not theoretical) · Claude declares the
+`jwt-bearer` URN, Claude Code does not (C-32) · Claude uses RFC 7591's singular
+`token_endpoint_auth_method`, ChatGPT uses the plural RFC 8414 *server* field name — C-04's
+field-name defect is real and both spellings must be read · no document declares `scope` ·
+ChatGPT declares a `logo_uri` on a third-party CDN host, so N-14's proxy-never-hotlink rule has a
+live case on day one.
+
+---
+
 # 11. User management
 
-Not built. These are the requirements for the design in
+These are the requirements for the design in
 [`docs/USER-MANAGEMENT.md`](../docs/USER-MANAGEMENT.md), written here rather than only cited there
-because a load-bearing cross-reference in these documents already points at a section that does not
+because a load-bearing cross-reference in these documents already pointed at a section that does not
 exist — `DESIGN.md` §7, cited twice as the traceability test that fails the build for an uncovered
-requirement. **The mechanical guards below are ones that must be built, not ones that exist.**
+requirement. That test still does not exist; `DESIGN.md` §0 and §6 now say so at both ends.
 
-Grouped in one section rather than merged into §2 and §5 because the subsystem is unbuilt; they
-move to their kind's section when it ships.
+~~Not built. … **The mechanical guards below are ones that must be built, not ones that exist.**~~
+**It is built and it ships.** `AdminEndpoints`, `AccountEndpoints`, `MeEndpoints` and
+`RecoveryEndpoints` are mapped, `IScopeEntitlementPolicy` and `IAdminAuditStore` are seams in
+`Boltway.AuthorizationServer.Abstractions`, and `UserAdministration` is the single implementation
+`S-53` asks for. `N-17`'s guard is `AdminSurfaceTests`, over the routing table, as its own row
+specifies.
+
+**That header was contradicting its own table**, which is the reason it is corrected rather than
+quietly rewritten: rows below it carry measurements taken *on the running code* — `S-45`, `S-52`,
+`S-55`, `S-56`, `S-57`, `S-58`, `S-59`, `S-60` and `S-62` all do — while the preamble above them
+still said the guards were unbuilt. A reader who trusted the header would have read every one of
+those measurements as a plan. `S-55` and `S-56` are the two that had not been brought forward and
+are corrected in this pass: both recorded an absence that has since been filled, in the present
+tense.
+
+**Read each row for what its own guard is**, because they are not uniform and the differences are
+recorded deliberately. `S-45` says append-only is built and the same-transaction half is not, and
+names the window rather than assuming it closed. `S-59` is met for the interaction seams and not for
+the stores, with the feed measurement in its row rather than a sentence claiming either.
+`S-60` is explicit that "signed out everywhere" is true one access-token lifetime later.
+
+Grouped in one section rather than merged into §2 and §5 because the subsystem was unbuilt when it
+was written. ~~They move to their kind's section when it ships.~~ It has shipped and they have not
+moved, so that sentence is a pending edit rather than a rule — an id keeps its number wherever the
+row sits, so nothing is broken by the delay, but nothing is served by it either.
 
 ## 11.1 Non-negotiable
 
@@ -687,38 +766,58 @@ may carry bearer.
 | **S-52** | The resource server reads its verification keys through a **source evaluated per validation**, never a collection mutated in place while requests read it. The AS host's source is the local `SigningKeyRing` — public halves only — never an HTTP fetch of its own JWKS | Measured, on the code as it then stood: `JwksRefresher` called `Add`/`Remove` on the same `IList<SecurityKey>` that `AccessTokenValidator` passes into validation, from a background timer, unsynchronised — a rotation was therefore a concurrent mutation during enumeration. That type no longer exists; `JwksKeySource` publishes a new snapshot and `SigningKeySource` is read per validation, which is what closed it. And an authorization server that fetches its own JWKS over its own edge has made startup depend on the component most likely to be broken when it matters |
 | **S-53** | Every administrative operation has **one implementation**, called by both the CLI and the HTTP handler. Neither caller holds the rule, the password generator, or the audit write | Two implementations of one operation drift, and the half that drifts first is the audit line on the operator path — the path used during an incident. The connector's schema pair next door drifted in about a month |
 | **S-54** | The admin API is a distinct resource with a distinct `aud`. No access token is ever valid at both an MCP connector and the admin API | A document connector ingests third-party documents verbatim and a model reads them. A token valid at both surfaces turns a sentence inside an ingested document into privilege escalation against the user directory. `N-01` is the mechanism; this is the deployment rule that keeps it load-bearing |
-| **S-55** | Every page the server renders goes through `IInteractionRenderer`, `/error` included | Measured: login and consent go through the seam and `/error` does not. A customer who implements the renderer restyles two pages of three and finds out from a screenshot. Add pages as **default interface members** so widening the seam does not break existing implementations |
-| **S-56** | A signed-in person can sign out | Measured: no `Logout` endpoint and no `SignOutAsync` call anywhere in `src`. The session ends when the cookie expires or the browser closes, which on a shared machine is not an option the person has. `N-15`'s acceptance criteria already names `/logout` among the pages whose headers are asserted — against a page that does not exist |
-| **S-57** | Page text goes through `IStringLocalizer`, with the library embedding a **neutral English resx**; startup asserts `ResourceNotFound` is false for every key. `ui_locales_supported` and `RequestLocalizationOptions.SupportedUICultures` are **compared at map time** and a mismatch in either direction refuses to start. Stronger than generating one from the other: it catches an advertised locale nobody serves *and* a served locale nobody advertises, and it does not care which configuration call ran first | Measured: `UiLocalesSupported` is a freely configurable list copied straight into the discovery document, its own comment says *"generated from what exists, not from what is aspired to"*, and there is no resource file, no lookup, and no reader of `ui_locales` anywhere in `src`. A deployment can advertise `vi` today and serve English to everyone who asks. Measured on .NET 10: with a neutral resx present, a key missing from `vi` resolves to English with `ResourceNotFound=false` — the key is returned only when the name is in no resource file at all, which the startup assert is for |
-| **S-58** | Culture resolution is `UseRequestLocalization` with `SupportedUICultures` as the allowlist, a custom `RequestCultureProvider` for OIDC `ui_locales`, and `CookieRequestCultureProvider` so the choice survives `/authorize` → `/login` → `/consent`. `<html lang>` carries `CurrentUICulture.Name` | Framework components, not new mechanism: the middleware already matches against the supported list and falls back to the default, so a query parameter never becomes a `CultureInfo`. Without the cookie the consent page — the one `N-14` requires to be read carefully — reverts to English mid-flow. Emitting the resolved culture rather than the requested one is what keeps `ui_locales` out of the document |
+| **S-55** | Every page the server renders goes through `IInteractionRenderer`, `/error` included | ~~Measured: login and consent go through the seam and `/error` does not.~~ A customer who implements the renderer restyled two pages of three and found out from a screenshot. **Closed, and by the mechanism this row asked for**: `IInteractionRenderer` now carries `RenderError` — and `RenderLogout`, `RenderAccount`, `RenderChangePassword`, `RenderSessions` and the rest — as **default interface members**, so widening the seam does not break existing implementations. `RejectionResult` calls `RenderError` for the error page. Two things the defaults do not hide, both deliberate: a default member has no dependency injection, so it draws the library's *unthemed* shell rather than the deployment's registered layout — a visible mismatch that is the signal to write the page — and `/error` renders where something has already failed, so its caller wraps the call in a `try` and writes a built-in document if the implementation throws |
+| **S-56** | A signed-in person can sign out | ~~Measured: no `Logout` endpoint and no `SignOutAsync` call anywhere in `src`.~~ The session ended when the cookie expired or the browser closed, which on a shared machine is not an option the person has, and `N-15`'s acceptance criteria already named `/logout` among the pages whose headers are asserted — against a page that did not exist. **Shipped.** `InteractionEndpoints` maps `GET` and `POST /logout`, `IUserSignIn.SignOutAsync` is called from there and from `/me`, `LogoutFlowTests` asserts the flow including `N-15`'s headers, and `E-45` is the row. **It is mapped if and only if `EndSessionEnabled` is set** — the same switch that decides whether `end_session_endpoint` appears in the metadata document, which is `N-06` rather than a convenience: the page and the advertisement cannot disagree because one condition governs both |
+| **S-57** | Page text goes through `IStringLocalizer` over a dictionary a deployment supplies — **constants and explicit per-string English fallback, not an embedded resx**, because satellite assemblies belong to the assembly owning the resource file and a consumer cannot add a language to ours. Startup instead refuses a translation whose placeholders do not match the English arity, which is the failure a resx could not have caught: a `ConsentClientAsking` without `{0}` renders a grammatical sentence with the client's host silently absent. `ui_locales_supported` and `RequestLocalizationOptions.SupportedUICultures` are **compared at map time** and a mismatch in either direction refuses to start. Stronger than generating one from the other: it catches an advertised locale nobody serves *and* a served locale nobody advertises, and it does not care which configuration call ran first | Measured when written: there was no lookup and no reader of `ui_locales` anywhere in `src`, so a deployment could advertise `vi` and serve English to everyone who asked. Both halves are closed — the reader is `UiLocalesRequestCultureProvider`, the advertise/serve comparison is `RequireAdvertisedLocalesAreServed`, and `InteractionText.Problems` is the placeholder check. The resx was not built and is not wanted: Measured on .NET 10: with a neutral resx present, a key missing from `vi` resolves to English with `ResourceNotFound=false` — the key is returned only when the name is in no resource file at all, which the startup assert is for |
+| **S-58** | Culture resolution is `UseRequestLocalization` with `SupportedUICultures` as the allowlist and a custom `RequestCultureProvider` for OIDC `ui_locales`. The choice survives `/authorize` → `/login` → `/consent` because `AuthorizeEndpoint.LocalReturn` appends the **resolved** culture to the interaction URL, where the framework's `QueryStringRequestCultureProvider` reads it back. `<html lang>` carries `CurrentUICulture.Name`, and `dir="rtl"` accompanies it for a right-to-left primary subtag | Framework components, not new mechanism: the middleware already matches against the supported list and falls back to the default, so a query parameter never becomes a `CultureInfo`. **This entry named `CookieRequestCultureProvider` as what carried the choice, and nothing in the tree has ever written that cookie** — measured: `/authorize?…&ui_locales=vi` answered an English login page, because `/authorize` percent-encodes its whole query into one `returnUrl` value and no parameter named `ui_locales` survives to the page. Forwarding the resolved culture is what closed it; emitting the resolved rather than the requested one is what keeps `ui_locales` out of the document |
 | **S-60** | Revoking a subject's sessions is **one set operation on the grants**, never enumerate-then-revoke, and no response or message anywhere claims the person is signed out. `IGrantStore.RevokeAllForSubjectAsync` returns how many grants *that call* transitioned | Two separate failures. Enumerate-then-revoke leaves a window in which a grant created in between survives, and this runs precisely when somebody is responding to a compromise. And the reach is partial by construction: refresh chains die with the grant — measured, the refresh handler loads it and refuses when it is not active — while an access token already issued is signed rather than looked up, and `IsRevokedAsync` is called by nothing in this repository. "Signed out everywhere" is true one access-token lifetime later, and an operator acting on it now is the person who most needs that stated |
 | **S-61** | Anonymise revokes sessions **before** it rewrites the account, and the account row is never deleted | These are two writes and no store here can make them one. Anonymising first and dying in between leaves a tombstone whose refresh tokens still mint — a session belonging to somebody the directory says is gone. This order leaves an ordinary account whose owner has been signed out, which is visible and rerunnable. The row stays because erasing a subject with outstanding grants leaves dangling references, and a trail the audited party can empty is not a trail |
-| **S-59** | The interaction contracts are **published**, so a customer taking the renderer or layout seam can run the suite that defines it | `Boltway.Interaction.Tests` is already `IsPackable=true` with the reason in its csproj — *"a contract nobody outside this repository can run is a contract only this repository is held to"* — and no such package is published anywhere. `InteractionRendererContract` asserts `N-14`'s hostname display, the loopback warning, both antiforgery fields, single-encoding of non-ASCII text and CSP conformance, and asserts none of it about wording, so it is the thing that makes handing the consent page to a customer safe rather than hopeful |
-| **S-62** | The sign-in form accepts a username **or** a verified email address. Exactly one store method resolves an account by address, it requires `EmailVerified`, and **only the sign-in form may call it** | `/forgot` accepted an address and `/login` did not, so somebody who reset their password by email could not then use that address to sign in — measured, and reported by a founder rather than by a test. The lookup this needs is the one federation must never have: an attacker who registers the victim's address at an upstream that does not verify it must not inherit the account. That used to be guaranteed by the method not existing, which is the strongest form and is now spent. It is replaced by two rules — the interface may carry exactly one lookup by address and it is the verifying one (`ExternalLoginFlowTests`, by reflection, asserting the *name* rather than a count), and the IL may contain exactly one caller (`StructuralRuleTests.Only_the_sign_in_form_resolves_an_account_by_address`). Both carry a control that fails if the thing they search for is renamed, because an absence assertion whose subject disappeared reports a pass |
+| **S-59** | The interaction contracts are **published**, so a customer taking the renderer or layout seam can run the suite that defines it | ~~`Boltway.Interaction.Tests` is already `IsPackable=true` … and no such package is published anywhere.~~ **Both halves of that were wrong, and the resolution is not where it said.** `tests/Boltway.Interaction.Tests` is `IsPackable=false`; what carries the contracts is `testing/Boltway.Interaction.Testing`, a separate project holding `InteractionRendererContract` and `InteractionLayoutContract`, and it is **published** — `Boltway.Interaction.Testing` answers 0.1.0 on nuget.org, measured 2026-08-23 by `curl https://api.nuget.org/v3-flatcontainer/boltway.interaction.testing/index.json`. The reason quoted from the csproj is intact and now sits on the project that ships. **The requirement is met for the renderer and layout seams and not for the stores**: `testing/Boltway.Storage.Testing` holds seven store contracts, packs, and returns `BlobNotFound` on the same feed at the same measurement — while `Boltway.Storage.Tests`, which is `IsPackable=false` today, is on the feed at 0.1.0 from when it was not. `InteractionRendererContract` asserts `N-14`'s hostname display, the loopback warning, both antiforgery fields, single-encoding of non-ASCII text and CSP conformance, and asserts none of it about wording, so it is the thing that makes handing the consent page to a customer safe rather than hopeful |
+| **S-62** | The sign-in form accepts a username **or** a verified email address. Exactly one store method resolves an account by address, it requires `EmailVerified`, and **only the sign-in form may call it** | `/forgot` accepted an address and `/login` did not, so somebody who reset their password by email could not then use that address to sign in — measured, and reported by a user rather than by a test. The lookup this needs is the one federation must never have: an attacker who registers the victim's address at an upstream that does not verify it must not inherit the account. That used to be guaranteed by the method not existing, which is the strongest form and is now spent. It is replaced by two rules — the interface may carry exactly one lookup by address and it is the verifying one (`ExternalLoginFlowTests`, by reflection, asserting the *name* rather than a count), and the IL may contain exactly one caller (`StructuralRuleTests.Only_the_sign_in_form_resolves_an_account_by_address`). Both carry a control that fails if the thing they search for is renamed, because an absence assertion whose subject disappeared reports a pass |
 
 ## 11.3 Endpoints
 
-`users:read`, `users:write`, `users:self`. Routed or absent, never advertised-and-404 (`N-06`).
+`users:read`, `users:write`, `users:self`, and — added after this section was written —
+`roles:read` and `roles:write`. Routed or absent, never advertised-and-404 (`N-06`).
+`AdminScopes.Administrative` is the one list `AdminRoleScopePolicy` and the host's admin-resource
+registration both read, so a scope is gated and advertised in the same commit or not at all;
+`users:self` is deliberately not on it.
 
 | ID | Endpoint | Scope |
 |---|---|---|
 | E-25 | `GET /admin/users` — keyset paginated, never `OFFSET` | `users:read` |
-| E-26 | `GET /admin/users/{subject}` | `users:read` |
+| E-26 | `GET /admin/users/{handle}` | `users:read` |
 | E-27 | `POST /admin/users` — password returned once | `users:write` |
-| E-28 | `PATCH /admin/users/{subject}` — role, email, enabled | `users:write` |
-| E-29 | `POST /admin/users/{subject}/password` | `users:write` |
+| E-28 | `PATCH /admin/users/{handle}` — role, email, enabled | `users:write` |
+| E-29 | `POST /admin/users/{handle}/password` | `users:write` |
 | E-30 | `DELETE /admin/users/{handle}/sessions` — revokes every grant; returns the count | `users:write` |
 | E-31 | `POST /admin/users/{handle}/anonymise` — tombstone, revoking sessions first | `users:write` |
 | E-32 | `GET /admin/audit` | `users:read` |
 | E-33 | `GET /account` | `users:self` |
 | E-34 | `POST /account/password` | `users:self` |
 | E-35 | `GET /account/sessions` | `users:self` |
-| E-36 | `DELETE /account/sessions/{family}` | `users:self` |
+| E-36 | `DELETE /account/sessions/{grant}` | `users:self` |
 | E-37 | `GET /account/consents` | `users:self` |
-| E-38 | `DELETE /account/consents/{clientId}` | `users:self` |
+| E-38 | `DELETE /account/consents/{**clientId}` — catch-all, because a CIMD `client_id` is a URL and contains `/` | `users:self` |
 | E-39 | `POST /account/password/forgot` — rate limited per account and per source | public |
 | E-40 | `POST /account/password/reset` | public |
 | E-41 | `POST /account/email/verify` | public |
+| E-48 | `GET /admin/roles`, `POST /admin/roles` | `roles:read` **or** `users:read` to list; `roles:write` **or** `users:write` to create |
+| E-49 | `PATCH /admin/roles/{id}`, `DELETE /admin/roles/{id}` | `roles:write` **or** `users:write` |
+| E-50 | `GET·POST·PATCH·DELETE /admin/users/{handle}/service-account` — singular, because one account holds at most one | `users:read` to read; `users:write` to mutate |
+
+
+**E-48, E-49 and E-50 ship and had no rows here.** They are added at the end of the range rather
+than inserted, because an id is matched by hand from code comments and renumbering a table is how
+a citation silently comes to mean something else. Two things about them are decisions rather than
+shape. The role endpoints accept a **narrow-or-broad pair** — `roles:read` is genuinely less
+sensitive than `users:read` because a definitions list holds no person, while `roles:write` is
+*not* a lesser tier of `users:write`, since redefining a role changes what every holder's next
+token may do; it is separate so a credential can be scoped to the role domain, and it is gated
+exactly as hard. And the service account is a property of a person rather than a member of a
+client collection, which is why it is singular and under the account with no id of its own.
+`AuthorizationServerPaths.AdminUserServiceAccount` cites `E-33` in its doc comment, which is
+`GET /account` — that citation predates this row and belongs to nothing.
 
 Pages, because a link in an email lands on one and `E-40`/`E-41` on their own mail somebody a URL
 that answers `405`. Cookie-authenticated where they need a principal, and under prefixes disjoint
@@ -751,6 +850,16 @@ from the two above — see `N-17`.
 
 ## Appendix — five commands that must pass before any submission
 
+**One expectation here was unsatisfiable and is corrected below.** The second command asked for the
+`jwt-bearer` URN in `grant_types_supported`. No deployment can produce that: `KnownGrantTypes` lists
+exactly the grants `TokenEndpoint` has an arm for, configuring a name outside it is a **startup
+failure** rather than a runtime one, and `OptionsValidationTests.A_grant_with_no_handler_is_refused`
+pins the URN by name. So a server that passed this line would be advertising a grant it refuses —
+`N-06` — and one that fails it is correct. `S-26`(b) is where the grant's own status lives, and
+`C-32` still records that Claude Enterprise Managed Auth needs the URN advertised before the feature
+is offered: that is a real client requirement this server does not meet, and the appendix is not the
+place to make it look met. Put the line back in the commit that implements RFC 7523's grant.
+
 ```bash
 ISSUER=https://auth.example.com
 MCP=https://mcp.example.com/mcp
@@ -765,7 +874,9 @@ curl -s "$ISSUER/.well-known/oauth-authorization-server" | jq '{
   client_id_metadata_document_supported, registration_endpoint,
   grant_types_supported, scopes_supported }'
 # expect: S256 present; "none" AND "private_key_jwt" present; CIMD true;
-#         registration_endpoint ABSENT; jwt-bearer URN present; offline_access present
+#         registration_endpoint ABSENT; offline_access present;
+#         grant_types_supported = ["authorization_code","refresh_token"] (+ "client_credentials"
+#         only where a deployment enabled it) and the jwt-bearer URN ABSENT.
 
 # C-15: /token parses form encoding -> 400 with an OAuth body, never 415
 curl -s -o /dev/null -w '%{http_code}\n' -X POST "$ISSUER/token" \
@@ -793,24 +904,3 @@ curl -s -o /dev/null -w '%{http_code}\n' -G "$ISSUER/authorize" \
 Plus, from **outside** your own network: `dig +short auth.example.com` must return only globally
 routable **IPv4** addresses (C-31), and `curl -sI $MCP` must not be a `3xx` to another host.
 
----
-
-# 10. Live measurement, 2026-08-03 — corrections to §6 and §9
-
-All four CIMD documents fetched directly. Bodies recorded verbatim in
-`research/cimd-live-2026-08-03.json`. Three rows above are **wrong or overstated** and are
-corrected here; this section wins on conflict.
-
-| Row | Said | Measured | Correction |
-|---|---|---|---|
-| C-03 / C-05 | ChatGPT **requires** `private_key_jwt`; a `none`-only AS locks it out | ChatGPT declares `"token_endpoint_auth_methods_supported":["none","private_key_jwt"]` — **both** | ChatGPT can authenticate as a public client. Supporting both is still right, but `private_key_jwt` is **not** a lockout risk. Downgrade "REQUIRED by ChatGPT" to "offered by ChatGPT" |
-| C-06 / U-04 | ChatGPT redirect is a template `https://chatgpt.com/connector/oauth/{callback_id}` | Concrete: `https://chatgpt.com/connector_platform_oauth_redirect` and `https://chatgpt.com/connector/oauth/mcp` | Both are exact-matchable literals from the document. No template handling needed. U-04 drops to low risk |
-| U-03 | Charset tolerance on metadata fetch unverified | `chatgpt.com` serves `application/json; charset=utf-8`; `claude.ai` serves bare `application/json` | **Resolved: tolerating a charset parameter is mandatory.** A fetcher comparing the Content-Type by equality against `application/json` rejects every ChatGPT document. Parse the media type, ignore parameters |
-
-**Confirmed unchanged by measurement:** Claude Code declares portless `http://localhost/callback`
-and `http://127.0.0.1/callback` (N-04/A-19 are real, not theoretical) · Claude declares the
-`jwt-bearer` URN, Claude Code does not (C-32) · Claude uses RFC 7591's singular
-`token_endpoint_auth_method`, ChatGPT uses the plural RFC 8414 *server* field name — C-04's
-field-name defect is real and both spellings must be read · no document declares `scope` ·
-ChatGPT declares a `logo_uri` on a third-party CDN host, so N-14's proxy-never-hotlink rule has a
-live case on day one.

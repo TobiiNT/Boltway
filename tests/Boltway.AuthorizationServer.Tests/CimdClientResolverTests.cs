@@ -1362,7 +1362,7 @@ public sealed class CimdClientResolverTests
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Read from the <c>auth/spec/cimd-live-*.json</c> captures rather than transcribed, so
+    /// Read from the <c>spec/cimd-live-*.json</c> captures rather than transcribed, so
     /// refreshing a capture re-tests this rather than leaving a copy behind. Each file is a
     /// <c>// url</c> comment line followed by the document body, repeated — a capture log, not one
     /// JSON document.

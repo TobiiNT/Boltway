@@ -17,7 +17,7 @@ header {
 }
 
 header nav { display: flex; gap: 1rem; flex-wrap: wrap; }
-header .rail-foot { display: flex; gap: 1rem; align-items: baseline; margin-left: auto; }
+header .rail-foot { display: flex; gap: 1rem; align-items: baseline; margin-inline-start: auto; }
 header .who { opacity: .7; }
 header form.inline { display: inline; margin: 0; }
 
@@ -25,7 +25,10 @@ h1 { font-size: 1.5rem; }
 h2 { font-size: 1.125rem; margin-top: 2.5rem; }
 
 table { border-collapse: collapse; width: 100%; }
-th, td { text-align: left; padding: .5rem .75rem .5rem 0; border-bottom: 1px solid var(--line); }
+th, td {
+  text-align: start; padding-block: .5rem; padding-inline: 0 .75rem;
+  border-bottom: 1px solid var(--line);
+}
 
 dl { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; }
 dt { opacity: .7; }
@@ -36,7 +39,7 @@ input[type="text"], input[type="email"], input:not([type]) {
   display: block; width: 100%; max-width: 28rem; padding: .4rem;
   font: inherit; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: inherit;
 }
-input[type="checkbox"] { margin-right: .4rem; }
+input[type="checkbox"] { margin-inline-end: .4rem; }
 
 button {
   margin-top: 1rem; padding: .5rem 1rem; font: inherit;
@@ -73,16 +76,16 @@ button.copy { margin: 0; padding: .3rem .6rem; font-size: .875rem; }
 .role.new { margin-top: 1rem; border: 1px solid var(--line); border-radius: 6px; }
 .role > summary,
 .service > summary { padding: .6rem 1rem; cursor: pointer; display: flex; gap: .5rem; align-items: center; }
-.perms { margin-left: auto; display: flex; gap: .3rem; }
+.perms { margin-inline-start: auto; display: flex; gap: .3rem; }
 .role-count { opacity: .6; font-size: .875rem; white-space: nowrap; }
 .perms code { font-size: .8125rem; opacity: .7; }
 .role-body { padding: 0 1rem 1rem; }
 .role-body form + form { margin-top: 1rem; }
 
 /* The service account is a section of the account page rather than a row in a list, so it keeps the
-   page's left edge and its body is not indented. */
+   edge the page's text starts from and its body is not indented. */
 .service { margin-top: 2.5rem; }
-.service > summary { padding-left: 0; }
+.service > summary { padding-inline-start: 0; }
 .service > summary .role-title { font-size: 1.125rem; }
 .service-body { padding: 1rem 0 0; }
 .service-body form + form { margin-top: 1rem; }

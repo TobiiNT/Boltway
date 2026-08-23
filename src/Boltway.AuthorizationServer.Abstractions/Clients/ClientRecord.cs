@@ -146,10 +146,10 @@ public sealed record ClientRecord
     /// </para>
     /// <para>
     /// <b>The owner's roles are the ceiling, and that is a reason to give a service account its own
-    /// account rather than hanging a secret on somebody's.</b> A client owned by a founder is a
-    /// non-expiring credential with a founder's reach. Owned by an account holding one narrow role,
-    /// it can only do that role's work — which is the difference between a key to the building and a
-    /// key to one door.
+    /// account rather than hanging a secret on somebody's.</b> A client owned by an account that
+    /// holds every role is a non-expiring credential with that reach. Owned by an account holding
+    /// one narrow role, it can only do that role's work — which is the difference between a key to
+    /// the building and a key to one door.
     /// </para>
     /// <para>
     /// <b>Null is the ordinary case and must stay the default.</b> Every client that exists today —
