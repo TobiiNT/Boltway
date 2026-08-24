@@ -96,8 +96,12 @@ this case different — not in a suppression file where nobody reads it.
 ## Releasing
 
 [`VERSIONING.md`](VERSIONING.md) says what the number promises; this is how it goes out.
-[`CHANGELOG.md`](CHANGELOG.md) is what a consumer reads afterwards — the release itself produces an
-annotated tag and nothing else, so the changelog is the release notes.
+[`CHANGELOG.md`](CHANGELOG.md) is what a consumer reads afterwards, and it is the record to keep
+accurate. The release also publishes a page — the annotated tag's message, republished at
+`github.com/TobiiNT/Boltway/releases` — which is a summary with an address, not a second changelog.
+It exists because a tag message is something you can read and not something you can link, and both
+tags cut before it shipped eighteen package ids while that page said nothing had ever been
+released. Where the two disagree, the changelog is right.
 
 **Once, and not from this repository:** nuget.org Trusted Publishing has to be set up — a policy
 registered on nuget.org naming this repository and the publish workflow, and the `NUGET_USER`
@@ -135,13 +139,20 @@ Then, per release, in this order:
 4. **Dispatch the `release` workflow.** Three inputs: `tag`, which must be `v` followed by exactly
    the version in `Directory.Build.props` and is checked against it — dispatching `v0.3.0` against a
    tree reading `0.2.0` used to cut the tag, publish every package at `0.2.0` and report success;
-   `message`, which becomes the annotated tag message; and `ref`, what to tag, defaulting to the
-   branch it was dispatched on. A tag that already exists is refused rather than moved: it is what a
+   `message`, which becomes the annotated tag message *and*, verbatim, the notes on the release
+   page — so it is written for somebody who has not read the diff; and `ref`, what to tag,
+   defaulting to the branch it was dispatched on. A tag that already exists is refused rather than moved: it is what a
    consumer resolved a package version through, and cutting another one is cheap.
 
 Do not publish by dispatching `publish packages` directly. It builds whatever the branch head is at
 that moment and leaves no ref naming what went out, which is why nothing records the tree that
 0.1.0 was built from.
+
+`announce release` is the one piece that is dispatchable on its own, for a tag that has no page —
+the two cut before it existed, or a release whose last job failed after everything irreversible had
+already happened. It reads the tag and refuses a tag that is missing, lightweight, empty, or already
+has a release; it never writes over notes somebody edited. Uncheck `latest` when filling in a tag
+older than one that already has its page, or the Latest badge moves backwards.
 
 ## Language
 

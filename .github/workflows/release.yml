@@ -279,3 +279,31 @@ jobs:
 
             echo "$IMAGE:$TAG -> $SHA" >> "$GITHUB_STEP_SUMMARY"
           done < names.txt
+
+  # Last, and the ordering is the same argument the `images` job makes one level up: a release page
+  # says "this is v0.3.0, here is what is in it", and a release whose packages did not go out or
+  # whose images never got the name is not one. Anything that has to be true before somebody reads
+  # that page has already been checked by the time this starts.
+  #
+  # Called rather than inlined, because the two tags cut before this existed need the same treatment
+  # and a `workflow_dispatch` is how they get it. A copy of these lines here plus a repair script
+  # somewhere else is two implementations of one release note, and they would agree for about a
+  # month.
+  announce:
+    needs: [tag, publish, images]
+
+    # `contents: write` for the release itself. As on `publish`, a called workflow's own
+    # `permissions:` block can only narrow what this grants, never widen it — so what is written
+    # here is what the job actually gets, and omitting it would leave `gh release create` with a
+    # read-only token after the tag was pushed and both feeds were written.
+    permissions:
+      contents: write
+
+    uses: ./.github/workflows/announce-release.yml
+    with:
+      tag: ${{ inputs.tag }}
+
+      # Always the newest thing released, because this only ever runs on a tag cut minutes ago. The
+      # input exists for the dispatch path, where filling in an older tag must not move the Latest
+      # badge backwards.
+      latest: true
