@@ -36,9 +36,32 @@ Nothing under src/, hosts/, testing/ or tests/ contains a Code Component lifted
 from either draft. If one is ever taken, TLP section 4.e attaches the Revised BSD
 text to that copy, and it is named here in the same commit.
 
+One further file is adapted from third-party text and is likewise NOT covered by
+this repository's Apache-2.0 licence:
+
+  CODE_OF_CONDUCT.md
+
+  Adapted from the Contributor Covenant, version 3.0, permanently available at
+  https://www.contributor-covenant.org/version/3/0/ and fetched 2026-08-24.
+
+  Contributor Covenant is stewarded by the Organization for Ethical Source and
+  licensed under the Creative Commons Attribution-ShareAlike 4.0 International
+  licence (CC BY-SA 4.0), https://creativecommons.org/licenses/by-sa/4.0/.
+
+  Because that file is an adaptation rather than a verbatim copy -- the reporting
+  channel is this project's, and one passage is rewritten to say that reports
+  reach one person rather than a moderation team -- ShareAlike attaches, so the
+  file carries CC BY-SA 4.0 and says so in its own last section. Two consequences
+  worth stating rather than leaving to be worked out: a downstream fork may reuse
+  it under those terms and not under Apache-2.0, and an edit to it is an edit to
+  a CC BY-SA 4.0 work.
+
+  Nothing under src/, hosts/, testing/ or tests/ derives from it. It is prose
+  about conduct and shares no text with any file that compiles.
+
 This file describes the contents of the repository. The published packages
 contain none of the third-party material above -- they carry compiled code from
-src/ and testing/ only -- so their licence metadata is Apache-2.0 with nothing
-further attached.
+src/ and testing/ only, plus README.md, which is this project's own -- so their
+licence metadata is Apache-2.0 with nothing further attached.
 
 spec/README.md carries the same statement in prose, with the reasoning.

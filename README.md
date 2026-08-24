@@ -137,6 +137,7 @@ design.
 | [Hosting](https://github.com/TobiiNT/Boltway/blob/main/docs/HOSTING.md) | Wiring a `Program.cs` |
 | [Roadmap](https://github.com/TobiiNT/Boltway/blob/main/ROADMAP.md) | The gaps, measured against Keycloak |
 | [Contributing](https://github.com/TobiiNT/Boltway/blob/main/CONTRIBUTING.md) | House rules, and how a release is cut |
+| [Governance](https://github.com/TobiiNT/Boltway/blob/main/GOVERNANCE.md) | One maintainer, a bus factor of 1 stated as a number, and what constrains them |
 | [Lessons](https://github.com/TobiiNT/Boltway/blob/main/LESSONS.md) | Twelve times we recorded a guess as a fact |
 | [Design](https://github.com/TobiiNT/Boltway/blob/main/docs/DESIGN.md) · [Requirements](https://github.com/TobiiNT/Boltway/blob/main/spec/REQUIREMENTS.md) | The decisions, and the ids cited from the code |
 | [All documents](https://github.com/TobiiNT/Boltway/blob/main/docs/README.md) | Indexed, each marked current or dated |

@@ -24,6 +24,8 @@ the day.
 | [`../CHANGELOG.md`](../CHANGELOG.md) | Anyone upgrading | That every package moves on one version number, so an entry applies whether or not your package has a line in it | current |
 | [`../VERSIONING.md`](../VERSIONING.md) | The same reader, before upgrading | That 0.x promises nothing, deliberately, and that the 0.2.0 in `Directory.Build.props` already carries breaking entries | current |
 | [`../CONTRIBUTING.md`](../CONTRIBUTING.md) | Anyone opening a pull request | Docker, or a PostgreSQL you supply. Warnings are errors and the storage suite fails rather than skips | current |
+| [`../GOVERNANCE.md`](../GOVERNANCE.md) | Anyone deciding whether to depend on this | Nothing. One maintainer, a bus factor of 1 stated as a number, and what is executable rather than social about the review | current |
+| [`../CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md) | Anyone participating, and anyone who needs to report conduct | Nothing. Contributor Covenant 3.0 adapted, and the adaptation is that a report reaches one person. **Carries CC BY-SA 4.0, not this repository's licence** — see `NOTICE` | current |
 | [`../SECURITY.md`](../SECURITY.md) | Anyone holding a vulnerability report | Nothing. It also says what is out of scope, which is most of what gets reported | current |
 | [`../LESSONS.md`](../LESSONS.md) | Everyone, before a first change | Nothing. Twelve instances of one mistake; it is cited by name from a dozen files under `src/` | current |
 | [`../spec/README.md`](../spec/README.md) | Anyone citing a requirement id, or wondering why two IETF drafts are checked in | Nothing. It carries the licence note for those two files, which are not Apache-2.0 | current |

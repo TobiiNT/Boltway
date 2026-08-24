@@ -187,8 +187,30 @@ by something with diacritics rather than by a copy of English.
 
 Do not open an issue for a vulnerability. [`SECURITY.md`](SECURITY.md) has the private channel.
 
+## Who decides
+
+[`GOVERNANCE.md`](GOVERNANCE.md). It is short, and the short version is that there is one maintainer
+— which is worth knowing before you spend a weekend on a patch, and worth knowing before you depend
+on this. It also lists what constrains that maintainer, since a project with one committer has no
+reviewer to catch a bad change and has to put the constraints somewhere executable instead.
+
+## Conduct
+
+[`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) applies to issues, pull requests and review here.
+
+It is about conduct, not about disagreement. This file has just spent a hundred lines asking you to
+justify your changes; a review that pushes back hard on a design, or a patch that is refused, is
+neither a violation nor evidence of one.
+
+That file carries **CC BY-SA 4.0** rather than the repository's Apache-2.0, because it is adapted
+from the Contributor Covenant. `NOTICE` records the carve-out, so an edit to it is an edit to a
+CC BY-SA 4.0 work.
+
 ## Licence
 
 Contributions are accepted under Apache-2.0, the licence the project ships under. By opening a pull
 request you are licensing your contribution under it, including the patent grant in section 3 — which
 is the main reason the project is Apache rather than MIT.
+
+There is no CLA and no `Signed-off-by` requirement. `GOVERNANCE.md` says what that costs and what to
+do if your organization's review needs the signed trail.
