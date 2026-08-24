@@ -1,0 +1,142 @@
+# Give a tag a page.
+#
+# `release.yml` cuts an annotated tag and argues, correctly, that the message on it is where "what
+# was in this release and who cut it" survives without a release note somewhere else. That is true
+# of the *content* and false of the *address*: `git show v0.2.0` is an answer you can read and not
+# one you can link, and it needs a clone to read at all. v0.1.0 and v0.2.0 put eighteen package ids
+# on nuget.org while https://github.com/TobiiNT/Boltway/releases was empty — the page a stranger
+# opens first to ask what shipped and when, answering that nothing ever had.
+#
+# So this reads the tag message back and publishes it as the release. One document, two surfaces,
+# and the second is derived from the first rather than written again beside it.
+#
+# TWO ENTRY POINTS, AND THE SECOND IS NOT A CONVENIENCE
+# ----------------------------------------------------
+# `workflow_call` is the release path. `workflow_dispatch` exists because the tags that already
+# exist were cut before this workflow did, and the alternative ways to give them a page are worse:
+# weakening the tag job's refusal to touch an existing tag, or typing the notes into the web form
+# by hand, which is the copy this whole file exists to avoid.
+
+name: announce release
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: 'The tag to publish a release for. Must already exist and be annotated.'
+        required: true
+        type: string
+      latest:
+        description: 'Whether this becomes the repository''s Latest release.'
+        required: false
+        default: true
+        type: boolean
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'The tag to publish a release for, e.g. v0.2.0. Must already exist and be annotated.'
+        required: true
+        type: string
+      latest:
+        description: 'Whether this becomes the repository''s Latest release. Uncheck when filling in an older tag after a newer one already has its page.'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+
+    # Reads one tag and makes two API calls. The reasoning for putting a ceiling on every job is
+    # written out once, in ci.yml's `test` job; this one is low because there is nothing here that
+    # legitimately takes long.
+    timeout-minutes: 10
+
+    # A release lives under `contents` in GitHub's permission model, so publishing one needs write
+    # on the same scope that can push a commit. Narrowed to this job for that reason.
+    permissions:
+      contents: write
+
+    steps:
+      # Pinned to a commit rather than a tag: a tag is a mutable pointer in somebody else's
+      # repository, and this job holds `contents: write` on this one. The full argument, and the
+      # dependabot half that keeps a pin from rotting, is in publish-packages.yml.
+      #
+      # Full history and every tag, because the message this publishes is read out of the local
+      # clone. A shallow checkout that fetched no tags would not fail — it would find nothing, and
+      # the checks below would refuse rather than publish an empty release, which is the right
+      # outcome reached for the wrong reason and only if somebody remembers why.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Publish the release
+        env:
+          TAG: ${{ inputs.tag }}
+          LATEST: ${{ inputs.latest }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::$TAG does not exist. This publishes a page for a tag somebody already"
+            echo "::error::cut; it does not create one. Cut it with the \`release\` workflow."
+            exit 1
+          fi
+
+          # A lightweight tag carries no message of its own, and `%(contents)` on one silently
+          # returns the *commit* message it points at. That would publish a release whose notes are
+          # somebody's commit body — plausible enough at a glance to go unnoticed, and wrong. The
+          # object type is the only thing that separates the two, so it is what gets checked.
+          if [ "$(git cat-file -t "$TAG")" != "tag" ]; then
+            echo "::error::$TAG is a lightweight tag, so it has no message to publish. \`release\`"
+            echo "::error::cuts annotated tags; this one was made some other way."
+            exit 1
+          fi
+
+          # Refuse rather than overwrite, for the reason `release.yml` refuses to move a tag: the
+          # notes on an existing release may have been edited in the web UI, and nothing here can
+          # tell an edit from the text it started as. Rewriting them would destroy the edit and
+          # report success.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::$TAG already has a release. This will not rewrite one — edit it in the"
+            echo "::error::UI, or delete it there first if the notes are meant to be regenerated."
+            exit 1
+          fi
+
+          git tag -l --format='%(contents)' "$TAG" > notes.md
+
+          # An empty message reaches `gh` as an empty release body rather than as an error, so the
+          # emptiness has to be caught here or not at all.
+          [ -s notes.md ] || { echo "::error::$TAG has an empty message, so there are no notes to publish."; exit 1; }
+
+          # `--notes-file` rather than `--notes-from-tag`, which would have gh read the tag itself.
+          # Reading it here is what makes the two checks above possible: `--notes-from-tag` gives
+          # this step no value to test, so a lightweight tag or an empty message would be found by
+          # whoever opened the page.
+          #
+          # And not `--generate-notes`, which is a list of merged pull request titles. That is a
+          # different document from the one somebody wrote for this release, and it would disagree
+          # with both the tag and CHANGELOG.md — three descriptions of one release, assembled by
+          # three different rules.
+          #
+          # `--verify-tag` because without it `gh release create` *creates* a missing tag, from the
+          # default branch. Every guard in `release.yml` exists to make a tag name exactly the tree
+          # that was published; one invented here would name whatever main had got to.
+          #
+          # `--title` and `--latest` are passed rather than left to gh, which decides both by
+          # itself: the title from the tag name and Latest from date and version. The title happens
+          # to agree; Latest does not survive filling in an older tag after a newer one, which is
+          # the first thing this workflow was dispatched to do.
+          gh release create "$TAG" \
+            --verify-tag \
+            --title "$TAG" \
+            --notes-file notes.md \
+            --latest="$LATEST"
+
+          echo "Published $TAG (latest=$LATEST)" >> "$GITHUB_STEP_SUMMARY"
+          gh release view "$TAG" --json url --jq .url >> "$GITHUB_STEP_SUMMARY"
