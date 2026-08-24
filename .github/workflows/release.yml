@@ -122,6 +122,46 @@ jobs:
             exit 1
           fi
 
+          # CONTRIBUTING step 2: the version's section in CHANGELOG.md carries the date the tag is
+          # cut. Until now nothing checked it, and the two ways it goes wrong are different.
+          #
+          # **Undated is the loud one.** A section still headed `unreleased` is a lie the moment
+          # somebody restores the version, and CHANGELOG.md is not packed into the packages — so
+          # after the tag exists, correcting it leaves main saying one thing and the tagged tree
+          # another. Here is the last moment it is free.
+          #
+          # **Misdated is the quiet one, and it is what actually happened.** 0.2.0 was dated
+          # 2026-08-23 in a pull request that merged at 01:33 UTC on the 24th: a day behind under
+          # UTC and under the local clock alike, caught by re-reading rather than by anything here.
+          #
+          # The window is today or tomorrow in UTC, and the asymmetry is deliberate. A maintainer
+          # ahead of UTC dates it by their own day, which is UTC's day or the one after — never the
+          # one before. Widening it to yesterday would admit exactly the case above.
+          HEADING="$(grep -m1 "^## \[$VERSION\]" CHANGELOG.md || true)"
+          if [ -z "$HEADING" ]; then
+            echo "::error::CHANGELOG.md has no section headed [$VERSION]. The version being tagged is"
+            echo "::error::the one a consumer looks up by that heading."
+            exit 1
+          fi
+
+          DATE="$(printf '%s' "$HEADING" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1 || true)"
+          if [ -z "$DATE" ]; then
+            echo "::error::CHANGELOG.md's [$VERSION] section carries no date: $HEADING"
+            echo "::error::Date it before cutting the tag. CHANGELOG.md is not packed into the"
+            echo "::error::packages, so after this the tagged tree keeps whatever it says now."
+            exit 1
+          fi
+
+          TODAY="$(date -u +%F)"
+          TOMORROW="$(date -u -d '+1 day' +%F)"
+          if [ "$DATE" != "$TODAY" ] && [ "$DATE" != "$TOMORROW" ]; then
+            echo "::error::CHANGELOG.md dates $VERSION at $DATE and this tag is being cut on $TODAY (UTC)."
+            echo "::error::CONTRIBUTING.md defines that date as the day the tag is cut. Re-date the"
+            echo "::error::section and dispatch again — it is one line, and it is only free until the"
+            echo "::error::tag exists."
+            exit 1
+          fi
+
           SHA="$(git rev-parse HEAD)"
 
           # Annotated, not lightweight. An annotated tag carries a message, an author and a date, so

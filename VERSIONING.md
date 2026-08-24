@@ -74,6 +74,11 @@ The number moves in the commit that changed the surface, not at release time. `C
 so under *Pull requests*, and the tag check in the `release` workflow is an equality test against
 this literal precisely because the literal is the decision and the tag is derivative.
 
+Two other values move with it in the same commit, and a test fails if either is left behind: the
+`CHANGELOG.md` heading, and `PackageValidationBaselineVersion` — which decides what a break is
+measured against, and a release behind stops seeing anything the previous release added and this one
+removes.
+
 ## A published version can never be reused
 
 nuget.org has **unlist, not delete**. An unlisted package stops appearing in search and keeps

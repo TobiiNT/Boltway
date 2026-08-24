@@ -89,7 +89,9 @@ this case different — not in a suppression file where nobody reads it.
   `IsEnabled` guard, so a large key set paid for a sentence nobody was listening to" is.
 - If you changed anything a consumer compiles against, move the version in `Directory.Build.props` in
   the same commit. The comment there explains why doing it at release time has already cost an
-  outage.
+  outage. That commit moves three things together — the version, its `CHANGELOG.md` section, and
+  `PackageValidationBaselineVersion` up to the version just released — and `StructuralRuleTests`
+  fails if any one of them is left behind.
 - Public API changes: `tests/Boltway.PublicApi.Tests` holds the approved surface. Update it in the
   same commit, so the diff shows what a consumer sees.
 
@@ -127,9 +129,23 @@ Then, per release, in this order:
    and step 4 refuses. Skip it *and* the check, and you pack a version the feed already holds:
    `--skip-duplicate` reports success, drops the package, and the workflow stays green while the new
    assembly never ships.
+
+   **`PackageValidationBaselineVersion` moves in that same commit, up to the version just
+   released.** It decides what a break is measured against, and left behind it measures against a
+   version nobody is on: a member the previous release *added* and this one removes packs green,
+   because the baseline package never carried it — and that is exactly the member a consumer on the
+   newest release compiles against. Measured on 2026-08-24 with the baseline a release behind:
+   removing a member 0.1.0 shipped failed the pack with `CP0002`, removing one 0.2.0 added did not.
+   Move it after the version, never to equal it — a baseline equal to the version being packed
+   validates nothing.
 2. **Date the version's section in `CHANGELOG.md`.** It is written as the surface moves, so by now
    it is a heading and a date rather than an archaeology exercise. Skip it and the file says
    `unreleased` about a version people are restoring — and `SECURITY.md` credits reporters there.
+
+   Step 4 refuses an undated section, and refuses a date that is neither today nor tomorrow in UTC.
+   The window is one-sided on purpose: a maintainer ahead of UTC dates by their own day, which is
+   UTC's or the one after, never the one before. 0.2.0 was dated a day behind and nothing caught it
+   but a re-read.
 3. **Wait for `ci` to finish on the exact sha you are about to tag.** Its image job builds and
    pushes each image tagged with the commit sha, and the release adds the version tag to those
    manifests by digest rather than rebuilding — so the versioned image is the same bytes CI tested.
@@ -141,8 +157,11 @@ Then, per release, in this order:
    tree reading `0.2.0` used to cut the tag, publish every package at `0.2.0` and report success;
    `message`, which becomes the annotated tag message *and*, verbatim, the notes on the release
    page — so it is written for somebody who has not read the diff; and `ref`, what to tag,
-   defaulting to the branch it was dispatched on. A tag that already exists is refused rather than moved: it is what a
-   consumer resolved a package version through, and cutting another one is cheap.
+   defaulting to the branch it was dispatched on. A tag that already exists is refused rather than
+   moved: it is what a consumer resolved a package version through, and cutting another one is
+   cheap. It also refuses steps 1 and 2 left undone — a changelog section that is undated, misdated,
+   or absent — because after the tag exists that file is not packed into the packages, so a
+   correction leaves `main` saying one thing and the tagged tree another.
 
 Do not publish by dispatching `publish packages` directly. It builds whatever the branch head is at
 that moment and leaves no ref naming what went out, which is why nothing records the tree that

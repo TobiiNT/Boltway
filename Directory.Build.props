@@ -171,9 +171,24 @@
     documents itself as unable to see (it compares metadata *names*, and a signature can change
     without a name changing).
 
-    0.1.0 is the baseline because that is what is on nuget.org and therefore what a consumer has
-    already restored. At 0.x a break is permitted — `VERSIONING.md` says so — and the point is not
-    to forbid it but to make it a thing somebody decided rather than a thing nobody noticed.
+    The baseline is the release before this one, because that is what a consumer has already
+    restored. At 0.x a break is permitted — `VERSIONING.md` says so — and the point is not to forbid
+    it but to make it a thing somebody decided rather than a thing nobody noticed.
+
+    **It moves in the same commit as `<Version>`, and leaving it behind is silent in one direction.**
+    A baseline a release too old still catches everything that release inherited, so most of the gate
+    keeps working and nothing looks wrong. What it stops seeing is a member the previous release
+    *added* and this one removes: the baseline package never carried it, so there is nothing to
+    report — and that is exactly the member a consumer on the newest release compiles against.
+    Measured on 2026-08-24 against a 0.1.0 baseline while 0.2.0 was the released version: making
+    `AuthorizationServerMetadata.ScopesSupported` internal failed the pack with two CP0002 errors,
+    and making `PromptValuesSupported` internal — same file, same kind of break, added in 0.2.0 —
+    packed green. Pointing the baseline at 0.2.0 turned the second one red.
+
+    Never equal to `<Version>`: a baseline equal to the version being packed validates nothing, also
+    measured, so the move is *after* the version rather than alongside it.
+    `StructuralRuleTests.The_api_compatibility_baseline_is_the_previous_released_version` holds this
+    to CHANGELOG.md's second heading, so forgetting costs a red test rather than a quiet release.
 
     Pack-time and network-bound, so it does not slow an ordinary `dotnet build` and does not make an
     offline one fail. The failure looks like `CP0002: Member ... exists on [Baseline] ... but not

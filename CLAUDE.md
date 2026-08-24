@@ -175,8 +175,11 @@ What packs is `StructuralRuleTests.PackableProjects`, checked by a test rather t
 hand. Adding a package is an edit to that list, made deliberately — an id cannot be taken back.
 
 **A break is a decision, not an accident.** `EnablePackageValidation` diffs every packable project
-against the 0.1.0 already on the feed, so a removed or re-signatured public member fails the pack
-with `CP0002`. At 0.x a break is allowed — `VERSIONING.md` says so — and the gate exists to make it
+against `PackageValidationBaselineVersion` — the release before this one, already on the feed — so a
+removed or re-signatured public member fails the pack with `CP0002`. That number moves in the commit
+that moves `<Version>`, and a test holds it to CHANGELOG.md's second heading: left behind, the gate
+stops seeing anything the previous release added and this one removes, which is the half a consumer
+on the newest version is compiling against. At 0.x a break is allowed — `VERSIONING.md` says so — and the gate exists to make it
 something somebody chose. Its own error suggests `ApiCompatGenerateSuppressionFile`, which writes
 the break into a file nobody reads again; record it in `CHANGELOG.md` instead, where the consumer
 about to hit it will see it.
