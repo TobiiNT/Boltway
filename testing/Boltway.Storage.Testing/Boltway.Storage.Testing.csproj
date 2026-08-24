@@ -36,13 +36,19 @@
     <IsPackable>true</IsPackable>
 
     <!--
-      No package validation, because there is nothing to validate against. Every other id here has
-      a 0.1.0 on nuget.org that a consumer may already have restored, and Directory.Build.props
-      makes that the ApiCompat baseline; this id has never been published, so asking for the
-      baseline is a restore failure rather than a check. Remove this the release after the first
-      one that ships it — at which point there is a baseline and it should be held to it.
+      No package validation while the baseline is 0.1.0, because there is nothing to validate
+      against. Every other id here has a 0.1.0 on nuget.org that a consumer may already have
+      restored, and Directory.Build.props makes that the ApiCompat baseline; this id was first
+      published at 0.2.0, so asking for a 0.1.0 of it is a restore failure rather than a check.
+
+      **The condition is how this expires, and it is a condition rather than a note for a reason.**
+      This said "remove this the release after the first one that ships it", which is an instruction
+      to somebody who has to remember it — a year later, mid-release, in a file nobody opens unless
+      they are changing the contracts. The moment the baseline moves off 0.1.0 it names a version
+      this id actually has, and the opt-out stops applying by itself. Nothing to remember, and no
+      release where the check is off for a reason that has already stopped being true.
     -->
-    <EnablePackageValidation>false</EnablePackageValidation>
+    <EnablePackageValidation Condition="'$(PackageValidationBaselineVersion)' == '0.1.0'">false</EnablePackageValidation>
     <IsTestProject>false</IsTestProject>
     <Description>
       The IGrantStore, IUserStore, IClientStore, IConsentStore, IUserTokenStore, IAdminAuditStore

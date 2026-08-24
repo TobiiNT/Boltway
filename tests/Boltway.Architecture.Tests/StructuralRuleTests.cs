@@ -1289,6 +1289,142 @@ public sealed class StructuralRuleTests
             + string.Join(Environment.NewLine, offenders.Select(o => "  " + o)));
     }
 
+    /// <summary>
+    /// The top section of the changelog is headed with the version that is about to be published.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>CHANGELOG.md</c> states this as one of its three conventions, and until this test it was
+    /// stated only there. It is load-bearing twice over: a consumer restoring a version looks it up
+    /// by that heading, and the rule below reads the <i>second</i> heading to learn what the
+    /// previous release was — which is only the previous release if the first one is this one.
+    /// </para>
+    /// <para>
+    /// The version moves in the commit that moved the surface, so by the time there is anything to
+    /// write down the number is decided. That is what makes this an equality check rather than a
+    /// judgement: there is no window in which the two are legitimately different.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void The_changelog_top_section_is_the_version_that_will_be_published()
+    {
+        var root = RepositoryRoot();
+
+        var version = BuildProperty(root, "Version");
+        var released = ChangelogVersions(root);
+
+        // The control. A changed heading style would leave nothing to compare, and a comparison
+        // against an empty list is how a parse that broke reports a pass.
+        Assert.True(
+            released.Count >= 2,
+            $"Only {released.Count} version headings were found in CHANGELOG.md, so this rule read nothing.");
+
+        Assert.True(
+            string.Equals(released[0], version, StringComparison.Ordinal),
+            $"Directory.Build.props publishes {version} and the top section of CHANGELOG.md is headed "
+            + $"{released[0]}. Whichever moved, the other has to follow in the same commit: a consumer "
+            + "looks the version up by that heading, and the baseline rule reads the section under it.");
+    }
+
+    /// <summary>
+    /// The API compatibility baseline is the release before this one, not an older one.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>EnablePackageValidation</c> diffs each packable project against the version named by
+    /// <c>PackageValidationBaselineVersion</c>, so that baseline decides what a break is measured
+    /// against. Left where it was, it measures against a version nobody is on any more, and the gap
+    /// is silent in one specific direction: <b>a member added in the release after the baseline and
+    /// removed in this one is invisible</b>, because the baseline package never had it. That is
+    /// exactly the member a consumer on the newest release is compiling against.
+    /// </para>
+    /// <para>
+    /// Measured on 2026-08-24, with the baseline still at 0.1.0 the release after it: making
+    /// <c>AuthorizationServerMetadata.ScopesSupported</c> internal — a member 0.1.0 shipped — packed
+    /// red with two CP0002 errors, and making <c>PromptValuesSupported</c> internal — a member 0.2.0
+    /// added — packed green. Same break, same gate, and the only difference was which release first
+    /// carried the member. Pointing the baseline at 0.2.0 turned the second one red.
+    /// </para>
+    /// <para>
+    /// <b>The previous release rather than the newest thing on the feed, and not because they
+    /// differ.</b> They do not: this repository publishes every release, so the section under the
+    /// top one is the version on nuget.org. Reading it here keeps this test offline and
+    /// deterministic — a rule that reaches the network is a rule that goes red for a reason that has
+    /// nothing to do with what it watches, which is the argument <c>pinned-drafts.yml</c> makes at
+    /// length. The feed stays the authority where it has to be, in the publish workflow.
+    /// </para>
+    /// <para>
+    /// A project that opts out with <c>EnablePackageValidation</c> false is not covered by this and
+    /// does not need to be — see the comment on whichever project does it, which carries the
+    /// condition for opting back in.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void The_api_compatibility_baseline_is_the_previous_released_version()
+    {
+        var root = RepositoryRoot();
+
+        var baseline = BuildProperty(root, "PackageValidationBaselineVersion");
+        var released = ChangelogVersions(root);
+
+        Assert.True(
+            released.Count >= 2,
+            $"Only {released.Count} version headings were found in CHANGELOG.md, so this rule read nothing.");
+
+        var previous = released[1];
+
+        Assert.True(
+            string.Equals(baseline, previous, StringComparison.Ordinal),
+            $"PackageValidationBaselineVersion is {baseline} and the release before this one is "
+            + $"{previous}. Everything {previous} added and this release removes would pack green: "
+            + "the baseline package never carried it. Move the baseline in the commit that bumps "
+            + "<Version>, and move it after — a baseline equal to the version being packed measures "
+            + "nothing.");
+    }
+
+    /// <summary>
+    /// Reads one MSBuild property out of <c>Directory.Build.props</c>.
+    /// </summary>
+    /// <remarks>
+    /// Parsed as XML rather than searched as text, because the file's comments quote several version
+    /// numbers while narrating what each of them cost. A text search finds those; the element does
+    /// not exist in a comment.
+    /// </remarks>
+    private static string BuildProperty(string root, string name)
+    {
+        var path = Path.Combine(root, "Directory.Build.props");
+        var values = XDocument.Load(path).Descendants(name).Select(e => e.Value.Trim()).ToList();
+
+        Assert.True(values.Count == 1, $"Directory.Build.props holds {values.Count} <{name}> elements; this rule expects exactly one.");
+
+        return values[0];
+    }
+
+    /// <summary>
+    /// The versions in <c>CHANGELOG.md</c>, newest first, in the order the file lists them.
+    /// </summary>
+    private static List<string> ChangelogVersions(string root)
+    {
+        var versions = new List<string>();
+
+        foreach (var line in File.ReadLines(Path.Combine(root, "CHANGELOG.md")))
+        {
+            if (!line.StartsWith("## [", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var end = line.IndexOf(']', 4);
+
+            if (end > 4)
+            {
+                versions.Add(line[4..end]);
+            }
+        }
+
+        return versions;
+    }
+
     private static bool IsInternalsVisibleTo(CustomAttribute attribute) =>
         string.Equals(
             attribute.AttributeType.FullName,
