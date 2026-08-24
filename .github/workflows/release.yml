@@ -216,6 +216,17 @@ jobs:
   # image built from the same tree, which is not the same claim and is one `docker build` away from
   # not being the same image.
   #
+  # **No provenance attestation here, and its absence is the design rather than an omission.** The
+  # `image` job in `ci.yml` attests what it pushed, and it binds that statement to the digest rather
+  # than to any tag — precisely so that adding a name later cannot invalidate it. This job adds a
+  # name and changes no bytes, so `ghcr.io/<owner>/<name>:v0.3.0` and the `:<sha>` it was created
+  # from resolve to one manifest with one attestation covering both. A second attestation minted here
+  # would describe the same digest twice and would need `id-token: write` in a job that currently has
+  # no use for one.
+  #
+  # If this job ever starts *building* rather than re-tagging, that stops being true in the same
+  # commit: a new build is a new digest, and a new digest has no provenance until something says so.
+  #
   # After `publish`, not beside it: `v0.3.0` on an image means "this is that release", and a release
   # whose packages failed to go out is not one.
   images:

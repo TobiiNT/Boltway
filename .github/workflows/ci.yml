@@ -280,6 +280,20 @@ jobs:
       contents: read
       packages: write
 
+      # The two grants that let this job attest what it pushed — see the *Attest* step at the end.
+      #
+      # **`id-token: write` in a job that runs `docker build` is a real widening and it is taken
+      # deliberately.** Everything in the Dockerfile's build context is this repository's own code,
+      # but a build step can run arbitrary commands, and this token is one an attacker who got a
+      # command in there could mint. What it buys is the thing nothing else in this repository
+      # produces: a signed statement, verifiable by a consumer with no access to these logs, that
+      # `ghcr.io/…@sha256:…` came out of this workflow at this commit. The token is minted per job,
+      # scoped to this repository, and short-lived; an unattested image is unfalsifiable forever.
+      #
+      # Both are unused on a pull request, where the *Attest* step does not run.
+      id-token: write
+      attestations: write
+
     steps:
       # Pinned to a commit rather than a tag, for the reason spelled out in the `test` job above —
       # and most of all here, where the next step hands a registry password to a third-party action
@@ -378,6 +392,61 @@ jobs:
           fi
 
           echo "pushed $IMAGE:$SHA (b$BUILD_NUMBER)"
+
+          # The digest, which is what the attestation below binds to.
+          #
+          # **A tag is not an identity and that is the whole reason this line exists.** Every
+          # argument this file already makes about `latest` moving under a running host applies to
+          # `:$SHA` as well — a tag is a pointer somebody with registry write access can repoint,
+          # and an attestation naming a tag would say "something called this name was built here",
+          # which is not a claim worth signing. `sha256:…` is the content, so an attestation bound
+          # to it survives anybody renaming, retagging or overwriting.
+          #
+          # Read back after the push rather than out of the build: this asks the local daemon what
+          # the registry accepted, so a push that silently landed different bytes cannot be attested
+          # as though it had not.
+          DIGEST="$(docker inspect --format='{{range .RepoDigests}}{{println .}}{{end}}' "$IMAGE:$SHA" \
+            | grep "^$IMAGE@" | head -1 | cut -d@ -f2)"
+
+          # An empty or malformed digest here would make the next step attest nothing, or attest the
+          # wrong subject, and both are worse than a red build — a provenance record that does not
+          # match the artefact is a claim a consumer will act on. `N-06` on the supply-chain surface.
+          case "$DIGEST" in
+            sha256:*) ;;
+            *)
+              echo "::error::could not read a digest for $IMAGE:$SHA after pushing it (got '$DIGEST')."
+              echo "::error::The attestation binds to the digest rather than the tag, so there is"
+              echo "::error::nothing safe to sign without it."
+              exit 1
+              ;;
+          esac
+
+          echo "DIGEST=$DIGEST" >> "$GITHUB_ENV"
+
+      # Provenance: a signed statement of what built this image, from where, at which commit.
+      #
+      # **What a consumer gets that they did not have.** Before this, "is the image in the registry
+      # the thing this repository's main branch built" was answerable only by trusting the registry
+      # and whoever can write to it. `gh attestation verify oci://ghcr.io/<owner>/<name>:<sha>
+      # --repo <owner>/<name>` now answers it against a transparency log, offline of these logs and
+      # of anything an attacker with registry access could rewrite. That is the same shape of
+      # argument the `BUILD_SHA` build-arg makes for `/health` — the running thing should be able to
+      # prove what it is — carried one step earlier, to the artefact.
+      #
+      # It runs only where the push ran, and for the same reason: a pull request builds the image to
+      # prove the Dockerfile still works, and there is nothing in a registry to make a statement
+      # about. The `if` matches the push step's exactly; if one ever changes, the other is wrong.
+      - name: Attest
+        if: github.ref == 'refs/heads/main'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ env.DIGEST }}
+
+          # The registry gets the attestation too, beside the image, so a puller who never comes to
+          # GitHub can still verify it. Only reachable because the login step above ran — which is
+          # main-only, exactly like this step.
+          push-to-registry: true
 
       # **This repository no longer deploys anything, and that is deliberate.**
       #
