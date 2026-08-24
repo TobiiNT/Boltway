@@ -46,9 +46,23 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Requires the repository's dependency graph, which is on by default for a public repository.
-      # If this ever starts reporting that it cannot read the graph, that setting is the first place
-      # to look rather than this file.
+      # **Requires the repository's dependency graph, and this repository did not have it.** The
+      # sentence that used to be here said it is "on by default for a public repository" — which is
+      # what the documentation leads you to expect, and which nobody checked. Measured 2026-08-24 on
+      # pull request #20, the first run of this workflow:
+      #
+      #   Dependency review is not supported on this repository. Please ensure that Dependency graph
+      #   is enabled, see https://github.com/TobiiNT/Boltway/settings/security_analysis
+      #
+      # A claim about somebody else's system, stated without a measurement, that turned out to be
+      # false — `LESSONS.md`, on the file whose whole subject is supply-chain trust. It is written
+      # out here rather than corrected quietly because the next person will believe the same
+      # documentation.
+      #
+      # The prerequisite is a repository setting, not anything in this file: Settings -> Code
+      # security -> Dependency graph -> Enable. Until that is on, this action fails every run, which
+      # is why the workflow was held out of the commit that introduced it rather than shipped as a
+      # gate that could not pass.
       - name: Dependency review
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
