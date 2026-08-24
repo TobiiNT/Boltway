@@ -46,7 +46,13 @@ permissions:
   # nuget.org, and gets back an API key that lives one hour. Without this the token request fails
   # *silently* — NuGet/login then has no key and the push fails for a reason that does not name the
   # cause, which is why it is written down here rather than assumed.
+  #
+  # It is also what the provenance attestation below signs with. Two uses, one grant, and the second
+  # costs nothing extra: the token was already being minted in this job.
   id-token: write
+
+  # To record the provenance statement. See the *Attest* step below for what it buys.
+  attestations: write
 
 jobs:
   publish:
@@ -218,6 +224,39 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
         run: python3 scripts/check-published-versions.py packages '${{ github.repository_owner }}'
+
+      # Provenance: a signed statement of what built these packages, from where, at which commit.
+      #
+      # **The gap this closes is the one Trusted Publishing leaves open, and they are complementary
+      # rather than redundant.** OIDC publishing means no long-lived key exists for an attacker to
+      # steal — it proves *the push came from here*, to nuget.org, at push time. It says nothing to a
+      # consumer six months later holding a `.nupkg`, who can verify the signature nuget.org applied
+      # and learn only that nuget.org accepted it. This attestation is the half that travels with the
+      # artefact: `gh attestation verify <file>.nupkg --repo TobiiNT/Boltway` binds those exact bytes
+      # to this workflow, this commit and this repository, against a transparency log rather than
+      # against anybody's word.
+      #
+      # That matters more here than for most packages. This one issues credentials that grant access
+      # to somebody's data, and the failure that motivated the version guard above — a consumer
+      # restoring bytes nobody meant to ship — is the benign version of the same shape.
+      #
+      # **Before both pushes, deliberately, and it is the same argument the version guard makes two
+      # steps up.** A feed cannot be unpublished in any way that helps, so anything that can refuse
+      # this release has to refuse it while refusing is still free. Attesting afterwards would leave
+      # the failure mode where a package is on nuget.org, permanently, with no provenance and no way
+      # to add it.
+      #
+      # One glob rather than a matrix: `subject-path` takes them all and produces one statement per
+      # file, so a package added to `StructuralRuleTests.PackableProjects` is covered here with no
+      # second list to forget — the same reason the *What was packed* step refuses to hard-code a
+      # count.
+      - name: Attest
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          # The libraries only. A `.snupkg` carries debug symbols for the library beside it and is
+          # never restored as a dependency, so a consumer has nothing to verify it against and
+          # nothing that would act on the answer.
+          subject-path: 'packages/*.nupkg'
 
       # --skip-duplicate, because versions here are per-package rather than per-tag: a tag that
       # bumps Boltway.Mcp alone must not fail on the fifteen packages whose version did not
