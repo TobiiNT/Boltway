@@ -1,0 +1,80 @@
+# What a pull request is about to add to the dependency graph, checked before it is added.
+#
+# **This is the gap Dependabot does not cover, and the two are opposites rather than duplicates.**
+# Dependabot moves dependencies this repository already has, on a schedule, after somebody else has
+# published an advisory. This looks at the ones a pull request is *introducing* — including the
+# transitive ones nobody typed — and answers before the merge rather than a week after it. A new
+# package with a known advisory is the one case where "we will get a bump for it eventually" is the
+# wrong answer: it arrives already vulnerable.
+#
+# Unlike `codeql.yml`, this one **fails the run**. That is deliberate and it is the honest place for
+# a gate: a diff that adds a vulnerable dependency is a diff with a specific, addressable defect in
+# it, which is a different thing from a static-analysis finding that needs a person to judge it.
+#
+# `pull_request` only. There is no base to diff against on a push, and a scheduled run of this would
+# be Dependabot with extra steps.
+
+name: dependency-review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+
+    # A ceiling for the same reason every other job here has one. Low, because this job restores
+    # nothing and builds nothing — it asks the dependency-graph API about two commits. A run that
+    # has been going ten minutes is a run that is stuck.
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      # For the summary comment below. **Not granted on a pull request from a fork** — GitHub issues
+      # a read-only token there regardless of what this says — so on a fork the action degrades to
+      # a job summary and its check still passes or fails correctly. The comment is the convenience;
+      # the exit code is the gate.
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Requires the repository's dependency graph, which is on by default for a public repository.
+      # If this ever starts reporting that it cannot read the graph, that setting is the first place
+      # to look rather than this file.
+      - name: Dependency review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          # `moderate` rather than `low`, and the reason is this repository's own rule that a red
+          # must mean something. The advisory database's `low` tier is where the informational
+          # entries live, and a gate that goes red on those trains its reader to merge past it —
+          # which costs the `high` finding its meaning. `moderate` is the lowest tier where the
+          # answer is reliably "look at this before merging".
+          #
+          # Raise nothing here to get a pull request through. A dependency with a moderate advisory
+          # and no fixed version available is a decision to record in the pull request, and
+          # `allow-ghsas` below is where a decision like that goes — one id at a time, with the
+          # reasoning beside it, rather than by moving the floor for everything.
+          fail-on-severity: moderate
+
+          # Deliberately empty, and left here with its reason rather than deleted. Every entry is a
+          # known advisory somebody chose to accept, and an empty list is the honest current state:
+          # nothing has been accepted. An id added here without a comment saying who accepted it and
+          # why is the suppression-file shape this repository refuses in `CLAUDE.md`.
+          # allow-ghsas:
+
+          # The licence check is off, and that is a measurement rather than an oversight. A .NET
+          # dependency graph is mostly Microsoft-published packages whose declared licence metadata
+          # is uneven, and `deny-licenses` on a transitive graph of that shape produces failures
+          # about metadata rather than about licences. Turning it on is worth doing deliberately,
+          # with the resulting noise looked at once; it is not worth doing as a line copied from
+          # another repository. `NOTICE` is where this project's licence obligations actually live.
+
+          comment-summary-in-pr: on-failure

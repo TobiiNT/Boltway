@@ -1,0 +1,131 @@
+# Static analysis, on every pull request and on a schedule.
+#
+# **The schedule is not redundant with the pull-request run, and that is the reason this file has
+# one.** A pull-request scan answers "does this diff introduce something"; the weekly scan answers
+# "has anybody learned something new about code that has not changed" — CodeQL's query packs move
+# without this repository moving, and the class of finding that matters most here is the one
+# published after the code was written. A repository whose only scan is diff-triggered goes quiet
+# the moment development slows, which is exactly when nobody is looking.
+#
+# **What this does not do, stated because the alternative is a reader assuming otherwise.** Code
+# scanning writes alerts to the Security tab; it does not fail this workflow on a finding and it
+# does not block a merge. Making it block is a branch-protection setting — require the
+# `CodeQL` check — and that is a repository setting rather than a line in this file. Until somebody
+# turns that on, this is a report somebody has to read, and `N-06` applies to the badge as much as
+# to a metadata document: it detects, it does not enforce.
+
+name: codeql
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Mondays, an hour after `pinned-drafts` rather than alongside it — two jobs racing for a runner
+    # on the same minute is how one of them becomes the one that always looks slow. The day matches
+    # Dependabot's, so a week's supply-chain news arrives together.
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+
+    # A ceiling for the reason every job in `ci.yml` carries one — the default 360 minutes is not a
+    # number anybody chose. Sized for the C# leg, which is the only one that compiles anything;
+    # the three `build-mode: none` legs finish in a fraction of it and share the ceiling rather
+    # than getting a tighter one that would have to be maintained per language.
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+      # The alerts themselves. This is the one grant that makes the job worth running.
+      security-events: write
+      # Read-only, and needed so the `actions` leg below can see workflow definitions.
+      actions: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The reason this file exists. `build-mode: manual` rather than `none`: for a compiled
+          # language the analysis without the compilation is a weaker analysis, and the queries
+          # worth having here are the ones that follow an attacker-supplied URL from `/authorize`
+          # into the guarded fetcher — a path that crosses generics, extension methods and DI
+          # seams, which is exactly what resolved symbols are for. The SDK step was already needed,
+          # so the cost is one build.
+          - language: csharp
+            build-mode: manual
+
+          # **The workflows themselves, and this is not an afterthought in this repository.** Every
+          # third-party action here is pinned to a commit sha, one job holds `packages: write` with
+          # a registry password, and another receives the OIDC token that mints a nuget.org
+          # publishing key. The `actions` pack looks for the mistakes that surface in exactly that
+          # material — an untrusted context interpolated into a `run:` block, an over-broad
+          # permission, a mutable reference. This repository already argues at length that an
+          # action is a dependency appearing in no lockfile; this is the scan that treats it as one.
+          - language: actions
+            build-mode: none
+
+          # Two scripts, one of which dereferences a URL at the IETF datatracker and the other of
+          # which reads nuget.org. Both parse a response from a host this project does not own, and
+          # both gate a release. Small is not the same as uninteresting.
+          - language: python
+            build-mode: none
+
+          # One file, ~80 lines, and it is included because of where it runs rather than how big it
+          # is: it is the only script the admin UI serves, it reads `data-` attributes off the DOM
+          # and writes element text back, and the page it runs on is the one that displays a
+          # credential. A DOM sink in that file is worth a scan that costs a minute.
+          - language: javascript-typescript
+            build-mode: none
+
+    steps:
+      # Pinned to a commit rather than a tag, for the reason `.github/workflows/ci.yml` spells out
+      # at length and `.github/dependabot.yml` keeps from rotting.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+          # `security-extended` rather than the default `security`, and rather than
+          # `security-and-quality`. The default pack is tuned to keep false positives near zero for
+          # a general audience; this is code that mints credentials, so a finding worth a look is
+          # worth more here than a clean tab. `security-and-quality` is the step too far — it adds
+          # maintainability queries, and this repository already has an architecture suite and
+          # warnings-as-errors doing that job with rules somebody chose.
+          queries: security-extended
+
+      # Only the C# leg reaches this, and only because `build-mode: manual` above promises a build
+      # between init and analyze. The other three declare `none` and skip straight past.
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        if: matrix.language == 'csharp'
+        with:
+          dotnet-version: '10.0.x'
+
+      # Build, do not test. CodeQL wants the compilation, and the tests are `ci.yml`'s job — running
+      # them here would double the slowest thing in the repository to produce a signal that already
+      # exists, and would drag a PostgreSQL service into a job that has no use for one.
+      #
+      # Release, to match what `ci.yml` builds and what ships. A Debug build differs in what the
+      # compiler emits, and analysing a configuration nobody deploys is a measurement of the wrong
+      # thing.
+      - name: Build
+        if: matrix.language == 'csharp'
+        run: dotnet build Boltway.slnx --configuration Release
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+        with:
+          category: /language:${{ matrix.language }}
