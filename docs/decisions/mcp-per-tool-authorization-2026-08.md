@@ -1,15 +1,14 @@
 # Per-tool authorization for MCP connectors — the endpoint gate does not reach a tool
 
-**Date:** 2026-08-25 · **Status:** open; one item is blocked on a measurement · **Scope:** `Boltway.Mcp`, `Boltway.ResourceServer`
+**Date:** 2026-08-25 · **Status:** open; the measurement that blocked §2.4 is taken · **Scope:** `Boltway.Mcp`, `Boltway.ResourceServer`
 
 > **Why this sits in `docs/decisions/` while most of its items are still open.** The convention in
 > [`../README.md`](../README.md) warns that a gap list read as a to-do list is how a server that
 > does one job becomes one that does none of them well. What is recorded here as *decided* is the
 > shape, the ordering, and §3 — *won't do, and the reasons matter more than the list*. What is
 > recorded as *open* carries the trigger that closes it, the way conditional revalidation stays open
-> in [`protocol-surface-gaps-2026-08.md`](protocol-surface-gaps-2026-08.md) §3.2. **§1 is a
-> measurement, not a task, and §2.4 must not be built before it lands** — its outcome selects
-> between two incompatible designs.
+> in [`protocol-surface-gaps-2026-08.md`](protocol-surface-gaps-2026-08.md) §3.2. §1 was a
+> measurement rather than a task; it has been taken, and §2.4 is no longer waiting on anything.
 >
 > **Revised the same day it was written.** The first draft ranked the documentation fix last as the
 > cheapest item, proposed shipping a per-tool gate, and did not mention the scope-claim gap at all.
@@ -58,7 +57,7 @@ applies in every direction.
 
 ---
 
-## 1. The measurement that comes before §2.4 — **open**
+## 1. The measurement that came before §2.4 — **answered 2026-08-25**
 
 `spec/REQUIREMENTS.md` carries two rows that cannot both be simply true.
 
@@ -80,29 +79,37 @@ whether a tool-level `_meta` challenge on a `200` is honoured is not among them.
 in a requirement row, with no implementation and no entry in the unverified list, reads as settled.
 It is not.
 
-### What to measure
+### The answer: **no**, and not because clients ignore it
 
-> Does a client honour `_meta["mcp/www_authenticate"]` on a tool result with `isError: true`,
-> delivered over HTTP `200`, by prompting for re-authorization at the named scopes?
->
-> **yes** / **no** / **could not tell** — never the first two alone.
+The capture is [`../../spec/mcp-tool-challenge-2026-08-25.md`](../../spec/mcp-tool-challenge-2026-08-25.md).
+Measured that day:
 
-Dated capture in `spec/`, filename carrying the date, attributed to how it was measured. A `U-*`
-entry is allocated **in the same commit**, so the row and the capture cannot drift apart.
+- `_meta["mcp/www_authenticate"]` is **SEP-1489**, *Tool Error Responses for Triggering OAuth
+  Flows*, and it is in **Draft** status with a sponsor. It names no target revision and reports no
+  client adoption.
+- The substring `authenticat` — any casing, any position — occurs **zero times** in the
+  `2025-11-25` schema and **zero times** in the `draft` schema the `2026-07-28` release candidate is
+  cut from. Neither defines any `mcp/…` `_meta` key.
 
-### What each outcome selects
+So the two rows never disagreed. C-25 measured a client ignoring a `WWW-Authenticate` **header** on
+a `200`; C-24 named a **field inside a tool result** that no revision of the protocol asks any
+client to read. There is no mechanism there to honour yet.
 
-| Outcome | §2.4 becomes |
-|---|---|
-| **yes** | A tool result carrying `_meta`. Cheap, and the JSON-RPC call completes normally |
-| **no** | The refusal must short-circuit the HTTP response into a `403` challenge, abandoning the JSON-RPC reply |
-| **could not tell** | Both, with the `403` as the path that is relied on and the `_meta` as belt-and-braces — recorded as hedging rather than as knowledge |
+**This is the `no` branch, and it selects the design:** a per-tool refusal that wants to be
+actionable must reach the client as an HTTP `401`/`403` challenge, not as a field inside a `200`.
+`BearerChallenge` already writes that challenge, and getting it wrong is expensive in the way its
+own remarks describe — a `403` without `error="insufficient_scope"` is terminal for that client, for
+that user and that server, with no re-authentication prompt, permanently.
 
-Building §2.4 against the wrong outcome is not a wasted afternoon: `BearerChallenge`'s own remarks
-say a `403` without `error="insufficient_scope"` is *terminal* for that client, for that user and
-that server, with no re-authentication prompt, permanently.
+`REQUIREMENTS.md` C-24's MCP column moved in the same commit as the capture: it asserted a
+mechanism, and it now says what that field actually is and points at the file. No `U-*` entry was
+allocated, because the question is answered rather than unresolved — and a `U-*` row for a settled
+question is the same defect one column over.
 
-**Only §2.4 waits on this.** Everything else in §2 is independent of it.
+**What is still not measured** is whether some client honours the draft anyway. Nothing here drove a
+live client against a server emitting the field, and nothing here says one refuses it. The claim is
+narrower and sufficient: no client is *obliged* to. If SEP-1489 lands, §2.4 is worth reopening — a
+tool-level channel is the better one when it exists, because it does not cost the JSON-RPC reply.
 
 ---
 
@@ -223,7 +230,7 @@ casing, trimming or URL normalisation here would silently rewrite what a consume
 **Also in this commit:** `ConnectorCaller` exposes shorthands for `Roles` and `Permissions` but not
 for `Scopes`, which is the one `ConnectorAuth.cs` names as the thing a connector gates a tool on.
 
-### 2.4 A refusal that cannot carry a challenge — **blocked on §1**
+### 2.4 A refusal that cannot carry a challenge — **ready; §1 chose the HTTP challenge**
 
 A connector that gates a tool on a scope has no way to tell the caller *which scope would fix it*,
 in a form the caller can act on. Two mechanisms exist here and neither is reachable.
@@ -354,17 +361,16 @@ nobody exercises is the one that will be wrong.
 ## 4. Order, and the ritual that binds it
 
 ```
-§2.6  move the consumer to the current release ──► the baseline gate now covers it
-§1    measure ──────────────────────────────────► capture in spec/ + a U-* entry, same commit
+§2.6  move the consumer to the current release ──► done 2026-08-25, unverified: no CI ran
+§1    measure ──────────────────────────────────► done 2026-08-25, capture in spec/
          │
-         └── selects the design for §2.4 only
+         └── chose the HTTP challenge for §2.4
 
 §2.1  documented example + the startup-diagnostic question   ─┐
-§2.2  scope-claim absence vs emptiness                        ├─ independent of §1
+§2.2  scope-claim absence vs emptiness                        ├─ nothing blocks any of these
 §2.3  the identity tuple                                      │
-§2.5  list filter + seam                                     ─┘
-
-§2.4  the refusal that carries a challenge  ── last; the only item §1 can invalidate
+§2.5  list filter + seam                                      │
+§2.4  the refusal, as a 401/403 rather than a _meta field     ─┘
 ```
 
 §2.1 and §2.2 are the two a consumer is exposed to right now — one instructs clients to ask for too
@@ -398,6 +404,6 @@ connector's bug — both are this library's surface behaving as documented.
 It is not permission to widen `Boltway.Mcp` into a policy engine. §3's first three entries are the
 boundary, and they are the half of this document most likely to still matter after §2 closes.
 
-It is not a measurement of any client. §1 is that measurement, it has not been taken, and until it is
-dated in `spec/` the C-24 mechanism remains `stated` — which is why §2.4 is blocked rather than
-merely last.
+It is not a measurement of any client's runtime behaviour. §1 measured what the protocol defines and
+what SEP-1489's status is, which is a different thing and is said as one in the capture: no client is
+obliged to read that field, and nobody here watched one decide.

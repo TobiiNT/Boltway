@@ -8,6 +8,7 @@ Telling them apart is what this file is for.
 | [`REQUIREMENTS.md`](REQUIREMENTS.md) | the binding index. Requirement ids are cited from `src/`, `tests/` and the README |
 | `draft-ietf-oauth-*.txt` | two Internet-Drafts, pinned. Somebody else's text under somebody else's licence — see below |
 | `cimd-live-*.json` | dated captures of what two vendors actually serve, wired in as test fixtures |
+| `mcp-tool-challenge-2026-08-25.md` | why a tool result cannot carry an authorization challenge: the field C-24 named is a sponsored draft and is in no schema. Read before designing a per-tool refusal |
 | [`research/`](research/README.md) | twelve primary-source distillations, fetched once and not maintained |
 
 ## `REQUIREMENTS.md` is the binding index
