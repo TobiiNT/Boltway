@@ -36,6 +36,20 @@ public sealed class ToolPolicyTests : IAsyncLifetime
     {
         public bool Allows(CallerPrincipal caller, string tool) =>
             tool != "closed" || caller.Actor == "ada";
+
+        // One argument names a resource, and reaching it is the caller's own or nobody's. What
+        // "theirs" means is this policy's to know — the library hands over the arguments and takes
+        // no view.
+        public bool AllowsArguments(
+            CallerPrincipal caller, string tool, IReadOnlyDictionary<string, System.Text.Json.JsonElement>? arguments)
+        {
+            if (tool != "open" || arguments is null || !arguments.TryGetValue("owner", out var owner))
+            {
+                return true;
+            }
+
+            return owner.GetString() == caller.Actor;
+        }
     }
 
     public async Task InitializeAsync()
@@ -172,6 +186,52 @@ public sealed class ToolPolicyTests : IAsyncLifetime
         Assert.Equal("insufficient_scope", refusal.Code);
     }
 
+    /// <summary>
+    /// An argument naming somebody else's resource is refused, on a tool the caller may otherwise use.
+    /// </summary>
+    /// <remarks>
+    /// The gate <c>Allows</c> cannot express: the tool is the same tool either way, so a caller
+    /// allowed to poll their own work and handed another caller's identifier is refused here or
+    /// nowhere. Left to the tool body it would be a check each tool remembers separately, which is
+    /// the arrangement one of them eventually forgets.
+    /// </remarks>
+    [Fact]
+    public async Task An_argument_naming_someone_elses_resource_is_refused()
+    {
+        var body = await RpcAsync("bob-token",
+            "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"open\","
+            + "\"arguments\":{\"owner\":\"ada\"}}}");
+
+        Assert.Contains("forbidden", body, StringComparison.Ordinal);
+
+        // A different sentence from the whole-tool refusal, so a caller can tell "not at all" from
+        // "not to that".
+        Assert.Contains("not with these arguments", body, StringComparison.Ordinal);
+    }
+
+    /// <summary>The control: the same tool, the caller's own resource, runs.</summary>
+    [Fact]
+    public async Task An_argument_naming_the_callers_own_resource_is_allowed()
+    {
+        var body = await RpcAsync("bob-token",
+            "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"open\","
+            + "\"arguments\":{\"owner\":\"bob\"}}}");
+
+        Assert.Contains("open-ran", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("forbidden", body, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// An argument gate refuses; it cannot hide. The listing has no arguments to judge by.
+    /// </summary>
+    [Fact]
+    public async Task An_argument_gate_does_not_change_the_listing()
+    {
+        var listing = await ListAsync("bob-token");
+
+        Assert.Contains("\"open\"", listing, StringComparison.Ordinal);
+    }
+
     /// <summary>A tool nobody is refused still works, so the filter is not refusing everything.</summary>
     [Fact]
     public async Task An_open_tool_runs_for_a_caller_the_policy_narrows_elsewhere()
@@ -189,7 +249,7 @@ public sealed class GatedTools
 {
     [McpServerTool(Name = "open", ReadOnly = true)]
     [Description("Available to every caller.")]
-    public static object Open() => new { result = "open-ran" };
+    public static object Open(string? owner = null) => new { result = "open-ran", owner };
 
     [McpServerTool(Name = "closed", ReadOnly = true)]
     [Description("Available only to some callers.")]

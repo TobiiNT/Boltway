@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Boltway.Mcp;
@@ -31,7 +32,53 @@ public interface IConnectorToolPolicy
     /// <param name="caller">The authenticated caller for this request.</param>
     /// <param name="tool">The tool's protocol name, compared however the connector chooses.</param>
     /// <returns><see langword="true"/> to advertise and allow it; <see langword="false"/> for both.</returns>
+    /// <remarks>
+    /// Asked on both <c>tools/list</c> and <c>tools/call</c>, so a tool this refuses is neither
+    /// advertised nor reachable. It is the question "may you see this at all", and it is answered
+    /// without reference to what a call would carry.
+    /// </remarks>
     bool Allows(CallerPrincipal caller, string tool);
+
+    /// <summary>
+    /// May <paramref name="caller"/> use <paramref name="tool"/> <em>with these arguments</em>?
+    /// </summary>
+    /// <param name="caller">The authenticated caller for this request.</param>
+    /// <param name="tool">The tool's protocol name.</param>
+    /// <param name="arguments">
+    /// The arguments as they arrived, before the SDK binds them to parameters. Null when the call
+    /// carried none.
+    /// <para>
+    /// Read-only, deliberately: the transport hands over a mutable dictionary and this seam does
+    /// not pass it on. A policy decides; rewriting a caller's arguments on the way past would be a
+    /// behaviour nothing downstream could see, on the one path whose job is to be reviewable.
+    /// </para>
+    /// </param>
+    /// <returns><see langword="true"/> to allow the call.</returns>
+    /// <remarks>
+    /// <para>
+    /// <b>Asked only on <c>tools/call</c>, and that is the shape of the question rather than a
+    /// limitation.</b> A listing has no arguments, and whether somebody may see a tool does not
+    /// depend on what they would pass it. So this cannot hide anything — it refuses.
+    /// </para>
+    /// <para>
+    /// The case it exists for is an argument that names a <em>resource</em>: which host, which
+    /// path, which job. An identifier that refers to something the caller may not reach is the one
+    /// gate <see cref="Allows"/> cannot express, because the tool is the same tool either way — a
+    /// caller allowed to poll their own long-running work and handed somebody else's identifier is
+    /// refused here or nowhere.
+    /// </para>
+    /// <para>
+    /// <b>This library reads no argument and matches nothing.</b> It hands over what arrived and
+    /// keeps out of the decision: which arguments name resources, and what reaching one means, is
+    /// the connector's to know. A generic matcher here would be configuration pretending to be a
+    /// security boundary.
+    /// </para>
+    /// <para>
+    /// Default <see langword="true"/>, so an implementation that only gates whole tools does not
+    /// have to say so.
+    /// </para>
+    /// </remarks>
+    bool AllowsArguments(CallerPrincipal caller, string tool, IReadOnlyDictionary<string, JsonElement>? arguments) => true;
 }
 
 /// <summary>Applies an <see cref="IConnectorToolPolicy"/> to both places it has to hold.</summary>
@@ -59,6 +106,14 @@ public static class ConnectorToolPolicyExtensions
     /// unless the transport is also told to run handlers on one execution context for the whole
     /// session — an option the SDK has since obsoleted, and one that would freeze a policy's input
     /// at session start with nothing else in the pipeline failing.
+    /// </para>
+    /// <para>
+    /// <b>Two questions, asked at the two moments they can be asked.</b>
+    /// <see cref="IConnectorToolPolicy.Allows"/> runs on both the listing and the call, so refusing
+    /// there hides the tool as well as blocking it.
+    /// <see cref="IConnectorToolPolicy.AllowsArguments"/> runs on the call only, because a listing
+    /// has no arguments — it refuses and cannot hide, which is the honest shape for a gate about
+    /// which resource a call names rather than which tool it is.
     /// </para>
     /// <para>
     /// Register the policy before calling this — any lifetime, resolved per request.
@@ -109,6 +164,17 @@ public static class ConnectorToolPolicyExtensions
                         // reason about.
                         throw new ConnectorToolException(
                             $"Tool `{name}` is not available to this caller. {policy.GetType().Name} refused it.",
+                            "forbidden");
+                    }
+
+                    // Second, and only here: the listing had no arguments to ask about. Refusing on
+                    // an argument is not the same answer as refusing the tool, and the sentences
+                    // differ so a caller can tell "you may not do this at all" from "not to that".
+                    if (!policy.AllowsArguments(caller.Principal, name, context.Params?.Arguments?.AsReadOnly()))
+                    {
+                        throw new ConnectorToolException(
+                            $"Tool `{name}` is available to this caller, but not with these arguments. "
+                            + $"{policy.GetType().Name} refused them.",
                             "forbidden");
                     }
                 }

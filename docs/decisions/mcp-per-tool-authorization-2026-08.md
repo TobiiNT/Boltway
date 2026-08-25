@@ -346,6 +346,21 @@ Both filters are registered through `McpServerBuilderExtensions.WithRequestFilte
 Advertising a tool a caller will always be refused is a defect on its own: a model reads a tool list
 as a capability list and will retry against it.
 
+**Widened once, on 2026-08-25 and before release, to `AllowsArguments`.** The first shape passed a
+tool name and nothing else, which left the gate that needs an argument with nowhere to live: an
+identifier naming somebody else's resource is refused on the argument or it is not refused, because
+the tool is the same tool either way. That gate exists in any connector whose tools take a handle.
+
+**This is not §3's resource-argument matching, and the difference is the whole of it.** Handing a
+connector what arrived is plumbing; reading it is policy. The library matches nothing, knows which
+arguments name resources not at all, and takes no view on what reaching one means — it passes a
+read-only view of the arguments and gets out of the way. Shipping a matcher would be the thing §3
+refuses; withholding the input was the thing that made the seam half-useful.
+
+Two methods rather than one wider one, because they answer at different moments: `Allows` on the
+listing and the call, `AllowsArguments` on the call alone. A default implementation returning
+`true` keeps it additive.
+
 **Decided: ship the plumbing, not the policy.** The first draft of this document proposed a per-tool
 scope gate. Measured on a connector built on this library, that is the wrong half to generalise. It
 gates every tool on two axes — a scope check per tool, and a role-to-permission table with its own
@@ -407,6 +422,11 @@ for every consumer simultaneously — which is precisely §2.2.
 connector's decision, not this library's. Argument names, their meanings, and whether a given one
 even denotes a resource are all connector-specific; a generic matcher would be configuration
 pretending to be a security boundary.
+
+That is about **matching**, not about **passing**. `IConnectorToolPolicy.AllowsArguments` hands the
+connector a read-only view of the arguments as they arrived and reads none of them. Withholding the
+input would not have kept this promise — it would only have moved the connector's decision out of
+the one place both filters run through, which is what §2.5 exists to prevent.
 
 **Anything that inspects the content of an argument.** Not a matcher, not a pattern list, not a
 "looks dangerous" heuristic. A library that ships one is understood to have made a safety claim it

@@ -71,8 +71,18 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   something that always refuses. Shipping them separately would let a connector wire one and believe
   it had both.
 
+  **Two questions, at the two moments they can be asked.** `Allows(caller, tool)` runs on the listing
+  and the call, so refusing there hides a tool as well as blocking it.
+  `AllowsArguments(caller, tool, arguments)` runs on the call alone, because a listing has no
+  arguments — it refuses and cannot hide. That second one is the gate the first cannot express: an
+  identifier naming somebody else's resource is refused on the argument or it is not refused, because
+  the tool is the same tool either way. It has a default implementation returning `true`, so a policy
+  that only gates whole tools does not have to mention it, and the arguments arrive as a read-only
+  view: a policy decides, and rewriting a caller's arguments on the way past would be a behaviour
+  nothing downstream could see.
+
   **What is not shipped is the answer.** No role table, no scope naming convention, no default
-  policy. A deployment's role vocabulary is its own, and the fallback for a scope claim is subtle
+  policy, and no argument matcher — A deployment's role vocabulary is its own, and the fallback for a scope claim is subtle
   enough — see `ScopeClaimState` — that a shipped default would be wrong in the fail-open direction
   for every consumer at once. `Allows(caller, tool)` is synchronous because the decision is made
   from what the token already said and `tools/list` asks it once per tool.
