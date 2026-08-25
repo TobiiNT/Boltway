@@ -16,6 +16,31 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
+## [0.3.0]
+
+### Added
+
+- **`CallerPrincipal.ScopeClaim` and `CallerPrincipal.Grants`, because an empty `Scopes` meant three
+  different things and a connector had to guess which.** A token carrying no `scope` claim, a token
+  carrying one that granted nothing, and a token carrying one `ScopeSet.TryParse` rejected all
+  produced the same empty set. The first wants a fall-back to whatever the connector uses when an
+  authorization server publishes no scopes; the other two want a refusal. `TryParse` rejects a claim
+  **whole** on one character outside RFC 6749's scope-token set, so a single stray character turned a
+  restriction into what looked like an absence — and a connector falling back on empty then granted
+  *more* than the token said, to a caller whose token was written to restrict them, with nothing
+  failing anywhere. Only this library ever knew which case produced the empty set.
+
+  `ScopeClaimState` names the three (plus `Unknown`, the default, so silence is never mistaken for
+  an answer). `Grants(scope)` returns `bool?` — and the nullable return is the feature: `bool?` does
+  not convert to `bool`, so `if (!caller.Grants("x"))` does not compile and the third case cannot be
+  folded into either of the other two. An unreadable claim answers `false`, never `null`.
+
+  `Scopes` is unchanged and still empty in all three cases, so nothing compiled against the older
+  shape behaves differently. A principal built without setting `ScopeClaim` gets `Unknown`, which
+  falls back exactly as it did before. The static-token path reports `Absent` rather than `Unknown`:
+  it *knows* there is no authorization server, and saying so is what lets a connector gate a tool on
+  a scope and still run on static tokens.
+
 ## [0.2.0] — 2026-08-24
 
 ### Added

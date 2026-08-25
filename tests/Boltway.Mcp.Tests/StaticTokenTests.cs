@@ -183,6 +183,19 @@ public sealed class StaticTokenTests : IAsyncLifetime
     }
 
     [Fact]
+    public void A_static_token_reports_that_it_carries_no_scope_claim()
+    {
+        var principal = BearerAuthenticator.ParseTokenMap("a:ada:founder")["a"];
+
+        // Absent rather than Unknown: this path is known to have no authorization server, so it
+        // knows there is no claim. A connector gating a tool on a scope therefore falls back to its
+        // own table here rather than refusing every call, which is what keeps DEV_TOKENS usable
+        // after a connector starts enforcing scopes.
+        Assert.Equal(ScopeClaimState.Absent, principal.ScopeClaim);
+        Assert.Null(principal.Grants("docs:read"));
+    }
+
+    [Fact]
     public void ParseTokenMap_skips_malformed_entries_rather_than_guessing()
     {
         var map = BearerAuthenticator.ParseTokenMap("a:ada:founder:ada@example.com, b:bob , ,broken, :nope, c:");

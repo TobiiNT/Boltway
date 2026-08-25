@@ -58,8 +58,18 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
     /// </param>
     public static ResourceServerAuthenticator FromClaims(
         string roleClaim = "role", string? downstreamToken = null, string permissionsClaim = "permissions") =>
-        new(principal => new CallerPrincipal
+        new(principal =>
         {
+            // Read once, and keep both halves of the answer. The claim's *presence* and its
+            // *readability* are two different facts, and the parse below throws the first away —
+            // it returns the same empty set for a claim that granted nothing, a claim that could
+            // not be read, and no claim at all. A connector cannot recover the difference
+            // afterwards, so it is recorded here where it is still known.
+            var scopeClaim = principal.FindFirst("scope")?.Value;
+            var readable = ScopeSet.TryParse(scopeClaim, out var granted, out _);
+
+            return new CallerPrincipal
+            {
             Actor = principal.FindFirst("preferred_username")?.Value
                 ?? principal.FindFirst("sub")?.Value
                 // Not an UnauthorizedException, for the same reason as below: a token that
@@ -89,14 +99,27 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
             // claim said. A malformed claim yields the empty set here rather than throwing: the
             // token already validated, and this is the read that decides how much authority it
             // carries — less, never more.
-            Scopes = ScopeSet.TryParse(principal.FindFirst("scope")?.Value, out var granted, out _)
+            //
+            // "Less, never more" holds for this property and stopped holding one call further out,
+            // which is what ScopeClaim below is for: a connector falling back on an empty set
+            // grants more than the token said whenever the emptiness came from a claim it could
+            // not read.
+            Scopes = readable
                 ? new HashSet<string>(granted.Values, StringComparer.Ordinal)
                 : new HashSet<string>(StringComparer.Ordinal),
+
+            // Absent beats readability: TryParse answers true for null, so the null check has to
+            // come first or a token with no claim at all would be reported as one that granted
+            // nothing — the refusal, instead of the fall-back.
+            ScopeClaim = scopeClaim is null
+                ? ScopeClaimState.Absent
+                : readable ? ScopeClaimState.Readable : ScopeClaimState.Unreadable,
             Email = principal.FindFirst("email")?.Value,
             DownstreamToken = downstreamToken,
             Claims = principal.Claims
                 .GroupBy(c => c.Type, StringComparer.Ordinal)
                 .ToDictionary(g => g.Key, g => g.First().Value, StringComparer.Ordinal),
+            };
         });
 
     /// <summary>

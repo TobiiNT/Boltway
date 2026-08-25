@@ -158,7 +158,7 @@ documented — a startup diagnostic when `RequiredScopeMetadata` is found on an 
 transport mapped. That is a design question, not a line, and this is `N-06`'s shape on the
 customization surface: a documented extension point that does the opposite of what its example says.
 
-### 2.2 A scope claim's absence is indistinguishable from its emptiness — **ready, and a fail-open**
+### 2.2 A scope claim's absence is indistinguishable from its emptiness — **done 2026-08-25, in 0.3.0**
 
 `CallerPrincipal.Scopes` collapses three states into one empty set:
 
@@ -183,15 +183,25 @@ carries its own helper that asks whether the claim key is present before trustin
 comment recording that one stray character made a restriction look like an absence and switched its
 scope gate off for a caller whose token was written to restrict them.
 
-**Decided.** Name the state on the type. Only this library knows which of the three produced the
-empty set, and every connector that does not ask is failing open. `LESSONS.md`'s first rule is that
-every axis needs a third value; this is an axis with three values collapsed into one, on the type
-that decides how much authority a token carries.
+**Done.** `ScopeClaimState` names the three, plus `Unknown` as the default so that an authenticator
+saying nothing is never mistaken for one reporting an absence. `CallerPrincipal.ScopeClaim` carries
+it and `CallerPrincipal.Grants(scope)` is the read: `true`, `false`, or `null` when there is no claim
+to judge by.
 
-The shape is a design choice — a nullable granted-set, or an explicit three-valued state beside
-`Scopes` — but the requirement is not: a connector must be able to tell the three apart without
-reading `Claims` by string key, and the existing `Scopes` property must keep working for consumers
-that do not care.
+**The nullable return is the mechanism, not the ergonomics.** `bool?` does not convert to `bool`, so
+`if (!caller.Grants("x"))` does not compile — the third case cannot be folded into either of the
+others by accident. Same move as `AccessTokenDescriptor.Audience` and N-01: a rule that stops being a
+rule and becomes a fact about the type system. `Unreadable` answers `false` rather than `null`,
+which is the whole point.
+
+`Scopes` is untouched and still empty in all three cases, so nothing compiled against the older shape
+changes behaviour; the pack validated additive against the 0.2.0 baseline with no `CP0002`. The
+static-token path reports `Absent` rather than `Unknown` — it *knows* there is no authorization
+server, and saying so is what keeps a connector that gates on scopes working there.
+
+Verified: solution build 0 warnings, 2716 tests across 15 suites green including PostgreSQL and the
+architecture scan, and the new rule bites — restoring the fail-open (`Unreadable` answering `null`)
+turns exactly one test red, the one named for it.
 
 ### 2.3 `CallerPrincipal` does not name the audit identity tuple — **ready**
 
@@ -366,11 +376,15 @@ nobody exercises is the one that will be wrong.
          │
          └── chose the HTTP challenge for §2.4
 
+§2.2  scope-claim absence vs emptiness ─────────► done 2026-08-25, released as 0.3.0
+
 §2.1  documented example + the startup-diagnostic question   ─┐
-§2.2  scope-claim absence vs emptiness                        ├─ nothing blocks any of these
-§2.3  the identity tuple                                      │
+§2.3  the identity tuple                                      ├─ nothing blocks any of these
 §2.5  list filter + seam                                      │
 §2.4  the refusal, as a 401/403 rather than a _meta field     ─┘
+
+The version ritual below ran with §2.2: `<Version>` is 0.3.0 and the baseline is 0.2.0, so §2.1,
+§2.3, §2.4 and §2.5 join the same unreleased version and neither number moves again for them.
 ```
 
 §2.1 and §2.2 are the two a consumer is exposed to right now — one instructs clients to ask for too

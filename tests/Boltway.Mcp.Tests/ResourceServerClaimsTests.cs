@@ -68,6 +68,11 @@ public sealed class ResourceServerClaimsTests
     /// No scope claim is the empty set, and a connector reading it has to fall back rather than
     /// refuse: the static-token path has no authorization server and so never carries one.
     /// </summary>
+    /// <remarks>
+    /// Still true of <c>Scopes</c>, and no longer the whole answer — the two tests below are the
+    /// half this one cannot express. Kept as-is so that the property a connector may already be
+    /// reading is pinned separately from the one that explains it.
+    /// </remarks>
     [Fact]
     public void No_scope_claim_is_empty_rather_than_a_refusal()
     {
@@ -83,6 +88,69 @@ public sealed class ResourceServerClaimsTests
     public void A_malformed_scope_claim_grants_nothing()
     {
         Assert.Empty(Read(new Claim("sub", "01ABC"), new Claim("scope", "docs:read \"quoted\"")).Scopes);
+    }
+
+    /// <summary>
+    /// The three things an empty <c>Scopes</c> can mean are told apart.
+    /// </summary>
+    /// <remarks>
+    /// The two tests above both assert an empty set, and so does the middle case here. That is the
+    /// whole defect: three inputs, one output, and a connector choosing its fallback from it.
+    /// </remarks>
+    [Fact]
+    public void An_empty_scope_set_says_which_of_the_three_it_is()
+    {
+        Assert.Equal(
+            ScopeClaimState.Absent,
+            Read(new Claim("sub", "01ABC"), new Claim("role", "founder")).ScopeClaim);
+
+        Assert.Equal(
+            ScopeClaimState.Readable,
+            Read(new Claim("sub", "01ABC"), new Claim("scope", "")).ScopeClaim);
+
+        Assert.Equal(
+            ScopeClaimState.Unreadable,
+            Read(new Claim("sub", "01ABC"), new Claim("scope", "docs:read \"quoted\"")).ScopeClaim);
+    }
+
+    /// <summary>
+    /// A claim that could not be read is <b>not</b> an absent one, and <c>Grants</c> refuses on it.
+    /// </summary>
+    /// <remarks>
+    /// This is the fail-open the whole change is about. <c>ScopeSet.TryParse</c> rejects a claim
+    /// whole on one character outside RFC 6749's set, so a token written to restrict somebody
+    /// produced the same empty set as a token that said nothing about scope — and a connector
+    /// falling back on empty then gave that caller <i>more</i> than the token allowed, with nothing
+    /// failing anywhere.
+    /// </remarks>
+    [Fact]
+    public void An_unreadable_scope_claim_refuses_rather_than_falling_back()
+    {
+        var caller = Read(new Claim("sub", "01ABC"), new Claim("scope", "docs:read \"quoted\""));
+
+        Assert.False(caller.Grants("docs:read"));
+        Assert.NotNull(caller.Grants("docs:read"));
+    }
+
+    /// <summary>
+    /// <c>Grants</c> answers <see langword="null"/> only when there is no claim to judge by.
+    /// </summary>
+    /// <remarks>
+    /// The control sits in the same test on purpose: a refusal proves nothing unless the same path
+    /// accepts what it should. A scope the token carried is <see langword="true"/>, one it did not
+    /// is <see langword="false"/>, and only an absent claim is the fall-back.
+    /// </remarks>
+    [Fact]
+    public void Grants_falls_back_only_on_an_absent_claim()
+    {
+        var granted = Read(new Claim("sub", "01ABC"), new Claim("scope", "docs:read"));
+
+        Assert.True(granted.Grants("docs:read"));
+        Assert.False(granted.Grants("docs:write"));
+
+        var none = Read(new Claim("sub", "01ABC"), new Claim("role", "founder"));
+
+        Assert.Null(none.Grants("docs:read"));
     }
 
     /// <summary>Permissions arrive space-separated, the same shape as `scope`.</summary>

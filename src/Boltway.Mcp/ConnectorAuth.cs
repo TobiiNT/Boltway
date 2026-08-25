@@ -2,6 +2,67 @@ using Microsoft.AspNetCore.Http;
 
 namespace Boltway.Mcp;
 
+/// <summary>
+/// What a token said about <c>scope</c>, which is not the same question as what it granted.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Three states, because collapsing them into one empty set is a fail-open. A token carrying no
+/// <c>scope</c> claim and a token carrying one that granted nothing want <b>opposite</b> readings
+/// from a connector: the first says the authorization server publishes no scopes and the
+/// connector's own table should answer, the second says this token was written to grant nothing.
+/// <see cref="CallerPrincipal.Scopes"/> is empty in both, and in a third case too — a claim this
+/// library could not read.
+/// </para>
+/// <para>
+/// The third is not hypothetical. <c>ScopeSet.TryParse</c> rejects a claim <b>whole</b> when it
+/// carries any character outside RFC 6749's scope-token set, so one stray character yields the same
+/// empty set as no claim at all. A connector that falls back on empty then grants <i>more</i> than
+/// the token said, to a caller whose token was written to restrict them, with nothing failing.
+/// Only this library knows which case produced the empty set, so only this library can name it.
+/// </para>
+/// <para>
+/// The first rule of <c>LESSONS.md</c> is that every axis needs a third value. This is an axis with
+/// three collapsed into one, on the type that decides how much authority a token carries.
+/// </para>
+/// </remarks>
+public enum ScopeClaimState
+{
+    /// <summary>
+    /// Not a real state, and the default so that silence is never mistaken for an answer.
+    /// </summary>
+    /// <remarks>
+    /// An authenticator that sets <see cref="CallerPrincipal.Scopes"/> sets this beside it. One
+    /// that does not leaves this here, and <see cref="CallerPrincipal.Grants"/> then answers
+    /// <see langword="null"/> — the same fall-back a principal built before this existed already
+    /// got, so nothing that compiled against the older shape changes behaviour.
+    /// </remarks>
+    Unknown = 0,
+
+    /// <summary>
+    /// The token carried no <c>scope</c> claim. Fall back to whatever the connector uses when an
+    /// authorization server publishes none — the static-token path is always this.
+    /// </summary>
+    Absent = 1,
+
+    /// <summary>
+    /// The token carried a <c>scope</c> claim and it was read.
+    /// <see cref="CallerPrincipal.Scopes"/> is exactly what it granted, and may be empty — a token
+    /// that granted nothing is a refusal, not an absence.
+    /// </summary>
+    Readable = 2,
+
+    /// <summary>
+    /// The token carried a <c>scope</c> claim that could not be read.
+    /// </summary>
+    /// <remarks>
+    /// <b>Never fall back on this.</b> The claim exists, so the authorization server had something
+    /// to say about this caller's authority; what is missing is our ability to read it, and reading
+    /// less than a token said is the safe direction while granting more is not.
+    /// </remarks>
+    Unreadable = 3,
+}
+
 /// <summary>Who the transport authenticated, and what they may do.</summary>
 public sealed class CallerPrincipal
 {
@@ -77,13 +138,59 @@ public sealed class CallerPrincipal
     /// connector gate a tool on it.
     /// </para>
     /// <para>
-    /// <b>Empty means the token carried no <c>scope</c> claim, not that this caller was granted
-    /// nothing.</b> The static-token path has no authorization server and therefore no scopes at
-    /// all, so a connector reading this must fall back rather than refuse — the same shape as
-    /// <see cref="Permissions"/>, and for the same reason.
+    /// <b>Empty does not mean the token carried no <c>scope</c> claim.</b> It is also what a claim
+    /// granting nothing produces, and what an unreadable claim produces. This property cannot tell
+    /// them apart and never could; <see cref="ScopeClaim"/> is the field that does, and
+    /// <see cref="Grants"/> is the read that cannot get it wrong. Branching on
+    /// <c>Scopes.Count == 0</c> is the fail-open <see cref="ScopeClaimState"/> exists to close.
     /// </para>
     /// </remarks>
     public IReadOnlySet<string> Scopes { get; init; } = new HashSet<string>(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Which of the three things an empty <see cref="Scopes"/> means.
+    /// </summary>
+    public ScopeClaimState ScopeClaim { get; init; }
+
+    /// <summary>
+    /// Does this caller hold <paramref name="scope"/>, or is there no readable claim to judge by?
+    /// </summary>
+    /// <param name="scope">The scope name, compared ordinally.</param>
+    /// <returns>
+    /// <see langword="true"/> when a readable claim carried it; <see langword="false"/> when a
+    /// readable claim did not, or when the claim could not be read; <see langword="null"/> when
+    /// there was no claim at all, and the connector's own table has to answer.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// <b>The nullable return is the point, not an inconvenience.</b> <c>bool?</c> does not
+    /// convert to <c>bool</c>, so <c>if (!caller.Grants("x"))</c> does not compile: the third case
+    /// cannot be silently folded into either of the other two. That is the same trick
+    /// <c>AccessTokenDescriptor.Audience</c> plays with N-01 — a rule that stops being a rule and
+    /// becomes a fact about the type system.
+    /// </para>
+    /// <para>
+    /// <see cref="ScopeClaimState.Unreadable"/> answers <see langword="false"/> rather than
+    /// <see langword="null"/>, deliberately. A claim that exists but cannot be read is not an
+    /// absent one, and treating it as absent is exactly the fail-open this method was added to
+    /// remove.
+    /// </para>
+    /// </remarks>
+    public bool? Grants(string scope)
+    {
+        ArgumentNullException.ThrowIfNull(scope);
+
+        return ScopeClaim switch
+        {
+            ScopeClaimState.Readable => Scopes.Contains(scope),
+            ScopeClaimState.Unreadable => false,
+
+            // Absent, and Unknown: an authenticator that said nothing is not evidence of a
+            // restriction. Both fall back, which is what a principal built before ScopeClaim
+            // existed already did.
+            _ => null,
+        };
+    }
 
     /// <summary>
     /// The caller's own credential for whatever the connector writes to.
@@ -162,6 +269,12 @@ public sealed class BearerAuthenticator(Func<string, CancellationToken, Task<Cal
                 Roles = parts.Length > 2 && parts[2].Length > 0 ? [parts[2]] : [],
                 Email = parts.Length > 3 && parts[3].Length > 0 ? parts[3] : null,
                 DownstreamToken = downstreamToken,
+
+                // Not Unknown: this path is *known* to carry no scope claim, because there is no
+                // authorization server to mint one. Saying so is what lets a connector gate a tool
+                // on a scope and still work here, instead of having to special-case the deployment
+                // it is running in.
+                ScopeClaim = ScopeClaimState.Absent,
             };
         }
 
