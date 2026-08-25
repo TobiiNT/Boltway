@@ -218,7 +218,7 @@ Verified: solution build 0 warnings, 2716 tests across 15 suites green including
 architecture scan, and the new rule bites — restoring the fail-open (`Unreadable` answering `null`)
 turns exactly one test red, the one named for it.
 
-### 2.3 `CallerPrincipal` does not name the audit identity tuple — **ready**
+### 2.3 `CallerPrincipal` does not name the audit identity tuple — **done 2026-08-25, in 0.3.0**
 
 `CallerPrincipal` carries `Actor`, `Email`, `Roles`, `Permissions`, `Scopes`, `DownstreamToken` and
 `Claims`. A connector writing an audit trail needs the calling client and a stable handle for the
@@ -250,10 +250,22 @@ rather than a model, so mapping one to another would be `assumed` recorded as `m
 casing, trimming or URL normalisation here would silently rewrite what a consumer's history means.
 
 `required` would break every existing consumer's initializer, so these are additive, and null means
-*the authenticator did not learn one* — the reading `Permissions` and `Scopes` already carry.
+*the authenticator did not learn one* — the reading `Permissions` and `Scopes` already carry, and the
+rule `Email` states: an invented value cannot be told from a real one, so guessing costs the trail
+its worth on every entry rather than only the guessed one.
 
-**Also in this commit:** `ConnectorCaller` exposes shorthands for `Roles` and `Permissions` but not
-for `Scopes`, which is the one `ConnectorAuth.cs` names as the thing a connector gates a tool on.
+**No new parameter on `FromClaims`.** `client_id` and `jti` are RFC 9068 §2.2 claim names and not a
+deployment's to rename. `gid` is this project's own, so an authorization server that names it
+differently is a real case — but adding a fourth optional parameter changes the method's signature
+in metadata, which is a binary break the pack would flag. The escape already exists and is already
+documented: the `ResourceServerAuthenticator` constructor takes the whole mapping.
+
+**Done, and `ConnectorCaller` gained `Scopes` and `Grants` with it** — the shorthand set named
+everything except what a tool gate reads, and after §2.2 the one worth calling is `Grants`.
+
+Verified: build 0 warnings, full suite green, pack clean at 0.3.0 with no `CP0002`. The rules bite —
+lowercasing `ClientId` reddens `The_client_id_is_verbatim`, and crossing the two claims reddens
+`The_token_id_and_the_grant_id_do_not_swap`.
 
 ### 2.4 A refusal that cannot carry a challenge — **ready; §1 chose the HTTP challenge**
 

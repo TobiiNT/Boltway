@@ -153,6 +153,88 @@ public sealed class ResourceServerClaimsTests
         Assert.Null(none.Grants("docs:read"));
     }
 
+    /// <summary>
+    /// The three identity claims arrive as properties rather than as string lookups into
+    /// <c>Claims</c>.
+    /// </summary>
+    /// <remarks>
+    /// Each was already on the principal — <c>FromClaims</c> copies the whole claim set — so this
+    /// is a typed read of data that was there, not new plumbing. What it buys is that a key typed
+    /// wrong is a compile error rather than a silent null on the surface whose job is saying who
+    /// did what.
+    /// </remarks>
+    [Fact]
+    public void The_identity_claims_are_read_as_properties()
+    {
+        var caller = Read(
+            new Claim("sub", "01ABC"),
+            new Claim("client_id", "https://client.example.test/app"),
+            new Claim("jti", "9f2c"),
+            new Claim("gid", "grant-7"));
+
+        Assert.Equal("https://client.example.test/app", caller.ClientId);
+        Assert.Equal("9f2c", caller.TokenId);
+        Assert.Equal("grant-7", caller.GrantId);
+    }
+
+    /// <summary>
+    /// <c>jti</c> and <c>gid</c> are not crossed, which is the mistake the two properties exist to
+    /// make hard.
+    /// </summary>
+    /// <remarks>
+    /// A fresh <c>jti</c> is minted per access token and <c>gid</c> is stable across a refresh
+    /// family, so a connector that grouped by the wrong one would find its records fragmenting at
+    /// every refresh with nothing failing. Two distinct values here, asserted in both directions.
+    /// </remarks>
+    [Fact]
+    public void The_token_id_and_the_grant_id_do_not_swap()
+    {
+        var caller = Read(
+            new Claim("sub", "01ABC"),
+            new Claim("jti", "token-one"),
+            new Claim("gid", "grant-one"));
+
+        Assert.Equal("token-one", caller.TokenId);
+        Assert.Equal("grant-one", caller.GrantId);
+        Assert.NotEqual(caller.TokenId, caller.GrantId);
+    }
+
+    /// <summary>
+    /// <c>client_id</c> is stored exactly as it arrived.
+    /// </summary>
+    /// <remarks>
+    /// A consumer writes this into the commit trailer that answers "which application made this
+    /// change", so casing, a trailing slash and anything else are part of the value. Lowercasing or
+    /// canonicalising it here would rewrite what that history means, one release after the history
+    /// was written — <c>assumed</c> recorded as <c>measured</c>, on a surface nobody re-reads.
+    /// </remarks>
+    [Fact]
+    public void The_client_id_is_verbatim()
+    {
+        const string AsSent = "https://Client.Example.test/App/";
+
+        Assert.Equal(AsSent, Read(new Claim("sub", "01ABC"), new Claim("client_id", AsSent)).ClientId);
+    }
+
+    /// <summary>
+    /// An identity claim that is absent is null, never the empty string.
+    /// </summary>
+    /// <remarks>
+    /// The control for the three tests above, and the distinction a connector acts on: null is
+    /// "this authenticator did not learn one", and the answer is to leave the field unset rather
+    /// than write something plausible. Empty string would be a value, and an invented value cannot
+    /// be told from a real one — the reason <c>Email</c> carries the same rule.
+    /// </remarks>
+    [Fact]
+    public void An_absent_identity_claim_is_null_rather_than_empty()
+    {
+        var caller = Read(new Claim("sub", "01ABC"));
+
+        Assert.Null(caller.ClientId);
+        Assert.Null(caller.TokenId);
+        Assert.Null(caller.GrantId);
+    }
+
     /// <summary>Permissions arrive space-separated, the same shape as `scope`.</summary>
     [Fact]
     public void Permissions_are_split_on_spaces()

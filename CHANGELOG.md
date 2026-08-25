@@ -41,6 +41,28 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   it *knows* there is no authorization server, and saying so is what lets a connector gate a tool on
   a scope and still run on static tokens.
 
+- **`CallerPrincipal.ClientId`, `TokenId` and `GrantId`, so an audit trail is not assembled from
+  string lookups.** All three were already on the principal — `FromClaims` copies the whole claim
+  set — and a connector wanting to record which application made a change reached them as
+  `Claims["client_id"]`. A key typed wrong there is silently null, on the surface whose whole job is
+  saying who did what, and the static-token path had nothing to put in a dictionary key it was never
+  told about.
+
+  `TokenId` (`jti`) and `GrantId` (`gid`) are separate properties because they answer different
+  questions and are trivially confused: a fresh `jti` is minted for every access token, so grouping
+  records by it fragments them at every refresh with nothing failing, while `gid` is stable across a
+  whole refresh family and is the key "what did this session do" actually wants.
+
+  **`ClientId` is stored verbatim** — not lowercased, trimmed or canonicalised. It is a surface
+  rather than a model, and a consumer writes it into the commit trailer recording which application
+  made a change, so a value this library tidied would rewrite what that history means.
+
+  All three are nullable and none is `required`, so existing initializers keep compiling; null means
+  the authenticator did not learn one, and a connector should leave its own field unset rather than
+  synthesise something plausible — the rule `Email` already carries. `ConnectorCaller` gains
+  `Scopes` and `Grants` shorthands, so the set no longer names everything except what a tool gate
+  reads.
+
 ### Fixed
 
 - **The shipped example told connectors to declare a required scope on their MCP route, which is

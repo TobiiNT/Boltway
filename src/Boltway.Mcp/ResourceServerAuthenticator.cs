@@ -143,6 +143,17 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
                 ? ScopeClaimState.Absent
                 : readable ? ScopeClaimState.Readable : ScopeClaimState.Unreadable,
             Email = principal.FindFirst("email")?.Value,
+
+            // Read as properties rather than left for a connector to pull out of Claims by string
+            // key: every one is the same lookup, and a key typed wrong there is silently null on
+            // the surface whose whole job is saying who did what.
+            //
+            // Verbatim, all three. ClientId in particular reaches a consumer's commit history, so
+            // anything this reader tidied would rewrite what that history means.
+            ClientId = principal.FindFirst("client_id")?.Value,
+            TokenId = principal.FindFirst("jti")?.Value,
+            GrantId = principal.FindFirst("gid")?.Value,
+
             DownstreamToken = downstreamToken,
             Claims = principal.Claims
                 .GroupBy(c => c.Type, StringComparer.Ordinal)

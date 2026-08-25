@@ -201,6 +201,63 @@ public sealed class CallerPrincipal
     /// </summary>
     public string? DownstreamToken { get; init; }
 
+    /// <summary>
+    /// Which client the token was minted for — the <c>client_id</c> claim, RFC 9068 §2.2.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Distinct from <see cref="Actor"/>, and a connector writing an audit trail wants both: one
+    /// says who, the other says what they were using. The caller does not get to choose what it
+    /// says — the signature was checked before this was read — which is what separates it from a
+    /// user agent or anything else self-reported.
+    /// </para>
+    /// <para>
+    /// <b>Stored verbatim, and never normalised.</b> Not lowercased, not trimmed, not
+    /// URL-canonicalised. It is a surface rather than a model: a consumer writes it into the commit
+    /// trailer that answers "which application made this change", so a value this library tidied
+    /// would silently rewrite what that history means. Mapping one form to another is
+    /// <c>assumed</c> recorded as <c>measured</c>.
+    /// </para>
+    /// <para>
+    /// Null when the authenticator did not learn one — the static-token path has no authorization
+    /// server to mint anything. Null is what a connector should record, for the reason
+    /// <see cref="Email"/> gives: an invented value cannot be told from a real one, so guessing
+    /// costs the trail its worth on every entry rather than only this one.
+    /// </para>
+    /// </remarks>
+    public string? ClientId { get; init; }
+
+    /// <summary>
+    /// Which <em>token</em> this is — the <c>jti</c> claim.
+    /// </summary>
+    /// <remarks>
+    /// <b>Not a session identifier, and the difference is the whole reason this is a separate
+    /// property from <see cref="GrantId"/>.</b> A fresh <c>jti</c> is minted for every access
+    /// token, so it changes on every refresh: a connector that groups its audit records by this
+    /// finds them fragmenting into pieces the length of one token lifetime, with nothing failing.
+    /// What it is good for is correlating one token — a revocation, a single rejected call.
+    /// </remarks>
+    public string? TokenId { get; init; }
+
+    /// <summary>
+    /// Which <em>authorization</em> this is — the <c>gid</c> claim, stable across a whole refresh
+    /// family.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The grouping key an audit trail actually wants: every token minted from one grant carries
+    /// the same value, so "what did this session do" is a query rather than a reconstruction.
+    /// </para>
+    /// <para>
+    /// <c>gid</c> is this project's own claim rather than a registered one, so it is null against
+    /// an authorization server that does not emit it. A deployment whose server names it something
+    /// else supplies its own mapping through the <see cref="ResourceServerAuthenticator"/>
+    /// constructor rather than reaching for a parameter here — the shipped reader stays the one
+    /// that matches the tokens this project mints.
+    /// </para>
+    /// </remarks>
+    public string? GrantId { get; init; }
+
     /// <summary>Anything else the authenticator learned. This library does not interpret it.</summary>
     public IReadOnlyDictionary<string, string> Claims { get; init; } = new Dictionary<string, string>();
 }

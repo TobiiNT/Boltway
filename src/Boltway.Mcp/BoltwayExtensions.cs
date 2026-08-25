@@ -83,6 +83,17 @@ public sealed class ConnectorCaller
     /// <summary>Shorthand for <see cref="CallerPrincipal.Permissions"/>.</summary>
     public IReadOnlySet<string> Permissions => Principal.Permissions;
 
+    /// <summary>Shorthand for <see cref="CallerPrincipal.Scopes"/>.</summary>
+    /// <remarks>
+    /// Here for symmetry with the two above; <see cref="Grants"/> is what a tool gate should
+    /// actually call. An empty set is three different situations and this property cannot say
+    /// which — see <see cref="ScopeClaimState"/>.
+    /// </remarks>
+    public IReadOnlySet<string> Scopes => Principal.Scopes;
+
+    /// <summary>Shorthand for <see cref="CallerPrincipal.Grants"/>.</summary>
+    public bool? Grants(string scope) => Principal.Grants(scope);
+
     /// <summary>The bound state, or a message naming where it should have been bound.</summary>
     /// <typeparam name="T">What the connector attached at authentication time.</typeparam>
     public T StateAs<T>() where T : class =>

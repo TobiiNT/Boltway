@@ -183,6 +183,20 @@ public sealed class StaticTokenTests : IAsyncLifetime
     }
 
     [Fact]
+    public void A_static_token_learns_no_identity_claims()
+    {
+        var principal = BearerAuthenticator.ParseTokenMap("a:ada:founder")["a"];
+
+        // Null rather than a stand-in. There is no authorization server on this path, so there is
+        // no client, no token id and no grant id to learn — and a connector recording an invented
+        // one would make every entry in its trail indistinguishable from a real attribution, not
+        // only these.
+        Assert.Null(principal.ClientId);
+        Assert.Null(principal.TokenId);
+        Assert.Null(principal.GrantId);
+    }
+
+    [Fact]
     public void A_static_token_reports_that_it_carries_no_scope_claim()
     {
         var principal = BearerAuthenticator.ParseTokenMap("a:ada:founder")["a"];
