@@ -41,6 +41,35 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   it *knows* there is no authorization server, and saying so is what lets a connector gate a tool on
   a scope and still run on static tokens.
 
+### Fixed
+
+- **The shipped example told connectors to declare a required scope on their MCP route, which is
+  the one place it must never go.** `ResourceServerAuthenticator`'s class summary ended
+  `MapMcp("/mcp").RequireScope("docs:read")`, annotated "what makes the gate apply", and the
+  diagnostic thrown when the middleware is mis-wired said the same. It does not gate: one MCP
+  endpoint carries every tool, so a scope required there is the intersection of what the tools
+  need — which `CallerPrincipal.Scopes` has always said from the other side.
+
+  The expensive half is what it does instead. `RequireScope` also fills the `scope` parameter of
+  the `401`, and the MCP scope-selection strategy reads that before the metadata document, so
+  naming one scope there tells every client to ask for that and nothing else for the whole server.
+  A connector that copied the line advertised a second scope in both RFC 9728 documents, showed it
+  on its consent screen and enforced it in its tools, and no token its authorization server minted
+  ever carried it. Reads worked and health was green; it surfaced only when the tools began
+  enforcing, at which point every write stopped at once and re-consenting could not help.
+
+  The example is now `RequireBearer()` and carries the reason rather than only the call. Naming
+  both scopes would not have helped — `RequireScope` requires *every* scope listed, so a genuine
+  read-only grant would lose its reads — and that is now said at the call site too.
+  `RequiredScopeMetadata`'s remarks were already right about the mechanism and now say where "a
+  minimal grant" stops being the intended reading. `StructuralRuleTests` fails the build if any
+  shipped example puts the two calls back on one line.
+
+  **This library cannot check a consumer's wiring for it.** `ProtectedResource` and its
+  `ScopesSupported` are internal to `Boltway.ResourceServer`, so nothing in `Boltway.Mcp` can see
+  the advertised set. The guard that works is a host-level test in the consumer asserting that
+  every scope it advertises is named in the challenge — the property, not the line.
+
 ## [0.2.0] — 2026-08-24
 
 ### Added

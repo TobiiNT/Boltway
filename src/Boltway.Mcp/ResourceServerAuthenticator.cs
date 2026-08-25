@@ -21,16 +21,44 @@ namespace Boltway.Mcp;
 /// </para>
 ///
 /// <para>
-/// Wire it after the resource-server middleware and give the MCP endpoint a required scope:
+/// Wire it after the resource-server middleware:
 /// </para>
 ///
 /// <code>
 /// app.UseRouting();
-/// app.UseBoltwayProtectedResource();                 // validates, and owns the 401
-/// app.UseConnectorCaller("/mcp", bindState);              // maps the result onto the caller
+/// app.UseBoltwayProtectedResource();          // validates, and owns the 401
+/// app.UseConnectorCaller("/mcp", bindState);  // maps the result onto the caller
 /// app.MapProtectedResourceMetadata();
-/// app.MapMcp("/mcp").RequireScope("docs:read");             // what makes the gate apply
+/// app.MapMcp("/mcp").RequireBearer();         // gated, and no required scope — see below
 /// </code>
+///
+/// <para>
+/// <b><c>RequireBearer()</c>, not <c>RequireScope(...)</c>, and the difference is not a
+/// preference.</b> For a release the last line of this example ended in <c>RequireScope</c>
+/// instead, annotated "what makes the gate apply". It does not: one MCP endpoint carries every
+/// tool, so a scope required there is the intersection of what the tools need — see
+/// <see cref="CallerPrincipal.Scopes"/>, which says the same thing from the other side.
+/// </para>
+///
+/// <para>
+/// The expensive half is what it does instead. <c>RequireScope</c> declares two things at once, and
+/// the second is the one nobody expects: it also fills the <c>scope</c> parameter of the <c>401</c>
+/// challenge, and the MCP scope-selection strategy reads that <em>before</em> the metadata
+/// document. So naming one scope there tells every client to ask for that scope <em>and nothing
+/// else</em>, for the whole server. A connector that did this advertised a second scope in both
+/// RFC 9728 documents, showed it on its consent screen and enforced it in its tools, and no token
+/// its authorization server ever minted carried it — reads worked, health was green, and it
+/// surfaced only when the tools began enforcing, at which point every write stopped at once and
+/// re-consenting could not help.
+/// </para>
+///
+/// <para>
+/// Naming both scopes is not the fix either: <c>RequireScope</c> requires <em>every</em> scope
+/// listed, so a genuine read-only grant would be refused its reads. Declare none, leave the
+/// challenge carrying the resource's whole <c>ScopesSupported</c>, and gate each tool on
+/// <see cref="CallerPrincipal.Grants"/> — which is the only place a single endpoint can make a
+/// per-tool decision anyway.
+/// </para>
 /// </summary>
 public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrincipal> map)
     : IConnectorAuthenticator
@@ -150,8 +178,11 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
             // alternative, treating the request as anonymous, would let everyone through.
             throw new InvalidOperationException(
                 "No validated access token on this request. Call UseBoltwayProtectedResource() before " +
-                "UseConnectorCaller(), and give the MCP endpoint a required scope — MapMcp(\"/mcp\").RequireScope(...) " +
-                "— since the gate is applied per endpoint and an ungated one is never challenged.");
+                "UseConnectorCaller(), and gate the MCP endpoint — MapMcp(\"/mcp\").RequireBearer() — since " +
+                "an endpoint the bearer middleware does not gate is never challenged. Use RequireBearer " +
+                "rather than RequireScope: a required scope on an MCP route also fills the 401 challenge's " +
+                "`scope`, which tells every client to ask for that and nothing else. See the remarks on " +
+                "ResourceServerAuthenticator.");
         }
 
         return Task.FromResult(map(token.Principal));

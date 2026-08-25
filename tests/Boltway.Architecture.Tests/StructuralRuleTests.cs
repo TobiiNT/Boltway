@@ -860,6 +860,82 @@ public sealed class StructuralRuleTests
     /// that count changes with the target framework and the configuration in the output path — and a
     /// path that silently resolves to nothing turns the test above into a pass.
     /// </remarks>
+    /// <summary>
+    /// Nothing shipped here shows a required scope being declared on an MCP route.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>RequireScope</c> declares two things, and the second is the one that bites: it also fills
+    /// the <c>scope</c> parameter of the <c>401</c> challenge, which the MCP scope-selection
+    /// strategy reads before the metadata document. On a route that carries one operation that is
+    /// a minimal grant, which is what <c>RequiredScopeMetadata</c>'s remarks describe. On an MCP
+    /// route it is an instruction to every client about what to ask for from the whole server, and
+    /// every other scope the resource advertises becomes unaskable.
+    /// </para>
+    /// <para>
+    /// <b>This existed as a code sample in a class summary and was copied out of it.</b> The
+    /// connector that copied it advertised a second scope in both RFC 9728 documents, showed it on
+    /// its consent screen and enforced it in its tools; no token its authorization server minted
+    /// ever carried it, and it surfaced only when the tools began enforcing — every write stopping
+    /// at once, six and a half hours after the change that armed it.
+    /// </para>
+    /// <para>
+    /// The library cannot check a consumer's wiring: <c>ProtectedResource</c> and its
+    /// <c>ScopesSupported</c> are internal to <c>Boltway.ResourceServer</c>, so nothing in
+    /// <c>Boltway.Mcp</c> can see the advertised set at all. What it can do is never teach it
+    /// again, which is this rule. A consumer's own guard is a host-level test asserting that every
+    /// scope it advertises is named in the challenge — assert the property, not the line.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void No_shipped_example_declares_a_required_scope_on_an_mcp_route()
+    {
+        var root = RepositoryRoot();
+
+        var offenders = new List<string>();
+
+        foreach (var area in new[] { "src", "samples", "hosts", "testing" })
+        {
+            var path = Path.Combine(root, area);
+
+            if (!Directory.Exists(path))
+            {
+                continue;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                    || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var lines = File.ReadAllLines(file);
+
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    // One line, both calls: the shape a reader copies. A RequireScope somewhere
+                    // else in a file that also mentions MapMcp is a different statement and not
+                    // this rule's business.
+                    if (lines[i].Contains("MapMcp", StringComparison.Ordinal)
+                        && lines[i].Contains("RequireScope", StringComparison.Ordinal))
+                    {
+                        offenders.Add($"{Path.GetRelativePath(root, file)}:{i + 1}");
+                    }
+                }
+            }
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            "A required scope is declared on an MCP route in: " + string.Join(", ", offenders)
+            + ". One MCP endpoint carries every tool, so the scope named there also becomes the "
+            + "`scope` in the 401 — every client then asks for that and nothing else, and any other "
+            + "scope the resource advertises can never be granted. Use RequireBearer() and gate each "
+            + "tool on CallerPrincipal.Grants instead.");
+    }
+
     private static string RepositoryRoot()
     {
         var directory = new DirectoryInfo(Path.GetDirectoryName(typeof(StructuralRuleTests).Assembly.Location)!);

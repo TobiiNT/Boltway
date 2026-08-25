@@ -12,6 +12,16 @@ namespace Boltway.ResourceServer.Authorization;
 /// scope-selection strategy reads the challenge's <c>scope</c> first and falls back to the metadata
 /// document's whole <c>scopes_supported</c> only when the challenge has none, so an endpoint that
 /// declares its scopes gets a minimal grant and one that does not gets everything.
+///
+/// <para>
+/// <b>"A minimal grant" is the intended reading while an endpoint's scopes are its own. It stops
+/// being one when a single endpoint is the whole surface.</b> An MCP server carries every tool
+/// behind one route, so a scope declared there is not that endpoint's requirement — it is an
+/// instruction to every client about what to request from the entire server, and any other scope
+/// the resource advertises becomes unaskable. Declaring none is what leaves the challenge naming
+/// the whole advertised set. See the remarks on <c>Boltway.Mcp.ResourceServerAuthenticator</c> for
+/// what that cost when it was got wrong.
+/// </para>
 /// </remarks>
 public sealed class RequiredScopeMetadata
 {
@@ -58,6 +68,19 @@ public static class ResourceServerEndpointConventions
     /// subset. Claude asks for the union of the challenge's scopes and its discovery-time scope, and
     /// does not reliably carry forward what an earlier step-up granted, so a challenge naming only
     /// the delta re-authorizes the user into a narrower grant than they had.
+    ///
+    /// <para>
+    /// <b>Every scope listed is required, so this cannot express "any of these".</b> Two scopes here
+    /// refuse a caller holding one of them, which is why a read scope and a write scope do not both
+    /// belong on one route.
+    /// </para>
+    ///
+    /// <para>
+    /// <b>Do not call this on a route that carries more than one operation's worth of authority</b>
+    /// — an MCP endpoint is always one. What it declares here also becomes the <c>scope</c> in the
+    /// <c>401</c>, and that is what a client asks for, so anything else the resource advertises is
+    /// advertised and unreachable. <see cref="RequiredScopeMetadata"/> has the long version.
+    /// </para>
     /// </remarks>
     public static TBuilder RequireScope<TBuilder>(this TBuilder builder, params string[] scopes)
         where TBuilder : IEndpointConventionBuilder

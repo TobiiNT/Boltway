@@ -115,7 +115,7 @@ tool-level channel is the better one when it exists, because it does not cost th
 
 ## 2. The gaps, ranked
 
-### 2.1 The documented example instructs every client to ask for too little — **ready, and first**
+### 2.1 The documented example instructs every client to ask for too little — **done 2026-08-25, in 0.3.0**
 
 `RequireScope` declares **two** things, and the second is the one nobody expects.
 `RequiredScopeMetadata`'s own remarks are accurate about it:
@@ -153,10 +153,25 @@ reason rather than only the call — a consumer who copies a line without the pa
 this item exists for. `RequiredScopeMetadata`'s remarks are already correct and stay; the problem is
 that a reader reaches them only after copying the wrong example.
 
-**Open, and worth answering in the same change:** whether the library can make this hard rather than
-documented — a startup diagnostic when `RequiredScopeMetadata` is found on an endpoint the MCP
-transport mapped. That is a design question, not a line, and this is `N-06`'s shape on the
-customization surface: a documented extension point that does the opposite of what its example says.
+**The open question is answered, and the answer is that this library cannot check it.** A startup
+diagnostic would have to compare an endpoint's `RequiredScopeMetadata` against the resource's
+advertised set, and `ProtectedResource` is `internal sealed` in `Boltway.ResourceServer` with
+`ScopesSupported` internal to it and `InternalsVisibleTo` granted to that package's own tests and
+nothing else. So `Boltway.Mcp` cannot see the advertised scopes at all. Making it able to is a
+deliberate widening of `Boltway.ResourceServer`'s public surface, not an addition — which is why
+this was a design question rather than a line, and the reason is now recorded instead of restated.
+
+Two things were done instead. `StructuralRuleTests.No_shipped_example_declares_a_required_scope_on_an_mcp_route`
+fails the build if any file under `src/`, `samples/`, `hosts/` or `testing/` puts `MapMcp` and
+`RequireScope` on one line, so the sample cannot come back — it is red against the example this item
+replaced, which is how it was checked. And the correction says, at all four sites a reader reaches,
+what the consumer-side guard is: **a host-level test asserting that every scope the deployment
+advertises is named in its challenge.** That is what caught it where it happened, it asserts the
+property rather than the line, and it needs nothing from this library.
+
+Worth reopening only if `Boltway.ResourceServer` grows a public read of the advertised set for some
+other reason. Adding one *for* this would be surface bought to catch a mistake the docs and the
+build rule now cover.
 
 ### 2.2 A scope claim's absence is indistinguishable from its emptiness — **done 2026-08-25, in 0.3.0**
 
