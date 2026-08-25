@@ -41,6 +41,28 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   it *knows* there is no authorization server, and saying so is what lets a connector gate a tool on
   a scope and still run on static tokens.
 
+- **`IConnectorToolPolicy` and `WithBoltwayToolPolicy()`, so a per-tool decision reaches both places
+  it has to hold.** One MCP endpoint carries every tool, so a scope required on the route is the
+  intersection of what the tools need — the per-tool decision has to happen per tool, and until now
+  a connector wiring that had to reach for the SDK's filter API itself and remember there were two
+  of them.
+
+  **Both filters, from one call, deliberately.** Filtering `tools/list` alone produces a surface
+  that looks gated and is not: a caller that already knows a tool's name still reaches it. Gating
+  `tools/call` alone leaves a model reading an advertised tool as a capability and retrying against
+  something that always refuses. Shipping them separately would let a connector wire one and believe
+  it had both.
+
+  **What is not shipped is the answer.** No role table, no scope naming convention, no default
+  policy. A deployment's role vocabulary is its own, and the fallback for a scope claim is subtle
+  enough — see `ScopeClaimState` — that a shipped default would be wrong in the fail-open direction
+  for every consumer at once. `Allows(caller, tool)` is synchronous because the decision is made
+  from what the token already said and `tools/list` asks it once per tool.
+
+  A refusal names the tool and the policy type rather than answering "unknown tool", which would be
+  untrue and would send a reader looking for a registration bug. An unbound caller is reported as
+  the wiring problem it is, not as a forbidden one.
+
 - **`CallerPrincipal.ClientId`, `TokenId` and `GrantId`, so an audit trail is not assembled from
   string lookups.** All three were already on the principal — `FromClaims` copies the whole claim
   set — and a connector wanting to record which application made a change reached them as

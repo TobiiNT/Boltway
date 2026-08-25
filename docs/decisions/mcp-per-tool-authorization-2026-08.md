@@ -305,7 +305,7 @@ because *"scope step-up via `insufficient_scope` covers the MCP case (D-07)"*, a
 it. That justification holds at the endpoint and does not hold per tool — which is the whole of §0.
 The deferral may well survive; its stated reason does not, and both entries move in the same commit.
 
-### 2.5 Filtering `tools/list`, and a seam — **ready, and narrower than this document first proposed**
+### 2.5 Filtering `tools/list`, and a seam — **done 2026-08-25, in 0.3.0**
 
 The SDK has the hooks, and `Boltway.Mcp` references the package that carries them without using
 either:
@@ -332,12 +332,27 @@ the dangerous direction for every consumer at once.
 So: the list filter, the seam a connector plugs its own decision into, and the documentation that
 the two belong together. Not a table, not a vocabulary, not a default answer.
 
-**One configuration hazard to assert against.** `HttpServerTransportOptions.PerSessionExecutionContext`
-defaults to `false`, which is correct here: handlers run with the execution context of the HTTP
-request that carried them, so identity is per request. Set to `true` — a reasonable-looking choice
-for session-wide `AsyncLocal` state — the identity that reaches a tool is the one from the request
-that *opened the session*, and a narrowed or re-issued token stops taking effect with nothing
-failing. A gate whose input can silently freeze is worse than no gate.
+**Done**, as `IConnectorToolPolicy` and `WithBoltwayToolPolicy()`. Both filters come from the one
+call, because shipping them separately would let a connector wire the listing filter and believe it
+had a gate. `Allows` is synchronous: the decision is made from what the token already said, and
+`tools/list` asks it once per tool.
+
+**A correction, and the compiler is what caught it.** This entry said to assert against
+`HttpServerTransportOptions.PerSessionExecutionContext` being `true`. That property is **obsolete**
+in SDK 2.2.0 — referencing it is `MCP9006`, which is an error here — and the hazard has largely
+stopped existing: `SessionMode` now defaults to `HttpServerSessionMode.Stateless`, because the
+2026-07-28 revision removed sessions from Streamable HTTP altogether (SEP-2567 removed
+`Mcp-Session-Id`, SEP-2575 the `initialize` handshake). Under `Stateless` a handler runs on the
+request that carried it and a policy's input cannot freeze. The frozen-identity case survives only
+in the stateful back-compat modes with the obsolete option on, so it is documented on the extension
+method rather than checked against an API the SDK is retiring. Written down because the earlier
+version of this paragraph would have been repeated as fact.
+
+**No new row in `docs/CAPABILITIES.md`.** Its three sections are off-by-default, absent on purpose,
+and not built yet, and a connector-side extension method is none of them — filing it under one to
+satisfy the ritual would make the file less true, which is the opposite of its job. The README's
+*What you get* row moved instead, and it needed to: **MCP half** read "per-endpoint scope", which is
+the framing §2.1 exists because of.
 
 ### 2.6 Move a consumer onto the baseline before shipping any of this — **ready, and first in wall-clock**
 

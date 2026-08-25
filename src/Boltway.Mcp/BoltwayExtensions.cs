@@ -71,6 +71,14 @@ public sealed class ConnectorCaller
     /// <summary>The authenticated caller. Anonymous until the middleware resolves one.</summary>
     public CallerPrincipal Principal { get; internal set; } = Anonymous;
 
+    /// <summary>Nothing has bound a caller to this request yet.</summary>
+    /// <remarks>
+    /// Reference identity against the one shared placeholder rather than a flag, so there is no
+    /// second piece of state to keep true. Anywhere a request has reached a tool, this being true
+    /// is a wiring problem rather than an anonymous caller.
+    /// </remarks>
+    internal bool IsAnonymous => ReferenceEquals(Principal, Anonymous);
+
     /// <summary>Whatever the connector attached at authentication time — a store, a client, a tenant.</summary>
     public object? State { get; set; }
 
