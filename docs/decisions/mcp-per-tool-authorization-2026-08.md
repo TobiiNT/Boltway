@@ -1,6 +1,6 @@
 # Per-tool authorization for MCP connectors — the endpoint gate does not reach a tool
 
-**Date:** 2026-08-25 · **Status:** open; the measurement that blocked §2.4 is taken · **Scope:** `Boltway.Mcp`, `Boltway.ResourceServer`
+**Date:** 2026-08-25 · **Status:** every item closed; §2.4 closed as *cannot be done*, with the measurement · **Scope:** `Boltway.Mcp`, `Boltway.ResourceServer`
 
 > **Why this sits in `docs/decisions/` while most of its items are still open.** The convention in
 > [`../README.md`](../README.md) warns that a gap list read as a to-do list is how a server that
@@ -267,7 +267,7 @@ Verified: build 0 warnings, full suite green, pack clean at 0.3.0 with no `CP000
 lowercasing `ClientId` reddens `The_client_id_is_verbatim`, and crossing the two claims reddens
 `The_token_id_and_the_grant_id_do_not_swap`.
 
-### 2.4 A refusal that cannot carry a challenge — **ready; §1 chose the HTTP challenge**
+### 2.4 A refusal that cannot carry a challenge — **closed 2026-08-25: it cannot, on either channel**
 
 A connector that gates a tool on a scope has no way to tell the caller *which scope would fix it*,
 in a form the caller can act on. Two mechanisms exist here and neither is reachable.
@@ -284,12 +284,37 @@ This has a caller before it is written: measured on a connector, its per-tool sc
 throws an `insufficient_scope` refusal, documented there as the refusal that re-consenting fixes and
 a role refusal does not. Today that distinction reaches nobody.
 
-**Compatibility constraints, measured rather than assumed.** `ConnectorToolException` is subclassed
-by at least one consumer, using the two-argument constructor. Whatever this item adds:
+**The title turned out to be the answer.** §1 closed the tool-level channel and sent this item at
+the HTTP one. Building that closed the second door, and the measurement is in §4 of
+[`../../spec/mcp-tool-challenge-2026-08-25.md`](../../spec/mcp-tool-challenge-2026-08-25.md):
 
-- it must **not** seal the type;
-- it must **not** change or remove `(string reason, string code = "invalid_input")`;
-- a new optional parameter, or a sibling type, is safe.
+- Streamable HTTP refuses a client that will not accept `text/event-stream` — `406`, outright — so
+  there is no buffered-JSON arrangement in which the response is still open. `HttpServerTransportOptions`
+  offers no server-side switch for one either.
+- By the time an `AddCallToolFilter` runs, `Response.HasStarted` is **true** and the status line
+  `200` is already on the wire. The `HttpContext` is reachable; the response has moved on.
+
+So a per-tool refusal cannot be a `401` or `403`. Not "hard" — the status was sent before the tool
+was chosen.
+
+**Which means the public seam this item existed to justify is not built.** `BearerChallenge` stays
+`internal`, and `Boltway.ResourceServer`'s surface does not widen, because the caller that would
+have used it cannot reach the response. Buying surface for a path nobody can take is the trade §3
+warns about, arrived at from the other direction.
+
+**What shipped instead** is the honest half: `InsufficientScopeException`, a sealed
+`ConnectorToolException` carrying every scope the operation needs and the `insufficient_scope` code.
+It is a sentence in a tool result and nothing more — worse than a challenge, better than a bare
+refusal, and it says which it is rather than implying the other. Sharing the type is what keeps a
+scope refusal (which re-authorizing fixes) distinguishable from a role refusal (which it does not)
+across connectors instead of each inventing the distinction.
+
+`ToolRefusalReachTests` pins both measurements as tests. If a future SDK buffers the response, or a
+future revision adopts SEP-1489, one goes red — which is the only way a closed door gets re-checked.
+
+**Compatibility constraints, held.** `ConnectorToolException` is subclassed by at least one consumer
+using the two-argument constructor, so it is not sealed and that signature did not change;
+`InsufficientScopeException` is a sibling deriving from it, which the constraint listed as safe.
 
 **A related question belongs with this one.** The same connector filed it, in the remarks of its own
 test: `UseConnectorCaller` is path-prefix middleware and runs **before** routing, so no endpoint is
@@ -423,7 +448,7 @@ nobody exercises is the one that will be wrong.
 §2.1  documented example + the startup-diagnostic question   ─┐
 §2.3  the identity tuple                                      ├─ nothing blocks any of these
 §2.5  list filter + seam                                      │
-§2.4  the refusal, as a 401/403 rather than a _meta field     ─┘
+§2.4  the refusal — closed: it can be neither, and the seam is not built  ─┘
 
 The version ritual below ran with §2.2: `<Version>` is 0.3.0 and the baseline is 0.2.0, so §2.1,
 §2.3, §2.4 and §2.5 join the same unreleased version and neither number moves again for them.

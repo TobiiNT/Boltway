@@ -150,6 +150,28 @@ public sealed class ToolPolicyTests : IAsyncLifetime
         Assert.DoesNotContain("forbidden", body, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// A scope refusal names every scope the operation needs, not the missing subset.
+    /// </summary>
+    /// <remarks>
+    /// Same rule as the <c>403</c> challenge, and the same measured reason: a client asks for the
+    /// union of what it is told and what it already had, and does not reliably carry forward what
+    /// an earlier step-up granted, so naming only the delta re-authorizes somebody into a narrower
+    /// grant than they started with. Asserted on the message because the message is the whole
+    /// channel — see <see cref="ToolRefusalReachTests"/> for why there is no challenge.
+    /// </remarks>
+    [Fact]
+    public void A_scope_refusal_names_every_scope_the_operation_needs()
+    {
+        var refusal = new InsufficientScopeException("docs:read", "docs:write");
+
+        Assert.Equal(["docs:read", "docs:write"], refusal.Required);
+        Assert.Contains("docs:read docs:write", refusal.Message, StringComparison.Ordinal);
+
+        // The code is what separates it from a role refusal, which re-authorizing cannot fix.
+        Assert.Equal("insufficient_scope", refusal.Code);
+    }
+
     /// <summary>A tool nobody is refused still works, so the filter is not refusing everything.</summary>
     [Fact]
     public async Task An_open_tool_runs_for_a_caller_the_policy_narrows_elsewhere()

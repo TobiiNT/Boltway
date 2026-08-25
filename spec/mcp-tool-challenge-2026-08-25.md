@@ -1,4 +1,4 @@
-# Can a tool result carry an authorization challenge? — measured 2026-08-25
+# Can a per-tool refusal carry an authorization challenge? — measured 2026-08-25
 
 **Question.** Does a client honour `_meta["mcp/www_authenticate"]` on a tool result with
 `isError: true`, delivered over HTTP `200`, by prompting for re-authorization at the named scopes?
@@ -9,8 +9,10 @@ and C-25 records a measurement that a `200` produces no auth prompt at all. A to
 covering the difference. `docs/decisions/mcp-per-tool-authorization-2026-08.md` §1 blocked its own
 §2.4 on this, because the answer selects between two incompatible designs.
 
-**Answer: no — there is no such mechanism to honour.** Not "clients ignore it": it is not in the
-protocol. Design for the HTTP challenge.
+**Answer: no, on both channels.** The tool-level field is not in the protocol — not "clients ignore
+it", it is not there. And the HTTP challenge, which this file first said to design for, turns out to
+be unreachable from a tool. §4 is that second measurement, taken after the first sent the design
+that way.
 
 ---
 
@@ -53,15 +55,46 @@ revision of the protocol asks for it.
 That gap closes the same way it would have before: stand a server up, emit the field, connect a
 real client, and watch. If that is ever done, it belongs beside this file with its own date.
 
-## What it decides
+## 4. The other channel, measured 2026-08-25 after the first answer sent the design at it
 
-`docs/decisions/mcp-per-tool-authorization-2026-08.md` §1 offered three outcomes. This is the
-**"no"** branch, and its consequence is written there: a per-tool refusal that wants to be actionable
-must reach the client as an HTTP `401`/`403` challenge, not as a field inside a `200`.
+The conclusion above was *use the HTTP challenge instead*. Building that closed the second door.
 
-That is the path `BearerChallenge` already implements and the one C-25 measured — including the part
-that makes it dangerous to hand-roll: a `403` without `error="insufficient_scope"` is terminal for
-that client, for that user and that server, with no re-authentication prompt, permanently.
+**Streamable HTTP has no buffered-JSON path.** A POST whose `Accept` does not include
+`text/event-stream` is refused the transport outright with `406 Not Acceptable` and the message
+*"Client must accept both application/json and text/event-stream"*. There is no client-side choice
+that keeps the response buffered, and `HttpServerTransportOptions` exposes no server-side one — its
+properties are `ConfigureSessionOptions`, `EnableLegacySse`, `EventStreamStore`, `IdleTimeout`,
+`MaxIdleSessionCount`, `PerSessionExecutionContext`, `RunSessionHandler`, `SessionMigrationHandler`,
+`SessionMode`, `Stateless`, `TimeProvider`, and none of them is about that.
+
+**The event stream is open before any tool filter runs.** Measured with an `AddCallToolFilter` that
+reads `IHttpContextAccessor.HttpContext.Response.HasStarted` on the way in: it is **true**, and the
+client's status line is already `200`. The `HttpContext` itself is reachable — what has moved on is
+the response.
+
+So a per-tool refusal cannot be an HTTP `401` or `403`. Not "hard": the status was sent before the
+tool was chosen. Whatever the connector decides, it decides it after the wire has committed.
+
+**Both channels are therefore closed**, and a connector's per-tool refusal reaches a caller as text
+in a tool result and nothing else. That is worse than a challenge and better than silence, and the
+only honest thing to do is say which it is rather than implying the other.
+
+`ToolRefusalReachTests` in `Boltway.Mcp.Tests` pins both halves as tests rather than as notes: a
+client refusing the event stream gets `406`, and the filter sees `HasStarted` true. If a future SDK
+buffers the response, or a future revision defines the tool-level field, one of them goes red — which
+is the only way a closed door gets re-checked.
+
+## 5. What it decides
+
+`docs/decisions/mcp-per-tool-authorization-2026-08.md` §1 offered three outcomes and this is the
+**"no"** branch on both. Its §2.4 closes without the public challenge seam it was going to need:
+`BearerChallenge` stays `internal`, because the caller that would have justified opening it cannot
+reach the response anyway. Surface bought for a path nobody can take is surface bought for nothing.
+
+What the endpoint-level challenge still does, and does well, is unaffected — a token short of a
+scope a **route** requires is answered `403` with `error="insufficient_scope"` before any of this,
+including the part that makes it dangerous to hand-roll: a `403` without that error code is terminal
+for that client, for that user and that server, with no re-authentication prompt, permanently.
 
 **The consequence for `REQUIREMENTS.md`.** C-24's MCP column asserted a mechanism. It is a sponsored
 draft that appears in no schema, and recording a proposal in a conformance matrix without its status

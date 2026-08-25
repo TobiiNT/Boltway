@@ -56,6 +56,59 @@ public class ConnectorToolException : McpException
 }
 
 /// <summary>
+/// A tool refused because the token does not carry a scope it needs.
+/// </summary>
+/// <remarks>
+/// <para>
+/// A scope refusal and a role refusal are different answers and only one of them is worth acting
+/// on: re-authorizing fixes a missing scope and cannot fix a missing role. Sharing one type and
+/// one code across connectors is what lets that difference survive the trip to whoever reads it.
+/// </para>
+/// <para>
+/// <b>This does not become an authorization challenge, and that is measured rather than assumed.</b>
+/// Both channels for one are closed. The tool-level field — <c>_meta["mcp/www_authenticate"]</c> on
+/// an <c>isError</c> result — is SEP-1489, a sponsored draft, absent from the <c>2025-11-25</c>
+/// schema and from the draft the <c>2026-07-28</c> release candidate is cut from. And the HTTP
+/// challenge the resource server writes cannot be reached from here: Streamable HTTP requires the
+/// client to accept an event stream, and the transport has opened it before any tool filter runs,
+/// so the status line is already <c>200</c> and already sent. <c>ToolRefusalReachTests</c> pins
+/// both, and <c>spec/mcp-tool-challenge-2026-08-25.md</c> is the write-up.
+/// </para>
+/// <para>
+/// So what a caller gets is this sentence, and the sentence is the whole of it. That is worse than
+/// a challenge and better than a bare refusal, and saying which it is beats implying the other.
+/// </para>
+/// <para>
+/// Sealed, while <see cref="ConnectorToolException"/> is not: the base is the type a connector
+/// derives its own root from, and this one is a leaf whose <c>insufficient_scope</c> code means one
+/// thing.
+/// </para>
+/// </remarks>
+public sealed class InsufficientScopeException : ConnectorToolException
+{
+    /// <summary>Refuse, naming every scope the operation needs.</summary>
+    /// <param name="required">
+    /// <b>Every</b> scope the operation needs, not only the ones missing. The reason is the same one
+    /// <c>X-34</c> gives for the <c>403</c> challenge, measured against a vendor client: it asks for
+    /// the union of what it is told and what it already had, and does not reliably carry forward
+    /// what an earlier step-up granted — so naming only the delta re-authorizes somebody into a
+    /// narrower grant than they started with.
+    /// </param>
+    public InsufficientScopeException(params string[] required)
+        : base(Describe(required), "insufficient_scope") => Required = [.. required ?? []];
+
+    /// <summary>Every scope the refused operation needs.</summary>
+    public IReadOnlyList<string> Required { get; }
+
+    private static string Describe(string[]? required) =>
+        required is { Length: > 0 }
+            ? "The access token does not carry a scope this tool needs. Required: "
+                + string.Join(' ', required)
+                + ". Re-authorizing with those scopes is what fixes it."
+            : "The access token does not carry a scope this tool needs.";
+}
+
+/// <summary>
 /// The authenticated caller for one request, and whatever the connector bound to them.
 ///
 /// <para>

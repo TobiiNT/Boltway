@@ -41,6 +41,24 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   it *knows* there is no authorization server, and saying so is what lets a connector gate a tool on
   a scope and still run on static tokens.
 
+- **`InsufficientScopeException`, because a per-tool refusal cannot carry a challenge and should say
+  so rather than imply otherwise.** A tool refused for want of a scope wants to name the scope that
+  would fix it in a form the caller can act on. Both channels for that are closed, and both were
+  measured rather than assumed: the tool-level field is SEP-1489, a sponsored draft absent from the
+  `2025-11-25` schema and from the draft the `2026-07-28` release candidate is cut from; and the
+  HTTP challenge cannot be reached, because Streamable HTTP refuses a client that will not accept an
+  event stream and the transport has opened that stream — status line sent — before any tool filter
+  runs.
+
+  So what ships is the honest half: a sealed `ConnectorToolException` carrying the
+  `insufficient_scope` code and **every** scope the operation needs, for the same measured reason
+  `X-34`'s challenge does — a client asks for the union of what it is told and what it had, so
+  naming only the delta re-authorizes somebody into a narrower grant. Sharing the type keeps a scope
+  refusal, which re-authorizing fixes, distinguishable from a role refusal, which it does not.
+
+  `ToolRefusalReachTests` pins both measurements, so a future SDK that buffers the response or a
+  future revision that adopts the field turns one of them red.
+
 - **`IConnectorToolPolicy` and `WithBoltwayToolPolicy()`, so a per-tool decision reaches both places
   it has to hold.** One MCP endpoint carries every tool, so a scope required on the route is the
   intersection of what the tools need — the per-tool decision has to happen per tool, and until now
