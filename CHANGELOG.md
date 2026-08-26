@@ -16,6 +16,132 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
+## [0.3.0]
+
+### Added
+
+- **`CallerPrincipal.ScopeClaim` and `CallerPrincipal.Grants`, because an empty `Scopes` meant three
+  different things and a connector had to guess which.** A token carrying no `scope` claim, a token
+  carrying one that granted nothing, and a token carrying one `ScopeSet.TryParse` rejected all
+  produced the same empty set. The first wants a fall-back to whatever the connector uses when an
+  authorization server publishes no scopes; the other two want a refusal. `TryParse` rejects a claim
+  **whole** on one character outside RFC 6749's scope-token set, so a single stray character turned a
+  restriction into what looked like an absence — and a connector falling back on empty then granted
+  *more* than the token said, to a caller whose token was written to restrict them, with nothing
+  failing anywhere. Only this library ever knew which case produced the empty set.
+
+  `ScopeClaimState` names the three (plus `Unknown`, the default, so silence is never mistaken for
+  an answer). `Grants(scope)` returns `bool?` — and the nullable return is the feature: `bool?` does
+  not convert to `bool`, so `if (!caller.Grants("x"))` does not compile and the third case cannot be
+  folded into either of the other two. An unreadable claim answers `false`, never `null`.
+
+  `Scopes` is unchanged and still empty in all three cases, so nothing compiled against the older
+  shape behaves differently. A principal built without setting `ScopeClaim` gets `Unknown`, which
+  falls back exactly as it did before. The static-token path reports `Absent` rather than `Unknown`:
+  it *knows* there is no authorization server, and saying so is what lets a connector gate a tool on
+  a scope and still run on static tokens.
+
+- **`InsufficientScopeException`, because a per-tool refusal cannot carry a challenge and should say
+  so rather than imply otherwise.** A tool refused for want of a scope wants to name the scope that
+  would fix it in a form the caller can act on. Both channels for that are closed, and both were
+  measured rather than assumed: the tool-level field is SEP-1489, a sponsored draft absent from the
+  `2025-11-25` schema and from the draft the `2026-07-28` release candidate is cut from; and the
+  HTTP challenge cannot be reached, because Streamable HTTP refuses a client that will not accept an
+  event stream and the transport has opened that stream — status line sent — before any tool filter
+  runs.
+
+  So what ships is the honest half: a sealed `ConnectorToolException` carrying the
+  `insufficient_scope` code and **every** scope the operation needs, for the same measured reason
+  `X-34`'s challenge does — a client asks for the union of what it is told and what it had, so
+  naming only the delta re-authorizes somebody into a narrower grant. Sharing the type keeps a scope
+  refusal, which re-authorizing fixes, distinguishable from a role refusal, which it does not.
+
+  `ToolRefusalReachTests` pins both measurements, so a future SDK that buffers the response or a
+  future revision that adopts the field turns one of them red.
+
+- **`IConnectorToolPolicy` and `WithBoltwayToolPolicy()`, so a per-tool decision reaches both places
+  it has to hold.** One MCP endpoint carries every tool, so a scope required on the route is the
+  intersection of what the tools need — the per-tool decision has to happen per tool, and until now
+  a connector wiring that had to reach for the SDK's filter API itself and remember there were two
+  of them.
+
+  **Both filters, from one call, deliberately.** Filtering `tools/list` alone produces a surface
+  that looks gated and is not: a caller that already knows a tool's name still reaches it. Gating
+  `tools/call` alone leaves a model reading an advertised tool as a capability and retrying against
+  something that always refuses. Shipping them separately would let a connector wire one and believe
+  it had both.
+
+  **Two questions, at the two moments they can be asked.** `Allows(caller, tool)` runs on the listing
+  and the call, so refusing there hides a tool as well as blocking it.
+  `AllowsArguments(caller, tool, arguments)` runs on the call alone, because a listing has no
+  arguments — it refuses and cannot hide. That second one is the gate the first cannot express: an
+  identifier naming somebody else's resource is refused on the argument or it is not refused, because
+  the tool is the same tool either way. It has a default implementation returning `true`, so a policy
+  that only gates whole tools does not have to mention it, and the arguments arrive as a read-only
+  view: a policy decides, and rewriting a caller's arguments on the way past would be a behaviour
+  nothing downstream could see.
+
+  **What is not shipped is the answer.** No role table, no scope naming convention, no default
+  policy, and no argument matcher — A deployment's role vocabulary is its own, and the fallback for a scope claim is subtle
+  enough — see `ScopeClaimState` — that a shipped default would be wrong in the fail-open direction
+  for every consumer at once. `Allows(caller, tool)` is synchronous because the decision is made
+  from what the token already said and `tools/list` asks it once per tool.
+
+  A refusal names the tool and the policy type rather than answering "unknown tool", which would be
+  untrue and would send a reader looking for a registration bug. An unbound caller is reported as
+  the wiring problem it is, not as a forbidden one.
+
+- **`CallerPrincipal.ClientId`, `TokenId` and `GrantId`, so an audit trail is not assembled from
+  string lookups.** All three were already on the principal — `FromClaims` copies the whole claim
+  set — and a connector wanting to record which application made a change reached them as
+  `Claims["client_id"]`. A key typed wrong there is silently null, on the surface whose whole job is
+  saying who did what, and the static-token path had nothing to put in a dictionary key it was never
+  told about.
+
+  `TokenId` (`jti`) and `GrantId` (`gid`) are separate properties because they answer different
+  questions and are trivially confused: a fresh `jti` is minted for every access token, so grouping
+  records by it fragments them at every refresh with nothing failing, while `gid` is stable across a
+  whole refresh family and is the key "what did this session do" actually wants.
+
+  **`ClientId` is stored verbatim** — not lowercased, trimmed or canonicalised. It is a surface
+  rather than a model, and a consumer writes it into the commit trailer recording which application
+  made a change, so a value this library tidied would rewrite what that history means.
+
+  All three are nullable and none is `required`, so existing initializers keep compiling; null means
+  the authenticator did not learn one, and a connector should leave its own field unset rather than
+  synthesise something plausible — the rule `Email` already carries. `ConnectorCaller` gains
+  `Scopes` and `Grants` shorthands, so the set no longer names everything except what a tool gate
+  reads.
+
+### Fixed
+
+- **The shipped example told connectors to declare a required scope on their MCP route, which is
+  the one place it must never go.** `ResourceServerAuthenticator`'s class summary ended
+  `MapMcp("/mcp").RequireScope("docs:read")`, annotated "what makes the gate apply", and the
+  diagnostic thrown when the middleware is mis-wired said the same. It does not gate: one MCP
+  endpoint carries every tool, so a scope required there is the intersection of what the tools
+  need — which `CallerPrincipal.Scopes` has always said from the other side.
+
+  The expensive half is what it does instead. `RequireScope` also fills the `scope` parameter of
+  the `401`, and the MCP scope-selection strategy reads that before the metadata document, so
+  naming one scope there tells every client to ask for that and nothing else for the whole server.
+  A connector that copied the line advertised a second scope in both RFC 9728 documents, showed it
+  on its consent screen and enforced it in its tools, and no token its authorization server minted
+  ever carried it. Reads worked and health was green; it surfaced only when the tools began
+  enforcing, at which point every write stopped at once and re-consenting could not help.
+
+  The example is now `RequireBearer()` and carries the reason rather than only the call. Naming
+  both scopes would not have helped — `RequireScope` requires *every* scope listed, so a genuine
+  read-only grant would lose its reads — and that is now said at the call site too.
+  `RequiredScopeMetadata`'s remarks were already right about the mechanism and now say where "a
+  minimal grant" stops being the intended reading. `StructuralRuleTests` fails the build if any
+  shipped example puts the two calls back on one line.
+
+  **This library cannot check a consumer's wiring for it.** `ProtectedResource` and its
+  `ScopesSupported` are internal to `Boltway.ResourceServer`, so nothing in `Boltway.Mcp` can see
+  the advertised set. The guard that works is a host-level test in the consumer asserting that
+  every scope it advertises is named in the challenge — the property, not the line.
+
 ## [0.2.0] — 2026-08-24
 
 ### Added

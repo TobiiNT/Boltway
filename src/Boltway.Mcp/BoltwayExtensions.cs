@@ -56,6 +56,59 @@ public class ConnectorToolException : McpException
 }
 
 /// <summary>
+/// A tool refused because the token does not carry a scope it needs.
+/// </summary>
+/// <remarks>
+/// <para>
+/// A scope refusal and a role refusal are different answers and only one of them is worth acting
+/// on: re-authorizing fixes a missing scope and cannot fix a missing role. Sharing one type and
+/// one code across connectors is what lets that difference survive the trip to whoever reads it.
+/// </para>
+/// <para>
+/// <b>This does not become an authorization challenge, and that is measured rather than assumed.</b>
+/// Both channels for one are closed. The tool-level field — <c>_meta["mcp/www_authenticate"]</c> on
+/// an <c>isError</c> result — is SEP-1489, a sponsored draft, absent from the <c>2025-11-25</c>
+/// schema and from the draft the <c>2026-07-28</c> release candidate is cut from. And the HTTP
+/// challenge the resource server writes cannot be reached from here: Streamable HTTP requires the
+/// client to accept an event stream, and the transport has opened it before any tool filter runs,
+/// so the status line is already <c>200</c> and already sent. <c>ToolRefusalReachTests</c> pins
+/// both, and <c>spec/mcp-tool-challenge-2026-08-25.md</c> is the write-up.
+/// </para>
+/// <para>
+/// So what a caller gets is this sentence, and the sentence is the whole of it. That is worse than
+/// a challenge and better than a bare refusal, and saying which it is beats implying the other.
+/// </para>
+/// <para>
+/// Sealed, while <see cref="ConnectorToolException"/> is not: the base is the type a connector
+/// derives its own root from, and this one is a leaf whose <c>insufficient_scope</c> code means one
+/// thing.
+/// </para>
+/// </remarks>
+public sealed class InsufficientScopeException : ConnectorToolException
+{
+    /// <summary>Refuse, naming every scope the operation needs.</summary>
+    /// <param name="required">
+    /// <b>Every</b> scope the operation needs, not only the ones missing. The reason is the same one
+    /// <c>X-34</c> gives for the <c>403</c> challenge, measured against a vendor client: it asks for
+    /// the union of what it is told and what it already had, and does not reliably carry forward
+    /// what an earlier step-up granted — so naming only the delta re-authorizes somebody into a
+    /// narrower grant than they started with.
+    /// </param>
+    public InsufficientScopeException(params string[] required)
+        : base(Describe(required), "insufficient_scope") => Required = [.. required ?? []];
+
+    /// <summary>Every scope the refused operation needs.</summary>
+    public IReadOnlyList<string> Required { get; }
+
+    private static string Describe(string[]? required) =>
+        required is { Length: > 0 }
+            ? "The access token does not carry a scope this tool needs. Required: "
+                + string.Join(' ', required)
+                + ". Re-authorizing with those scopes is what fixes it."
+            : "The access token does not carry a scope this tool needs.";
+}
+
+/// <summary>
 /// The authenticated caller for one request, and whatever the connector bound to them.
 ///
 /// <para>
@@ -71,6 +124,14 @@ public sealed class ConnectorCaller
     /// <summary>The authenticated caller. Anonymous until the middleware resolves one.</summary>
     public CallerPrincipal Principal { get; internal set; } = Anonymous;
 
+    /// <summary>Nothing has bound a caller to this request yet.</summary>
+    /// <remarks>
+    /// Reference identity against the one shared placeholder rather than a flag, so there is no
+    /// second piece of state to keep true. Anywhere a request has reached a tool, this being true
+    /// is a wiring problem rather than an anonymous caller.
+    /// </remarks>
+    internal bool IsAnonymous => ReferenceEquals(Principal, Anonymous);
+
     /// <summary>Whatever the connector attached at authentication time — a store, a client, a tenant.</summary>
     public object? State { get; set; }
 
@@ -82,6 +143,17 @@ public sealed class ConnectorCaller
 
     /// <summary>Shorthand for <see cref="CallerPrincipal.Permissions"/>.</summary>
     public IReadOnlySet<string> Permissions => Principal.Permissions;
+
+    /// <summary>Shorthand for <see cref="CallerPrincipal.Scopes"/>.</summary>
+    /// <remarks>
+    /// Here for symmetry with the two above; <see cref="Grants"/> is what a tool gate should
+    /// actually call. An empty set is three different situations and this property cannot say
+    /// which — see <see cref="ScopeClaimState"/>.
+    /// </remarks>
+    public IReadOnlySet<string> Scopes => Principal.Scopes;
+
+    /// <summary>Shorthand for <see cref="CallerPrincipal.Grants"/>.</summary>
+    public bool? Grants(string scope) => Principal.Grants(scope);
 
     /// <summary>The bound state, or a message naming where it should have been bound.</summary>
     /// <typeparam name="T">What the connector attached at authentication time.</typeparam>

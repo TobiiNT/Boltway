@@ -544,6 +544,26 @@ just its material:
    token it signed has expired; `retired` is not an accepted state, because carrying a dead key
    in the secret invites promoting it back.
 
+**Nothing does any of this for you, and that is the part worth knowing before the day it matters.**
+There is no rotation scheduler in this image. `SigningKeyRing` models the states and
+`DurableSigningKeys` reads them out of the secret; advancing a key through them is the three edits
+above, made by a person. So a `kid` named for a month is a name and not a schedule, and a ring
+holding one key is a ring with no successor pending — which is what JWKS showing exactly one entry
+means, since `Pending` keys are published too.
+
+Two consequences. The first is that a key stays active until somebody moves it, however its `kid`
+reads. The second is the expensive one: **the failure mode is not rotation day, it is a rotation
+that skips step 2.** Adding a key straight to `"state":"active"` is the case
+[`docs/CAPABILITIES.md`](../../docs/CAPABILITIES.md) records as having no cover —
+`ProtectedResourceOptions.SigningKeySource` is synchronous and on the request path, so
+`JwksKeySource` cannot react to a token naming a `kid` it has not seen. It serves the stale snapshot
+instead, and every token signed by the new key is rejected as a bad signature until each resource
+server's own `CacheLifetime` elapses. Nothing warns, on either side.
+
+Checking is cheap and worth doing before you need it: `GET /.well-known/jwks.json` during step 1
+should show **two** keys. If it shows one, the pending key is not published, and step 3 will be the
+outage this sequence exists to prevent.
+
 These two sections moved here from the root README. They are what an operator does, and an
 operator is reading this file.
 

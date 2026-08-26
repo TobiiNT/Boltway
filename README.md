@@ -29,7 +29,7 @@ On with no flag, in the configuration the quickstart builds.
 | **Clients** | CIMD — connect by URL, no registration step |
 | **Pages** | Sign-in, consent and error, satisfying N-14 |
 | **Accounts** | Argon2id locally, or any OIDC provider upstream |
-| **MCP half** | Bearer gate, RFC 9728 metadata, per-endpoint scope |
+| **MCP half** | Bearer gate, RFC 9728 metadata, per-tool policy on `tools/list` and `tools/call` |
 | **Rotation** | Publish-ahead key ring; the RS follows `jwks_uri` |
 | **Deployables** | Two images, plus a compose file and PostgreSQL |
 | **Storage** | PostgreSQL or SQLite, one shared contract suite |
