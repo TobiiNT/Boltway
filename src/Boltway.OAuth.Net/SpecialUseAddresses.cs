@@ -46,6 +46,88 @@ public static class SpecialUseAddresses
         };
     }
 
+    /// <summary>
+    /// Whether this address is one no legitimate answer for a public name could be.
+    /// </summary>
+    /// <param name="address">The address a host name resolved to.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="address" /> is null.</exception>
+    /// <remarks>
+    /// <para>
+    /// Link-local: <c>169.254.0.0/16</c>, <c>fe80::/10</c>, and the encoded forms of the first. It
+    /// is where <c>169.254.169.254</c> lives, and it is the one part of the blocklist with no
+    /// innocent explanation — a name in public DNS resolving into it is not a filtered resolver,
+    /// not split-horizon DNS, and not a host somebody has not configured yet.
+    /// </para>
+    /// <para>
+    /// <strong>This does not decide whether to connect.</strong> <see cref="IsBlocked" /> decides
+    /// that and refuses every special-use address either way. What this decides is what the server
+    /// is entitled to <em>say</em> about the answer, and whether the event is worth keeping a client
+    /// broken over — because everything else in the blocklist is ambiguous and this is not.
+    /// </para>
+    /// <para>
+    /// The rest of the list looks the same from here whatever produced it. <c>0.0.0.0</c> and
+    /// <c>127.0.0.1</c> are what a DNS blocklist answers with, what an unconfigured host answers
+    /// with, <em>and</em> live targets — measured on 2026-08-26, Linux 6.18: connecting to
+    /// <c>0.0.0.0</c> reaches a service bound to <c>127.0.0.1</c>, so a sinkhole answer is not a
+    /// harmless one. The RFC 1918 ranges are what split-horizon DNS answers with for a name a
+    /// company hosts internally, which is ordinary. None of those can be told apart from an attack
+    /// by looking at one lookup, and this method does not pretend otherwise.
+    /// </para>
+    /// </remarks>
+    public static bool IsLinkLocal(IPAddress address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+
+        if (address.IsIPv4MappedToIPv6)
+        {
+            address = address.MapToIPv4();
+        }
+
+        if (address.AddressFamily == AddressFamily.InterNetwork)
+        {
+            Span<byte> v4 = stackalloc byte[4];
+            return address.TryWriteBytes(v4, out _) && v4[0] is 169 && v4[1] is 254;
+        }
+
+        if (address.AddressFamily != AddressFamily.InterNetworkV6)
+        {
+            return false;
+        }
+
+        Span<byte> b = stackalloc byte[16];
+        if (!address.TryWriteBytes(b, out _))
+        {
+            return false;
+        }
+
+        // fe80::/10.
+        if (b[0] is 0xfe && (b[1] & 0xc0) is 0x80)
+        {
+            return true;
+        }
+
+        // 2002::/16 6to4 carries an IPv4 destination in bytes 2..5, and ::a.b.c.d - the deprecated
+        // IPv4-compatible form of RFC 4291 §2.5.5.1 - carries one in the last four. Both are how
+        // 169.254.169.254 is written when somebody does not want it recognised, which is the same
+        // reason IsBlocked unwraps ::ffff: before any range test.
+        if (b[0] is 0x20 && b[1] is 0x02)
+        {
+            return b[2] is 169 && b[3] is 254;
+        }
+
+        var compatible = true;
+        for (var i = 0; i < 12; i++)
+        {
+            if (b[i] is not 0)
+            {
+                compatible = false;
+                break;
+            }
+        }
+
+        return compatible && b[12] is 169 && b[13] is 254;
+    }
+
     private static bool IsBlockedV4(IPAddress address)
     {
         Span<byte> b = stackalloc byte[4];

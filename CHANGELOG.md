@@ -20,6 +20,25 @@ Three conventions, because a changelog nobody can rely on is worse than none:
 
 ### Added
 
+- **`BlockReason.LinkLocalAddress`, splitting the one address answer that has a single reading away
+  from the ones that do not.** A CIMD fetch that resolved into `169.254.0.0/16` or `fe80::/10` and
+  one that resolved to `0.0.0.0` were the same `BlockReason.SpecialUseAddress`, and the code around
+  it said what that meant: "someone pointed the server at a private address", "a rebinding signal".
+  That is an inference from a single lookup. A resolver that filters the name, split-horizon DNS for
+  a name a company hosts internally, and an attack are the same observation from outside — so an
+  operator on a filtered network was sent hunting an attacker who was not there. Link-local is the
+  exception and now says so on its own: nothing benign resolves a public name into it, which is why
+  it is the address the SSRF blocklist exists for.
+
+  `SpecialUseAddresses.IsLinkLocal` is the classifier, and it decodes the forms the address is
+  written in when somebody does not want it recognised — `::ffff:`, 6to4 `2002:a9fe:a9fe::`, and the
+  deprecated IPv4-compatible `::169.254.169.254`. `SpecialUseAddresses.IsBlocked` is unchanged and
+  still refuses every special-use address: **what a fetch connects to has not changed at all.** What
+  changed is what this server claims about the answer.
+
+  Do not read `0.0.0.0` as a harmless sinkhole on the strength of this entry. Measured 2026-08-26 on
+  Linux 6.18: connecting to it reaches a service bound to `127.0.0.1`.
+
 - **`CallerPrincipal.ScopeClaim` and `CallerPrincipal.Grants`, because an empty `Scopes` meant three
   different things and a connector had to guess which.** A token carrying no `scope` claim, a token
   carrying one that granted nothing, and a token carrying one `ScopeSet.TryParse` rejected all
@@ -112,6 +131,23 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   synthesise something plausible — the rule `Email` already carries. `ConnectorCaller` gains
   `Scopes` and `Grants` shorthands, so the set no longer names everything except what a tool gate
   reads.
+
+### Changed
+
+- **A CIMD client whose host has started resolving to a special-use address now keeps its cached
+  document, instead of being signed out.** Stale-serve covered a timeout, a transport failure and an
+  `NXDOMAIN`, and refused to cover a special-use address, on the reasoning that the latter is a
+  rebinding signal that must not be papered over. Two things were wrong with that. It is not
+  determinable — see the entry above — and it bought nothing: serving from the cache connects to
+  nothing, because the address check has already refused, so refusing the cache as well refused no
+  further connection. The visible effect was that one spelling of a DNS block (`NXDOMAIN`) kept a
+  client working and another (`0.0.0.0`) signed it out.
+
+  A link-local answer still refuses the cache, and there the original reasoning holds.
+
+  If your deployment relied on a client dropping out when its name began resolving privately,
+  `BlockReason.LinkLocalAddress` is the case that still does, and the fetch outcome is logged either
+  way.
 
 ### Fixed
 

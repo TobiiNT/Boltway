@@ -55,7 +55,12 @@ public sealed class SsrfTests
         var outcome = await FetchAsync("https://evil.example/c.json", IPAddress.Parse(address));
 
         var blocked = Assert.IsType<FetchOutcome.Blocked>(outcome);
-        Assert.Equal(BlockReason.SpecialUseAddress, blocked.Reason);
+
+        // Either address reason. Which one is the subject of the theory below, and what the two have
+        // in common - that nothing connects - is what this one is about.
+        Assert.Contains(
+            blocked.Reason,
+            new[] { BlockReason.SpecialUseAddress, BlockReason.LinkLocalAddress });
     }
 
     [Theory]
@@ -86,7 +91,62 @@ public sealed class SsrfTests
         var outcome = await FetchAsync("https://evil.example/c.json", IPAddress.Parse(address));
 
         var blocked = Assert.IsType<FetchOutcome.Blocked>(outcome);
-        Assert.Equal(BlockReason.SpecialUseAddress, blocked.Reason);
+
+        Assert.Contains(
+            blocked.Reason,
+            new[] { BlockReason.SpecialUseAddress, BlockReason.LinkLocalAddress });
+    }
+
+    [Theory]
+    // Link-local, and the encodings of it. A public name resolving here has no innocent reading -
+    // not a filtered resolver, not split-horizon DNS, not a host nobody has configured yet - so it
+    // is the one address answer this server will say what it means about.
+    [InlineData("169.254.169.254", BlockReason.LinkLocalAddress)]
+    [InlineData("169.254.0.1", BlockReason.LinkLocalAddress)]
+    [InlineData("::ffff:169.254.169.254", BlockReason.LinkLocalAddress)]
+    [InlineData("2002:a9fe:a9fe::", BlockReason.LinkLocalAddress)]   // 6to4-encoded
+    [InlineData("::169.254.169.254", BlockReason.LinkLocalAddress)]  // RFC 4291 2.5.5.1
+    [InlineData("fe80::1", BlockReason.LinkLocalAddress)]
+    // Everything else. Each of these is equally what a DNS blocklist answers with, what an
+    // unconfigured host answers with, and what an attack looks like - and 0.0.0.0 is not a sinkhole
+    // either: measured 2026-08-26 on Linux 6.18, connecting to it reaches a service bound to
+    // 127.0.0.1. The refusal is the same; the claim made about it is not.
+    [InlineData("0.0.0.0", BlockReason.SpecialUseAddress)]
+    [InlineData("127.0.0.1", BlockReason.SpecialUseAddress)]
+    [InlineData("10.0.0.5", BlockReason.SpecialUseAddress)]
+    [InlineData("192.168.1.1", BlockReason.SpecialUseAddress)]
+    [InlineData("100.64.0.1", BlockReason.SpecialUseAddress)]
+    [InlineData("::1", BlockReason.SpecialUseAddress)]
+    [InlineData("fc00::1", BlockReason.SpecialUseAddress)]
+    public async Task Only_link_local_is_named_as_having_no_innocent_reading(
+        string address, BlockReason expected)
+    {
+        var outcome = await FetchAsync("https://evil.example/c.json", IPAddress.Parse(address));
+
+        var blocked = Assert.IsType<FetchOutcome.Blocked>(outcome);
+        Assert.Equal(expected, blocked.Reason);
+    }
+
+    [Fact]
+    public async Task An_ambiguous_address_says_what_it_is_consistent_with_rather_than_what_it_means()
+    {
+        // The sentence used to assert an attack: a special-use address "means someone pointed the
+        // server at a private address". An operator on a network that filters the name would then
+        // be hunting an attacker who is not there.
+        var outcome = await FetchAsync("https://client.example/c.json", IPAddress.Parse("0.0.0.0"));
+
+        var blocked = Assert.IsType<FetchOutcome.Blocked>(outcome);
+
+        Assert.Contains("filtered resolver", blocked.Detail, StringComparison.Ordinal);
+        Assert.Contains("attacker", blocked.Detail, StringComparison.Ordinal);
+
+        // The control: the one case that does have a single reading says so, and does not hedge.
+        var metadata = await FetchAsync("https://client.example/c.json", IPAddress.Parse("169.254.169.254"));
+
+        var named = Assert.IsType<FetchOutcome.Blocked>(metadata);
+
+        Assert.Contains("metadata", named.Detail, StringComparison.Ordinal);
+        Assert.DoesNotContain("filtered resolver", named.Detail, StringComparison.Ordinal);
     }
 
     [Fact]

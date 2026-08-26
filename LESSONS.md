@@ -41,11 +41,29 @@ the pattern is worth more than any of them.
 | 10 | `classify` prose | extension filter tested the whole URL | a **stylesheet** containing "oauth" | an operator scored `connector?` off `batch.css` |
 | 11 | `classify` docs | required the landing page to look like docs | GitBook renders client-side | regressed a correct answer |
 | 12 | prospect list | 4 rows added by hand, unmarked | indistinguishable from measured | 3 of 7 Tier A rows |
+| 13 | this repository | what makes a name resolve to a special-use address | "someone pointed the server at a private address"; "a rebinding signal" | every CIMD client on a network that filters its host — signed out, while the same block spelled `NXDOMAIN` kept them working |
 
 Plus two that are the same shape one layer down, and were already known before
 this: **soft 404s** (one operator answers 200 with its 510 KB homepage for any
 path) and **wildcard DNS** (one apex made all 7 candidate doc hosts appear to
 exist).
+
+Row 13 is the first one in this repository's own code rather than in the survey
+that produced the rest, and it is worth saying what it took to find: not a
+failing test — the tests pinned the wrong behaviour and stayed green — but
+somebody asking what a deployment would see if it were hosted where a fetch to
+one client's host is blocked. The answer was a sentence naming an attacker.
+A filtered resolver, split-horizon DNS for a name a company hosts internally,
+and an actual attack are one observation from outside; picking the third and
+writing it into a doc comment made the other two invisible. It also cost more
+than the wording: the inference was load-bearing, and refusing to serve the
+cache on the strength of it broke clients while refusing no further connection,
+because the address check had already refused one.
+
+Link-local is the exception and it is worth keeping straight, because "every
+axis needs a third value" is not the same as "nothing can be concluded":
+nothing benign resolves a public name into `169.254.0.0/16`. One reading is
+sometimes all there is, and the rule is to say which case you are in.
 
 ---
 

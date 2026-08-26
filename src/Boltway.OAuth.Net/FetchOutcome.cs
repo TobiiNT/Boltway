@@ -71,8 +71,31 @@ public enum BlockReason
     /// <summary>The host did not resolve.</summary>
     DnsFailed,
 
-    /// <summary>Every resolved address is special-use. RFC 6890.</summary>
+    /// <summary>An address is special-use. RFC 6890.</summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>What produced it cannot be told from here.</strong> A name in public DNS resolving
+    /// to <c>0.0.0.0</c> or <c>127.0.0.1</c> is what a DNS blocklist answers with, what a host
+    /// nobody has configured yet answers with, and what an attacker aiming a fetch at this machine
+    /// arranges — the three are the same observation. RFC 1918 is ordinary split-horizon DNS for a
+    /// name a company hosts internally. The fetch is refused for all of them, and the refusal says
+    /// what was seen rather than what it means.
+    /// </para>
+    /// <para>
+    /// Do not read <c>0.0.0.0</c> as a harmless sinkhole. Measured on 2026-08-26, Linux 6.18:
+    /// connecting to it reaches a service bound to <c>127.0.0.1</c>.
+    /// </para>
+    /// </remarks>
     SpecialUseAddress,
+
+    /// <summary>An address is link-local, which is where the cloud metadata endpoint lives.</summary>
+    /// <remarks>
+    /// Split from <see cref="SpecialUseAddress" /> because it is the one part of the blocklist with
+    /// no innocent reading: <c>169.254.0.0/16</c> and <c>fe80::/10</c> are not what a filtered
+    /// resolver answers with, not split-horizon DNS, and not an unconfigured host. It is the case
+    /// the SSRF blocklist exists for, and the only one this server will say so about.
+    /// </remarks>
+    LinkLocalAddress,
 }
 
 /// <summary>A request to fetch an attacker-supplied URL.</summary>
@@ -103,9 +126,15 @@ public sealed record SafeFetchRequest(
 /// <remarks>
 /// Separate cases rather than an exception and a status, because the caller genuinely does
 /// different things: a <see cref="Redirected"/> CIMD document is a specification violation to
-/// report, a <see cref="Timeout"/> is a case for serving a stale cache entry, and
-/// <see cref="Blocked"/> is worth an alert because it means someone pointed the server at a private
-/// address.
+/// report, a <see cref="Timeout"/> is a case for serving a stale cache entry, and a
+/// <see cref="Blocked"/> carrying <see cref="BlockReason.LinkLocalAddress"/> is worth an alert
+/// because nothing benign resolves a public name into link-local space.
+///
+/// This paragraph used to say that of <see cref="Blocked"/> as a whole — "it means someone pointed
+/// the server at a private address" — which is an inference from one lookup stated as a fact about
+/// somebody else's network. A filtered resolver, split-horizon DNS and an attack are the same
+/// observation from here. <c>LESSONS.md</c> is twelve instances of that mistake and this was the
+/// thirteenth.
 /// </remarks>
 public abstract record FetchOutcome
 {

@@ -159,9 +159,20 @@ internal sealed class GuardedTransport : IDisposable
             {
                 if (!_allowPrivateAddresses && SpecialUseAddresses.IsBlocked(address))
                 {
-                    return new FetchOutcome.Blocked(
-                        BlockReason.SpecialUseAddress,
-                        $"'{url.Host}' resolves to {address}, which is a special-use address (RFC 6890).");
+                    // The same refusal either way - what differs is what the server is entitled to
+                    // say about it, and whether it is worth keeping a client broken over.
+                    return SpecialUseAddresses.IsLinkLocal(address)
+                        ? new FetchOutcome.Blocked(
+                            BlockReason.LinkLocalAddress,
+                            $"'{url.Host}' resolves to {address}, which is link-local (RFC 3927) - "
+                                + "where the cloud instance-metadata endpoint lives. No public name "
+                                + "resolves there legitimately.")
+                        : new FetchOutcome.Blocked(
+                            BlockReason.SpecialUseAddress,
+                            $"'{url.Host}' resolves to {address}, which is a special-use address "
+                                + "(RFC 6890). That is equally what a filtered resolver, a host "
+                                + "nobody has configured yet, and an attacker aiming a fetch at "
+                                + "this machine look like from here.");
                 }
             }
 

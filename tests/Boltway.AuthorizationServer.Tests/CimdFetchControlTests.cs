@@ -514,17 +514,32 @@ public sealed class CimdFetchControlTests
     /// Stale-serve covers an origin that could not answer, and nothing else.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The line is whether the origin made a statement. A 404 says the document is not published; a
-    /// redirect says it moved; a document that fails validation is what the client publishes now;
-    /// and a special-use address means the name resolves somewhere private, which is a rebinding
-    /// signal that must not be papered over. Serving the previous document over any of those is this
-    /// server overruling the client about its own registration.
+    /// redirect says it moved; a document that fails validation is what the client publishes now.
+    /// Serving the previous document over any of those is this server overruling the client about
+    /// its own registration.
+    /// </para>
+    /// <para>
+    /// A link-local answer is here for a different reason: the origin did not make a statement, but
+    /// nothing benign resolves a public name into <c>169.254.0.0/16</c>, so it is the one address
+    /// answer worth keeping a client broken over rather than papering over with a cache entry.
+    /// </para>
+    /// <para>
+    /// <strong>This row used to be every special-use address, and that was wrong.</strong> It said
+    /// one "means the name resolves somewhere private, which is a rebinding signal" - an inference
+    /// from a single lookup, where a filtered resolver, split-horizon DNS and an attack are the same
+    /// observation. The row was also spelled with <c>169.254.169.254</c> under
+    /// <c>SpecialUseAddress</c>, so it only ever exercised the case that survives. What it cost was
+    /// the rest: a client whose name a resolver had begun filtering lost its cached document, while
+    /// the same block delivered as <c>NXDOMAIN</c> kept serving one theory below.
+    /// </para>
     /// </remarks>
     [Theory]
     [InlineData("404")]
     [InlineData("redirect")]
     [InlineData("too-large")]
-    [InlineData("special-use")]
+    [InlineData("link-local")]
     [InlineData("malformed")]
     public async Task Stale_serve_does_not_cover_an_origin_that_answered(string kind)
     {
@@ -542,8 +557,9 @@ public sealed class CimdFetchControlTests
             "404" => new FetchOutcome.NotOk(404),
             "redirect" => new FetchOutcome.Redirected(302, "https://elsewhere.example/c"),
             "too-large" => new FetchOutcome.TooLarge(5 * 1024),
-            "special-use" => new FetchOutcome.Blocked(
-                BlockReason.SpecialUseAddress, "'claude.ai' resolves to 169.254.169.254, which is a special-use address (RFC 6890)."),
+            "link-local" => new FetchOutcome.Blocked(
+                BlockReason.LinkLocalAddress,
+                "'client.example' resolves to 169.254.169.254, which is link-local (RFC 3927)."),
             _ => Malformed(),
         });
 
@@ -559,13 +575,21 @@ public sealed class CimdFetchControlTests
         }
     }
 
-    /// <summary>The controls for the theory above: the four failures stale-serve does cover.</summary>
+    /// <summary>The controls for the theory above: the failures stale-serve does cover.</summary>
+    /// <remarks>
+    /// <c>special-use</c> is here rather than in the theory above because serving the cache connects
+    /// to nothing - the address check has already refused - so refusing the cache as well refuses no
+    /// further connection, and the only thing it achieved was signing out every client of a name
+    /// somebody's resolver had begun filtering. <c>dns</c> is the same block spelled
+    /// <c>NXDOMAIN</c>, and it was already on this side.
+    /// </remarks>
     [Theory]
     [InlineData("503")]
     [InlineData("429")]
     [InlineData("timeout")]
     [InlineData("transport")]
     [InlineData("dns")]
+    [InlineData("special-use")]
     public async Task Stale_serve_covers_an_origin_that_could_not_answer(string kind)
     {
         var clock = new MovableClock(Start);
@@ -583,6 +607,9 @@ public sealed class CimdFetchControlTests
             "429" => new FetchOutcome.NotOk(429),
             "timeout" => new FetchOutcome.Timeout(TimeSpan.FromSeconds(5)),
             "dns" => new FetchOutcome.Blocked(BlockReason.DnsFailed, "'claude.ai' did not resolve."),
+            "special-use" => new FetchOutcome.Blocked(
+                BlockReason.SpecialUseAddress,
+                "'client.example' resolves to 0.0.0.0, which is a special-use address (RFC 6890)."),
             _ => new FetchOutcome.TransportFailed("connection reset"),
         });
 

@@ -68,9 +68,13 @@ one per restart, and `ConfigurationDoctor` distinguishes `NotMeasured` from `Pas
 
 ## Every claim about somebody else's system carries its confidence
 
-`LESSONS.md` is twelve instances of recording *"we did not measure this"* as *"this is not there"*,
-and every one invented a defect in a stranger's system. It is cited by name from a dozen files
-under `src/`, and it is the shortest useful thing to read before a first change.
+`LESSONS.md` is thirteen instances of recording something unmeasured as something known, and every
+one invented a fact about a stranger's system. Twelve are *"we did not measure this"* written down as
+*"this is not there"*. The thirteenth is this repository's own code, and it is the other direction:
+one observation with several explanations, written down as the alarming one — a host resolving to a
+special-use address recorded as *"a rebinding signal"*, which broke every client on a network that
+filters its host. The file is cited by name from a dozen files under `src/`, and it is the shortest
+useful thing to read before a first change.
 
 What comes out of it, in code and in prose:
 
