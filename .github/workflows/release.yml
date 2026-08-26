@@ -199,6 +199,16 @@ jobs:
       packages: write
       id-token: write
 
+      # For the provenance attestation `publish-packages.yml` mints over what it pushed. Omitting it
+      # is not a missing attestation, it is a run that never starts: a called workflow asking for a
+      # scope its caller did not grant fails the whole dispatch before any job is scheduled, so the
+      # symptom is `startup_failure` with zero jobs and no annotation naming the scope.
+      #
+      # That is the second time this exact gap has cost a release - the paragraph above records the
+      # first, with `id-token`. A comment did not prevent the second, so there is now a test:
+      # ReusableWorkflowRuleTests.A_called_workflow_never_asks_for_more_than_its_caller_grants.
+      attestations: write
+
     uses: ./.github/workflows/publish-packages.yml
     with:
       ref: ${{ needs.tag.outputs.sha }}
