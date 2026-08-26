@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The resource-server pipeline contract, as something a deployment can reference.
+
+    WHY THIS EXISTS, AND IT IS A MEASUREMENT RATHER THAN A HUNCH. On 2026-08-26 the first consumer
+    outside this repository wired a resource server, ran a suite of 402 tests green, and then found
+    by hand - with curl, against a running process - that the RFC 9728 document answered 401 at the
+    exact URL that server's own challenges pointed clients at. Two more of the same shape came with
+    it. Not one was reachable from a unit test, because not one of them is about a unit: they are
+    about what a wired pipeline answers, and every one of them presents to a client as "OAuth is
+    broken" rather than as "an endpoint is behind the wrong middleware".
+
+    So the contract takes an HttpClient over a running pipeline and asks the questions a client
+    asks. A deployment derives it, supplies its own wired app, and finds out before its users do.
+
+    The contract deliberately spells the well-known suffix itself rather than reading this
+    library's constant. A conformance check that shares a constant with the code under test agrees
+    with that constant's bugs; a client builds the URL from RFC 9728 and so does this.
+
+    No test runner here, on purpose - the same rule as Boltway.Interaction.Testing. This assembly is
+    never executed by itself; whichever project derives from it supplies the runner, and adding one
+    would put a second copy in their build.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <Description>
+      The resource-server pipeline contract, as an xunit base class. Supply an HttpClient over your
+      wired application and the suite checks what a client actually meets: both RFC 9728 well-known
+      forms answering without a credential, the challenge naming a metadata URL that is really
+      there, and a bad token producing a 401 rather than a 403 or a 500.
+    </Description>
+
+    <!--
+      CA1707 off for the same reason as the interaction contracts: a contract method's name is what
+      a consumer reads in their own runner when it fails, so
+      `The_metadata_url_named_in_the_challenge_is_reachable` is the finding. CS1591 stays on,
+      because this is an API surface a consumer derives from.
+    -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+
+    <!--
+      OFF UNTIL THIS ID HAS SHIPPED ONCE, AND THIS LINE COMES OUT IN THE RELEASE AFTER 0.4.0.
+
+      Package validation diffs a pack against PackageValidationBaselineVersion, which is the release
+      before this one. There is no such release of this id, so the restore fails with NU1101 - the
+      gate asking for a baseline that cannot exist. Every other packable project here keeps it on.
+
+      The condition for removing it is exactly one publish: once 0.4.0 is on the feed, delete these
+      lines and the family default applies, and from then on a removed or re-signatured member of
+      this contract fails the pack like everywhere else. Leaving it here longer means the one
+      assembly a consumer derives from is the one assembly nothing watches for breaks.
+    -->
+    <EnablePackageValidation>false</EnablePackageValidation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The assertion library only. Never the runner, never the collector. -->
+    <PackageReference Include="xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    NO PROJECT REFERENCE, and that is the design rather than an omission.
+
+    Everything below is asked over HTTP with BCL types, so the contract compiles against nothing of
+    this product's. A deployment can therefore run it against a resource server built on something
+    else entirely - which is the honest test of whether these assertions are about RFC 9728 or about
+    Boltway. They are about RFC 9728.
+  -->
+
+</Project>

@@ -43,6 +43,11 @@ document promises and nothing routes. This table cannot drift without the build 
 ```bash
 dotnet add package Boltway.AuthorizationServer   # the server you host
 dotnet add package Boltway.Mcp                   # what your MCP server references
+
+# In your test project. Eight assertions against your own wired pipeline, asking
+# what a client asks — every one of them failed on a real deployment whose unit
+# suite was green.
+dotnet add package Boltway.ResourceServer.Testing
 ```
 
 Watch a whole flow first — 15 steps, `401` through refresh:
@@ -129,6 +134,14 @@ was a network fetch outside the guarded HTTP client, there since the code was wr
 `Boltway.ResourceServer` does not reference `Boltway.AuthorizationServer`, and the absence is the
 design.
 
+**A wired pipeline is not a unit, and the defects that live there are the expensive ones.** Derive
+`ProtectedResourceContract` from `Boltway.ResourceServer.Testing` against your own application and
+it asks what a client asks: both RFC 9728 well-known forms answering without a credential, the
+challenge naming a `resource_metadata` URL that is really reachable, a bad token producing a `401`
+rather than a `403`. The first consumer outside this repository found three of those broken by hand,
+with curl, after 402 unit tests passed — the usual cause being a host whose own authentication
+middleware has never heard of the framework's anonymous marker.
+
 ## Where to read next
 
 | | |
@@ -138,7 +151,7 @@ design.
 | [Roadmap](https://github.com/TobiiNT/Boltway/blob/main/ROADMAP.md) | The gaps, measured against Keycloak |
 | [Contributing](https://github.com/TobiiNT/Boltway/blob/main/CONTRIBUTING.md) | House rules, and how a release is cut |
 | [Governance](https://github.com/TobiiNT/Boltway/blob/main/GOVERNANCE.md) | One maintainer, a bus factor of 1 stated as a number, and what constrains them |
-| [Lessons](https://github.com/TobiiNT/Boltway/blob/main/LESSONS.md) | Twelve times we recorded a guess as a fact |
+| [Lessons](https://github.com/TobiiNT/Boltway/blob/main/LESSONS.md) | Thirteen times we recorded a guess as a fact |
 | [Design](https://github.com/TobiiNT/Boltway/blob/main/docs/DESIGN.md) · [Requirements](https://github.com/TobiiNT/Boltway/blob/main/spec/REQUIREMENTS.md) | The decisions, and the ids cited from the code |
 | [All documents](https://github.com/TobiiNT/Boltway/blob/main/docs/README.md) | Indexed, each marked current or dated |
 

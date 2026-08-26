@@ -53,6 +53,27 @@
   <ItemGroup>
     <ProjectReference Include="..\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
     <ProjectReference Include="..\Boltway.OAuth.Tokens\Boltway.OAuth.Tokens.csproj" />
+
+    <!--
+      For JwksSigningKeysExtensions, which points this package's SigningKeySource at an issuer's
+      published key set. It moved here from Boltway.Mcp in 0.4.0 for a reason written on the class:
+      it is resource-server wiring with nothing MCP about it, and filing it next door meant the one
+      consumer who needed it wrote it again by hand instead.
+
+      THIS EDGE ADDS NO PACKAGE A RESOURCE SERVER DID NOT ALREADY HAVE. Boltway.OAuth.Net's own
+      dependencies are Boltway.OAuth.Primitives and Microsoft.IdentityModel.Tokens, both of which
+      are already above. What it adds is the guarded HTTP transport - as an assembly, not as a
+      running client: nothing is registered, no socket is opened and no URL is read until a
+      deployment calls AddJwksSigningKeys. A resource server that fills SigningKeys by hand is
+      exactly as it was.
+
+      That is the same question OAuth.Net's own csproj answers about Boltway.OAuth.Tokens and
+      answers the other way, and the difference is who compiles against what. Tokens is the one
+      assembly BOTH halves of the product use, so a transport there would reach every authorization
+      server too. This package is compiled against by resource servers alone, and fetching a JWKS is
+      what most of them do.
+    -->
+    <ProjectReference Include="..\Boltway.OAuth.Net\Boltway.OAuth.Net.csproj" />
   </ItemGroup>
 
   <ItemGroup>

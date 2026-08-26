@@ -27,6 +27,7 @@
   </Folder>
   <Folder Name="/testing/">
     <Project Path="testing/Boltway.Interaction.Testing/Boltway.Interaction.Testing.csproj" />
+    <Project Path="testing/Boltway.ResourceServer.Testing/Boltway.ResourceServer.Testing.csproj" />
     <Project Path="testing/Boltway.Storage.Testing/Boltway.Storage.Testing.csproj" />
   </Folder>
   <Folder Name="/tests/">

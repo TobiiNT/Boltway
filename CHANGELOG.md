@@ -16,6 +16,64 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
+## [0.4.0]
+
+### Added
+
+- **`Boltway.ResourceServer.Testing`, a new package: the resource-server pipeline contract, as an
+  xunit base class a deployment derives.** Supply an `HttpClient` over your wired application, the
+  resource identifier you configured and one path that needs a credential, and eight assertions ask
+  what a client asks — both RFC 9728 well-known forms answering without a credential, the document's
+  `resource` matching your configured identifier byte for byte, the challenge naming a
+  `resource_metadata` URL that is really reachable, and a bad token producing a `401` rather than a
+  `403` or a `500`.
+
+  **Every one of those failed on a real deployment whose unit suite was green.** Measured
+  2026-08-26 on the first consumer outside this repository: 402 tests passing, and the RFC 9728
+  document answering `401` at the exact URL that server's own challenges pointed clients at. The
+  cause is that a host running authentication of its own has a second vocabulary for "no credential
+  needed" and neither middleware reads the other's — the library marks its metadata endpoints
+  `AllowAnonymous`, and a host middleware keyed on its own marker refuses them. None of it is
+  reachable from a unit test, because none of it is about a unit.
+
+  The contract compiles against no Boltway assembly and spells RFC 9728's well-known suffix itself
+  rather than importing this library's constant: a conformance check that shares a constant with the
+  code under test agrees with that constant's bugs.
+
+### Changed
+
+- **`AddJwksSigningKeys` moved from `Boltway.Mcp` to `Boltway.ResourceServer`. The old call still
+  works and is marked obsolete.** Nothing about it was ever MCP-shaped — it wires a `JwksKeySource`
+  into `ProtectedResourceOptions` and touches no MCP type. Filing it next door had a measured cost:
+  the first consumer outside this repository went looking for "how do I point verification keys at
+  an issuer" in the resource-server package, did not find it, and wrote the class again by hand,
+  down to the same sentence about a 401 that re-authenticating cannot fix.
+
+  `Boltway.ResourceServer` gains a project reference to `Boltway.OAuth.Net` for it, which **adds no
+  package a resource server did not already have** — that project's own dependencies are
+  `Boltway.OAuth.Primitives` and `Microsoft.IdentityModel.Tokens`, both already present. It adds the
+  guarded HTTP transport as an assembly, not as a running client: nothing is registered and no
+  socket is opened until a deployment calls `AddJwksSigningKeys`.
+
+  Nothing to do on upgrade. The forwarder in `Boltway.Mcp` calls the new one and will be removed at
+  1.0.
+
+- **`MapProtectedResourceMetadata` now says in its remarks that `AllowAnonymous` is only this
+  pipeline's word for "no credential needed".** A host with its own authentication middleware has to
+  mark these endpoints in its own vocabulary too, and the cheapest way is a route group carrying
+  both markers — which covers whatever this package maps there, including anything a later version
+  adds, and covers nothing else.
+
+### Operations
+
+- **`.github/workflows/vendor-cimd.yml` asks the two vendors twice a week whether the client
+  documents `spec/REQUIREMENTS.md` section 6 describes still say what they said.** Nineteen `C-*`
+  rows are measurements of somebody else's system, including their defects, and a defect is the kind
+  of thing its owner fixes; the two captures in `spec/` are fourteen days apart and the newer one
+  exists because something moved, found by hand. A change opens or updates one tracking issue; an
+  unreachable vendor is retried and files nothing, because not being able to ask is not evidence
+  that nothing changed. The sibling of `pinned-drafts.yml`, down to the exit-code contract.
+
 ## [0.3.0] — 2026-08-26
 
 ### Added

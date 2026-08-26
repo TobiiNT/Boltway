@@ -1,4 +1,4 @@
-# One mistake, twelve times
+# One mistake, thirteen times
 
 > **Where this comes from.** The ledger below was written against a different
 > program: a read-only sweep that inspected what other operators published about

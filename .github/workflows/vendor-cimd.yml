@@ -1,0 +1,175 @@
+# Ask two vendors, twice a week, whether the client documents `spec/REQUIREMENTS.md` section 6
+# describes still say what they said.
+#
+# `pinned-drafts.yml` next door watches the IETF for the same reason and this is its sibling, down
+# to the exit-code contract and the tracking issue. What differs is the input's speed. A working
+# group publishes a revision every few months; a vendor ships when it likes. The two captures in
+# `spec/` are fourteen days apart and the newer one exists *because* something moved — ChatGPT's
+# documents grew RFC 7591's singular `token_endpoint_auth_method` beside RFC 8414's plural — found
+# by hand, at whatever moment somebody happened to look.
+#
+# **What is at stake is the most perishable thing this repository owns.** Nineteen `C-*` rows
+# describe how two MCP clients actually behave, including their defects, and a defect is the kind of
+# thing its owner fixes. `C-04` is a field-name bug in a document somebody else publishes; the day
+# it is corrected, a row telling a reader to accept both spellings goes from measured to merely
+# true, and the day one of them *stops* being accepted it goes to wrong. Nothing here was watching.
+#
+# **Twice a week rather than weekly**, which is the one place this departs from the drafts check.
+# The measured evidence is a fortnight between two captures with a real change inside it, so a
+# weekly cadence would have carried a stale `C-*` table for up to seven days. Two runs is two HTTPS
+# requests each and the arithmetic is the same as next door's.
+#
+# **A red here is not a broken commit.** It means a document moved and the re-read of section 6 is
+# owed. Read it the way you would read a dependency advisory.
+#
+# **Unreachable is not unchanged**, and the script's exit codes keep those apart: 1 is work owed and
+# files an issue, 2 is "nothing was measured" and is retried. A vendor's CDN having a bad minute
+# must never file a spec issue — that is how a signal gets trained out of its reader, and then the
+# real one arrives into a channel somebody has learned to skip.
+#
+# **Known, not measured: GitHub disables a `schedule` trigger after 60 days of repository
+# inactivity.** Documented behaviour, and it emails the maintainer. Treat this workflow's silence as
+# evidence only while the repository is active.
+
+name: vendor-cimd
+
+on:
+  schedule:
+    # Monday and Thursday, 06:20 UTC. Twenty past rather than on the hour so this does not queue
+    # behind every other repository's `0 6 * * *`.
+    - cron: '20 6 * * 1,4'
+  workflow_dispatch:
+  # Also whenever the capture or the check itself changes — not to catch a vendor change, which is
+  # the schedule's job, but so a re-capture that named a URL wrong is told immediately rather than
+  # on the following Monday.
+  pull_request:
+    paths:
+      - 'spec/cimd-live-*.json'
+      - 'scripts/check-vendor-cimd.py'
+      - '.github/workflows/vendor-cimd.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vendor-cimd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    # Four HTTPS requests, up to three times, with a minute between attempts.
+    timeout-minutes: 15
+
+    # `issues: write` is the delivery and the whole grant. Nothing that can touch a ref: a workflow
+    # that files an issue about somebody else's document should not be able to change ours.
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      # Pinned to a commit rather than a tag — a tag is a mutable pointer in somebody else's
+      # repository. publish-packages.yml carries the argument; .github/dependabot.yml keeps it current.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # No setup-python: the runner image ships python3 and the script imports nothing outside the
+      # standard library, so this check cannot go red for a reason unrelated to what it watches.
+      #
+      # Only exit 2 is retried, because it is the only one a retry can change. A document that moved
+      # is still moved a minute later.
+      - name: Every captured client document still says what it said
+        id: check
+        run: |
+          set -uo pipefail
+
+          attempt=1
+          while : ; do
+            set +e
+            python3 scripts/check-vendor-cimd.py spec 2>&1 | tee check.log
+            status="${PIPESTATUS[0]}"
+            set -e
+
+            if [ "$status" -ne 2 ] || [ "$attempt" -ge 3 ]; then
+              break
+            fi
+
+            echo "::notice::a vendor document could not be fetched (attempt $attempt of 3); retrying in 60s."
+            attempt=$((attempt + 1))
+            sleep 60
+          done
+
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      # The delivery, and the same three decisions as pinned-drafts.yml: schedule and dispatch only,
+      # updated in place rather than commented on, and never closed automatically. Re-capturing is
+      # what turns this green and it is the cheap half; the re-read of section 6 is the work, and
+      # auto-closing would retire the reminder at the moment it is owed and unstarted.
+      - name: File or update the tracking issue
+        if: ${{ steps.check.outputs.status == '1' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          LABEL='vendor-cimd'
+          TITLE='A vendor client document has changed (C-01..C-19)'
+
+          {
+            echo "A client-id metadata document captured in \`spec/\` no longer answers what it"
+            echo "answered on the capture date, so the \`C-*\` rows describing that client may have"
+            echo "stopped being true."
+            echo
+            echo '```'
+            cat check.log
+            echo '```'
+            echo
+            echo "Three things, in order: capture the current documents into"
+            echo "\`spec/cimd-live-<today>.json\` with a header saying what moved; re-read the"
+            echo "\`C-*\` rows in \`spec/REQUIREMENTS.md\` section 6 that the change touches; fix"
+            echo "anything that stopped being true, in code as well as in the table."
+            echo
+            echo "Nothing is broken on \`main\`. This is a measurement of somebody else's system"
+            echo "that has expired, not a failing test."
+            echo
+            echo "Last checked by [this run]($RUN_URL) at $(date -u '+%Y-%m-%d %H:%M UTC')."
+            echo
+            echo "_Opened and kept up to date by \`.github/workflows/vendor-cimd.yml\`. It is not"
+            echo "closed automatically: re-capturing turns the check green, and that is the cheapest"
+            echo "of the three steps above. Close it when section 6 has been re-read._"
+          } > issue-body.md
+
+          # Creating the label is idempotent; the `|| true` is every run after the first. `gh issue
+          # create --label` fails outright against a label that does not exist, and a notification
+          # lost to a missing label is exactly the delivery this step exists to protect.
+          gh label create "$LABEL" \
+            --color 'D93F0B' \
+            --description 'A vendor client-id metadata document moved and section 6 is owed a re-read' \
+            >/dev/null 2>&1 || true
+
+          # By label rather than by title: a label is an exact match and a title search is a fuzzy
+          # one that would eventually update somebody else's issue.
+          NUMBER="$(gh issue list --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')"
+
+          if [ -n "$NUMBER" ]; then
+            gh issue edit "$NUMBER" --body-file issue-body.md
+            echo "updated the open tracking issue #$NUMBER" >> "$GITHUB_STEP_SUMMARY"
+          else
+            URL="$(gh issue create --title "$TITLE" --label "$LABEL" --body-file issue-body.md)"
+            echo "opened $URL" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # The verdict, kept separate from the check so the issue above is filed even though this fails
+      # the job — and it does fail it. A vendor that could not be reached is not evidence that its
+      # document is unchanged, so a green here would be a green that established nothing.
+      - name: Report
+        run: |
+          set -euo pipefail
+
+          case "${{ steps.check.outputs.status }}" in
+            0) echo "every captured document is current." >> "$GITHUB_STEP_SUMMARY" ;;
+            1) echo "a captured document has changed; section 6 is owed a re-read." >> "$GITHUB_STEP_SUMMARY"; exit 1 ;;
+            *) echo "at least one document could not be fetched; nothing was measured." >> "$GITHUB_STEP_SUMMARY"; exit 1 ;;
+          esac

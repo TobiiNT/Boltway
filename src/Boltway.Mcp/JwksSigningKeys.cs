@@ -1,158 +1,46 @@
-// Aliased because this package exports a `ProtectedResourceOptions` of its own, and inside
-// this namespace an unqualified name binds to that one.
-using RsOptions = Boltway.ResourceServer.Configuration.ProtectedResourceOptions;
 using Boltway.OAuth.Net;
-using Boltway.OAuth.Primitives.Ids;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
+using RsExtensions = Boltway.ResourceServer.DependencyInjection.JwksSigningKeysExtensions;
 
 namespace Boltway.Mcp;
 
 /// <summary>
-/// Wiring a resource server's verification keys to the authorization server's JWKS.
+/// Where <c>AddJwksSigningKeys</c> used to live.
 /// </summary>
 /// <remarks>
 /// <para>
-/// This replaced a <c>JwksRefresher</c> that lived here and did the same job with its own fetch
-/// loop, its own parse and its own key-diffing. Two implementations of one thing agree for about a
-/// month; these two had already stopped. The refresher hardcoded <c>/.well-known/jwks.json</c>
-/// rather than reading <c>jwks_uri</c> out of the discovery document, so it could not follow an
-/// authorization server that published its key set anywhere else — including this repository's own,
-/// whose path is configurable. It also had no backoff, so a dead issuer was re-fetched on every
-/// tick forever.
+/// It moved to <c>Boltway.ResourceServer</c> in 0.4.0, because nothing about it was MCP-shaped: it
+/// wires a key source into <c>ProtectedResourceOptions</c> and touches no MCP type. Filing it here
+/// meant a resource-server author looking for it in the resource-server package did not find it -
+/// measured on the first consumer outside this repository, who wrote the class again by hand.
 /// </para>
 /// <para>
-/// What is kept is the decision that mattered: <b>a connector that starts with no keys does not
-/// start.</b> Serving with an empty key set means refusing every request as a 401, which presents a
-/// startup failure as the caller's problem in the one shape that makes them retry forever. A
-/// container that will not start gets restarted and shows up in the logs as what it is.
-/// </para>
-/// <para>
-/// That is not in tension with <see cref="JwksKeySource.CurrentKeys"/> never throwing, which is the
-/// opposite-looking rule one layer down. They are about two different moments: fail loudly at
-/// startup, before anything is served; absorb quietly at lookup, because throwing there returns 500
-/// to a caller holding a perfectly good token. <see cref="JwksKeySource.RefreshAsync"/> exists for
-/// exactly this — its own remarks call it the startup call, because unlike <c>CurrentKeys</c> it
-/// reports a failure rather than absorbing it.
+/// <b>A forwarder rather than a removal.</b> Deleting it would break every connector already
+/// calling it for a change that gains them nothing; this way the call keeps working and the
+/// compiler says once where it went. At 0.x a break is allowed, which is exactly why one that buys
+/// nothing should not be taken.
 /// </para>
 /// </remarks>
 public static class JwksSigningKeysExtensions
 {
     /// <summary>
     /// Fill and keep filling <c>ProtectedResourceOptions.SigningKeySource</c> from the
-    /// authorization server's JWKS, reached through its discovery document. Call after
-    /// <c>AddBoltwayProtectedResource</c>.
+    /// authorization server's published key set.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="issuer">The authorization server's issuer URL.</param>
-    /// <param name="configure">Cache lifetime, refresh floor and failure backoff.</param>
-    /// <returns>The same collection.</returns>
-    /// <exception cref="ArgumentException">
-    /// <paramref name="issuer"/> is not a usable issuer. Thrown here, at wiring time, rather than
-    /// carried to the first request: a typo in a configuration value should fail the deploy, not
-    /// one caller's token validation.
-    /// </exception>
+    /// <param name="services">The container.</param>
+    /// <param name="issuer">The authorization server's issuer.</param>
+    /// <param name="configure">Optional key-source settings.</param>
+    /// <returns><paramref name="services" />, for chaining.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="services" /> is null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="issuer" /> is not a usable issuer.</exception>
+    [Obsolete(
+        "Moved to Boltway.ResourceServer.DependencyInjection.JwksSigningKeysExtensions - it is "
+            + "resource-server wiring and touches no MCP type. This forwarder calls it and will be "
+            + "removed at 1.0.")]
     public static IServiceCollection AddJwksSigningKeys(
         this IServiceCollection services,
         string issuer,
         Action<JwksKeySourceOptions>? configure = null)
-    {
-        ArgumentNullException.ThrowIfNull(services);
-
-        if (!IssuerString.TryCreate(issuer, out var parsed, out var why))
-        {
-            throw new ArgumentException(
-                $"'{issuer}' is not a usable issuer: {why}", nameof(issuer));
-        }
-
-        var options = new JwksKeySourceOptions();
-        configure?.Invoke(options);
-
-        services.TryAddSingleton(TimeProvider.System);
-
-        // TryAdd, and registering it here at all is the point. The refresher this replaced took an
-        // IHttpClientFactory and registered its own named client, so wiring it was self-contained.
-        // Moving to the guarded client without registering it left AddJwksSigningKeys depending on
-        // a service only Boltway.Federation.Oidc registers — so a connector that used this and not
-        // federation got an unresolvable dependency at startup. TryAdd rather than Add so a
-        // deployment that already configured the transport keeps its own.
-        services.TryAddSingleton(new UpstreamEndpointClientOptions());
-        services.TryAddSingleton<IUpstreamEndpointClient>(sp => new UpstreamEndpointClient(
-            sp.GetRequiredService<UpstreamEndpointClientOptions>(),
-            resolver: null,
-            sp.GetRequiredService<TimeProvider>()));
-
-        services.TryAddSingleton(sp => new JwksKeySource(
-            parsed,
-            sp.GetRequiredService<IUpstreamEndpointClient>(),
-            options,
-            sp.GetRequiredService<TimeProvider>()));
-
-        // Through IConfigureOptions rather than assigned in the primer's StartAsync, so the source
-        // is installed the moment the options are first materialised. The refresher assigned it at
-        // StartAsync and its comment worried about the window in which two sources of truth exist;
-        // this closes that window rather than narrowing it.
-        services.AddSingleton<IConfigureOptions<RsOptions>>(sp =>
-            new ConfigureOptions<RsOptions>(o =>
-                o.SigningKeySource = sp.GetRequiredService<JwksKeySource>().CurrentKeys));
-
-        services.AddHostedService<JwksSigningKeyPrimer>();
-
-        return services;
-    }
-}
-
-/// <summary>
-/// Fetches once before the host serves traffic, and refuses to start without keys.
-/// </summary>
-/// <remarks>
-/// Nothing keeps fetching on a timer. <see cref="JwksKeySource.CurrentKeys"/> starts a background
-/// refresh itself when its snapshot goes stale, so freshness is driven by traffic rather than by a
-/// clock — a connector nobody is calling does not need current keys, and one that is being called
-/// refreshes on the request that notices. That also removes the failure mode the timer had, where a
-/// dead issuer was re-fetched every tick with no backoff.
-/// </remarks>
-internal sealed partial class JwksSigningKeyPrimer(
-    JwksKeySource source,
-    ILogger<JwksSigningKeyPrimer> logger) : IHostedService
-{
-    /// <summary>
-    /// Source-generated rather than a direct <c>LogInformation</c> call, because CA1873 is an error
-    /// here and boxing an <see langword="int"/> into the <c>params object?[]</c> trips it. The
-    /// generated overload takes the argument by its own type and formats nothing when the level is
-    /// disabled — which is what the rule is asking for rather than a guard around the call.
-    /// </summary>
-    private static partial class Log
-    {
-        [LoggerMessage(
-            EventId = 200,
-            EventName = "JwksSigningKeysReady",
-            Level = LogLevel.Information,
-            Message = "Signing keys ready: {Count} trusted from the authorization server's JWKS.")]
-        internal static partial void KeysReady(ILogger logger, int count);
-    }
-
-    /// <inheritdoc />
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        var refresh = await source.RefreshAsync(cancellationToken).ConfigureAwait(false);
-        var count = refresh.KeyCount;
-
-        if (count == 0)
-        {
-            throw new InvalidOperationException(
-                "No signing keys could be fetched from the authorization server, so this connector "
-                + "would answer every request with a 401 that re-authenticating cannot fix. "
-                + $"Refresh reported {refresh.Outcome}"
-                + (refresh.Detail is null ? "." : $": {refresh.Detail}"));
-        }
-
-        Log.KeysReady(logger, count);
-    }
-
-    /// <inheritdoc />
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        => RsExtensions.AddJwksSigningKeys(services, issuer, configure);
 }
