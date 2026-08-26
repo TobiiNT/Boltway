@@ -1,6 +1,9 @@
+using System.Net;
+
 using Boltway.AuthorizationServer.Abstractions.Clients;
 using Boltway.AuthorizationServer.Abstractions.Resources;
 using Boltway.AuthorizationServer.Resources;
+using Boltway.OAuth.Net;
 using Boltway.OAuth.Primitives.Ids;
 using Boltway.OAuth.Primitives.Redirects;
 using Boltway.OAuth.Primitives.Scopes;
@@ -346,6 +349,37 @@ public class CustomerSeamsCompileTests
         }
 
         return new ResourceRegistration(resource!, name, scopes);
+    }
+
+    /// <summary>
+    /// A deployment can tell the one address answer with a single reading from the ones without.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Here rather than beside the behaviour tests because those live in an assembly this package
+    /// grants <c>InternalsVisibleTo</c>, so they compile whether or not the members are public and
+    /// prove nothing about what a stranger can reach. This assembly has no grant, so the calls below
+    /// are the pin.
+    /// </para>
+    /// <para>
+    /// Both are things a deployment genuinely needs. An operator alerting on <c>FetchOutcome</c>
+    /// wants to page somebody for a link-local answer and not for the rest, because everything else
+    /// in the blocklist is equally what a filtered resolver, an unconfigured host and an attack look
+    /// like - so it has to be able to name the difference without re-deriving it from an address.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void A_deployment_can_tell_a_link_local_answer_from_an_ambiguous_one()
+    {
+        Assert.True(SpecialUseAddresses.IsLinkLocal(IPAddress.Parse("169.254.169.254")));
+
+        // The control, and the reason the split is not just "is it blocked": this is refused too.
+        Assert.False(SpecialUseAddresses.IsLinkLocal(IPAddress.Parse("0.0.0.0")));
+        Assert.True(SpecialUseAddresses.IsBlocked(IPAddress.Parse("0.0.0.0")));
+
+        // And the reason it can be read off an outcome without an address in hand.
+        var blocked = new FetchOutcome.Blocked(BlockReason.LinkLocalAddress, "detail");
+        Assert.Equal(BlockReason.LinkLocalAddress, blocked.Reason);
     }
 
     private static async Task<ClientRecord> NewClientAsync()
