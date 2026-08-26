@@ -39,23 +39,6 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   Do not read `0.0.0.0` as a harmless sinkhole on the strength of this entry. Measured 2026-08-26 on
   Linux 6.18: connecting to it reaches a service bound to `127.0.0.1`.
 
-### Changed
-
-- **A CIMD client whose host has started resolving to a special-use address now keeps its cached
-  document, instead of being signed out.** Stale-serve covered a timeout, a transport failure and an
-  `NXDOMAIN`, and refused to cover a special-use address, on the reasoning that the latter is a
-  rebinding signal that must not be papered over. Two things were wrong with that. It is not
-  determinable — see the entry above — and it bought nothing: serving from the cache connects to
-  nothing, because the address check has already refused, so refusing the cache as well refused no
-  further connection. The visible effect was that one spelling of a DNS block (`NXDOMAIN`) kept a
-  client working and another (`0.0.0.0`) signed it out.
-
-  A link-local answer still refuses the cache, and there the original reasoning holds.
-
-  If your deployment relied on a client dropping out when its name began resolving privately,
-  `BlockReason.LinkLocalAddress` is the case that still does, and the fetch outcome is logged either
-  way.
-
 - **`CallerPrincipal.ScopeClaim` and `CallerPrincipal.Grants`, because an empty `Scopes` meant three
   different things and a connector had to guess which.** A token carrying no `scope` claim, a token
   carrying one that granted nothing, and a token carrying one `ScopeSet.TryParse` rejected all
@@ -148,6 +131,23 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   synthesise something plausible — the rule `Email` already carries. `ConnectorCaller` gains
   `Scopes` and `Grants` shorthands, so the set no longer names everything except what a tool gate
   reads.
+
+### Changed
+
+- **A CIMD client whose host has started resolving to a special-use address now keeps its cached
+  document, instead of being signed out.** Stale-serve covered a timeout, a transport failure and an
+  `NXDOMAIN`, and refused to cover a special-use address, on the reasoning that the latter is a
+  rebinding signal that must not be papered over. Two things were wrong with that. It is not
+  determinable — see the entry above — and it bought nothing: serving from the cache connects to
+  nothing, because the address check has already refused, so refusing the cache as well refused no
+  further connection. The visible effect was that one spelling of a DNS block (`NXDOMAIN`) kept a
+  client working and another (`0.0.0.0`) signed it out.
+
+  A link-local answer still refuses the cache, and there the original reasoning holds.
+
+  If your deployment relied on a client dropping out when its name began resolving privately,
+  `BlockReason.LinkLocalAddress` is the case that still does, and the fetch outcome is logged either
+  way.
 
 ### Fixed
 
