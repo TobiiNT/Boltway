@@ -471,9 +471,24 @@ public sealed class CimdClientResolver : IClientResolver
     /// <para>
     /// Everything else is excluded because the origin <i>did</i> answer, and what it answered is a
     /// statement. A 4xx says the document is not there. A redirect says it moved. An oversized body
-    /// says it is not a document this server will read. And a special-use address means the name now
-    /// resolves somewhere private — which is a rebinding signal, and serving a stale document over
-    /// the top of it would hide exactly the event worth seeing.
+    /// says it is not a document this server will read.
+    /// </para>
+    /// <para>
+    /// <strong>A special-use address is on the serving side, and it used to be on the other one.</strong>
+    /// The reason given was that it "means the name now resolves somewhere private — a rebinding
+    /// signal", and serving stale would hide the event. That is an inference from one lookup: a
+    /// resolver that filters the name, split-horizon DNS for a name a company hosts internally, and
+    /// an attack are the same observation from here. It also cost more than it bought. Serving a
+    /// stale document connects to nothing — the address check has already refused, and refusing the
+    /// cache as well does not refuse anything further — so the only effect was to sign out every
+    /// client of a filtered name, while <see cref="BlockReason.DnsFailed" /> a line above kept
+    /// serving them for the same block delivered as <c>NXDOMAIN</c> instead of as <c>0.0.0.0</c>.
+    /// Two spellings of one event, answered opposite ways.
+    /// </para>
+    /// <para>
+    /// Link-local is still excluded, and that is where the original reasoning holds: nothing benign
+    /// resolves a public name into <c>169.254.0.0/16</c>, so there the event really is the thing
+    /// worth seeing and papering over it with a cache entry really would hide it.
     /// </para>
     /// </remarks>
     private static bool IsWorthServingStaleFor(FetchOutcome outcome) => outcome switch
@@ -481,6 +496,7 @@ public sealed class CimdClientResolver : IClientResolver
         FetchOutcome.Timeout => true,
         FetchOutcome.TransportFailed => true,
         FetchOutcome.Blocked { Reason: BlockReason.DnsFailed } => true,
+        FetchOutcome.Blocked { Reason: BlockReason.SpecialUseAddress } => true,
         FetchOutcome.NotOk notOk => notOk.Status is >= 500 or 429,
         _ => false,
     };
@@ -527,7 +543,15 @@ public sealed class CimdClientResolver : IClientResolver
         // whole content of the diagnosis. It is truncated because it embeds a caller-supplied host,
         // and a host may be 253 characters: without the bound the sentence explaining the failure
         // would be the part ErrorText's 240-character cap threw away.
-        FetchOutcome.Blocked { Reason: BlockReason.SpecialUseAddress } blocked =>
+        //
+        // One arm for both address reasons, because the difference between them is a difference in
+        // what can be said about somebody else's network and the fetcher is where that is known.
+        // Its Detail names the readings the observation is consistent with, or says there is only
+        // one; this sentence would be guessing at which if it tried to phrase them apart.
+        FetchOutcome.Blocked
+        {
+            Reason: BlockReason.SpecialUseAddress or BlockReason.LinkLocalAddress,
+        } blocked =>
             $"Refused before connecting: {Echo(blocked.Detail)} (CIMD section 8.6).",
 
         FetchOutcome.Blocked { Reason: BlockReason.DnsFailed } blocked =>
