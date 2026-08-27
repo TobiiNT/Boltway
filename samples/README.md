@@ -6,11 +6,11 @@ and also serves a Client ID Metadata Document for a demo client, so the pair is 
 needs no internet; `Boltway.Sample.ResourceServer` runs the MCP-side resource server on
 `https://localhost:7444`, protects `/mcp/stories` with `RequireScope`, and publishes the RFC 9728
 document that a `401` challenge points at. They are **two projects rather than one** because that is
-the deployment shape — the resource server references only `Boltway.ResourceServer` and has no
+the deployment shape - the resource server references only `Boltway.ResourceServer` and has no
 compile-time knowledge of the authorization server, which is the property a single combined host
-would quietly destroy. Everything about them that is not production-shaped — the signing key
+would quietly destroy. Everything about them that is not production-shaped - the signing key
 generated at startup, the in-memory stores, the per-process refresh derivation key, the loopback
-exemption that lets the CIMD fetcher reach `localhost`, and the seeded `demo` user — is marked `DEV:`
+exemption that lets the CIMD fetcher reach `localhost`, and the seeded `demo` user - is marked `DEV:`
 in the source with what a real deployment does instead.
 
 ## Running them
@@ -24,13 +24,13 @@ dotnet run --project samples/Boltway.Sample.ResourceServer          # terminal 2
 ./samples/drive-flow.sh                                                  # terminal 3
 ```
 
-`drive-flow.sh` needs `curl` and `python3`. It needs **no `jq`** — every piece of parsing in it is a
+`drive-flow.sh` needs `curl` and `python3`. It needs **no `jq`** - every piece of parsing in it is a
 python3 one-liner, because python3 is on every machine that can build this repository and `jq` is
 not.
 
 **`--trust` is load-bearing, and the flag was missing here for a while.** `dotnet dev-certs https`
 on its own only ensures a certificate exists in .NET's own store. It does not write
-`~/.aspnet/dev-certs/trust` — only `--trust` does — so the very next line exported `SSL_CERT_DIR`
+`~/.aspnet/dev-certs/trust` - only `--trust` does - so the very next line exported `SSL_CERT_DIR`
 pointing at a directory that was never created, the certificate was trusted by nothing, and the
 resource server died at startup on its JWKS warm-up. Measured as written, 2026-08; what was measured
 is the crash and the absent directory, not which of the two `SSL_CERT_DIR` entries OpenSSL ended up
@@ -49,15 +49,15 @@ process**, so a restart does not rotate a key, it destroys one. Every token alre
 validation, and every new token is signed by a key the resource server has never seen. Restart both
 together.
 
-There is nothing to work around there. `Boltway.OAuth.Net.JwksKeySource` — which the resource server
-uses — holds a fetched key set for five minutes and refreshes in the background as the snapshot
+There is nothing to work around there. `Boltway.OAuth.Net.JwksKeySource` - which the resource server
+uses - holds a fetched key set for five minutes and refreshes in the background as the snapshot
 ages, so an authorization server that *rotates* a key is picked up without anybody restarting
 anything. That is the case it exists for, and the number is derived rather than chosen: five minutes
 sits inside the ten-minute floor a signing key ring is allowed to publish a key ahead of using it.
 What no refresher can recover is a key that no longer exists anywhere, which is what a per-process
 key becomes at every restart. (This paragraph used to blame "the missing JWKS refresher, listed in
 the root README under what is not built yet". The refresher is built, the resource server calls it,
-and the root README lists no such gap — measured against both, 2026-08.)
+and the root README lists no such gap - measured against both, 2026-08.)
 
 `SSL_CERT_DIR` is needed on Linux only, and only because both hosts make .NET-to-.NET HTTPS calls to
 each other over the ASP.NET Core development certificate: the authorization server fetches the
@@ -79,7 +79,7 @@ fetches that URL, validates the document it finds, and proceeds. Nothing is writ
 table.
 
 Both ports are fixed in the two `Program.cs` files and the script matches them, with no environment
-override — the script used to offer one and it could not work. `7443` is baked into the issuer and
+override - the script used to offer one and it could not work. `7443` is baked into the issuer and
 into that `client_id`, `7444` into the resource every token's `aud` is compared against, and neither
 project's `launchSettings.json` carries an `applicationUrl`. Moving them is an edit to both programs
 in one commit, because the two constants name each other.
@@ -88,5 +88,5 @@ in one commit, because the two constants name each other.
 
 These two hosts are the smallest thing that completes a flow, and every part of them that is not
 production-shaped is marked `DEV:` in the source. What a deployment does instead is
-`hosts/Boltway.AuthorizationServer.Host` — the same server with everything arriving as configuration
-— and `docker-compose.yml` in the repository root stands one up beside PostgreSQL and the admin UI.
+`hosts/Boltway.AuthorizationServer.Host` - the same server with everything arriving as configuration -
+and `docker-compose.yml` in the repository root stands one up beside PostgreSQL and the admin UI.

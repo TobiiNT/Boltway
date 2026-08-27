@@ -74,8 +74,8 @@ When an incident does occur, it is important to report it promptly. To report a 
 **email <nhattruongtotran@gmail.com>**.
 
 > **Changed from the upstream text, and the change is the honest part.** The Covenant says reports
-> go to "Community Moderators", plural. There is one maintainer here — `GOVERNANCE.md` says so and
-> says what else follows from it — so a report goes to one person, who reads it and decides. That
+> go to "Community Moderators", plural. There is one maintainer here - `GOVERNANCE.md` says so and
+> says what else follows from it - so a report goes to one person, who reads it and decides. That
 > has two consequences a reporter is entitled to know before they write:
 >
 > - **A report about the maintainer goes to the maintainer.** There is no second person to escalate
@@ -142,8 +142,8 @@ judgment in keeping with the best interests of the community.
 
 ## Scope
 
-This Code of Conduct applies within all community spaces — issues, pull requests, discussions,
-commit messages and code review on this repository — and also applies when an individual is
+This Code of Conduct applies within all community spaces - issues, pull requests, discussions,
+commit messages and code review on this repository - and also applies when an individual is
 officially representing the community in public or other spaces.
 
 **It is about conduct, not about disagreement.** This repository asks for a reason on every change,
@@ -158,7 +158,7 @@ This file is adapted from the Contributor Covenant, version 3.0, permanently ava
 
 Contributor Covenant is stewarded by the Organization for Ethical Source and licensed under
 **CC BY-SA 4.0** (<https://creativecommons.org/licenses/by-sa/4.0/>). This file is an adaptation, so
-it carries that licence — **not** the Apache-2.0 the rest of this repository ships under, and
+it carries that licence - **not** the Apache-2.0 the rest of this repository ships under, and
 `NOTICE` records the carve-out beside the two IETF drafts under `spec/` for the same reason.
 
 For answers to common questions, see the FAQ at <https://www.contributor-covenant.org/faq>.

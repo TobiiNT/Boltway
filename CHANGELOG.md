@@ -16,14 +16,14 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
-## [0.4.0] — 2026-08-27
+## [0.4.0] - 2026-08-27
 
 ### Added
 
 - **`Boltway.ResourceServer.Testing`, a new package: the resource-server pipeline contract, as an
   xunit base class a deployment derives.** Supply an `HttpClient` over your wired application, the
   resource identifier you configured and one path that needs a credential, and eight assertions ask
-  what a client asks — both RFC 9728 well-known forms answering without a credential, the document's
+  what a client asks - both RFC 9728 well-known forms answering without a credential, the document's
   `resource` matching your configured identifier byte for byte, the challenge naming a
   `resource_metadata` URL that is really reachable, and a bad token producing a `401` rather than a
   `403` or a `500`.
@@ -32,7 +32,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   2026-08-26 on the first consumer outside this repository: 402 tests passing, and the RFC 9728
   document answering `401` at the exact URL that server's own challenges pointed clients at. The
   cause is that a host running authentication of its own has a second vocabulary for "no credential
-  needed" and neither middleware reads the other's — the library marks its metadata endpoints
+  needed" and neither middleware reads the other's - the library marks its metadata endpoints
   `AllowAnonymous`, and a host middleware keyed on its own marker refuses them. None of it is
   reachable from a unit test, because none of it is about a unit.
 
@@ -43,14 +43,14 @@ Three conventions, because a changelog nobody can rely on is worse than none:
 ### Changed
 
 - **`AddJwksSigningKeys` moved from `Boltway.Mcp` to `Boltway.ResourceServer`. The old call still
-  works and is marked obsolete.** Nothing about it was ever MCP-shaped — it wires a `JwksKeySource`
+  works and is marked obsolete.** Nothing about it was ever MCP-shaped - it wires a `JwksKeySource`
   into `ProtectedResourceOptions` and touches no MCP type. Filing it next door had a measured cost:
   the first consumer outside this repository went looking for "how do I point verification keys at
   an issuer" in the resource-server package, did not find it, and wrote the class again by hand,
   down to the same sentence about a 401 that re-authenticating cannot fix.
 
   `Boltway.ResourceServer` gains a project reference to `Boltway.OAuth.Net` for it, which **adds no
-  package a resource server did not already have** — that project's own dependencies are
+  package a resource server did not already have** - that project's own dependencies are
   `Boltway.OAuth.Primitives` and `Microsoft.IdentityModel.Tokens`, both already present. It adds the
   guarded HTTP transport as an assembly, not as a running client: nothing is registered and no
   socket is opened until a deployment calls `AddJwksSigningKeys`.
@@ -61,7 +61,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
 - **`MapProtectedResourceMetadata` now says in its remarks that `AllowAnonymous` is only this
   pipeline's word for "no credential needed".** A host with its own authentication middleware has to
   mark these endpoints in its own vocabulary too, and the cheapest way is a route group carrying
-  both markers — which covers whatever this package maps there, including anything a later version
+  both markers - which covers whatever this package maps there, including anything a later version
   adds, and covers nothing else.
 
 ### Operations
@@ -74,7 +74,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   unreachable vendor is retried and files nothing, because not being able to ask is not evidence
   that nothing changed. The sibling of `pinned-drafts.yml`, down to the exit-code contract.
 
-## [0.3.0] — 2026-08-26
+## [0.3.0] - 2026-08-26
 
 ### Added
 
@@ -83,13 +83,13 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   one that resolved to `0.0.0.0` were the same `BlockReason.SpecialUseAddress`, and the code around
   it said what that meant: "someone pointed the server at a private address", "a rebinding signal".
   That is an inference from a single lookup. A resolver that filters the name, split-horizon DNS for
-  a name a company hosts internally, and an attack are the same observation from outside — so an
+  a name a company hosts internally, and an attack are the same observation from outside - so an
   operator on a filtered network was sent hunting an attacker who was not there. Link-local is the
   exception and now says so on its own: nothing benign resolves a public name into it, which is why
   it is the address the SSRF blocklist exists for.
 
   `SpecialUseAddresses.IsLinkLocal` is the classifier, and it decodes the forms the address is
-  written in when somebody does not want it recognised — `::ffff:`, 6to4 `2002:a9fe:a9fe::`, and the
+  written in when somebody does not want it recognised - `::ffff:`, 6to4 `2002:a9fe:a9fe::`, and the
   deprecated IPv4-compatible `::169.254.169.254`. `SpecialUseAddresses.IsBlocked` is unchanged and
   still refuses every special-use address: **what a fetch connects to has not changed at all.** What
   changed is what this server claims about the answer.
@@ -103,12 +103,12 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   produced the same empty set. The first wants a fall-back to whatever the connector uses when an
   authorization server publishes no scopes; the other two want a refusal. `TryParse` rejects a claim
   **whole** on one character outside RFC 6749's scope-token set, so a single stray character turned a
-  restriction into what looked like an absence — and a connector falling back on empty then granted
+  restriction into what looked like an absence - and a connector falling back on empty then granted
   *more* than the token said, to a caller whose token was written to restrict them, with nothing
   failing anywhere. Only this library ever knew which case produced the empty set.
 
   `ScopeClaimState` names the three (plus `Unknown`, the default, so silence is never mistaken for
-  an answer). `Grants(scope)` returns `bool?` — and the nullable return is the feature: `bool?` does
+  an answer). `Grants(scope)` returns `bool?` - and the nullable return is the feature: `bool?` does
   not convert to `bool`, so `if (!caller.Grants("x"))` does not compile and the third case cannot be
   folded into either of the other two. An unreadable claim answers `false`, never `null`.
 
@@ -124,12 +124,12 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   measured rather than assumed: the tool-level field is SEP-1489, a sponsored draft absent from the
   `2025-11-25` schema and from the draft the `2026-07-28` release candidate is cut from; and the
   HTTP challenge cannot be reached, because Streamable HTTP refuses a client that will not accept an
-  event stream and the transport has opened that stream — status line sent — before any tool filter
+  event stream and the transport has opened that stream - status line sent - before any tool filter
   runs.
 
   So what ships is the honest half: a sealed `ConnectorToolException` carrying the
   `insufficient_scope` code and **every** scope the operation needs, for the same measured reason
-  `X-34`'s challenge does — a client asks for the union of what it is told and what it had, so
+  `X-34`'s challenge does - a client asks for the union of what it is told and what it had, so
   naming only the delta re-authorizes somebody into a narrower grant. Sharing the type keeps a scope
   refusal, which re-authorizing fixes, distinguishable from a role refusal, which it does not.
 
@@ -138,7 +138,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
 
 - **`IConnectorToolPolicy` and `WithBoltwayToolPolicy()`, so a per-tool decision reaches both places
   it has to hold.** One MCP endpoint carries every tool, so a scope required on the route is the
-  intersection of what the tools need — the per-tool decision has to happen per tool, and until now
+  intersection of what the tools need - the per-tool decision has to happen per tool, and until now
   a connector wiring that had to reach for the SDK's filter API itself and remember there were two
   of them.
 
@@ -151,7 +151,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   **Two questions, at the two moments they can be asked.** `Allows(caller, tool)` runs on the listing
   and the call, so refusing there hides a tool as well as blocking it.
   `AllowsArguments(caller, tool, arguments)` runs on the call alone, because a listing has no
-  arguments — it refuses and cannot hide. That second one is the gate the first cannot express: an
+  arguments - it refuses and cannot hide. That second one is the gate the first cannot express: an
   identifier naming somebody else's resource is refused on the argument or it is not refused, because
   the tool is the same tool either way. It has a default implementation returning `true`, so a policy
   that only gates whole tools does not have to mention it, and the arguments arrive as a read-only
@@ -159,8 +159,8 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   nothing downstream could see.
 
   **What is not shipped is the answer.** No role table, no scope naming convention, no default
-  policy, and no argument matcher — A deployment's role vocabulary is its own, and the fallback for a scope claim is subtle
-  enough — see `ScopeClaimState` — that a shipped default would be wrong in the fail-open direction
+  policy, and no argument matcher - A deployment's role vocabulary is its own, and the fallback for a scope claim is subtle
+  enough - see `ScopeClaimState` - that a shipped default would be wrong in the fail-open direction
   for every consumer at once. `Allows(caller, tool)` is synchronous because the decision is made
   from what the token already said and `tools/list` asks it once per tool.
 
@@ -169,8 +169,8 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   the wiring problem it is, not as a forbidden one.
 
 - **`CallerPrincipal.ClientId`, `TokenId` and `GrantId`, so an audit trail is not assembled from
-  string lookups.** All three were already on the principal — `FromClaims` copies the whole claim
-  set — and a connector wanting to record which application made a change reached them as
+  string lookups.** All three were already on the principal - `FromClaims` copies the whole claim
+  set - and a connector wanting to record which application made a change reached them as
   `Claims["client_id"]`. A key typed wrong there is silently null, on the surface whose whole job is
   saying who did what, and the static-token path had nothing to put in a dictionary key it was never
   told about.
@@ -180,13 +180,13 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   records by it fragments them at every refresh with nothing failing, while `gid` is stable across a
   whole refresh family and is the key "what did this session do" actually wants.
 
-  **`ClientId` is stored verbatim** — not lowercased, trimmed or canonicalised. It is a surface
+  **`ClientId` is stored verbatim** - not lowercased, trimmed or canonicalised. It is a surface
   rather than a model, and a consumer writes it into the commit trailer recording which application
   made a change, so a value this library tidied would rewrite what that history means.
 
   All three are nullable and none is `required`, so existing initializers keep compiling; null means
   the authenticator did not learn one, and a connector should leave its own field unset rather than
-  synthesise something plausible — the rule `Email` already carries. `ConnectorCaller` gains
+  synthesise something plausible - the rule `Email` already carries. `ConnectorCaller` gains
   `Scopes` and `Grants` shorthands, so the set no longer names everything except what a tool gate
   reads.
 
@@ -196,7 +196,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   document, instead of being signed out.** Stale-serve covered a timeout, a transport failure and an
   `NXDOMAIN`, and refused to cover a special-use address, on the reasoning that the latter is a
   rebinding signal that must not be papered over. Two things were wrong with that. It is not
-  determinable — see the entry above — and it bought nothing: serving from the cache connects to
+  determinable - see the entry above - and it bought nothing: serving from the cache connects to
   nothing, because the address check has already refused, so refusing the cache as well refused no
   further connection. The visible effect was that one spelling of a DNS block (`NXDOMAIN`) kept a
   client working and another (`0.0.0.0`) signed it out.
@@ -214,7 +214,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   `MapMcp("/mcp").RequireScope("docs:read")`, annotated "what makes the gate apply", and the
   diagnostic thrown when the middleware is mis-wired said the same. It does not gate: one MCP
   endpoint carries every tool, so a scope required there is the intersection of what the tools
-  need — which `CallerPrincipal.Scopes` has always said from the other side.
+  need - which `CallerPrincipal.Scopes` has always said from the other side.
 
   The expensive half is what it does instead. `RequireScope` also fills the `scope` parameter of
   the `401`, and the MCP scope-selection strategy reads that before the metadata document, so
@@ -225,8 +225,8 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   enforcing, at which point every write stopped at once and re-consenting could not help.
 
   The example is now `RequireBearer()` and carries the reason rather than only the call. Naming
-  both scopes would not have helped — `RequireScope` requires *every* scope listed, so a genuine
-  read-only grant would lose its reads — and that is now said at the call site too.
+  both scopes would not have helped - `RequireScope` requires *every* scope listed, so a genuine
+  read-only grant would lose its reads - and that is now said at the call site too.
   `RequiredScopeMetadata`'s remarks were already right about the mechanism and now say where "a
   minimal grant" stops being the intended reading. `StructuralRuleTests` fails the build if any
   shipped example puts the two calls back on one line.
@@ -234,9 +234,9 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   **This library cannot check a consumer's wiring for it.** `ProtectedResource` and its
   `ScopesSupported` are internal to `Boltway.ResourceServer`, so nothing in `Boltway.Mcp` can see
   the advertised set. The guard that works is a host-level test in the consumer asserting that
-  every scope it advertises is named in the challenge — the property, not the line.
+  every scope it advertises is named in the challenge - the property, not the line.
 
-## [0.2.0] — 2026-08-24
+## [0.2.0] - 2026-08-24
 
 ### Added
 
@@ -248,24 +248,24 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   `PromptValuesSupported`.
 - **`Boltway.Storage.Testing`**, the store contracts a deployment runs against its own
   implementation. New package id, first published at this version. It depends on xunit and nothing
-  else — see *Removed* for what it replaces.
+  else - see *Removed* for what it replaces.
 - `InteractionText.Problems(...)`, which reads placeholder arity off the English table.
   `AddBoltwayInteractionLocalization` calls it and reports every problem at once, so a translator
   fixes one file in one pass.
-- `RefreshTokenDeriver.DeriveLegacy(...)`, for the one branch that needs it — see *Fixed*.
+- `RefreshTokenDeriver.DeriveLegacy(...)`, for the one branch that needs it - see *Fixed*.
 - Right-to-left rendering. `dir` did not appear anywhere in the tree, so the stylesheets' physical
   properties put every gutter and accent bar on the edge the reader finishes at. Both layouts now
   emit `dir` from the same string as `lang`, and both shipped stylesheets use logical properties.
   The direction comes from a list of primary subtags rather than `TextInfo.IsRightToLeft`, which
   under this build's `InvariantGlobalization` returns false for all nine RTL tags exactly as it does
-  for `en` — not unavailable, a silent wrong answer for every language.
+  for `en` - not unavailable, a silent wrong answer for every language.
 - Admin banner text is a key from a closed set rather than a sentence in a redirect's query string,
   so `ADMIN_TEXT_FILE` can change it. Unrecognised keys are warned about at startup, and a raw key
   is never rendered as though it were a sentence.
 - Host image settings, all of which refuse a bad value rather than guessing: `LOG_FORMAT` (whose
-  default is itself a change — see below), `FORWARDED_HOPS`, `ACCESS_TOKEN_LIFETIME`,
+  default is itself a change - see below), `FORWARDED_HOPS`, `ACCESS_TOKEN_LIFETIME`,
   `REFRESH_TOKEN_LIFETIME`, `AUTH_CODE_LIFETIME`, `SESSION_REVALIDATION` and `REAUTH_FRESHNESS`. A
-  duration is a count and a unit — `30s`, `15m`, `24h`, `30d` — because `TimeSpan.Parse` reads a
+  duration is a count and a unit - `30s`, `15m`, `24h`, `30d` - because `TimeSpan.Parse` reads a
   bare `30` as thirty days. Unset leaves the library's own default, still validated against its own
   floor and ceiling. `ProxyHeaders.BehindOneProxy` had taken a hop count all along and its own doc
   called it "the number to change if a CDN is ever put in front"; nothing read a value for it, so
@@ -284,17 +284,17 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   deployment running the contract against its own markup is unaffected.
 - **Breaking.** Startup refuses a translation whose placeholders disagree with the English arity, in
   either direction. A `ConsentClientAsking` without `{0}` reads as a grammatical sentence with the
-  host of the `client_id` URL silently absent — the field `N-14` makes a MUST, on the page it
+  host of the `client_id` URL silently absent - the field `N-14` makes a MUST, on the page it
   matters most, deletable by editing a JSON file with every other check passing. A deployment
   carrying such a file starts today and will not start on this version, which is the point. The same
   check now covers every string property of `NotificationText`; it previously covered eight of ten,
   missing both halves of the new-device notice.
-- **Breaking, for the container.** `LOG_FORMAT` defaults to `json` — structured and
+- **Breaking, for the container.** `LOG_FORMAT` defaults to `json` - structured and
   vendor-neutral. The Google Cloud Logging formatter was previously installed unconditionally in an
   image the README calls one image for every deployment, and its field names are Google's. Set
   `LOG_FORMAT=cloud-logging` to keep the old payload shape; `simple` is the third option.
 - Newly minted opaque credentials carry `bw_ac_`, `bw_rt_`, `bw_rat_` and `bw_cs_`. `ck` was
-  ConnectorKit, a name this project no longer has, and it reached the wire — 0.1.0's packages mint
+  ConnectorKit, a name this project no longer has, and it reached the wire - 0.1.0's packages mint
   and parse the old spelling only. **This is not breaking on the way in**: `OpaqueSecret.TryParse`
   accepts either, so a refresh token or client secret handed out before the upgrade stays valid and
   the old prefix retires as tokens turn over rather than all at once. Anything downstream that
@@ -305,14 +305,14 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   now, so being served is the rule rather than the count.
 - `dpop` is no longer a `PackageTags` entry. `spec/REQUIREMENTS.md` S-37 defers DPoP and says to
   advertise nothing DPoP-related; a search tag is an advertisement, so somebody filtering nuget.org
-  for `dpop` was shown a package that does not implement it — 0.1.0's nuspecs carry the tag.
+  for `dpop` was shown a package that does not implement it - 0.1.0's nuspecs carry the tag.
   `rfc9728` is there instead, which this server does serve.
 - The last of a private deployment's vocabulary is out of the XML docs, which ship to consumers'
   IntelliSense because `GenerateDocumentationFile` is on. A private product was named 24 times,
   including in a test fixture and a copy-pasteable JSON example; 22 sites narrated that
   deployment's people as the actors in an anecdote; three doc comments justified `A-08` as
   protecting "the property the product is sold on", which is a real property with a name a stranger
-  can read — zero-registration. Every measurement survives; only the proper nouns are gone.
+  can read - zero-registration. Every measurement survives; only the proper nouns are gone.
 - The documented seam for replacing interface text is `IStringLocalizer`, registered before
   `AddBoltwayInteractionLocalization`. The XML docs said `IStringLocalizerFactory`, the way
   OrchardCore and ABP do it; nothing here has ever resolved a factory, so anyone who followed that
@@ -322,7 +322,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
 
 - **`ui_locales` now reaches the pages it selects the language for.** It arrives on `/authorize`;
   the pages are `/login` and `/consent`, which are separate requests, and the whole query went into
-  `returnUrl` as one percent-encoded value — so the page read an empty `ui_locales` and rendered in
+  `returnUrl` as one percent-encoded value - so the page read an empty `ui_locales` and rendered in
   the default language, with `ui_locales_supported` in the discovery document and the startup check
   that every advertised locale is served both passing. A deployment serving `vi` answered
   `/authorize?…&ui_locales=vi` with an English login page. The tests could not have caught it: they
@@ -331,7 +331,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   rename. It reconstructs a successor and checks it against the hash the store holds, failing closed
   when they differ; a row written before the rename holds the hash of the old spelling, so the
   reconstruction tries both. A wrong derivation key still matches neither and the refusal still
-  fires — what this buys is that the refusal's sentence stays true, because every other route into
+  fires - what this buys is that the refusal's sentence stays true, because every other route into
   it really is a derivation-key problem.
 - Admin writes no longer round-trip their banner text through the query string, so `?notice=` cannot
   put caller-supplied text on the page; anything outside the closed key set renders nothing at all.
@@ -344,7 +344,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   tree was curated out of, so running it by hand failed and its own error told the reader to open a
   path that is not here. `CK_PG_*` in `postgres.sh` went at the same time, from beside
   `BOLTWAY_TEST_POSTGRES` in the same file.
-- README corrections, each of which a reader acts on — and this file is packed into all eighteen
+- README corrections, each of which a reader acts on - and this file is packed into all eighteen
   packages, so it is what a nuget.org visitor reads: the opening paragraph denied an admin UI and a
   durable storage implementation, both of which ship and both of which the same file describes 300
   lines later; the Layout table listed `src/` only, so `hosts/`, `testing/` and `samples/` appeared
@@ -361,30 +361,30 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   project; a `runtimeconfig.json`, because an executable test project was packaged as a library; and
   seven of this repository's own `InMemory*Tests` classes, so a consumer running `dotnet test` ran
   Boltway's tests and read the results as being about their store. The contracts are
-  `Boltway.Storage.Testing` now, and the namespace moved with them —
+  `Boltway.Storage.Testing` now, and the namespace moved with them -
   `namespace Boltway.Storage.Tests` is `namespace Boltway.Storage.Testing`. **The old id cannot be
   taken back**: nuget.org has unlist rather than delete, so `Boltway.Storage.Tests` 0.1.0 keeps
   restoring for anyone who names that version, forever.
 
-## [0.1.0] — 2026-08-23
+## [0.1.0] - 2026-08-23
 
 The first release: the authorization server, the resource server, the MCP layer, the storage
 providers, federation, notifications, and the specs and research they are built against. 506 files
 in one curated commit, with no history carried over from the private tree it was assembled from,
-plus three changes on top of it — the copyright holder named rather than a placeholder collective;
+plus three changes on top of it - the copyright holder named rather than a placeholder collective;
 `Boltway.Mcp`'s own JWKS refresher replaced by `Boltway.OAuth.Net.JwksKeySource` behind the same
 `AddJwksSigningKeys`; and the scope and permission vocabulary of a private deployment replaced with
 `docs:` and `reports:`.
 
 **Which tree that was is not recorded anywhere, so it was measured off the feed rather than read off
 the log.** The packages went out from a `workflow_dispatch` that built whatever `main` was at that
-moment and left no ref naming it — the gap the `release` workflow was written to close. Unpacking
+moment and left no ref naming it - the gap the `release` workflow was written to close. Unpacking
 `boltway.mcp` and `boltway.oauth.primitives` 0.1.0 on 2026-08-23 puts the boundary within one commit:
 the nuspec names the single author, the XML docs describe `JwksRefresher` in the past tense, the
 scope examples read `docs:read`, the credential prefixes are still `ck_`, the tags still include
 `dpop`, and the packed README carries no badges. Everything above is on the far side of that.
 
-Eighteen package ids are live at 0.1.0 — measured against the feed the same day, one
+Eighteen package ids are live at 0.1.0 - measured against the feed the same day, one
 `curl https://api.nuget.org/v3-flatcontainer/<id.lower()>/index.json` per id. Seventeen are still in
 the approved set; the eighteenth is `Boltway.Storage.Tests`, which reached the feed because a test
 project set `IsPackable=true`. See *Removed* above.

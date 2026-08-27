@@ -8,17 +8,53 @@ connector: `Boltway.ResourceServer` and `Boltway.Mcp` are what an MCP server ref
 The audience is strangers. Nobody reading this code has our context, our deployment, or our
 vocabulary, and every rule below follows from that one fact.
 
+## How to work
+
+Adapted from [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills),
+whose own note says to merge it with project-specific instructions. Everything below this section is
+that merge, and where the two disagree the specific rule wins, because it was paid for. These bias
+toward caution over speed; for a trivial change, use judgment.
+
+**1. Think before coding.** Do not assume, do not hide confusion, surface tradeoffs. State your
+assumptions. If several readings exist, name them rather than picking one silently. If a simpler
+approach exists, say so. If something is unclear, stop and say what is unclear.
+
+**2. Simplicity first.** The minimum that solves the problem, nothing speculative. No abstraction
+for single-use code, no configurability nobody asked for, no error handling for impossible
+scenarios. If you wrote 200 lines and it could be 50, rewrite it.
+
+Two exceptions, both already load-bearing here. *A value a **deployment** could reasonably need to
+change is still an option with a documented default* - that is the rule under **Nothing about one
+deployment lands here**, and it is about a stranger's install rather than about speculative code.
+And *no error handling for impossible scenarios* is not licence to swallow a possible one: **A
+refusal names its boundary** stands.
+
+**3. Surgical changes.** Touch only what you must. Do not improve adjacent code, do not refactor
+what is not broken, match the surrounding style. Remove the imports and members *your* change
+orphaned and nothing else. Notice unrelated dead code, mention it, leave it.
+
+**The carve-out, and it is narrow.** A comment, a requirement id or a document that has become
+**false** is not adjacent code; it is a defect in what the next reader will believe, and this
+repository already requires fixing it: *"keep the id's own entry true in the same commit"*, and
+`docs/CAPABILITIES.md` moving with the capability that moved. Fixing one in a file you are already
+editing is in scope, and the diff has to say so. Everything else waits.
+
+**4. Goal-driven execution.** Turn the task into something verifiable before starting. "Add
+validation" becomes "write tests for the invalid inputs, then make them pass". For multi-step work,
+state the plan as steps with a check each. Strong criteria let you loop without asking; "make it
+work" does not.
+
 ## Where things are
 
 | | |
 |---|---|
 | `src/` | the sixteen packages that ship to NuGet |
-| `hosts/` | two runnable deployables — the authorization server and the admin BFF — each with a `Dockerfile`. Not packable |
+| `hosts/` | two runnable deployables - the authorization server and the admin BFF - each with a `Dockerfile`. Not packable |
 | `testing/` | `Boltway.Interaction.Testing`, the layout and renderer contracts, shipped so a deployment can run them against its own markup |
 | `samples/` | the smallest thing that completes a whole flow, plus `drive-flow.sh` |
 | `tests/` | one suite per package, plus `Boltway.Architecture.Tests` and `Boltway.PublicApi.Tests`, which are about the shape rather than the behaviour |
 | `spec/` | the requirements, the vendored drafts, and dated captures of live surfaces |
-| `docs/` | everything written down that is not code — `docs/README.md` indexes it and marks each current, a decision record, or dated |
+| `docs/` | everything written down that is not code - `docs/README.md` indexes it and marks each current, a decision record, or dated |
 
 One tree, one solution, `Boltway.slnx`. The reason is under *the architecture tests* below.
 
@@ -29,14 +65,14 @@ never finished. A rule, a role name, a lifetime or an example that is true of *o
 stated here as though it were true of the library is a defect, whether or not anything fails.
 
 - **No company, product or person names** in identifiers, comments, XML docs, log lines, strings
-  or fixtures. That includes using our people as the actors in an anecdote — *"a founder pressed
+  or fixtures. That includes using our people as the actors in an anecdote - *"a founder pressed
   Link Google"* narrates a deployment the reader does not have. Say *"a user"*.
 - **No role vocabulary as though it were the library's.** `IRoleStore` and `IUserStore` hold role
   strings they never compare to a constant, and their doc comments say so by listing several
   unrelated examples on purpose. One example repeated everywhere reads as the built-in set.
 - **Example values obey RFC 2606, always.** `example.com`, `.test`, `.invalid`, `.localhost`.
   Nothing else is guaranteed unregistrable, and this library's whole job is dereferencing URLs
-  somebody else supplied — see *An example domain is somebody's property too* in `LESSONS.md`,
+  somebody else supplied - see *An example domain is somebody's property too* in `LESSONS.md`,
   which is there because `acme.com` shipped in this README and resolves to a real business.
 - **A default is not a policy.** Anything a deployment could reasonably need to change is an option
   with a documented default, not a constant. If it cannot be changed, say why in the comment.
@@ -51,8 +87,8 @@ that is advertised but not routed. If a change makes the document claim somethin
 lands in the same commit. `KnownGrantTypes` lists exactly the grants `TokenEndpoint` has an arm
 for, so configuring a name with nothing behind it is a startup failure rather than a runtime one.
 
-**The capability lists are part of that surface.** `docs/CAPABILITIES.md` holds four states — on,
-built-and-off, absent on purpose, not built yet — and the README's *What you get* table plus its
+**The capability lists are part of that surface.** `docs/CAPABILITIES.md` holds four states - on,
+built-and-off, absent on purpose, not built yet - and the README's *What you get* table plus its
 opening paragraph are the same claims at the place every reader starts. Moving a capability between
 states is part of the change that moved it, not a follow-up. A capability that grew a default and
 stayed filed under "not implemented" is how that middle state was earned; a capability that shipped
@@ -71,14 +107,14 @@ one per restart, and `ConfigurationDoctor` distinguishes `NotMeasured` from `Pas
 `LESSONS.md` is thirteen instances of recording something unmeasured as something known, and every
 one invented a fact about a stranger's system. Twelve are *"we did not measure this"* written down as
 *"this is not there"*. The thirteenth is this repository's own code, and it is the other direction:
-one observation with several explanations, written down as the alarming one — a host resolving to a
+one observation with several explanations, written down as the alarming one - a host resolving to a
 special-use address recorded as *"a rebinding signal"*, which broke every client on a network that
 filters its host. The file is cited by name from a dozen files under `src/`, and it is the shortest
 useful thing to read before a first change.
 
 What comes out of it, in code and in prose:
 
-- **Every axis needs a third value** — `yes` / `no` / `could not tell`, never the first two alone.
+- **Every axis needs a third value** - `yes` / `no` / `could not tell`, never the first two alone.
 - **A measurement is dated and attributed.** Anything asserted about a vendor's client behaviour or
   a library's defaults carries how it was measured and when. Captures live in `spec/` with the date
   in the filename. A fact with no date silently becomes a claim.
@@ -87,7 +123,7 @@ What comes out of it, in code and in prose:
 ## Comments carry the reason, not the mechanism
 
 The unusual thing about this codebase is comment density and it is deliberate. A comment does not
-say what the code does — the code says that. It says **why this and not the obvious alternative**,
+say what the code does - the code says that. It says **why this and not the obvious alternative**,
 and where possible names the incident that settled it. Reviewers will ask for it. If you cannot say
 why the obvious alternative is wrong, that is worth discovering before the change lands.
 
@@ -97,7 +133,7 @@ to* is not.
 ## The architecture tests are the design, and an exemption is almost never the answer
 
 `tests/Boltway.Architecture.Tests` reflects over the compiled assemblies with Mono.Cecil and fails
-the build on structural violations — the redirect decision never reaches a normalizing `System.Uri`
+the build on structural violations - the redirect decision never reaches a normalizing `System.Uri`
 member, only the guarded fetcher touches `System.Net.Http`, only the rejection writer produces an
 error response, nothing starts a process, nothing uses the non-cryptographic random, every project
 in `src/` is covered by the scan, every project says whether it packs, and every
@@ -134,8 +170,8 @@ might replace follows that pattern, and the XML doc says which side of the call 
 Client resolvers run in registration order and CIMD is the only one that makes an outbound request,
 so it belongs last.
 
-**So is the wire.** Every opaque credential this server mints carries a prefix naming its kind —
-`bw_ac_`, `bw_rt_`, `bw_rat_`, `bw_cs_` — and those strings are in deployments' databases and in
+**So is the wire.** Every opaque credential this server mints carries a prefix naming its kind -
+`bw_ac_`, `bw_rt_`, `bw_rat_`, `bw_cs_` - and those strings are in deployments' databases and in
 clients' hands. `OpaqueSecret.TryParse` still accepts the `ck_` spelling these carried under the
 project's previous name, and the refresh grace window can still reconstruct a successor under it,
 because refusing the old form on the deploy that renamed a string would sign out every session and
@@ -145,45 +181,45 @@ early is not a tidy-up, it is a forced re-authorization for everyone.
 
 **The rendered markup is part of the surface too.** A deployment's stylesheet hooks the class names
 the default renderer emits, so renaming one is a breaking change for every consumer who themed the
-pages — the cheapest tier of customization is the one with no compile error to warn them. Treat the
+pages - the cheapest tier of customization is the one with no compile error to warn them. Treat the
 class vocabulary the way you treat a public method name, and keep it named after this project.
 
 ## Storage
 
 PostgreSQL is the provider a deployment runs. SQLite is a development provider and does not meet
-the concurrent-redemption requirement — the defect is undiagnosed and written up on
+the concurrent-redemption requirement - the defect is undiagnosed and written up on
 `SqliteRelationalStoreBehavior`; do not record the pooling change as a fix, because it removes a
 route rather than the cause.
 
 The in-memory stores are per process. Anything cached or counted per process belongs in the
-**Before the second replica** table — in `hosts/Boltway.AuthorizationServer.Host/README.md`, beside
-the operator who reads it — in the same change that adds it. Eleven files were each locally honest
+**Before the second replica** table - in `hosts/Boltway.AuthorizationServer.Host/README.md`, beside
+the operator who reads it - in the same change that adds it. Eleven files were each locally honest
 about it and there was nowhere to look on the day it mattered. One row of that table is a security
 property rather than a budget, and startup cannot detect it.
 
 ## Public surface and version
 
 `<Version>` lives once, in `Directory.Build.props`. If a change alters anything a consumer compiles
-against, move it in the same commit — doing it at release time has already cost an outage, and the
+against, move it in the same commit - doing it at release time has already cost an outage, and the
 comment there says so.
 
 **Check the feed before you believe the comment.** `Directory.Build.props` said 0.1.0 "because
 nothing here has ever been published" while eighteen ids were live on nuget.org at exactly 0.1.0,
-one of them `Boltway.Storage.Tests` — a test project that reached the feed by setting
+one of them `Boltway.Storage.Tests` - a test project that reached the feed by setting
 `IsPackable=true`. A version already on the feed is pushed with `--skip-duplicate`, which reports
 success and drops the package, and nuget.org has no delete, only unlist. One
 `curl https://api.nuget.org/v3-flatcontainer/<id.lower()>/index.json` settles what is out there; a
 sentence in this repository saying what has been published is a claim, and this one was wrong.
 
 What packs is `StructuralRuleTests.PackableProjects`, checked by a test rather than counted by
-hand. Adding a package is an edit to that list, made deliberately — an id cannot be taken back.
+hand. Adding a package is an edit to that list, made deliberately - an id cannot be taken back.
 
 **A break is a decision, not an accident.** `EnablePackageValidation` diffs every packable project
-against `PackageValidationBaselineVersion` — the release before this one, already on the feed — so a
+against `PackageValidationBaselineVersion` - the release before this one, already on the feed - so a
 removed or re-signatured public member fails the pack with `CP0002`. That number moves in the commit
 that moves `<Version>`, and a test holds it to CHANGELOG.md's second heading: left behind, the gate
 stops seeing anything the previous release added and this one removes, which is the half a consumer
-on the newest version is compiling against. At 0.x a break is allowed — `VERSIONING.md` says so — and the gate exists to make it
+on the newest version is compiling against. At 0.x a break is allowed - `VERSIONING.md` says so - and the gate exists to make it
 something somebody chose. Its own error suggests `ApiCompatGenerateSuppressionFile`, which writes
 the break into a file nobody reads again; record it in `CHANGELOG.md` instead, where the consumer
 about to hit it will see it.
@@ -209,7 +245,7 @@ contract for.
 
 **A translation is data a deployment edits, so what it can silently break is a design question.**
 Two rules come out of that, and both are enforced rather than asked for. Text is HTML-encoded and
-then values are spliced into its placeholders — never `string.Format` on the raw text — so a
+then values are spliced into its placeholders - never `string.Format` on the raw text - so a
 translation cannot introduce markup. And `InteractionText.Problems` refuses at startup a
 translation whose placeholders do not match the English arity: a `ConsentClientAsking` without
 `{0}` reads as a grammatical sentence with the client's host silently absent, which is the field
@@ -218,7 +254,7 @@ place it can be caught.
 
 The seam a deployment replaces is `IStringLocalizer`, registered **before**
 `AddBoltwayInteractionLocalization`. It was documented for a while as a replaced
-`IStringLocalizerFactory` — the way OrchardCore and ABP do it — and nothing here ever resolved a
+`IStringLocalizerFactory` - the way OrchardCore and ABP do it - and nothing here ever resolved a
 factory, so anybody who followed that got English pages and no error. A documented extension point
 with nothing behind it is `N-06` on the customization surface.
 
@@ -228,7 +264,7 @@ with nothing behind it is `N-06` on the customization surface.
   old code is a promise rather than a check.
 - A control matters as much as the case: a test asserting a refusal proves nothing unless a sibling
   proves the same path accepts what it should.
-- Do not assert on timing. Wait on the work — the fixtures expose completion signals.
+- Do not assert on timing. Wait on the work - the fixtures expose completion signals.
 - **Never skip, disable or quarantine a test to get green.** If a test is wrong, fix it and say in
   the diff why it was wrong.
 - `Boltway.Storage.PostgreSql.Tests` fails rather than skips without a real server, deliberately: a
@@ -243,6 +279,44 @@ derives short-lived ones.
 `AllowPrivateAddresses` disables the RFC 6890 check entirely and turns `/authorize` into an
 unauthenticated port scanner. It exists for development and for an on-premises upstream, and the
 default is off. Do not widen it to make a test pass.
+
+## How to write
+
+The reader is a stranger, often under time pressure, sometimes during an incident.
+
+- **No em-dashes (U+2014).** A comma, a colon, a full stop, or ` - `. Checkable, and the check runs:
+
+  ```bash
+  LC_ALL=C.UTF-8 grep -rnP '\x{2014}' --include='*.md' . \
+      --exclude-dir=.git --exclude-dir=spec --exclude-dir=archive
+  ```
+
+  Two details, and both were found by running it rather than by writing it. The locale is not
+  decoration: without it GNU grep reads the pattern as bytes and answers `character code point value
+  in \x{} or \o{} is too large`, which looks like a broken command rather than a passing check. And
+  the first draft of this command searched `docs/` rather than `--include='*.md'`, so it went red on
+  the translation fixture named two paragraphs below as deliberately out of scope: a check that
+  contradicts the rule beside it. Measured 2026-08-27; exits 1 across the tree.
+
+  **Three places it deliberately does not reach, and the reason differs for each.**
+  `spec/` holds vendored IETF drafts and dated captures of live surfaces: rewriting punctuation
+  inside somebody else's document or a recorded measurement falsifies it, and this repository's
+  whole discipline about dated evidence says so. `docs/archive/` is *"a dated measurement, wrong now
+  on purpose"* by `docs/README.md`'s own classification, which is the same argument.
+  `docs/examples/translations.vi.json` is user-facing copy a deployment would edit, and how a
+  deployment punctuates its own pages is not this file's business.
+
+  **And one where it does not reach yet.** The 2162 em-dashes across 218 of the 247 files in `src/`
+  are the code's current convention rather than a lapse, so changing them is a decision about
+  `git blame` across a published library rather than a tidy-up. Counted 2026-08-27; the rule above
+  is scoped to the documents until somebody decides otherwise, and saying which is which is cheaper
+  than a rule that is quietly false in most of the tree.
+
+- **State the thing, then the reason.** A claim followed by why it is true reads faster than a
+  paragraph that arrives at its point.
+- **Name the incident, with its date.** "Measured 2026-08-26" outranks "should".
+- **Say what you did not check.** A section silent about its limits reads as complete.
+- No filler openers, no restating the request, no summarising what the reader just read.
 
 ## After changing anything
 
@@ -260,4 +334,4 @@ Requirement ids are cited throughout the code and the README, and every one is d
 contract (§2), `X-*` error codes (§4), `N-*` non-negotiables (§5), `C-*` client compatibility (§6),
 `A-*` the Auth0-trap requirements restated positively, with acceptance criteria (§7), `D-*`
 deferred (§8). Cite the id, and keep the id's own entry true
-in the same commit — an id whose entry has drifted is worse than no id.
+in the same commit - an id whose entry has drifted is worse than no id.

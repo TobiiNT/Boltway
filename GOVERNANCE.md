@@ -16,7 +16,7 @@ steering group.
 Measured on 2026-08-24, on `main`: 27 commits, of which 12 are Dependabot and the rest are the
 maintainer's, some authored with an AI assistant. Nobody outside the project has contributed yet.
 `git shortlog -sne` re-measures this in one command, and it is the honest input to a bus-factor
-question — which is 1.
+question - which is 1.
 
 ## What that means if you are depending on this
 
@@ -29,11 +29,11 @@ this young:
 - **If the maintainer stops, the project stops.** There is no succession plan, because a succession
   plan naming nobody is worse than saying this. What there *is* instead: Apache-2.0, a full history,
   a build that runs from a clone with no private inputs, and every design decision written down with
-  the reasoning — `LESSONS.md`, `docs/decisions/`, `spec/REQUIREMENTS.md`. Forking is the continuity
+  the reasoning - `LESSONS.md`, `docs/decisions/`, `spec/REQUIREMENTS.md`. Forking is the continuity
   plan, and the repository is arranged so that a fork inherits the reasoning and not just the code.
 - **Review is asymmetric.** The maintainer's own changes are reviewed by the maintainer. What
   actually constrains them is machinery rather than a second pair of eyes, and that is a deliberate
-  substitute rather than an equivalent one — see below.
+  substitute rather than an equivalent one - see below.
 - **Versions promise little on purpose.** `VERSIONING.md` says what 0.x does and does not commit to.
 
 ## What constrains the maintainer
@@ -58,7 +58,7 @@ somebody thought to encode. It cannot tell you a design is wrong.
 
 1. Open an issue first for anything that changes a design decision, so the argument happens before
    the diff. Small fixes can skip straight to a pull request.
-2. `CONTRIBUTING.md` is the house rules — one concern per pull request, say what you measured, and
+2. `CONTRIBUTING.md` is the house rules - one concern per pull request, say what you measured, and
    the version-bump rule that moves three files together.
 3. The maintainer reviews and merges. External pull requests get a response; see the acknowledgement
    window above for what that is worth as a promise.
@@ -66,7 +66,7 @@ somebody thought to encode. It cannot tell you a design is wrong.
    quarantined to get green.
 
 `.github/CODEOWNERS` routes review requests. With one maintainer it resolves to the same person for
-every path — its job here is to make that visible in the tree rather than to distribute anything.
+every path - its job here is to make that visible in the tree rather than to distribute anything.
 
 ## Becoming a maintainer
 
@@ -75,7 +75,7 @@ record of merged changes that follow the house rules without being asked, sound 
 review of somebody else's diff, and enough interest in the problem to still be here in six months.
 If that describes you, say so in an issue.
 
-If it ever happens, this file is the thing that changes in the same commit — a maintainer list that
+If it ever happens, this file is the thing that changes in the same commit - a maintainer list that
 has drifted is worse than no maintainer list.
 
 ## Contributions and licence
@@ -87,7 +87,7 @@ project is Apache rather than MIT.
 **There is no CLA and no DCO sign-off requirement.** That is a choice with a cost, stated so nobody
 is surprised by it: the inbound licence rests on this paragraph and on Apache-2.0 §5 rather than on
 a per-commit signed trail, and some legal reviews want the trail. If that blocks adoption at your
-organization, open an issue — adding `Signed-off-by` enforcement is cheap, and the reason it is not
+organization, open an issue - adding `Signed-off-by` enforcement is cheap, and the reason it is not
 here is that no contributor has needed it yet, not that it was refused.
 
 ## Code of conduct
