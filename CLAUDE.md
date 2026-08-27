@@ -309,12 +309,12 @@ The reader is a stranger, often under time pressure, sometimes during an inciden
   **And a fourth boundary, inside the code rather than around it: comments yes, strings no.** Every
   em-dash in a comment went the same way as the documents - C#, MSBuild, YAML, shell, Python,
   Dockerfile, CSS, JavaScript, `.editorconfig`, `CODEOWNERS` - because a comment is this repository
-  writing about its own code. **107 remain, and every one is inside a string**, which is the same
+  writing about its own code. **111 remain, and every one is inside a string**, which is the same
   argument as the translation file one paragraph up: a literal is something the software *says*.
 
-  | 76 | C# string literals |
+  | 79 | C# string literals |
   | 14 | workflow `echo` and input descriptions |
-  |  9 | MSBuild attribute and element text |
+  | 10 | MSBuild attribute and element text |
   |  4 | Python strings |
   |  3 | shell `echo` |
   |  1 | the translation fixture |
@@ -325,8 +325,11 @@ The reader is a stranger, often under time pressure, sometimes during an inciden
   commit that says so. Counted 2026-08-27.
 
   That split is also why `grep` alone cannot check the code half: it cannot tell a comment from a
-  string. The markdown command above is the checkable part, and 107 is the number to compare a
-  whole-tree count against.
+  string. The markdown command above is the checkable part, and 111 is the number to compare a
+  whole-tree count against - **occurrences, not lines**, which is how this number was first written
+  down wrong. The script that produced it collected one row per line, so the four lines carrying two
+  em-dashes each were counted once, and a reader running `grep -o | wc -l` against 107 would have
+  found a discrepancy the file could not explain.
 
 - **State the thing, then the reason.** A claim followed by why it is true reads faster than a
   paragraph that arrives at its point.
