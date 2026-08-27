@@ -11,38 +11,30 @@ vocabulary, and every rule below follows from that one fact.
 ## How to work
 
 Adapted from [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills),
-whose own note says to merge it with project-specific instructions. Everything below this section is
-that merge, and where the two disagree the specific rule wins, because it was paid for. These bias
-toward caution over speed; for a trivial change, use judgment.
+whose own note says to merge it with project-specific instructions. Everything below is that merge,
+and where the two disagree the specific rule wins, because it was paid for.
 
-**1. Think before coding.** Do not assume, do not hide confusion, surface tradeoffs. State your
-assumptions. If several readings exist, name them rather than picking one silently. If a simpler
-approach exists, say so. If something is unclear, stop and say what is unclear.
+**1. Think before coding.** Do not assume, do not hide confusion, surface tradeoffs. If several
+readings exist, name them rather than picking one silently. If something is unclear, say what.
 
-**2. Simplicity first.** The minimum that solves the problem, nothing speculative. No abstraction
+**2. Simplicity first.** The minimum that solves the problem, nothing speculative: no abstraction
 for single-use code, no configurability nobody asked for, no error handling for impossible
-scenarios. If you wrote 200 lines and it could be 50, rewrite it.
+scenarios. Two exceptions, both already load-bearing here. A value a **deployment** could need to
+change is still an option with a documented default, per **Nothing about one deployment lands
+here**. And an impossible scenario is not a possible one: **A refusal names its boundary** stands.
 
-Two exceptions, both already load-bearing here. *A value a **deployment** could reasonably need to
-change is still an option with a documented default* - that is the rule under **Nothing about one
-deployment lands here**, and it is about a stranger's install rather than about speculative code.
-And *no error handling for impossible scenarios* is not licence to swallow a possible one: **A
-refusal names its boundary** stands.
-
-**3. Surgical changes.** Touch only what you must. Do not improve adjacent code, do not refactor
-what is not broken, match the surrounding style. Remove the imports and members *your* change
-orphaned and nothing else. Notice unrelated dead code, mention it, leave it.
+**3. Surgical changes.** Touch only what you must. Do not improve adjacent code or refactor what is
+not broken; match the surrounding style; remove only what *your* change orphaned. Notice unrelated
+dead code, mention it, leave it.
 
 **The carve-out, and it is narrow.** A comment, a requirement id or a document that has become
-**false** is not adjacent code; it is a defect in what the next reader will believe, and this
-repository already requires fixing it: *"keep the id's own entry true in the same commit"*, and
-`docs/CAPABILITIES.md` moving with the capability that moved. Fixing one in a file you are already
-editing is in scope, and the diff has to say so. Everything else waits.
+**false** is a defect in what the next reader will believe, and this file already requires fixing
+it in the same commit. Fixing one in a file you are already editing is in scope and the diff has to
+say so. Everything else waits.
 
-**4. Goal-driven execution.** Turn the task into something verifiable before starting. "Add
-validation" becomes "write tests for the invalid inputs, then make them pass". For multi-step work,
-state the plan as steps with a check each. Strong criteria let you loop without asking; "make it
-work" does not.
+**4. Goal-driven execution.** Make the task verifiable before starting: "add validation" becomes
+"write tests for the invalid inputs, then make them pass". Strong criteria let you loop without
+asking.
 
 ## Where things are
 
@@ -284,52 +276,12 @@ default is off. Do not widen it to make a test pass.
 
 The reader is a stranger, often under time pressure, sometimes during an incident.
 
-- **No em-dashes (U+2014).** A comma, a colon, a full stop, or ` - `. Checkable, and the check runs:
-
-  ```bash
-  LC_ALL=C.UTF-8 grep -rnP '\x{2014}' --include='*.md' . \
-      --exclude-dir=.git --exclude-dir=spec --exclude-dir=archive
-  ```
-
-  Two details, and both were found by running it rather than by writing it. The locale is not
-  decoration: without it GNU grep reads the pattern as bytes and answers `character code point value
-  in \x{} or \o{} is too large`, which looks like a broken command rather than a passing check. And
-  the first draft of this command searched `docs/` rather than `--include='*.md'`, so it went red on
-  the translation fixture named two paragraphs below as deliberately out of scope: a check that
-  contradicts the rule beside it. Measured 2026-08-27; exits 1 across the tree.
-
-  **Three places it deliberately does not reach, and the reason differs for each.**
-  `spec/` holds vendored IETF drafts and dated captures of live surfaces: rewriting punctuation
-  inside somebody else's document or a recorded measurement falsifies it, and this repository's
-  whole discipline about dated evidence says so. `docs/archive/` is *"a dated measurement, wrong now
-  on purpose"* by `docs/README.md`'s own classification, which is the same argument.
-  `docs/examples/translations.vi.json` is user-facing copy a deployment would edit, and how a
-  deployment punctuates its own pages is not this file's business.
-
-  **And a fourth boundary, inside the code rather than around it: comments yes, strings no.** Every
-  em-dash in a comment went the same way as the documents - C#, MSBuild, YAML, shell, Python,
-  Dockerfile, CSS, JavaScript, `.editorconfig`, `CODEOWNERS` - because a comment is this repository
-  writing about its own code. **111 remain, and every one is inside a string**, which is the same
-  argument as the translation file one paragraph up: a literal is something the software *says*.
-
-  | 79 | C# string literals |
-  | 14 | workflow `echo` and input descriptions |
-  | 10 | MSBuild attribute and element text |
-  |  4 | Python strings |
-  |  3 | shell `echo` |
-  |  1 | the translation fixture |
-
-  Some are localizable copy a deployment replaces (`AdminText`, `InteractionText`,
-  `NotificationText`); some are operator-facing messages that tests assert on character for
-  character. None is prose about the code, so changing one is a change to output and belongs in a
-  commit that says so. Counted 2026-08-27.
-
-  That split is also why `grep` alone cannot check the code half: it cannot tell a comment from a
-  string. The markdown command above is the checkable part, and 111 is the number to compare a
-  whole-tree count against - **occurrences, not lines**, which is how this number was first written
-  down wrong. The script that produced it collected one row per line, so the four lines carrying two
-  em-dashes each were counted once, and a reader running `grep -o | wc -l` against 107 would have
-  found a discrepancy the file could not explain.
+- **No em-dashes (U+2014).** A comma, a colon, a full stop, or ` - `. It applies to what this
+  repository *writes* - documents and comments - and not to what the software *says*: a string
+  literal is output, and changing one is a change to a message, not punctuation. `spec/` and
+  `docs/archive/` are out of scope entirely, because rewriting a vendored draft or a dated
+  measurement falsifies it. `python3 scripts/check-dashes.py` is the check, and it holds the counts
+  so this file does not have to: a number in here is one somebody has to keep true forever.
 
 - **State the thing, then the reason.** A claim followed by why it is true reads faster than a
   paragraph that arrives at its point.
