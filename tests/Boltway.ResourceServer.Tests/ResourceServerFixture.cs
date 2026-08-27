@@ -247,10 +247,18 @@ internal sealed class ResourceServerFixture : IAsyncDisposable
     /// </remarks>
     public LogSink Logs { get; private set; } = null!;
 
+    /// <param name="configure">Options for the resource server under test.</param>
+    /// <param name="corsEnabledByHost">Stand in for a host running its own CORS policy.</param>
+    /// <param name="configureServices">Seams a deployment supplies rather than configures.</param>
+    /// <param name="hostMiddleware">
+    /// A middleware the host runs before this library's, for the case where a deployment has
+    /// authentication of its own. It is what the sabotage derivation of the shipped contract uses.
+    /// </param>
     public static async Task<ResourceServerFixture> StartAsync(
         Action<ProtectedResourceOptions>? configure = null,
         bool corsEnabledByHost = false,
-        Action<IServiceCollection>? configureServices = null)
+        Action<IServiceCollection>? configureServices = null,
+        Action<IApplicationBuilder>? hostMiddleware = null)
     {
         var sink = new LogSink();
 
@@ -297,6 +305,11 @@ internal sealed class ResourceServerFixture : IAsyncDisposable
                             await next(context);
                         });
                     }
+
+                    // Before this library's, which is where a host's own authentication middleware
+                    // goes and is the ordering that produced the defect the shipped contract was
+                    // written from.
+                    hostMiddleware?.Invoke(app);
 
                     app.UseBoltwayProtectedResource();
                     app.UseEndpoints(endpoints =>

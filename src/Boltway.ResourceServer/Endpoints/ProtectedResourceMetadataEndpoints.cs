@@ -56,6 +56,23 @@ namespace Boltway.ResourceServer.Endpoints;
 /// discovering that requires authenticating — and it is a repeatedly observed real-world connector
 /// failure. <c>AllowAnonymous</c> here is also what this server's own bearer middleware keys off.
 /// </para>
+/// <para>
+/// <b>And <c>AllowAnonymous</c> is only <i>this</i> pipeline's word for it.</b> A host that runs
+/// authentication of its own alongside this library — an MCP connector with its own caller model is
+/// the common shape — has a second vocabulary for "no credential needed", and neither middleware
+/// reads the other's. The endpoints below carry the framework's marker; a host middleware keyed on
+/// its own marker refuses them, and the symptom is a client that cannot discover where to
+/// authenticate while every other route behaves. <b>Measured on a real deployment on 2026-08-26</b>:
+/// both well-known forms answering <c>401</c>, keys fetched, tokens validating, and a suite of 402
+/// unit tests green — because none of them is about a pipeline.
+/// </para>
+/// <para>
+/// So a host with its own authentication middleware marks these endpoints in <i>its</i> vocabulary
+/// too. Mapping them inside a route group and putting that marker on the group covers whatever this
+/// package maps here, including anything a later version adds, and covers nothing else.
+/// <c>Boltway.ResourceServer.Testing</c>'s <c>ProtectedResourceContract</c> is this paragraph as a
+/// test a deployment can run against its own wiring.
+/// </para>
 /// </remarks>
 public static class ProtectedResourceMetadataEndpoints
 {

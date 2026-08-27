@@ -21,6 +21,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Boltway.ResourceServer\Boltway.ResourceServer.csproj" />
+
+    <!--
+      The shipped contract, derived here against this repository's own fixture. A contract nobody
+      runs is a promise; running it against the wiring the samples and the docs recommend is what
+      makes it a check. It is also the only way a change that breaks a consumer's derivation shows
+      up in this repository's build rather than in theirs.
+    -->
+    <ProjectReference Include="..\..\testing\Boltway.ResourceServer.Testing\Boltway.ResourceServer.Testing.csproj" />
   </ItemGroup>
 
 </Project>

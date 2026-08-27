@@ -1043,6 +1043,7 @@ public sealed class StructuralRuleTests
         "Boltway.OAuth.Primitives",
         "Boltway.OAuth.Tokens",
         "Boltway.ResourceServer",
+        "Boltway.ResourceServer.Testing",
         "Boltway.Storage.EntityFrameworkCore",
         "Boltway.Storage.InMemory",
         "Boltway.Storage.PostgreSql",

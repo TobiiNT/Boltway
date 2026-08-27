@@ -44,6 +44,19 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Boltway.AuthorizationServer\Boltway.AuthorizationServer.csproj" />
     <ProjectReference Include="..\..\src\Boltway.OAuth.Primitives\Boltway.OAuth.Primitives.csproj" />
+
+    <!--
+      A SHIPPED PACKAGE, NOT A TEST-SUPPORT TYPE FROM ANOTHER TEST ASSEMBLY. The rule above forbids
+      the second and this is the first: Boltway.ResourceServer.Testing is on the approved package
+      list, a customer references it by id, and referencing it here is what a customer does.
+
+      It is here because a contract a customer cannot derive is the same defect this project was
+      built for. tests/Boltway.ResourceServer.Tests derives ProtectedResourceContract already and
+      proves nothing about that - it is on an InternalsVisibleTo list, which is exactly how
+      IResourceRegistry stayed public, required and unimplementable for weeks while every test
+      passed.
+    -->
+    <ProjectReference Include="..\..\testing\Boltway.ResourceServer.Testing\Boltway.ResourceServer.Testing.csproj" />
   </ItemGroup>
 
 </Project>

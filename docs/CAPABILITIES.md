@@ -131,8 +131,10 @@ that nothing in it is committed to. What is here is narrower and closer to the c
 
   Assign `JwksKeySource.CurrentKeys` to `SigningKeySource`, not to `SigningKeys` — the list is
   mutable state a request enumerates while a refresher writes it, which is a rotation-day failure of
-  its own. In an MCP connector, `services.AddJwksSigningKeys(issuer)` from `Boltway.Mcp` wires the
-  source, primes it at startup, and refuses to start without keys.
+  its own. `services.AddJwksSigningKeys(issuer)` from `Boltway.ResourceServer` wires the source,
+  primes it at startup, and refuses to start without keys. It lived in `Boltway.Mcp` until 0.4.0,
+  where a resource-server author did not find it and wrote it again by hand; that call still works
+  and is obsolete.
 - **Upstream identity providers other than one.** Federated sign-in ships —
   `Boltway.Federation.Oidc` is a generic OpenID Connect relying party and
   `Boltway.Federation.Google` is configuration over it — but only one has been driven against

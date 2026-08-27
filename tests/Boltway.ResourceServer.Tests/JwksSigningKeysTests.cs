@@ -1,14 +1,14 @@
 using System.Text;
-using Boltway.Mcp;
 using Boltway.OAuth.Net;
 using Boltway.OAuth.Primitives.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Xunit;
+using Boltway.ResourceServer.DependencyInjection;
 using RsOptions = Boltway.ResourceServer.Configuration.ProtectedResourceOptions;
 
-namespace Boltway.Mcp.Tests;
+namespace Boltway.ResourceServer.Tests;
 
 /// <summary>
 /// The DI seam that points a resource server's verification keys at the authorization server's
