@@ -10,12 +10,12 @@ namespace Boltway.OAuth.Primitives.Redirects;
 /// This type exists so that <see cref="RedirectUriMatcher"/> can be written without a single
 /// reference to <see cref="Uri"/>. That is not a stylistic preference: <see cref="Uri"/> is a
 /// normalizing type, and every one of its normalizations maps several distinct byte strings onto
-/// one — which is the same operation as widening a redirect allowlist.
+/// one - which is the same operation as widening a redirect allowlist.
 /// </para>
 /// <para>
 /// The rule that follows, and it is absolute: <b>no value that a matching decision compares may
 /// have passed through <see cref="Uri"/>.</b> <see cref="Uri"/> is used here only to <i>reject</i>
-/// (is it absolute, does it carry a fragment, is the port in range) — never to produce a string
+/// (is it absolute, does it carry a fragment, is the port in range) - never to produce a string
 /// that is later compared. Every compared value is cut out of the raw request bytes.
 /// </para>
 /// <para>
@@ -78,12 +78,12 @@ internal readonly struct RedirectUriParts
         // Reject every character below '!' and DEL, BEFORE Uri sees the string.
         //
         // This is the highest-value check in the file. System.Uri TRIMS leading and trailing
-        // whitespace — including CR, LF and TAB — and then validates what is left. So
+        // whitespace - including CR, LF and TAB - and then validates what is left. So
         // "http://127.0.0.1:1/callback\r\n\r\n" parses as a clean URI, passes every rule below,
         // and matches a registration. The raw string is what gets written to the Location header,
         // and it still has the CRLF in it: response splitting on the authorization server's own
         // origin. On the registration side it is worse, because it needs no loopback and reaches
-        // the exact-match path — any client that can self-register through DCR or CIMD could store
+        // the exact-match path - any client that can self-register through DCR or CIMD could store
         // a CRLF-bearing redirect URI and then drive a victim through /authorize.
         //
         // A redirect URI legally contains none of these characters. Rejecting the whole range is
@@ -110,7 +110,7 @@ internal readonly struct RedirectUriParts
             return false;
         }
 
-        // Userinfo is refused for its own sake — a credential in a redirect URI is a phishing
+        // Userinfo is refused for its own sake - a credential in a redirect URI is a phishing
         // primitive, because the host a human reads is not the host the browser connects to. It
         // also happens to close a parser-disagreement hole: in
         // "http://127.0.0.1:1\r\n@evil.example/cb", Uri strips the CRLF and sees evil.example while
@@ -243,7 +243,7 @@ internal readonly struct RedirectUriParts
     /// <remarks>
     /// Ordinal, not <c>OrdinalIgnoreCase</c>, so that classification and comparison use the same
     /// rule. Case-insensitive classification here would put <c>http://LOCALHOST:1/cb</c> into the
-    /// loopback branch and then fail its host comparison against <c>localhost</c> — failing closed,
+    /// loopback branch and then fail its host comparison against <c>localhost</c> - failing closed,
     /// but for a reason no reader could predict. A registration is lowercased on write, so an
     /// uppercase host can only arrive on a request, and a request is never normalized.
     /// </remarks>
@@ -265,7 +265,7 @@ internal readonly struct RedirectUriParts
     /// </summary>
     /// <remarks>
     /// Requires at least two dot-separated non-empty labels and forbids an <c>//</c> authority.
-    /// "Contains a dot" alone would admit <c>co.uk:/cb</c> and, worse, <c>http.s://host/cb</c> —
+    /// "Contains a dot" alone would admit <c>co.uk:/cb</c> and, worse, <c>http.s://host/cb</c> -
     /// which reads as a typo of <c>https</c> and would be classified as a private-use scheme.
     /// Matching stays exact for this kind either way, so this is tightening the door rather than
     /// closing a hole.
@@ -273,7 +273,7 @@ internal readonly struct RedirectUriParts
     private static bool IsPrivateUseScheme(string scheme, bool hasAuthority)
     {
         // Tests whether an authority MARKER was present, not whether it was non-empty. "file://"
-        // and "a.b://" carry an empty authority, which is still an authority — RFC 8252 §7.1
+        // and "a.b://" carry an empty authority, which is still an authority - RFC 8252 §7.1
         // private-use schemes are of the form scheme:/path with no "//" at all.
         if (hasAuthority)
         {
@@ -307,7 +307,7 @@ internal readonly struct RedirectUriParts
     /// </summary>
     /// <remarks>
     /// RFC 3986 §6.2.2.1 makes scheme and host case-insensitive and everything after them
-    /// case-sensitive, so this is the one normalization safe to apply — and it is applied at
+    /// case-sensitive, so this is the one normalization safe to apply - and it is applied at
     /// registration only, never to a request. Done by string surgery rather than by rebuilding
     /// through <see cref="Uri"/>: reconstruction would also elide an explicitly written default
     /// port, and <c>https://claude.ai:443/cb</c> is not the same registered string as
@@ -321,8 +321,8 @@ internal readonly struct RedirectUriParts
         }
 
         // Preserve the "//" whenever it was there. Collapsing "file:///etc/passwd" to
-        // "file:/etc/passwd" is a normalization that changes what the URI MEANS — an empty
-        // authority is not the absence of one — and normalize-on-write must only ever change case.
+        // "file:/etc/passwd" is a normalization that changes what the URI MEANS - an empty
+        // authority is not the absence of one - and normalize-on-write must only ever change case.
         // It also produced a misleading rejection: the collapsed form does not parse at all, so the
         // reported reason became NotAbsolute for a URI that is absolute and should have been
         // refused for its scheme.

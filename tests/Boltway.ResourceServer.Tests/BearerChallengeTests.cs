@@ -12,7 +12,7 @@ public sealed class BearerChallengeTests
     {
         // X-32, and the reason the whole handshake exists: "Claude does not honor a
         // WWW-Authenticate header on a 200 response", and a 200 carrying isError: true produces no
-        // authentication prompt at all — the text goes to the model as a tool result and the
+        // authentication prompt at all - the text goes to the model as a tool result and the
         // conversation moves on. The status code is the signal.
         await using var fixture = await ResourceServerFixture.StartAsync();
 
@@ -84,7 +84,7 @@ public sealed class BearerChallengeTests
     {
         // RFC 7235 auth-param values are token or quoted-string, and a URL contains ':' and '/',
         // neither of which is a tchar. An unquoted resource_metadata is a protocol violation that
-        // several parsers answer by dropping the parameter — which removes the discovery pointer
+        // several parsers answer by dropping the parameter - which removes the discovery pointer
         // while leaving a 401 that looks correct.
         await using var fixture = await ResourceServerFixture.StartAsync();
 
@@ -197,7 +197,7 @@ public sealed class BearerChallengeTests
     public async Task An_unparseable_token_gets_a_401_and_the_request_never_reaches_the_header()
     {
         // The credential is syntactically a b64token, so this is a validation failure rather than a
-        // malformed header — and the description that comes back is a constant. error_description
+        // malformed header - and the description that comes back is a constant. error_description
         // is the one parameter carrying free text, and a stray quote in it terminates the quoted
         // string early and eats the resource_metadata that follows.
         await using var fixture = await ResourceServerFixture.StartAsync();
@@ -211,8 +211,8 @@ public sealed class BearerChallengeTests
     [Fact]
     public async Task A_valid_token_short_of_a_scope_gets_a_403_with_insufficient_scope()
     {
-        // X-34. A 403 without error="insufficient_scope" is terminal for Claude — no re-auth
-        // prompt, permanently — so this is the only 403 the middleware can produce.
+        // X-34. A 403 without error="insufficient_scope" is terminal for Claude - no re-auth
+        // prompt, permanently - so this is the only 403 the middleware can produce.
         await using var fixture = await ResourceServerFixture.StartAsync();
 
         using var response = await Get(fixture, "/mcp/write", Mint.AccessToken(scope: Build.ToolScope));
@@ -334,7 +334,7 @@ public sealed class BearerChallengeTests
     public async Task A_credential_in_another_scheme_gets_a_401_not_a_400()
     {
         // The inverse of X-35's reasoning. A client holding a Basic credential for some other
-        // system has not failed to FORM a Bearer request, it has failed to MAKE one — and the
+        // system has not failed to FORM a Bearer request, it has failed to MAKE one - and the
         // challenge that comes back tells it which scheme this resource speaks and where the
         // metadata is, which is actionable. A 400 would be terminal for a client that could have
         // authenticated correctly.
@@ -367,7 +367,7 @@ public sealed class BearerChallengeTests
     {
         // Every error_description this server writes is a compile-time constant, so there is
         // nothing for a crafted header to reach. The assertion is that the challenge is
-        // well-formed and still carries the discovery pointer — because the failure being ruled out
+        // well-formed and still carries the discovery pointer - because the failure being ruled out
         // is not "the attacker's text appears" but "the header is truncated at their quote and
         // resource_metadata disappears with it".
         await using var fixture = await ResourceServerFixture.StartAsync();
@@ -397,7 +397,7 @@ public sealed class BearerChallengeTests
     {
         // Fail-closed stops at the routing table. A 401 on an unrouted path would turn every stray
         // probe into an authentication prompt, and it would do it on exactly the paths a client
-        // probes during discovery — where a clean 404 is what lets it move to the next candidate.
+        // probes during discovery - where a clean 404 is what lets it move to the next candidate.
         await using var fixture = await ResourceServerFixture.StartAsync();
 
         using var response = await fixture.Client.GetAsync(new Uri("/nothing-here", UriKind.Relative));

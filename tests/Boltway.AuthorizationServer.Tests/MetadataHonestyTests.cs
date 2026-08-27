@@ -48,7 +48,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// <b>Deliberately no <c>MapFallback</c> in this host.</b> The sibling fixture in
 /// <c>DiscoveryEndpointTests</c> installs an HTML catch-all on purpose, to prove the well-known
-/// probes survive a SPA shell — which means nothing 404s there and this sweep would pass over a
+/// probes survive a SPA shell - which means nothing 404s there and this sweep would pass over a
 /// server that routed none of it.
 /// </para>
 /// </remarks>
@@ -80,7 +80,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
                     services.AddSingleton(TestKeys.Ring());
 
                     // The seams a deployment supplies. Registered because /token resolves them on
-                    // the first request rather than at startup — Every_advertised_grant_has_a_handler
+                    // the first request rather than at startup - Every_advertised_grant_has_a_handler
                     // found that the hard way, with a host that started cleanly and threw
                     // "No service for type 'IClientSecretStore'" the moment a client showed up.
                     services.AddSingleton<IClientResolver>(new TestClientResolver([Build.Client()]));
@@ -92,7 +92,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
                     services.AddSingleton<IConsentPolicy>(_ => new TestConsentPolicy(ConsentDecision.AlreadyGranted));
                     // No secrets: this suite asks what the metadata advertises, not who can
                     // authenticate. The store takes its contents explicitly so that a fixture which
-                    // wants a client to hold a secret has to say so — the previous double answered
+                    // wants a client to hold a secret has to say so - the previous double answered
                     // null for everyone and silently removed both secret methods from the suite.
                     services.AddSingleton<IClientSecretStore>(
                         new TestClientSecretStore(new Dictionary<string, string>(StringComparer.Ordinal)));
@@ -132,7 +132,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
     /// <remarks>
     /// 404 is the only failing status. A 400 from <c>/authorize</c> with no parameters and a 405
     /// from <c>/token</c> on GET both mean the route exists and disagreed with the request, which is
-    /// the property under test — this asks whether the server has the endpoint, not whether a bare
+    /// the property under test - this asks whether the server has the endpoint, not whether a bare
     /// GET is a valid call to it.
     /// </remarks>
     [Fact]
@@ -148,7 +148,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
             + string.Join(Environment.NewLine, unrouted.Select(u => "  " + u)));
 
         // The control. A sweep that found no URLs would report success over a document containing
-        // nothing but the issuer — which is what a change to the property-walk below would do
+        // nothing but the issuer - which is what a change to the property-walk below would do
         // silently. These three are the endpoints without which there is no OAuth server at all.
         Assert.Contains("/authorize", urls.Select(u => u.AbsolutePath), StringComparer.Ordinal);
         Assert.Contains("/token", urls.Select(u => u.AbsolutePath), StringComparer.Ordinal);
@@ -161,7 +161,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
     /// <remarks>
     /// Without this, <see cref="Every_advertised_endpoint_answers"/> is green both when the server
     /// is honest and when the sweep has quietly stopped looking. Here the exact defect that shipped
-    /// is reconstructed on purpose — <c>UserInfoEnabled</c> was <see langword="true"/> by default —
+    /// is reconstructed on purpose - <c>UserInfoEnabled</c> was <see langword="true"/> by default -
     /// and the sweep is required to catch it.
     /// </remarks>
     [Fact]
@@ -171,7 +171,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
         // needs saying because the shape of the test changed with it.
         //
         // It was /userinfo, then /revoke: both were flags that advertised a path nothing routed, and
-        // each stopped being one when its endpoint was written. `RevocationEnabled` was the last —
+        // each stopped being one when its endpoint was written. `RevocationEnabled` was the last -
         // /userinfo, /introspect, /logout and /revoke now all route and advertise from one flag
         // apiece, so there is no configuration of this server that produces the defect this control
         // needs. Pointing it at a flag that routes would assert that a routed endpoint is unrouted,
@@ -180,8 +180,8 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
         // So the control is built from a document rather than from a flag, which is what the note
         // here always said to do when the flags ran out. The stub serves a discovery document naming
         // a path nothing routes, and the sweep is required to report it. What is under test is the
-        // sweep — that it walks the document, probes what it finds, and can tell a 404 from an
-        // answer — and that is the property Every_advertised_endpoint_answers is worthless without.
+        // sweep - that it walks the document, probes what it finds, and can tell a 404 from an
+        // answer - and that is the property Every_advertised_endpoint_answers is worthless without.
         using var host = await new HostBuilder()
             .ConfigureWebHost(web => web
                 .UseTestServer()
@@ -228,7 +228,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
     /// </summary>
     /// <remarks>
     /// <para>
-    /// N-06 again, on the other axis. <c>KnownGrantTypes</c> — the list options validation accepts —
+    /// N-06 again, on the other axis. <c>KnownGrantTypes</c> - the list options validation accepts -
     /// carried <c>client_credentials</c> and the jwt-bearer URN, and <c>TokenEndpoint</c>'s dispatch
     /// has arms for two grants. So a customer who enabled either got it advertised in the discovery
     /// document and then refused at runtime by the switch's fallthrough, while the options file
@@ -239,7 +239,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
     /// The request is deliberately otherwise empty, so every grant is missing everything it needs.
     /// What matters is <i>which</i> refusal comes back: <c>unsupported_grant_type</c> means the
     /// dispatch fell through and there is no handler, and any other error means a handler ran and
-    /// objected to the request — which is the property under test. Asserting a specific error per
+    /// objected to the request - which is the property under test. Asserting a specific error per
     /// grant would just re-encode each handler's first validation check here.
     /// </para>
     /// </remarks>
@@ -277,7 +277,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
     /// <para>
     /// <b>This is the only honesty check here that runs served-to-advertised, and it exists
     /// because the document under-stated for a release.</b> Everything else in this file runs the
-    /// other way — every advertised endpoint answers, every advertised grant has a handler, the
+    /// other way - every advertised endpoint answers, every advertised grant has a handler, the
     /// sweep catches a promise with a 404 behind it. Over-advertising is the expensive direction
     /// and it is guarded four ways. Under-advertising costs a client a wasted round trip and
     /// nothing else, so nothing caught it: <c>/authorize</c> honoured four prompt values and
@@ -292,7 +292,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
     /// <para>
     /// It scans source text because there is nothing to reflect over: the values are string
     /// literals compared ordinally at four call sites across two files, not an enum or a table.
-    /// That is the right shape for the code — matching a wire value is what those lines do — and
+    /// That is the right shape for the code - matching a wire value is what those lines do - and
     /// it leaves the test as the only place the set is written down once.
     /// </para>
     /// </remarks>
@@ -388,7 +388,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
     /// <remarks>
     /// <para>
     /// Both directions, because each catches a different lie. A claim advertised and never emitted
-    /// is a promise to a relying party that nothing keeps — five of them shipped
+    /// is a promise to a relying party that nothing keeps - five of them shipped
     /// (<c>name</c>, <c>preferred_username</c>, <c>email</c>, <c>email_verified</c>,
     /// <c>updated_at</c>), against a doc comment on the very same list asserting that could not
     /// happen. A claim emitted and never advertised is the reverse: an RP that trusts the document
@@ -461,7 +461,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
     /// A second fixture rather than reusing the flow above, because the two surfaces are maximal
     /// under different conditions and one request cannot be both: the ID token needs <c>max_age</c>
     /// and a <c>nonce</c>, and /userinfo needs a stored account carrying an address and a role. The
-    /// principal is stubbed the way every other test of this endpoint stubs it — what is being
+    /// principal is stubbed the way every other test of this endpoint stubs it - what is being
     /// measured is which claims the handler writes, not how a bearer token is validated.
     /// </remarks>
     private static async Task<IReadOnlyList<string>> MaximalUserInfoClaimsAsync()
@@ -541,7 +541,7 @@ public sealed partial class MetadataHonestyTests : IAsyncLifetime
 
         foreach (var property in document.RootElement.EnumerateObject())
         {
-            // `issuer` is the server's name, not an endpoint — RFC 8414 §2 makes it an identifier
+            // `issuer` is the server's name, not an endpoint - RFC 8414 §2 makes it an identifier
             // that need not dereference to anything. Everything else under it is a URL this server
             // claims to serve.
             if (string.Equals(property.Name, "issuer", StringComparison.Ordinal)

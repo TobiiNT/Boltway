@@ -15,7 +15,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// Built the same way <see cref="AuthorizeRedirectError"/> is, and for the same reason: the target,
 /// the state and the issuer are constructor parameters rather than settable properties, so "we
 /// forgot to echo state" and "we forgot the RFC 9207 iss" have no code path. The success response
-/// needs that at least as much as the error one — it is the response that carries the credential.
+/// needs that at least as much as the error one - it is the response that carries the credential.
 /// </remarks>
 public sealed record AuthorizeSuccess
 {
@@ -126,13 +126,13 @@ public static class AuthorizeResults
     /// OAuth 2.1 §2.3: a redirect URI "MAY include a query string component, which MUST be retained
     /// when adding additional query parameters". Concatenating <c>"?code=…"</c> onto
     /// <c>https://client.example/cb?tenant=42</c> produces a second <c>?</c>, which is a legal
-    /// character inside a query string — so nothing errors, and the client parses one parameter
+    /// character inside a query string - so nothing errors, and the client parses one parameter
     /// named <c>tenant</c> whose value is <c>42?code=…</c>.
     /// </para>
     /// <para>
     /// Concatenation also skips percent-encoding, and one of these values is chosen by the caller.
     /// A <c>state</c> containing <c>&amp;code=</c> injects a second code; one containing <c>#</c>
-    /// truncates the response at the fragment boundary so <c>iss</c> silently disappears — and a
+    /// truncates the response at the fragment boundary so <c>iss</c> silently disappears - and a
     /// client that must reject a response without <c>iss</c> has just been handed a remote off
     /// switch for the flow.
     /// </para>
@@ -151,7 +151,7 @@ public static class AuthorizeResults
 /// <remarks>
 /// <para>
 /// Hand-written because ASP.NET Core has no 303 helper: <c>Results.Redirect</c> emits 302, and its
-/// <c>preserveMethod</c> overload emits 307 or 308 — which is the status OAuth 2.1 §7.5.3 forbids
+/// <c>preserveMethod</c> overload emits 307 or 308 - which is the status OAuth 2.1 §7.5.3 forbids
 /// outright.
 /// </para>
 /// <para>
@@ -159,7 +159,7 @@ public static class AuthorizeResults
 /// a login or consent form. "In HTTP, only the status code 303 unambiguously enforces rewriting the
 /// HTTP POST request to an HTTP GET request. For all other status codes, including the popular 302,
 /// user agents can opt not to rewrite POST to GET requests and therefore reveal the user
-/// credentials to the client." Under 307 the browser replays the POST body — the user's password —
+/// credentials to the client." Under 307 the browser replays the POST body - the user's password -
 /// to the client's redirect URI. If the client is malicious it can then impersonate the user.
 /// </para>
 /// </remarks>

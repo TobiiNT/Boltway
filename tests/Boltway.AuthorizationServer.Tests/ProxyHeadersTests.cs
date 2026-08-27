@@ -11,7 +11,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// <para>
 /// The host used to build these options inline with <c>KnownIPNetworks = { }</c>, which is a
-/// collection initializer — "call <c>Add</c> zero times" — and clears nothing. The defaults
+/// collection initializer - "call <c>Add</c> zero times" - and clears nothing. The defaults
 /// survived, the proxy check stayed on, Caddy's bridge address failed it, and every forwarded
 /// header was dropped. Behind working TLS the sign-in form answered 500, and the per-source login
 /// limit counted the proxy instead of people.
@@ -31,7 +31,7 @@ public sealed class ProxyHeadersTests
         var options = ProxyHeaders.BehindOneProxy();
 
         // Empty is what turns the known-address check off. Non-empty means the middleware compares
-        // the caller against the list and drops the headers when it does not match — which is what
+        // the caller against the list and drops the headers when it does not match - which is what
         // happened for a month, because the defaults are 127.0.0.0/8 and ::1 and a container behind
         // Caddy is neither.
         Assert.Empty(options.KnownIPNetworks);
@@ -41,7 +41,7 @@ public sealed class ProxyHeadersTests
     /// <summary>The control: the defaults this is expected to remove are really there.</summary>
     /// <remarks>
     /// Without this, the assertion above would keep passing if a future framework version shipped
-    /// empty defaults — and would then say nothing about whether <c>Clear()</c> was still being
+    /// empty defaults - and would then say nothing about whether <c>Clear()</c> was still being
     /// called. A test that cannot fail for the original reason is not testing the original thing.
     /// </remarks>
     [Fact]
@@ -62,7 +62,7 @@ public sealed class ProxyHeadersTests
             ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
             options.ForwardedHeaders);
 
-        // One, because one proxy is what both deployments have. A CDN in front makes this 2 — see
+        // One, because one proxy is what both deployments have. A CDN in front makes this 2 - see
         // the parameter's own note, and expect the failure to be silent if it is not changed.
         Assert.Equal(1, options.ForwardLimit);
     }

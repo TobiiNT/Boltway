@@ -57,11 +57,11 @@ public readonly struct CodeChallenge
         // produced: a 32-byte payload leaves the final sextet's low four bits zero, so only 16 of
         // the 64 alphabet characters are canonical in the last position. Checking the charset
         // accepts about three quarters of malformed challenges, and each one then surfaces at
-        // /token as an opaque PKCE mismatch — which is exactly the diagnosis this check exists to
+        // /token as an opaque PKCE mismatch - which is exactly the diagnosis this check exists to
         // prevent. Decoding to 32 bytes rejects them here, where the error can say what is wrong.
         //
         // Mutation testing flags the `||` below as survivable, and it is right that no test kills
-        // it — but the mutant is equivalent, not a gap, so do not go looking for the test that
+        // it - but the mutant is equivalent, not a gap, so do not go looking for the test that
         // closes it. `raw.Length` is already pinned at 43 above; `TryDecode` sets `decoded` to an
         // empty array on every failure path; and 43 unpadded characters decode to exactly 32 bytes
         // or not at all. So the two operands are always equal on reachable input, and `||` and
@@ -85,7 +85,7 @@ public readonly struct CodeChallenge
     /// Does <paramref name="verifier"/> satisfy this challenge?
     /// </summary>
     /// <remarks>
-    /// Constant-time comparison. The challenge is not secret — it travelled in a query string — but
+    /// Constant-time comparison. The challenge is not secret - it travelled in a query string - but
     /// this method is also the shape every future secret comparison gets copied from, and a variable
     /// -time compare that is safe today is a template for one that is not.
     /// </remarks>

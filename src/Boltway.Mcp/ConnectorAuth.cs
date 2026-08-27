@@ -11,7 +11,7 @@ namespace Boltway.Mcp;
 /// <c>scope</c> claim and a token carrying one that granted nothing want <b>opposite</b> readings
 /// from a connector: the first says the authorization server publishes no scopes and the
 /// connector's own table should answer, the second says this token was written to grant nothing.
-/// <see cref="CallerPrincipal.Scopes"/> is empty in both, and in a third case too — a claim this
+/// <see cref="CallerPrincipal.Scopes"/> is empty in both, and in a third case too - a claim this
 /// library could not read.
 /// </para>
 /// <para>
@@ -34,20 +34,20 @@ public enum ScopeClaimState
     /// <remarks>
     /// An authenticator that sets <see cref="CallerPrincipal.Scopes"/> sets this beside it. One
     /// that does not leaves this here, and <see cref="CallerPrincipal.Grants"/> then answers
-    /// <see langword="null"/> — the same fall-back a principal built before this existed already
+    /// <see langword="null"/> - the same fall-back a principal built before this existed already
     /// got, so nothing that compiled against the older shape changes behaviour.
     /// </remarks>
     Unknown = 0,
 
     /// <summary>
     /// The token carried no <c>scope</c> claim. Fall back to whatever the connector uses when an
-    /// authorization server publishes none — the static-token path is always this.
+    /// authorization server publishes none - the static-token path is always this.
     /// </summary>
     Absent = 1,
 
     /// <summary>
     /// The token carried a <c>scope</c> claim and it was read.
-    /// <see cref="CallerPrincipal.Scopes"/> is exactly what it granted, and may be empty — a token
+    /// <see cref="CallerPrincipal.Scopes"/> is exactly what it granted, and may be empty - a token
     /// that granted nothing is a refusal, not an absence.
     /// </summary>
     Readable = 2,
@@ -67,14 +67,14 @@ public enum ScopeClaimState
 public sealed class CallerPrincipal
 {
     /// <summary>
-    /// Stable handle for the person. What a connector attributes this request's writes to —
+    /// Stable handle for the person. What a connector attributes this request's writes to -
     /// though whether it actually does is the connector's to deliver, not this library's to
     /// claim. See <see cref="Email"/>.
     /// </summary>
     public required string Actor { get; init; }
 
     /// <summary>
-    /// Address to attribute a downstream write to, when the store records one — git wants a
+    /// Address to attribute a downstream write to, when the store records one - git wants a
     /// name and an email on every commit.
     ///
     /// <para>
@@ -95,12 +95,12 @@ public sealed class CallerPrincipal
     /// authorization server's <c>IUserStore</c> said so from the other side: it stored one role
     /// because <c>FromClaims</c> read the claim with <c>FindFirst</c>, which takes one value and
     /// ignores the rest, so a set stored there would have produced tokens whose second and third
-    /// roles were dropped by the only consumer shipped here — a rule existing on one surface and
+    /// roles were dropped by the only consumer shipped here - a rule existing on one surface and
     /// not the other. Both halves moved together.
     /// </para>
     /// <para>
-    /// Empty for a caller holding none, never null. A connector deciding what that means — a floor,
-    /// a refusal, an empty view — is the connector's decision and not this library's.
+    /// Empty for a caller holding none, never null. A connector deciding what that means - a floor,
+    /// a refusal, an empty view - is the connector's decision and not this library's.
     /// </para>
     /// </remarks>
     public IReadOnlyList<string> Roles { get; init; } = [];
@@ -112,7 +112,7 @@ public sealed class CallerPrincipal
     /// <para>
     /// Uninterpreted here, like everything else about a role. A server that keeps role definitions
     /// can put the resolved set in the token, which saves the resource server a lookup it would
-    /// otherwise have to make on every call — and costs the freshness of one, because a token
+    /// otherwise have to make on every call - and costs the freshness of one, because a token
     /// carries what was true when it was minted.
     /// </para>
     /// <para>
@@ -132,7 +132,7 @@ public sealed class CallerPrincipal
     /// <c>RequireScope</c> on an endpoint answers "may this request reach the server at all". It
     /// cannot answer "may this request write", because one MCP endpoint carries every tool: a
     /// required scope there is the intersection of what the tools need, so the widest scope a
-    /// connector advertises is enforced by nothing. That gap is not visible from the endpoint —
+    /// connector advertises is enforced by nothing. That gap is not visible from the endpoint -
     /// the metadata document lists the scope, the consent screen shows it, the user agrees to it,
     /// and withdrawing it takes no capability away. Carrying the granted set here is what lets a
     /// connector gate a tool on it.
@@ -166,7 +166,7 @@ public sealed class CallerPrincipal
     /// <b>The nullable return is the point, not an inconvenience.</b> <c>bool?</c> does not
     /// convert to <c>bool</c>, so <c>if (!caller.Grants("x"))</c> does not compile: the third case
     /// cannot be silently folded into either of the other two. That is the same trick
-    /// <c>AccessTokenDescriptor.Audience</c> plays with N-01 — a rule that stops being a rule and
+    /// <c>AccessTokenDescriptor.Audience</c> plays with N-01 - a rule that stops being a rule and
     /// becomes a fact about the type system.
     /// </para>
     /// <para>
@@ -202,13 +202,13 @@ public sealed class CallerPrincipal
     public string? DownstreamToken { get; init; }
 
     /// <summary>
-    /// Which client the token was minted for — the <c>client_id</c> claim, RFC 9068 §2.2.
+    /// Which client the token was minted for - the <c>client_id</c> claim, RFC 9068 §2.2.
     /// </summary>
     /// <remarks>
     /// <para>
     /// Distinct from <see cref="Actor"/>, and a connector writing an audit trail wants both: one
     /// says who, the other says what they were using. The caller does not get to choose what it
-    /// says — the signature was checked before this was read — which is what separates it from a
+    /// says - the signature was checked before this was read - which is what separates it from a
     /// user agent or anything else self-reported.
     /// </para>
     /// <para>
@@ -219,7 +219,7 @@ public sealed class CallerPrincipal
     /// <c>assumed</c> recorded as <c>measured</c>.
     /// </para>
     /// <para>
-    /// Null when the authenticator did not learn one — the static-token path has no authorization
+    /// Null when the authenticator did not learn one - the static-token path has no authorization
     /// server to mint anything. Null is what a connector should record, for the reason
     /// <see cref="Email"/> gives: an invented value cannot be told from a real one, so guessing
     /// costs the trail its worth on every entry rather than only this one.
@@ -228,19 +228,19 @@ public sealed class CallerPrincipal
     public string? ClientId { get; init; }
 
     /// <summary>
-    /// Which <em>token</em> this is — the <c>jti</c> claim.
+    /// Which <em>token</em> this is - the <c>jti</c> claim.
     /// </summary>
     /// <remarks>
     /// <b>Not a session identifier, and the difference is the whole reason this is a separate
     /// property from <see cref="GrantId"/>.</b> A fresh <c>jti</c> is minted for every access
     /// token, so it changes on every refresh: a connector that groups its audit records by this
     /// finds them fragmenting into pieces the length of one token lifetime, with nothing failing.
-    /// What it is good for is correlating one token — a revocation, a single rejected call.
+    /// What it is good for is correlating one token - a revocation, a single rejected call.
     /// </remarks>
     public string? TokenId { get; init; }
 
     /// <summary>
-    /// Which <em>authorization</em> this is — the <c>gid</c> claim, stable across a whole refresh
+    /// Which <em>authorization</em> this is - the <c>gid</c> claim, stable across a whole refresh
     /// family.
     /// </summary>
     /// <remarks>
@@ -252,7 +252,7 @@ public sealed class CallerPrincipal
     /// <c>gid</c> is this project's own claim rather than a registered one, so it is null against
     /// an authorization server that does not emit it. A deployment whose server names it something
     /// else supplies its own mapping through the <see cref="ResourceServerAuthenticator"/>
-    /// constructor rather than reaching for a parameter here — the shipped reader stays the one
+    /// constructor rather than reaching for a parameter here - the shipped reader stays the one
     /// that matches the tokens this project mints.
     /// </para>
     /// </remarks>
@@ -264,7 +264,7 @@ public sealed class CallerPrincipal
 
 /// <summary>
 /// Refuses a request, and says what would fix it. Thrown by an authenticator; turned into
-/// an RFC 9728 challenge by the middleware, never into a JSON-RPC error — a client that
+/// an RFC 9728 challenge by the middleware, never into a JSON-RPC error - a client that
 /// cannot find the authorization server has no way to recover from one.
 /// </summary>
 public sealed class UnauthorizedException(string message, string? scope = null) : Exception(message)
@@ -305,7 +305,7 @@ public sealed class BearerAuthenticator(Func<string, CancellationToken, Task<Cal
     /// <summary>
     /// Parse <c>DEV_TOKENS="tokenA:ada:editor:ada@example.com,tokenB:bob:editor"</c>.
     /// Entries that are not <c>token:actor[:role[:email]]</c> are skipped rather than
-    /// guessed at. A missing email stays null — see <see cref="CallerPrincipal.Email"/>.
+    /// guessed at. A missing email stays null - see <see cref="CallerPrincipal.Email"/>.
     /// </summary>
     public static IReadOnlyDictionary<string, CallerPrincipal> ParseTokenMap(string? spec, string? downstreamToken = null)
     {

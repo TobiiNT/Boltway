@@ -4,8 +4,8 @@ namespace Boltway.OAuth.Primitives.Errors;
 /// Which endpoint is answering. Half of the key into the error table.
 /// </summary>
 /// <remarks>
-/// The surface is part of the key because the same code means different things — and gets a
-/// different status and a different delivery — depending on where it is emitted. It is also how the
+/// The surface is part of the key because the same code means different things - and gets a
+/// different status and a different delivery - depending on where it is emitted. It is also how the
 /// table refuses combinations that are legal-looking but wrong: <c>access_denied</c> is a real code
 /// that must never come out of <c>/token</c>, and <c>unsupported_grant_type</c> must never come out
 /// of <c>/authorize</c>.
@@ -27,7 +27,7 @@ public enum OAuthSurface
     /// mismatched <c>redirect_uri</c> <i>and</i> for a malformed <c>code_challenge</c>, but the
     /// first must be rendered as HTML on our own origin and the second must be redirected. Keyed
     /// only on (endpoint, code) the two collapse together, and the collapse resolves the
-    /// never-redirect case to a redirect — turning the authorization endpoint into an open
+    /// never-redirect case to a redirect - turning the authorization endpoint into an open
     /// redirector that also leaks <c>state</c>.
     /// </para>
     /// <para>
@@ -67,7 +67,7 @@ public enum OAuthSurface
     /// <para>
     /// <b>Not an OAuth surface, and it has no rows in <see cref="OAuthErrors"/> on purpose.</b>
     /// Every other value here names an endpoint some specification defines an <c>error</c> set for.
-    /// These have none — a sign-in form is not a protocol surface, and the refusals it produces
+    /// These have none - a sign-in form is not a protocol surface, and the refusals it produces
     /// (a rejected password, a rate limit, a store that cannot be reached) are answered with a
     /// status and a rendered page rather than a code a client parses.
     /// </para>
@@ -101,7 +101,7 @@ public enum ErrorDelivery
     /// </summary>
     /// <remarks>
     /// Only reachable once a redirect URI has been matched against the client's registrations.
-    /// Before that point the server must not redirect at all — an unvalidated <c>redirect_uri</c>
+    /// Before that point the server must not redirect at all - an unvalidated <c>redirect_uri</c>
     /// plus an error response is an open redirector that also leaks <c>state</c>.
     /// </remarks>
     Redirect,

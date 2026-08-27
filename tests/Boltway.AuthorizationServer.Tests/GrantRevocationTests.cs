@@ -16,7 +16,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// Every <c>/authorize</c> mints a grant with a fresh <see cref="System.Guid"/>, so a test holding
-/// an unexchanged authorization code has no way to name the grant behind it — and the two guards
+/// an unexchanged authorization code has no way to name the grant behind it - and the two guards
 /// below are both about what happens when that grant stops being active. This records the ids on
 /// the way past and delegates everything else, which is the smallest seam that makes the question
 /// askable. It adds nothing to the server.
@@ -181,7 +181,7 @@ public sealed class GrantRevocationTests
     /// await _grants.RevokeAsync(reuse.GrantId, now, cancellationToken);
     /// </code>
     /// <para>
-    /// Mutation testing deleted each line on its own and the suite stayed green both times — not
+    /// Mutation testing deleted each line on its own and the suite stayed green both times - not
     /// because the behaviour is unchecked, but because the existing test checks it through a
     /// <i>consequence the two calls share</i>. <c>A_replay_outside_the_grace_window_revokes_the_family</c>
     /// asserts that the successor refresh token stops working, and it stops working under either
@@ -227,7 +227,7 @@ public sealed class GrantRevocationTests
             "the grant was not revoked");
 
         // (1) the family: asked of the refresh token store, which the grant revocation never
-        // touches. There is no IsFamilyRevoked query, so this uses the one the store documents —
+        // touches. There is no IsFamilyRevoked query, so this uses the one the store documents -
         // "a second revoke returns 0 and a caller can log honestly". Revoking an already-revoked
         // family transitions no rows; revoking a live one transitions at least the successor. Last
         // assertion in the test because it does write to the store.

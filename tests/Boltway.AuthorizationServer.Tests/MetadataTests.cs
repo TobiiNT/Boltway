@@ -10,7 +10,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// Every test here parses <see cref="MetadataDocument.Json"/>. Asserting on the built record would
-/// pass while the serializer wrote <c>[]</c> for an omitted array or <c>"true"</c> for a boolean —
+/// pass while the serializer wrote <c>[]</c> for an omitted array or <c>"true"</c> for a boolean -
 /// and both vendors gate CIMD selection on the JSON <i>type</i> of one particular key, so the
 /// difference between the object and its serialization is the difference between working and not.
 /// </remarks>
@@ -60,7 +60,7 @@ public sealed class MetadataTests
     /// </summary>
     /// <remarks>
     /// Gate #1 for CIMD selection by both vendors, and the string <c>"true"</c> reads to them as
-    /// absent — which silently downgrades every client to whatever the fallback is.
+    /// absent - which silently downgrades every client to whatever the fallback is.
     /// </remarks>
     [Fact]
     public void The_cimd_flag_is_a_json_boolean()
@@ -94,7 +94,7 @@ public sealed class MetadataTests
     /// <remarks>
     /// <para>
     /// This test used to be the second row of the theory above, asserting that the DCR profile
-    /// publishes <c>registration_endpoint</c>. It does — and nothing routes <c>/register</c>, so a
+    /// publishes <c>registration_endpoint</c>. It does - and nothing routes <c>/register</c>, so a
     /// client that read the document and followed it got a 404. Measured on a running host, both
     /// <c>GET</c> and <c>POST</c>.
     /// </para>
@@ -141,7 +141,7 @@ public sealed class MetadataTests
         Assert.Equal(JsonValueKind.False, root.GetProperty(property).ValueKind);
     }
 
-    /// <summary>PKCE is advertised as S256 and nothing else — never <c>plain</c>.</summary>
+    /// <summary>PKCE is advertised as S256 and nothing else - never <c>plain</c>.</summary>
     [Fact]
     public void Only_s256_is_advertised_for_pkce()
     {
@@ -179,7 +179,7 @@ public sealed class MetadataTests
     public void Unauthenticated_clients_are_offered_the_token_endpoint_and_nothing_else()
     {
         // Both endpoints turned on explicitly, because they are off by default now that neither is
-        // routed — advertising them was four simultaneous N-06 violations. This test is about the
+        // routed - advertising them was four simultaneous N-06 violations. This test is about the
         // auth methods those keys carry *when* a deployment offers them, so it has to ask for them.
         var root = Serialize(o =>
         {
@@ -196,7 +196,7 @@ public sealed class MetadataTests
     /// <remarks>
     /// The <c>enabled</c> half is not decoration. All four flags now default to
     /// <see langword="false"/>, so setting them to <see langword="false"/> here sets them to the
-    /// value they already had — and this test would have passed against a builder that never emitted
+    /// value they already had - and this test would have passed against a builder that never emitted
     /// these keys under any configuration, which is a different bug wearing the same green tick.
     /// Asserting the keys appear first is what makes their absence afterwards mean something.
     /// </remarks>
@@ -248,8 +248,8 @@ public sealed class MetadataTests
     /// <c>ProtectedResourceMetadataEndpointTests.Optional_members_that_are_not_configured_are_absent</c>,
     /// which names <c>dpop_bound_access_tokens_required</c> and
     /// <c>dpop_signing_alg_values_supported</c>. This side names nothing and matches on the prefix
-    /// instead, because the member that matters here —
-    /// <c>dpop_signing_alg_values_supported</c> — has no field on
+    /// instead, because the member that matters here -
+    /// <c>dpop_signing_alg_values_supported</c> - has no field on
     /// <c>AuthorizationServerMetadata</c> at all, so a named assertion would be testing that a type
     /// still lacks a property somebody would have had to add. Prefix matching keeps working when
     /// they add it, and catches whatever they call it.
@@ -322,8 +322,8 @@ public sealed class MetadataTests
     /// </summary>
     /// <remarks>
     /// N-13: this string appears in five places that must agree byte for byte, and clients compare
-    /// it with Simple String Comparison. A re-serialization anywhere in the path — <c>new
-    /// Uri(issuer).ToString()</c> appends a slash — makes it a different issuer.
+    /// it with Simple String Comparison. A re-serialization anywhere in the path - <c>new
+    /// Uri(issuer).ToString()</c> appends a slash - makes it a different issuer.
     /// </remarks>
     [Fact]
     public void The_issuer_is_emitted_verbatim_and_prefixes_every_endpoint()
@@ -357,7 +357,7 @@ public sealed class MetadataTests
     /// <summary>And nothing else, because nothing else can be minted.</summary>
     /// <remarks>
     /// This list was filled from <c>SigningAlgorithms.All</c>, which documents itself as the
-    /// verifier allow-list — what the server <em>accepts</em>. <c>id_token_signing_alg_values
+    /// verifier allow-list - what the server <em>accepts</em>. <c>id_token_signing_alg_values
     /// _supported</c> is what it <em>issues</em>, and <c>TokenIssuer.MintAsync</c> asks the ring
     /// for RS256 and nothing else, so ES256 was advertised and unobtainable. A relying party
     /// configuring <c>id_token_signed_response_alg=ES256</c> out of this document rejects every
@@ -378,7 +378,7 @@ public sealed class MetadataTests
     /// list beside it. A deployment whose key policy is elliptic-curve could not use this server at
     /// all while the minting site named RS256 directly; making that configurable without moving the
     /// document would have re-created the defect the test above was written for, pointing the other
-    /// way — the document promising RS256 while every token arrives signed ES256.
+    /// way - the document promising RS256 while every token arrives signed ES256.
     /// </remarks>
     [Fact]
     public void The_advertised_id_token_algorithm_follows_the_configured_one()
@@ -396,7 +396,7 @@ public sealed class MetadataTests
     /// Both stores yield <c>none</c> or <c>client_secret_basic</c> depending on whether a secret
     /// hash exists, service accounts are created <c>client_secret_basic</c> outright, and CIMD
     /// §4.1 refuses every symmetric method. So an integrator read this list, configured
-    /// <c>client_secret_post</c> — the default in a great many OAuth libraries — and got
+    /// <c>client_secret_post</c> - the default in a great many OAuth libraries - and got
     /// <c>invalid_client</c> saying they must authenticate with a client secret while sending
     /// exactly that. N-06, the same shape as <c>form_post</c> and the four advertised endpoints
     /// with no route. A deployment whose own client store registers one turns it back on.
@@ -434,7 +434,7 @@ public sealed class MetadataTests
     /// <summary>The document is deterministic: the same configuration serializes to the same bytes.</summary>
     /// <remarks>
     /// E-01 through E-06 are required to serve byte-identical bodies, and the ETag is a hash of what
-    /// is sent — so a document that varied between builds would answer <c>304</c> against a body the
+    /// is sent - so a document that varied between builds would answer <c>304</c> against a body the
     /// client does not have.
     /// </remarks>
     [Fact]
@@ -464,7 +464,7 @@ public sealed class MetadataTests
         //
         // So the rule this line has now been caught by twice: **the value has to be the opposite of
         // the default, and the default is not a constant.** If UserInfoEnabled ever defaults to
-        // false again, this flips back — or better, points at whichever flag is then default-off.
+        // false again, this flips back - or better, points at whichever flag is then default-off.
         var changed = MetadataDocument.Create(Build.Options(o => o.UserInfoEnabled = false));
 
         Assert.NotEqual(baseline.ETag, changed.ETag);

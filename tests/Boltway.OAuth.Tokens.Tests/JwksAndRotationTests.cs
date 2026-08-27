@@ -21,7 +21,7 @@ public sealed class JwksAndRotationTests
     {
         // The failure this guards against is not subtle in consequence: publishing `d` at a public,
         // cacheable, CORS-enabled endpoint hands over the ability to mint tokens as this server.
-        // It IS subtle in cause — a serializer handed a private key writes the private members
+        // It IS subtle in cause - a serializer handed a private key writes the private members
         // without being asked.
         var json = JsonWebKeySet.Render([RsaKey()]);
 
@@ -113,7 +113,7 @@ public sealed class JwksAndRotationTests
     {
         // The middle phase, and the reason there are three rather than two. A key that starts
         // signing the moment it exists signs tokens every verifier rejects, because their cached
-        // JWKS does not contain it yet — an outage that lasts as long as the caches do and looks
+        // JWKS does not contain it yet - an outage that lasts as long as the caches do and looks
         // like a signature problem rather than a timing one.
         var now = DateTimeOffset.UtcNow;
         var active = new ManagedSigningKey(RsaKey("old"), SigningKeyState.Active, now.AddDays(-30));

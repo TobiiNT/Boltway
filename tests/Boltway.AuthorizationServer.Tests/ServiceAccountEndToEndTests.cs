@@ -45,7 +45,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// The fixture registers <see cref="IClientStore"/> and calls <c>AddStoredClients</c>, which is the
 /// arrangement a real deployment has and the one neither the resolver tests nor the grant tests
-/// use — they seed a client into <c>TestClientResolver</c>, which is the half that was already
+/// use - they seed a client into <c>TestClientResolver</c>, which is the half that was already
 /// working when the grant went undiscoverable in production.
 /// </para>
 /// </remarks>
@@ -106,7 +106,7 @@ public sealed class ServiceAccountEndToEndTests
 
                 // The two lines that make this a service-account deployment. Without the store the
                 // administration surface refuses to hold one; without AddStoredClients the client it
-                // creates exists and cannot be resolved at /token — which is a failure no test in
+                // creates exists and cannot be resolved at /token - which is a failure no test in
                 // this assembly could previously have seen.
                 services.AddSingleton<IClientStore>(new InMemoryClientStore());
                 services.AddStoredClients();
@@ -140,7 +140,7 @@ public sealed class ServiceAccountEndToEndTests
                 o.ScopesSupported.Add("docs:write");
 
                 // The default set is authorization_code and refresh_token, so a deployment holding
-                // service accounts has to say this — the host does, keyed on whether an IClientStore
+                // service accounts has to say this - the host does, keyed on whether an IClientStore
                 // is registered. Written out here rather than defaulted in the fixture because it is
                 // half of what "advertised only for the path nobody would use" was about: the grant
                 // and the storage have to be turned on together, and a fixture that did it silently
@@ -175,7 +175,7 @@ public sealed class ServiceAccountEndToEndTests
     }
 
     /// <summary>
-    /// Grants the administrative scopes only to holders of one role — `AdminRoleScopePolicy`, as a
+    /// Grants the administrative scopes only to holders of one role - `AdminRoleScopePolicy`, as a
     /// double, and the shape every deployment that sets `ADMIN_ROLES` is running.
     /// </summary>
     private sealed class AdminScopesForRole(string role) : IScopeEntitlementPolicy
@@ -215,7 +215,7 @@ public sealed class ServiceAccountEndToEndTests
 
     /// <summary>Ask for a token the way a service configured with these two strings would.</summary>
     /// <remarks>
-    /// RFC 6749 §2.3.1 Basic, with both halves form-urlencoded before the base64 — the same
+    /// RFC 6749 §2.3.1 Basic, with both halves form-urlencoded before the base64 - the same
     /// construction the admin BFF uses against this server, rather than the shortcut that happens to
     /// work while no credential contains a colon.
     /// </remarks>
@@ -228,7 +228,7 @@ public sealed class ServiceAccountEndToEndTests
 
             // RFC 8707, and required here rather than optional: this fixture registers two
             // resources, so the server refuses to guess which one a token is for. A caller may
-            // override it through `extra` — including with nothing, which is
+            // override it through `extra` - including with nothing, which is
             // A_service_account_must_name_its_resource below.
             ["resource"] = Build.Resource,
         };
@@ -262,7 +262,7 @@ public sealed class ServiceAccountEndToEndTests
     /// </summary>
     /// <remarks>
     /// The token endpoint refuses with a JSON body naming the reason, and a bare status comparison
-    /// throws that away — "expected OK, actual BadRequest" over a response that said
+    /// throws that away - "expected OK, actual BadRequest" over a response that said
     /// <c>unsupported_grant_type</c> costs a round of guessing to get back.
     /// </remarks>
     private static async Task ShouldBeAsync(HttpResponseMessage response, HttpStatusCode expected)
@@ -350,13 +350,13 @@ public sealed class ServiceAccountEndToEndTests
     // `UserAdministration` says so when it creates one of these, and the CLI prints it to the
     // operator: "It acts as `<handle>` and can do whatever that account's roles allow." It was
     // true of nowhere. This grant read scope straight off the client record, and the surface that
-    // consumes the token deliberately never reads the role — correctly, because that is the
+    // consumes the token deliberately never reads the role - correctly, because that is the
     // authorization server's job, and the authorization server was not doing it on this one path.
     //
     // Measured before the fix: an account holding a role that is not in ADMIN_ROLES got a service
     // account with `users:write`, read the entire directory including every email, and promoted
     // its own owner to founder. The same subject going through /authorize for the same scopes was
-    // cut back to `openid` by the same policy — so the policy was registered and running, and this
+    // cut back to `openid` by the same policy - so the policy was registered and running, and this
     // grant was simply not asking it.
 
     /// <summary>An owner who may not hold the scope means the token is refused, not narrowed.</summary>
@@ -496,7 +496,7 @@ public sealed class ServiceAccountEndToEndTests
     /// <remarks>
     /// <para>
     /// The production shape: two resources, one defining the connector's scopes and one the admin
-    /// API's, and a service account pinned to the connector's. Nothing in the request says which —
+    /// API's, and a service account pinned to the connector's. Nothing in the request says which -
     /// the client record already did, because scope is fixed on the client for this grant.
     /// </para>
     /// <para>
@@ -529,7 +529,7 @@ public sealed class ServiceAccountEndToEndTests
     /// </summary>
     /// <remarks>
     /// <c>openid</c> and <c>offline_access</c> belong to the server rather than to any resource, so
-    /// requiring a candidate to define them would match nothing and put the refusal back — for a
+    /// requiring a candidate to define them would match nothing and put the refusal back - for a
     /// service account whose only sin is holding a scope the picker offers.
     /// </remarks>
     [Fact]
@@ -555,7 +555,7 @@ public sealed class ServiceAccountEndToEndTests
     /// <para>
     /// The composition production shipped without: <c>ClientAuthenticator</c> takes one secret
     /// store, each source answers only for its own clients, and before the stores chained,
-    /// <c>AddStoredClients</c> replaced the configured store outright — so the fix for "service
+    /// <c>AddStoredClients</c> replaced the configured store outright - so the fix for "service
     /// accounts cannot authenticate" would have arrived as "the configured clients cannot".
     /// </para>
     /// <para>

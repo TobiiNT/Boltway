@@ -17,8 +17,8 @@ namespace Boltway.ResourceServer.Tests;
 /// <remarks>
 /// These replace the tests for a <c>JwksRefresher</c> that lived in this package and duplicated
 /// <see cref="JwksKeySource"/>. The properties worth keeping are the same three the old suite
-/// asserted — a key set with nothing usable is fatal at startup, one with a key in it starts and
-/// installs, and a failed fetch is fatal too — because they are the decision, not the
+/// asserted - a key set with nothing usable is fatal at startup, one with a key in it starts and
+/// installs, and a failed fetch is fatal too - because they are the decision, not the
 /// implementation. What is new is the fourth: the wiring resolves at all.
 /// </remarks>
 public sealed class JwksSigningKeysTests
@@ -133,7 +133,7 @@ public sealed class JwksSigningKeysTests
     /// The wiring resolves without anything else registered, and that is the regression this test
     /// exists for. Moving the fetch behind the guarded client made this extension depend on
     /// <see cref="IUpstreamEndpointClient"/>, which at the time only the federation package
-    /// registered — so a connector that called this and nothing else got an unresolvable
+    /// registered - so a connector that called this and nothing else got an unresolvable
     /// dependency at startup. Nothing here registers a transport.
     /// </summary>
     [Fact]

@@ -12,7 +12,7 @@ namespace Boltway.OAuth.Primitives.Encoding;
 /// becomes <c>_</c>, and the <c>=</c> padding is dropped.
 /// <para>
 /// Padding is the one worth naming. RFC 7636 §4.2 defines the code challenge as base64url
-/// <i>without</i> padding, and the comparison against a stored challenge is byte-exact — so an
+/// <i>without</i> padding, and the comparison against a stored challenge is byte-exact - so an
 /// encoder that emits <c>abc=</c> where the client sent <c>abc</c> produces a PKCE mismatch on
 /// every single request, with an error that says nothing about padding.
 /// </para>
@@ -38,8 +38,8 @@ public static class Base64Url
         // Decode must be the inverse of Encode, and the framework decoder is more permissive than
         // that: measured on .NET 10 it accepts "AA==", "AA=", " AA" and "AA\n", all of which decode
         // to the same single byte as "AA". Four spellings of one value is an aliasing bug waiting
-        // for a caller that keys anything on the string form — a replay table, a revocation list, a
-        // cache — while identity comes from the decoded bytes.
+        // for a caller that keys anything on the string form - a replay table, a revocation list, a
+        // cache - while identity comes from the decoded bytes.
         foreach (var c in value)
         {
             var ok = c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-' or '_';

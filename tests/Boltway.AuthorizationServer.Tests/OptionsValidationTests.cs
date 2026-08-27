@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>
-/// The startup assertions — the ones that turn a misconfiguration into a failed deploy.
+/// The startup assertions - the ones that turn a misconfiguration into a failed deploy.
 /// </summary>
 public sealed class OptionsValidationTests
 {
@@ -22,7 +22,7 @@ public sealed class OptionsValidationTests
     /// </summary>
     /// <remarks>
     /// This used to refuse more than one, because nothing read <c>ui_locales</c> and there was no
-    /// per-locale text — advertising two was a claim about selection that no mechanism backed. Both
+    /// per-locale text - advertising two was a claim about selection that no mechanism backed. Both
     /// exist now, so the check moved rather than went away:
     /// <c>MapBoltwayAuthorizationServer</c> compares this list against the cultures
     /// <c>RequestLocalizationMiddleware</c> will actually honour and refuses a mismatch in either
@@ -86,7 +86,7 @@ public sealed class OptionsValidationTests
     /// A trailing slash is refused, not trimmed.
     /// </summary>
     /// <remarks>
-    /// Trimming is a normalization, and clients are forbidden from normalizing the issuer — so the
+    /// Trimming is a normalization, and clients are forbidden from normalizing the issuer - so the
     /// operator who wrote the slash would see a different string in the metadata than the one they
     /// configured, which is the exact surprise the type exists to prevent.
     /// </remarks>
@@ -129,7 +129,7 @@ public sealed class OptionsValidationTests
     /// <remarks>
     /// A-13, and the position matters more than the refusal. <c>story:read </c> and
     /// <c>story:read</c> are different scopes because every comparison is literal, and a console
-    /// renders them identically — so "invalid scope" alone sends an operator hunting for a
+    /// renders them identically - so "invalid scope" alone sends an operator hunting for a
     /// difference their terminal will not show them.
     /// </remarks>
     [Fact]
@@ -147,7 +147,7 @@ public sealed class OptionsValidationTests
     /// </summary>
     /// <remarks>
     /// Claude appends it to the authorization request only when the metadata lists it. Without it
-    /// every connection ends when the first access token expires, and nothing in any log says why —
+    /// every connection ends when the first access token expires, and nothing in any log says why -
     /// which is why this is a boot failure rather than a warning.
     /// </remarks>
     [Fact]
@@ -245,7 +245,7 @@ public sealed class OptionsValidationTests
     /// <para>
     /// <c>client_credentials</c> has since left this list, in the only way a name is allowed to:
     /// <see cref="ClientCredentialsGrant"/> exists and the dispatch switch has an arm for it. The
-    /// name being here was never the point — the property is that a name with no handler is refused,
+    /// name being here was never the point - the property is that a name with no handler is refused,
     /// and it is still pinned by the three that remain. Moving one out because somebody wanted it
     /// advertised, without writing the handler, is the failure this test exists to catch.
     /// </para>
@@ -279,7 +279,7 @@ public sealed class OptionsValidationTests
     /// </summary>
     /// <remarks>
     /// RFC 8414 §2 defaults an omitted list to <c>["client_secret_basic"]</c>, which refuses every
-    /// public client — including both vendors' MCP clients. Emitting nothing is not neutral.
+    /// public client - including both vendors' MCP clients. Emitting nothing is not neutral.
     /// </remarks>
     [Fact]
     public void An_empty_auth_method_list_is_refused()
@@ -312,7 +312,7 @@ public sealed class OptionsValidationTests
     /// </summary>
     /// <remarks>
     /// The difference is operational. A deferred validation turns a bad issuer into a 500 on the
-    /// first client request — minutes after the deploy looked green, and attributed to the client.
+    /// first client request - minutes after the deploy looked green, and attributed to the client.
     /// </remarks>
     [Fact]
     public void Registration_fails_the_host_immediately()

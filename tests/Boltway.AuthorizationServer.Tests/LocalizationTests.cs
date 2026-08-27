@@ -91,7 +91,7 @@ public sealed class LocalizationTests
     /// <remarks>
     /// <para>
     /// <b>Both hops, because the defect lived between them.</b> These tests used to build
-    /// <c>/login?returnUrl=…&amp;ui_locales=vi</c> and request that directly — a URL no client
+    /// <c>/login?returnUrl=…&amp;ui_locales=vi</c> and request that directly - a URL no client
     /// constructs, since /login is only ever reached through this redirect. Against it the
     /// parameter was read straight off the query and every assertion below passed, while a real
     /// client got an English page: /authorize puts its whole query inside a single percent-encoded
@@ -135,7 +135,7 @@ public sealed class LocalizationTests
         await using var fixture = await StartAsync();
 
         // Decoded once. `WebUtility.HtmlEncode` writes non-ASCII as numeric entities, so the page
-        // carries `&#272;&#259;ng nh&#7853;p` — correct, and what the renderer contract's
+        // carries `&#272;&#259;ng nh&#7853;p` - correct, and what the renderer contract's
         // "encoded exactly once" assertion is about. Decoding here asserts what a reader sees.
         var page = System.Net.WebUtility.HtmlDecode(
             await SignInHtmlAsync(fixture, Vietnamese));
@@ -230,7 +230,7 @@ public sealed class LocalizationTests
     /// <b>Found by reading a Northwind page, not by a failing test.</b> Every line on <c>/error</c> was
     /// Vietnamese except the middle one, and there was no key that would change it: the line is the
     /// <c>error_description</c>, which <c>ErrorText.Safe</c> filters to
-    /// <c>%x20-21 / %x23-5B / %x5D-7E</c> because OAuth 2.1 §4.1.2.1 requires that — so a Vietnamese
+    /// <c>%x20-21 / %x23-5B / %x5D-7E</c> because OAuth 2.1 §4.1.2.1 requires that - so a Vietnamese
     /// sentence put there arrives as its ASCII fragments. It was never written for the person in
     /// front of it.
     /// </para>
@@ -258,8 +258,8 @@ public sealed class LocalizationTests
                 },
             });
 
-        // /error is the InteractionErrorPage refusal — somebody landed here with no request to
-        // speak for them — which maps to "start again".
+        // /error is the InteractionErrorPage refusal - somebody landed here with no request to
+        // speak for them - which maps to "start again".
         var response = await fixture.Client.GetAsync(new Uri("/error", UriKind.Relative));
         var page = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
 
@@ -280,7 +280,7 @@ public sealed class LocalizationTests
     /// Each class of refusal gets the sentence for what its reader can do.
     /// </summary>
     /// <remarks>
-    /// The mapping is by remedy rather than by cause — five sentences for twenty-six reason codes —
+    /// The mapping is by remedy rather than by cause - five sentences for twenty-six reason codes -
     /// so what has to be true is that a refusal a person caused, a refusal they must wait out and a
     /// refusal only the client's author can fix do not all say the same thing. Asserted through the
     /// public surface rather than on the switch, because a switch tested directly still proves
@@ -306,7 +306,7 @@ public sealed class LocalizationTests
     /// <para>
     /// Measured against the real host before it was a test: <c>UI_DEFAULT_LOCALE=vi</c> with a
     /// <c>vi</c> table and nothing else served <c>/error?ui_locales=en</c> in Vietnamese, byte for
-    /// byte the same page as without the parameter. That reads as a defect and is not one — the
+    /// byte the same page as without the parameter. That reads as a defect and is not one - the
     /// supported set is <c>[vi]</c>, <c>en</c> matches nothing, and the middleware falls back to the
     /// default exactly as it does for <c>ja</c>.
     /// </para>
@@ -375,8 +375,8 @@ public sealed class LocalizationTests
     /// <remarks>
     /// Order is not cosmetic here: it is what <c>ui_locales_supported</c> is built from, and OIDC
     /// readers take the first entry as the deployment's own language. The de-duplication matters
-    /// because a deployment naming its default in the translation table — which is the ordinary
-    /// thing to do — would otherwise advertise it twice.
+    /// because a deployment naming its default in the translation table - which is the ordinary
+    /// thing to do - would otherwise advertise it twice.
     /// </remarks>
     [Fact]
     public void The_supported_set_is_the_default_first_then_the_translated_cultures()
@@ -399,7 +399,7 @@ public sealed class LocalizationTests
     /// <remarks>
     /// A translation is data a deployment edits rather than code it reviews, and the sentences carry
     /// <c>{0}</c> placeholders that this server splices markup into. Encoding the translation and
-    /// then splicing — rather than formatting the raw text — is what keeps a translated
+    /// then splicing - rather than formatting the raw text - is what keeps a translated
     /// <c>&lt;script&gt;</c> a piece of text somebody typed.
     /// </remarks>
     /// <summary>
@@ -407,7 +407,7 @@ public sealed class LocalizationTests
     /// </summary>
     /// <remarks>
     /// The regression, and the reason this key exists at all. The sentence used to be a literal in
-    /// <c>PostLoginAsync</c>, handed to the renderer on the view model — so a deployment serving
+    /// <c>PostLoginAsync</c>, handed to the renderer on the view model - so a deployment serving
     /// every page in Vietnamese answered a wrong password with <i>"That username and password did
     /// not match."</i> There was no key to translate, and nothing reported the gap: the page was
     /// complete, correct and in the wrong language. Measured on a running server, by getting a
@@ -447,7 +447,7 @@ public sealed class LocalizationTests
 
             // Decoded first, and that is not a convenience. WebUtility.HtmlEncode escapes the
             // Latin-1 supplement and leaves the rest of the BMP alone, so this page carries
-            // `T&#234;n` for "Tên" and a plain `đăng` beside it — a raw Contains against Vietnamese
+            // `T&#234;n` for "Tên" and a plain `đăng` beside it - a raw Contains against Vietnamese
             // passes or fails on which vowels the sentence happens to use.
             var text = WebUtility.HtmlDecode(page);
 
@@ -502,8 +502,8 @@ public sealed class LocalizationTests
     public void A_deployment_can_supply_its_own_localizer()
     {
         // The seam, checked rather than asserted in prose. The XML docs used to say a deployment
-        // overrides the text by registering an IStringLocalizerFactory — the way OrchardCore and
-        // ABP do it — and nothing here has ever resolved a factory. Somebody following that got
+        // overrides the text by registering an IStringLocalizerFactory - the way OrchardCore and
+        // ABP do it - and nothing here has ever resolved a factory. Somebody following that got
         // English pages and no error, so the sentence now names IStringLocalizer and this is what
         // keeps it true: registered first, it wins, because the library's own is TryAdd.
         var services = new ServiceCollection();
@@ -517,7 +517,7 @@ public sealed class LocalizationTests
         Assert.Equal("from the deployment", resolved[InteractionText.LoginTitle].Value);
     }
 
-    /// <summary>Whatever a deployment already keeps its text in — the point is that it is not ours.</summary>
+    /// <summary>Whatever a deployment already keeps its text in - the point is that it is not ours.</summary>
     private sealed class PoFileShapedLocalizer : IStringLocalizer
     {
         public LocalizedString this[string name] => new(name, "from the deployment", resourceNotFound: false);
@@ -530,7 +530,7 @@ public sealed class LocalizationTests
     [Fact]
     public void A_translation_that_drops_a_placeholder_refuses_to_start()
     {
-        // ConsentClientAsking carries the host of the client_id URL, which N-14 makes a MUST — it is
+        // ConsentClientAsking carries the host of the client_id URL, which N-14 makes a MUST - it is
         // the one field on the consent page that says which application is actually asking. A
         // translation without {0} renders a grammatical sentence with that host silently absent,
         // and every other check passes: the key is known, the page renders, the renderer contract

@@ -23,11 +23,11 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <remarks>
 /// <para>
 /// The transport shell around <see cref="AuthorizePipeline"/>. Stages 1 to 8 are the pipeline's;
-/// this adds stage 0 (security headers), stage 0b (the exception boundary), and stages 9 to 12 —
+/// this adds stage 0 (security headers), stage 0b (the exception boundary), and stages 9 to 12 -
 /// authentication, consent, code issuance, response.
 /// </para>
 /// <para>
-/// <b>No CORS.</b> Not a permissive policy: none at all. OAuth 2.1 §3.1 — "Cross-Origin Resource
+/// <b>No CORS.</b> Not a permissive policy: none at all. OAuth 2.1 §3.1 - "Cross-Origin Resource
 /// Sharing MUST NOT be supported at the Authorization Endpoint as the client does not access this
 /// endpoint directly, instead the client redirects the user agent to it." That is why nothing here
 /// writes an <c>Access-Control-Allow-Origin</c> header and why the discovery endpoints write theirs
@@ -99,26 +99,26 @@ public static class AuthorizeEndpoint
             {
                 // Nothing can be written, so nothing below will log. This is the one X-10 path that
                 // needs its own line: rethrowing lets the host abort the connection, which is the
-                // only honest outcome — a half-written response completed with a redirect would be a
-                // response the client cannot parse — and it leaves the rejection writer unreached.
+                // only honest outcome - a half-written response completed with a redirect would be a
+                // response the client cannot parse - and it leaves the rejection writer unreached.
                 AuthorizeLog.Unhandled(logger, correlationId, ex);
                 throw;
             }
 
             // X-11 rather than X-10 when the store is what failed, and this is the whole of the
             // difference on this endpoint: it already answered every crash with an OAuth code rather
-            // than a 500, so unlike /token there was never a status to fix here — only the wrong
+            // than a 500, so unlike /token there was never a status to fix here - only the wrong
             // code on it. `server_error` tells a client the request cannot succeed; a client reading
             // it at the start of a flow surfaces "sign-in is broken" and stops. `temporarily_
             // unavailable` is registered for exactly this at §4.1.2.1, means "shortly", and had no
-            // emitter anywhere in this server until now — the row and the requirement were both
+            // emitter anywhere in this server until now - the row and the requirement were both
             // written for a dependency going down, and a dependency going down produced X-10.
             var transient = TransientStoreFailure.Describes(ex);
 
             // The response says almost nothing either way, because the exception message may be a
             // connection string and ErrorText.Safe filters characters rather than secrets. The
             // exception itself rides on the rejection, so the writer emits one line carrying the
-            // type, the message and the stack — and this endpoint no longer logs it separately,
+            // type, the message and the stack - and this endpoint no longer logs it separately,
             // which would have been two lines for one refusal.
             var detail = transient
                 ? StoreLoadShed.Description
@@ -126,7 +126,7 @@ public static class AuthorizeEndpoint
 
             // The one legitimate read of context.Redirect. Every stage takes the proof as a
             // parameter; the boundary has no stage to take it from, and this is the question it
-            // exists to ask — is there an address it is safe to send this to.
+            // exists to ask - is there an address it is safe to send this to.
             //
             // For a store failure the answer is usually no, and by construction rather than by
             // luck: validating a redirect URI means reading the client, so a store that is down
@@ -144,7 +144,7 @@ public static class AuthorizeEndpoint
                         cause: ex);
 
                 // No Retry-After on this branch. The response is a 303 the browser follows at once,
-                // so a header telling it to wait five seconds describes nothing it is about to do —
+                // so a header telling it to wait five seconds describes nothing it is about to do -
                 // the instruction belongs to the client, and it arrives as `temporarily_unavailable`
                 // in the query string where the client's own retry logic reads it.
                 return AuthorizeResults.Redirect(
@@ -177,7 +177,7 @@ public static class AuthorizeEndpoint
     /// </summary>
     /// <remarks>
     /// Only the X-31 refusals are logged here, and only because a limiter nobody can observe is a
-    /// limiter that trips on a vendor without anyone finding out. This is <b>not</b> A-09 — the
+    /// limiter that trips on a vendor without anyone finding out. This is <b>not</b> A-09 - the
     /// ordinary 400s on this path still emit nothing, and saying otherwise would be claiming a
     /// requirement that is not met.
     /// </remarks>
@@ -186,7 +186,7 @@ public static class AuthorizeEndpoint
         // No log line here. The rate-limiting work added one, correctly, at a time when nothing else
         // logged a refusal on this path; the rejection writer now logs every refusal including this
         // one, and A-09 asks for exactly one line per rejection. Two lines for one event is not a
-        // harmless duplicate — an operator counting 429s to size a limit would double every figure.
+        // harmless duplicate - an operator counting 429s to size a limit would double every figure.
         //
         // Measured: with both in place, Every_rejection_emits_one_line_carrying_the_id_that_is_in_the
         // _response reported "RateLimited: 2 log lines name the correlation id, not one". Keeping the
@@ -208,7 +208,7 @@ public static class AuthorizeEndpoint
 
         // A POST body is read in addition to the query string, because a client may legitimately
         // split them. A name appearing in both is left as two values, which the pipeline then
-        // refuses as a repeated parameter — the alternative is choosing one, and which one it
+        // refuses as a repeated parameter - the alternative is choosing one, and which one it
         // chooses is exactly the question an attacker who can append to a URL is asking.
         if (HttpMethods.IsPost(http.Request.Method) && http.Request.HasFormContentType)
         {
@@ -225,7 +225,7 @@ public static class AuthorizeEndpoint
             CorrelationId = correlationId,
             Issuer = options.ValidatedIssuer,
             // The injected provider, not TimeProvider.System. Everything else in the server takes
-            // the injected one, and DI registers it with TryAddSingleton — i.e. replacing it is an
+            // the injected one, and DI registers it with TryAddSingleton - i.e. replacing it is an
             // advertised seam. Hardcoding the system clock here meant IsStale compared one clock
             // against a session timestamp written on another, so a host that injected a clock
             // silently stopped enforcing max_age. It also made the time axis untestable over HTTP,
@@ -255,12 +255,12 @@ public static class AuthorizeEndpoint
         var user = await session.GetAsync(cancellationToken);
 
         // `select_account` asks the user to pick among sessions. This server's IUserSession
-        // answers with one user or none, so there is never a selection to make — the honest
+        // answers with one user or none, so there is never a selection to make - the honest
         // handling is to re-authenticate, which lets the user pick an account at the login form.
         //
         // X-14 `account_selection_required` therefore has NO emitter here, and that is a statement
         // rather than an omission. OIDC Core §3.1.2.6 defines it as the answer when the end user
-        // "MAY be authenticated with different associated accounts but did not select a session" —
+        // "MAY be authenticated with different associated accounts but did not select a session" -
         // a condition that needs a *set* of sessions. `IUserSession.GetAsync` returns
         // `AuthenticatedUser?`: zero or one. The set has no representation in this codebase, so the
         // condition is unreachable at the type level. It becomes reachable the day IUserSession is
@@ -270,13 +270,13 @@ public static class AuthorizeEndpoint
         // with `select_account` before reaching here. True, but a non-sequitur: X-14's trigger is
         // `prompt=none` *alone* against several sessions, so refusing the combination says nothing
         // about it. The argument above is the one that holds, and it is the one that would stop
-        // holding if the interface changed — which is the property a proof of unreachability needs.
+        // holding if the interface changed - which is the property a proof of unreachability needs.
         //
         // `select_account` itself is handled inside InteractionRequirements, alongside `prompt=login`
         // and `max_age`, because all three mean the same thing to this server: re-authenticate, and
         // let the user pick an account at the login form.
 
-        // The one implementation, shared with the consent POST — see InteractionRequirements, and
+        // The one implementation, shared with the consent POST - see InteractionRequirements, and
         // the bypass that existed while these were two copies of which only this one was complete.
         //
         // The freshness floor inside it costs something, and the cost is worth naming because an
@@ -284,7 +284,7 @@ public static class AuthorizeEndpoint
         // request* and who now sends `select_account` is not asked to choose; OIDC says the server
         // SHOULD ask. Answering that properly means distinguishing "authenticated in order to
         // satisfy this request" from "authenticated recently for something else", which needs the
-        // request's own start time — state this server does not keep, because the authorization
+        // request's own start time - state this server does not keep, because the authorization
         // request is carried in a URL and nothing else. Between a bounded window in which
         // `select_account` is a no-op and a redirect loop no user can escape, this takes the window.
         if (InteractionRequirements.MustReauthenticate(context, user, options.ReauthenticationFreshness))
@@ -292,7 +292,7 @@ public static class AuthorizeEndpoint
             if (wantsNoInteraction)
             {
                 // OIDC Core §3.1.2.1: `none` means no authentication or consent UI may be shown.
-                // `login_required` specifically, not `interaction_required` — relying parties doing
+                // `login_required` specifically, not `interaction_required` - relying parties doing
                 // silent renew branch on the exact string, and many treat the latter as fatal.
                 return AuthorizeResults.Redirect(AuthorizeRedirectError.Create(
                     redirect,
@@ -344,8 +344,8 @@ public static class AuthorizeEndpoint
         var consentStore = services.GetRequiredService<IConsentStore>();
 
         // The guard is applied here rather than registered as a decorator, and that is what makes
-        // it unremovable. A DI decoration depends on registration order — a customer registering
-        // their own IConsentPolicy after ours silently replaces the composed one — whereas wrapping
+        // it unremovable. A DI decoration depends on registration order - a customer registering
+        // their own IConsentPolicy after ours silently replaces the composed one - whereas wrapping
         // at the single call site means the endpoint has no way to reach a bare policy.
         //
         // RFC 8252 §8.6: a public client cannot be authenticated, so consent is the only evidence
@@ -418,14 +418,14 @@ public static class AuthorizeEndpoint
     /// OIDC Core §3.1.2.1: "If the elapsed time is greater than this value, the OP MUST attempt to
     /// actively re-authenticate the End-User." Measured against when the user actually presented
     /// credentials, which is why <see cref="AuthenticatedUser.AuthenticatedAt"/> is stored rather
-    /// than stamped per request — re-deriving it from the cookie's issuance makes every session
+    /// than stamped per request - re-deriving it from the cookie's issuance makes every session
     /// permanently fresh and the parameter a no-op.
     /// </remarks>
     /// <remarks>
     /// Read together with the freshness floor at the call site: a session younger than
     /// <see cref="AuthorizationServerOptions.ReauthenticationFreshness"/> satisfies any
-    /// <c>max_age</c>, including zero. Without that, <c>max_age=0</c> — which OIDC defines as
-    /// "re-authenticate", meaning once — makes every session stale the instant it is created.
+    /// <c>max_age</c>, including zero. Without that, <c>max_age=0</c> - which OIDC defines as
+    /// "re-authenticate", meaning once - makes every session stale the instant it is created.
     /// </remarks>
     private static bool IsStale(AuthenticatedUser user, AuthorizeContext context) =>
         context.MaxAge is { } maxAge && context.Now - user.AuthenticatedAt > maxAge;
@@ -436,8 +436,8 @@ public static class AuthorizeEndpoint
     /// <remarks>
     /// The return URL is the request's own path and query, and it is built here rather than taken
     /// from a parameter. A general-purpose <c>?returnUrl=</c> on a login page is an open redirector
-    /// <i>on the authorization server's origin</i> — the one origin the user has been taught to
-    /// trust with a password — and the payoff is a pixel-perfect fake consent page served by the
+    /// <i>on the authorization server's origin</i> - the one origin the user has been taught to
+    /// trust with a password - and the payoff is a pixel-perfect fake consent page served by the
     /// attacker, where none of this server's security headers apply. Constructing it from
     /// <see cref="HttpRequest.Path"/> means there is no caller-supplied value to validate.
     /// </remarks>
@@ -452,7 +452,7 @@ public static class AuthorizeEndpoint
         // `ui_locales` arrives on /authorize and the pages are /login and /consent, which are
         // separate requests. The whole of this request's query goes into `returnUrl` as one
         // percent-encoded value, so `Request.Query["ui_locales"]` on the page is empty and the
-        // page renders in the default language — with `ui_locales_supported` advertised and the
+        // page renders in the default language - with `ui_locales_supported` advertised and the
         // startup check that every advertised locale is served passing. Measured: a deployment
         // serving `vi` answered `/authorize?...&ui_locales=vi` with an English login page.
         //
@@ -461,7 +461,7 @@ public static class AuthorizeEndpoint
         // `AddBoltwayInteractionLocalization` did not exist.
         //
         // What is forwarded is `CurrentUICulture`, which the localization middleware has already
-        // matched against `SupportedUICultures` — a value this server chose, never the tag the
+        // matched against `SupportedUICultures` - a value this server chose, never the tag the
         // caller sent. The framework's own `QueryStringRequestCultureProvider` reads it back on the
         // page, so the matching stays the framework's on both hops. Each pass through /authorize
         // re-resolves from the `ui_locales` still inside `returnUrl`, which is what carries the
@@ -489,7 +489,7 @@ public static class AuthorizeEndpoint
 /// <remarks>
 /// Source-generated rather than interpolated, so the message template is compiled once and the
 /// arguments are not boxed or formatted when the level is disabled. On an endpoint with a latency
-/// budget the client treats as terminal, that is not a micro-optimisation — the error path is the
+/// budget the client treats as terminal, that is not a micro-optimisation - the error path is the
 /// one under load when something is already wrong.
 /// </remarks>
 internal static partial class AuthorizeLog

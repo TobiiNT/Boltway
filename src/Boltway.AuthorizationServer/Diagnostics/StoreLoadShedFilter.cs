@@ -14,13 +14,13 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// protocol endpoints each hold their own <c>catch</c> because each had one thing to decide:
 /// <c>/authorize</c> re-codes an existing boundary, <c>/token</c> wraps one exchange. These do not.
 /// There are forty-odd of them across six files, every one answers the same way, and forty copies of
-/// a <c>catch</c> is forty chances for the next route to be added without one — which is the shape
+/// a <c>catch</c> is forty chances for the next route to be added without one - which is the shape
 /// A-09 was found in and the reason this server has a chokepoint at all.
 /// </para>
 /// <para>
 /// <b>It is not the second response writer the architecture rule forbids.</b> A filter returns an
 /// <see cref="IResult"/> and the framework executes it, so the response is still written by
-/// <see cref="RejectionResult.ExecuteAsync"/> — logged, counted and stamped by the same code as
+/// <see cref="RejectionResult.ExecuteAsync"/> - logged, counted and stamped by the same code as
 /// every 400. Middleware would have to write a status itself, which is the difference. The rule is
 /// about who writes, not about where the <c>catch</c> sits.
 /// </para>
@@ -28,7 +28,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// <b>A response that has already started is rethrown, not answered.</b> The same call
 /// <c>AuthorizeEndpoint</c>'s boundary makes and for the same reason: bytes are on the wire, so a
 /// second write either fails or produces a body the caller cannot parse. Letting the host abort the
-/// connection is the only honest outcome, and it is rarer than it looks here — these handlers build
+/// connection is the only honest outcome, and it is rarer than it looks here - these handlers build
 /// their response and return it rather than streaming.
 /// </para>
 /// </remarks>

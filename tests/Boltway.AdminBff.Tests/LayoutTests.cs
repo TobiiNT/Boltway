@@ -3,7 +3,7 @@ using System.Net;
 namespace Boltway.AdminBff.Tests;
 
 /// <summary>
-/// The shell, which is the only part of the app present on every page — and was the only part
+/// The shell, which is the only part of the app present on every page - and was the only part
 /// nothing asserted.
 /// </summary>
 /// <remarks>
@@ -46,8 +46,8 @@ public sealed class LayoutTests
     /// </summary>
     /// <remarks>
     /// This is the shipped defect. The button sat inside <c>if (operatorName is { Length: &gt; 0 })</c>,
-    /// and this server's ID token carries no name claim of any kind — <c>claims_supported</c> is
-    /// exactly <c>sub iss aud exp iat auth_time nonce at_hash</c> — so the condition was false on
+    /// and this server's ID token carries no name claim of any kind - <c>claims_supported</c> is
+    /// exactly <c>sub iss aud exp iat auth_time nonce at_hash</c> - so the condition was false on
     /// every request and the admin UI had no sign-out control at all.
     /// </remarks>
     [Fact]
@@ -110,8 +110,8 @@ public sealed class LayoutTests
     /// A right-to-left deployment's page says which way it reads.
     /// </summary>
     /// <remarks>
-    /// The stylesheet is written in logical properties — <c>padding-inline-start</c> and its
-    /// siblings — and those resolve to the left-hand edge until the document declares otherwise. So
+    /// The stylesheet is written in logical properties - <c>padding-inline-start</c> and its
+    /// siblings - and those resolve to the left-hand edge until the document declares otherwise. So
     /// without this attribute an Arabic page is not merely undecorated: every gutter, the table's
     /// column padding and the accent bars sit on the edge the reader finishes at, and the sheet
     /// looks converted while behaving exactly as it did before.
@@ -136,7 +136,7 @@ public sealed class LayoutTests
     /// <remarks>
     /// The control, and it is what makes the theory above mean something: a shell that emitted
     /// <c>dir</c> unconditionally would satisfy every row up there and still be wrong. <c>arn</c>
-    /// and <c>fat</c> are the rows that matter — Mapudungun and Fanti read left to right and open
+    /// and <c>fat</c> are the rows that matter - Mapudungun and Fanti read left to right and open
     /// with the letters of two languages that do not, so they go red against a prefix match.
     /// </remarks>
     [Theory]
@@ -157,7 +157,7 @@ public sealed class LayoutTests
     /// </summary>
     /// <remarks>
     /// It could have been an environment variable beside <c>ADMIN_TEXT_FILE</c>. Two settings that
-    /// must agree is how a Vietnamese page ends up declaring itself English — the failure this was
+    /// must agree is how a Vietnamese page ends up declaring itself English - the failure this was
     /// added to fix, arriving by a different route.
     /// </remarks>
     [Fact]
@@ -177,7 +177,7 @@ public sealed class LayoutTests
     /// <para>
     /// Found in the rendered HTML of a running deployment: <c>&lt;title&gt;T&amp;amp;#224;i
     /// khoản&lt;/title&gt;</c>. <see cref="AdminText"/>'s indexer encodes, the shell encodes what it
-    /// is given, and the titles stopped being English literals — so <c>à</c> became <c>&amp;#224;</c>
+    /// is given, and the titles stopped being English literals - so <c>à</c> became <c>&amp;#224;</c>
     /// became the five characters a browser draws.
     /// </para>
     /// <para>
@@ -205,7 +205,7 @@ public sealed class LayoutTests
     /// </summary>
     /// <remarks>
     /// <c>&lt;/title&gt;</c> ends RCDATA, so a handle carrying one escapes the element. The fix for
-    /// the double-encoded title could have been "stop encoding here and let callers encode" — this
+    /// the double-encoded title could have been "stop encoding here and let callers encode" - this
     /// is the case that makes that the wrong fix, and the reason
     /// <see cref="AdminPage.Title"/> is documented as plain text rather than markup.
     /// </remarks>
@@ -327,7 +327,7 @@ public sealed class LayoutTests
     /// <remarks>
     /// These pages send <c>default-src 'self'</c> with no <c>style-src</c> override, so a sheet on
     /// another origin never loads. The only trace of that is a line in a console nobody has open, on
-    /// a page that renders unstyled in production — so it is caught here, in a message naming the
+    /// a page that renders unstyled in production - so it is caught here, in a message naming the
     /// setting.
     /// </remarks>
     [Theory]

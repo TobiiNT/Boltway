@@ -7,7 +7,7 @@ namespace Boltway.OAuth.Primitives.Redirects;
 /// <para>
 /// The single most security-sensitive function in the server. Everything it compares is a
 /// <see cref="string"/> or a <see cref="bool"/>; there is not one reference to <see cref="Uri"/> in
-/// this file, and an architecture test asserts that transitively over the compiled IL — including
+/// this file, and an architecture test asserts that transitively over the compiled IL - including
 /// through every method this one calls. Transitivity is the point: without it the violation just
 /// moves one helper away.
 /// </para>
@@ -35,7 +35,7 @@ public static class RedirectUriMatcher
         // Both value types are public structs, so `default(T)` is constructible by anyone and its
         // Value is null despite the non-nullable declaration. string.Equals(null, null, Ordinal) is
         // true, so without this guard `Match(default, [default])` returns a successful Exact match
-        // — and a successful match is the capability token that authorizes a redirect at all.
+        // - and a successful match is the capability token that authorizes a redirect at all.
         // Refuse the whole call rather than skipping the row: a default here means a caller built
         // a redirect URI without going through a factory, which is a bug wherever it happened.
         if (requested.Value is null)
@@ -43,7 +43,7 @@ public static class RedirectUriMatcher
             return RedirectMatch.None;
         }
 
-        // Step 1 — RFC 3986 §6.2.1 Simple String Comparison, character by character on the raw
+        // Step 1 - RFC 3986 §6.2.1 Simple String Comparison, character by character on the raw
         // strings. This is the whole rule for https and private-use-scheme clients, and it runs
         // first so that a loopback registration still gets an exact match when the ports agree.
         for (var i = 0; i < registrations.Count; i++)
@@ -59,7 +59,7 @@ public static class RedirectUriMatcher
             }
         }
 
-        // Step 2 — RFC 8252 §7.3, and nothing else reaches it.
+        // Step 2 - RFC 8252 §7.3, and nothing else reaches it.
         //
         // Kept as a visibly separate branch rather than folded into the loop above, because the
         // failure mode here is not "the code is wrong" but "the exception applies to something it

@@ -16,7 +16,7 @@ namespace Boltway.AuthorizationServer.Metadata;
 /// </para>
 /// <para>
 /// Every collection is nullable and every optional string is nullable, because RFC 8414 §3.2 says
-/// a zero-element array must be omitted rather than emitted as <c>[]</c> — and
+/// a zero-element array must be omitted rather than emitted as <c>[]</c> - and
 /// <c>System.Text.Json</c> will happily write <c>[]</c> for an empty list. Nullability is what makes
 /// <see cref="JsonIgnoreCondition.WhenWritingNull"/> do that job, so the type itself carries the
 /// rule instead of a serializer setting somewhere else carrying it.
@@ -76,7 +76,7 @@ public sealed record AuthorizationServerMetadata
     [JsonPropertyName("scopes_supported")]
     public IReadOnlyList<string>? ScopesSupported { get; init; }
 
-    /// <summary>RFC 8414 §2 REQUIRED. <c>code</c> only — OAuth 2.1 §10.1 removes implicit.</summary>
+    /// <summary>RFC 8414 §2 REQUIRED. <c>code</c> only - OAuth 2.1 §10.1 removes implicit.</summary>
     [JsonPropertyName("response_types_supported")]
     public required IReadOnlyList<string> ResponseTypesSupported { get; init; }
 
@@ -96,8 +96,8 @@ public sealed record AuthorizationServerMetadata
     /// silent refresh found no answer and had to assume no.
     /// </para>
     /// <para>
-    /// Under-advertising is the cheap direction to be wrong in — nothing breaks, nothing goes red,
-    /// and the only cost is a client taking the long way round — which is exactly why it survived
+    /// Under-advertising is the cheap direction to be wrong in - nothing breaks, nothing goes red,
+    /// and the only cost is a client taking the long way round - which is exactly why it survived
     /// while the expensive direction was guarded four ways.
     /// </para>
     /// </remarks>
@@ -168,7 +168,7 @@ public sealed record AuthorizationServerMetadata
     /// </summary>
     /// <remarks>
     /// MUST be true if <c>iss</c> is emitted, and it is emitted on every authorization response
-    /// including error redirects — an error response is as useful to a mix-up attack as a
+    /// including error redirects - an error response is as useful to a mix-up attack as a
     /// successful one. A client that sees this flag and then a response without <c>iss</c> is
     /// required to reject it.
     /// </remarks>
@@ -191,11 +191,11 @@ public sealed record AuthorizationServerMetadata
     [JsonPropertyName("claim_types_supported")]
     public IReadOnlyList<string>? ClaimTypesSupported { get; init; }
 
-    /// <summary>OIDC Discovery §3. Written even when false — see the type remarks.</summary>
+    /// <summary>OIDC Discovery §3. Written even when false - see the type remarks.</summary>
     [JsonPropertyName("claims_parameter_supported")]
     public required bool ClaimsParameterSupported { get; init; }
 
-    /// <summary>OIDC Discovery §3. Written even when false — see the type remarks.</summary>
+    /// <summary>OIDC Discovery §3. Written even when false - see the type remarks.</summary>
     [JsonPropertyName("request_parameter_supported")]
     public required bool RequestParameterSupported { get; init; }
 
@@ -205,7 +205,7 @@ public sealed record AuthorizationServerMetadata
     [JsonPropertyName("request_uri_parameter_supported")]
     public required bool RequestUriParameterSupported { get; init; }
 
-    /// <summary>OIDC Discovery §3. Written even when false — see the type remarks.</summary>
+    /// <summary>OIDC Discovery §3. Written even when false - see the type remarks.</summary>
     [JsonPropertyName("require_request_uri_registration")]
     public required bool RequireRequestUriRegistration { get; init; }
 
@@ -213,7 +213,7 @@ public sealed record AuthorizationServerMetadata
     /// RFC 9728 §4 OPTIONAL. A partial list is explicitly permitted.
     /// </summary>
     /// <remarks>
-    /// Cheap defence in depth — a client cross-checks it against the resource's own metadata. Since
+    /// Cheap defence in depth - a client cross-checks it against the resource's own metadata. Since
     /// partial lists are legal, a client that does not find its resource here must not treat the
     /// absence as a refusal.
     /// </remarks>
@@ -241,7 +241,7 @@ public sealed record AuthorizationServerMetadata
     /// </summary>
     /// <remarks>
     /// RFC 8707 registers no metadata field at all, so this is neither in that RFC nor in the IANA
-    /// registry. It is widely emitted in practice and harmless as a courtesy signal — but nothing
+    /// registry. It is widely emitted in practice and harmless as a courtesy signal - but nothing
     /// in this server may rely on a client reading it, because the absence of a discovery field is
     /// precisely why a client cannot detect a server that ignores <c>resource</c> (U-06).
     /// </remarks>

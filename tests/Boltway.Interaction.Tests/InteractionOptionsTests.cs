@@ -33,7 +33,7 @@ public sealed class InteractionOptionsTests
     /// <remarks>
     /// The two spellings of protocol-relative are the rows that matter. <c>//evil.example/x.css</c>
     /// looks like a path and is not one, and <c>/\evil.example/x.css</c> is the same thing written to
-    /// survive a check that only looked for two slashes — browsers normalise the backslash. Neither
+    /// survive a check that only looked for two slashes - browsers normalise the backslash. Neither
     /// would be blocked by <c>default-src 'self'</c> in a way anyone would notice: the page just
     /// renders unstyled, and the operator concludes the CSS is broken.
     /// </remarks>
@@ -112,7 +112,7 @@ public sealed class InteractionOptionsTests
     /// <summary>The nested options are frozen with the rest, not left mutable behind them.</summary>
     /// <remarks>
     /// The renderer is a singleton holding this instance, so a host that added a stylesheet after
-    /// startup would change every page from that moment — a configuration change with no restart,
+    /// startup would change every page from that moment - a configuration change with no restart,
     /// no validation and no record. <c>Freeze</c> is internal, so this reaches it the way the
     /// registration extension does.
     /// </remarks>

@@ -12,9 +12,9 @@ namespace Boltway.Storage.EntityFrameworkCore.Stores;
 /// <remarks>
 /// <para>
 /// <b><see cref="RedeemAsync"/> is not a conditional UPDATE, and writing it as one is the defect
-/// this class exists to avoid.</b> The obvious shape —
+/// this class exists to avoid.</b> The obvious shape -
 /// <c>UPDATE refresh_tokens SET consumed_at = @now WHERE token_hash = @h AND consumed_at IS NULL</c>
-/// — answers "did I win", which is enough for an authorization code and not enough here. When it
+/// - answers "did I win", which is enough for an authorization code and not enough here. When it
 /// affects no rows, the store still has to decide between a benign retry and a stolen token, and
 /// that decision reads a <i>second</i> row: the successor, whose own <c>consumed_at</c> and
 /// <c>expires_at</c> are what stop an attacker walking the chain to the live head. Two dependent
@@ -143,7 +143,7 @@ internal sealed class EfRefreshTokenStore(
         {
             // The caller handed us a hash already in use. Clobbering it would move another family's
             // token into this chain, so the insert is allowed to fail and the transaction rolls back
-            // — the presented token is left unconsumed, exactly as it was.
+            // - the presented token is left unconsumed, exactly as it was.
             throw new InvalidOperationException(
                 "The successor hash is already in use. A refresh token hash must be unique.", ex);
         }
@@ -207,7 +207,7 @@ internal sealed class EfRefreshTokenStore(
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         await using var transaction = await _behavior.BeginWriteAsync(context, cancellationToken);
 
-        // Insert-if-absent, then count — in one write transaction, so two concurrent revocations
+        // Insert-if-absent, then count - in one write transaction, so two concurrent revocations
         // cannot both report they did it and a redemption in flight cannot rotate a family this call
         // has just killed.
         if (await context.RefreshTokenFamilies.AnyAsync(f => f.FamilyId == familyId, cancellationToken))
@@ -223,7 +223,7 @@ internal sealed class EfRefreshTokenStore(
 
         // Rows this call actually transitioned: the tokens that were still live. Counting every row
         // in the family, consumed and expired ones included, gives a number no caller can act on.
-        // Nothing is written to the token rows — see RefreshTokenFamilyRow for why that shape was
+        // Nothing is written to the token rows - see RefreshTokenFamilyRow for why that shape was
         // chosen over stamping a revoked_at on each one.
         var live = await context.RefreshTokens
             .CountAsync(t => t.FamilyId == familyId && t.ConsumedAt == null, cancellationToken);
@@ -267,7 +267,7 @@ internal sealed class EfRefreshTokenStore(
 
         // Grouped in the database rather than by loading the rows and folding them here. A family
         // that has rotated for a month is a thousand rows, and all this needs from them is one
-        // number per grant — the difference does not show with three sessions and is the whole cost
+        // number per grant - the difference does not show with three sessions and is the whole cost
         // of the page with a year of them.
         //
         // No filter on ConsumedAt or on the family being live: every token but the newest in a live

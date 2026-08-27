@@ -19,7 +19,7 @@ namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>A resource registry that throws, to reach the exception boundary over HTTP.</summary>
 /// <remarks>
-/// It throws at stage 7, which is <i>after</i> the redirect URI is validated — so the boundary has a
+/// It throws at stage 7, which is <i>after</i> the redirect URI is validated - so the boundary has a
 /// <c>ValidatedRedirect</c> and answers <c>server_error</c> by redirect. That is the X-10 branch a
 /// client actually meets, and the one this suite could not reach at all before: a resolver that
 /// throws fails earlier, where the answer is an HTML page.
@@ -47,7 +47,7 @@ internal sealed class ThrowingResourceRegistry : IResourceRegistry
 /// This file is what makes the claim checkable, so the acceptance criterion is taken literally:
 /// <i>"Force each rejection class ⇒ each emits exactly one structured log carrying a correlation id
 /// that appears in the response."</i> Each scenario forces one class over real HTTP, and every one
-/// is checked for all four properties at once — one line, the right reason, a named
+/// is checked for all four properties at once - one line, the right reason, a named
 /// <c>CorrelationId</c> property, and that property equal to the <c>X-Request-Id</c> on the response
 /// the caller is holding.
 /// </para>
@@ -96,7 +96,7 @@ public sealed partial class RejectionLoggingTests
             };
 
             // The grant is off by default and a deployment opts in, so a scenario exercising it has
-            // to turn it on — which is the same act an operator performs, rather than a test-only
+            // to turn it on - which is the same act an operator performs, rather than a test-only
             // door into the dispatch switch.
             seed.ConfigureOptions = o => o.GrantTypesSupported.Add("client_credentials");
 
@@ -231,14 +231,14 @@ public sealed partial class RejectionLoggingTests
             f => f.Client.GetAsync(Authorize(Valid(("client_id", null))))),
 
         // Deliberately NOT a URL. A URL-shaped identifier is claimed by the CIMD resolver, which
-        // answers MetadataUnusable after failing to fetch it — a different, and correct, reason.
+        // answers MetadataUnusable after failing to fetch it - a different, and correct, reason.
         // Measured: with `https://stranger.example/client` this scenario reported
         // ClientMetadataUnusable, which is the resolver chain working and the scenario being wrong.
         // ── client_credentials ──────────────────────────────────────────────
         //
         // A service account, authenticating with method None. That combination is legitimate here
-        // for the reason the fixture's own remarks give — the client *type* and the registered
-        // *method* are independent axes — and using it keeps these three scenarios about the grant
+        // for the reason the fixture's own remarks give - the client *type* and the registered
+        // *method* are independent axes - and using it keeps these three scenarios about the grant
         // rather than about client authentication, which has its own five scenarios above.
 
         new(
@@ -249,8 +249,8 @@ public sealed partial class RejectionLoggingTests
 
         new(
             ReasonCode.ClientOwnerUnusable,
-            // An owner nobody ever created. The other cause — an account that exists and is
-            // disabled — takes the same branch by design, so one scenario forces the reason.
+            // An owner nobody ever created. The other cause - an account that exists and is
+            // disabled - takes the same branch by design, so one scenario forces the reason.
             () => ServiceAccountFixture(owner: SubjectId.FromStorage("nobody-ever-made-this")),
             f => f.Client.PostAsync("/token", Form(
                 ("grant_type", "client_credentials"), ("client_id", ClientId)))),
@@ -275,7 +275,7 @@ public sealed partial class RejectionLoggingTests
 
         // X-31. Forced through the resolver seam rather than by driving the real limiter to its
         // budget: the limiter's own tests do that with the clock moved, and what this scenario has to
-        // prove is narrower and easy to lose — that the 429 goes through the rejection writer like
+        // prove is narrower and easy to lose - that the 429 goes through the rejection writer like
         // every other refusal. It is the refusal designed to arrive in bursts, so it is the one whose
         // absence from the log would be least noticed and most costly.
         new(
@@ -727,7 +727,7 @@ public sealed partial class RejectionLoggingTests
     /// Every rejection class: one line, the right reason, and the id on the response.
     /// </summary>
     /// <remarks>
-    /// One test rather than one per scenario, so a regression reports the whole list at once — the
+    /// One test rather than one per scenario, so a regression reports the whole list at once - the
     /// failure mode this replaces was twenty-five classes silent together, and a run that stops at
     /// the first would say almost nothing about the other twenty-four.
     /// </remarks>
@@ -741,7 +741,7 @@ public sealed partial class RejectionLoggingTests
             await using var fixture = await scenario.Fixture();
 
             // The sink is not reset between the setup and the act, and does not need to be: every
-            // scenario's setup — issuing a code, spending a refresh token once — succeeds, so it
+            // scenario's setup - issuing a code, spending a refresh token once - succeeds, so it
             // contributes no rejection line. If a setup ever starts failing, this count goes to two
             // and says so, which is better than a Clear() that would hide it.
             using var response = await scenario.Act(fixture);
@@ -793,7 +793,7 @@ public sealed partial class RejectionLoggingTests
 
             // "Exactly one" measured the way an operator would measure it: grep the id and count.
             // The event-id filter above cannot see a second line about the same refusal written
-            // under a different event, and that is not a hypothetical — the authorize endpoint used
+            // under a different event, and that is not a hypothetical - the authorize endpoint used
             // to log X-10 itself, so restoring that line would produce two lines for one refusal and
             // leave the event-id count at one.
             var mentioning = fixture.Logs.Mentioning(correlationId);
@@ -819,7 +819,7 @@ public sealed partial class RejectionLoggingTests
     /// <para>
     /// LESSONS.md rule 1, applied to a test suite: not covered / not covered, but covered / covered
     /// elsewhere / <b>cannot be reached and here is why</b>. Without this, a reason added to the enum
-    /// and wired into a new refusal is silently untested, and the suite still reports green — which
+    /// and wired into a new refusal is silently untested, and the suite still reports green - which
     /// is exactly how the two <c>[LoggerMessage]</c> declarations that did exist came to look like
     /// evidence that logging was covered.
     /// </para>
@@ -876,7 +876,7 @@ public sealed partial class RejectionLoggingTests
     /// <remarks>
     /// <para>
     /// Separate from <see cref="UnreachableOverHttp"/> because the claim is different. Those have no
-    /// route through a request at all. These have one — they simply need a fixture this file does not
+    /// route through a request at all. These have one - they simply need a fixture this file does not
     /// build: <c>LoginFlowTests</c> replaces <c>IUserSession</c> with the real cookie session, and
     /// <c>ExternalLoginFlowTests</c> stands up an OpenID Connect provider on loopback. Rebuilding
     /// either here would be a second copy of a fixture rather than more coverage.
@@ -895,7 +895,7 @@ public sealed partial class RejectionLoggingTests
 
         // The five private_key_jwt refusals. All need the same fixture and this file builds none of
         // it: a client registered for PrivateKeyJwt, an ISafeHttpFetcher serving a JWKS, an RSA key
-        // pair to sign with, and TokenEndpointAuthMethods carrying the method — without which
+        // pair to sign with, and TokenEndpointAuthMethods carrying the method - without which
         // authentication stops one step earlier, at ClientAuthMethodNotOffered.
         [ReasonCode.ClientAssertionTypeUnsupported] =
             "ClientAssertionAuthenticationTests.An_assertion_of_the_wrong_type_is_refused.",
@@ -1000,7 +1000,7 @@ public sealed partial class RejectionLoggingTests
 
         // {OriginalFormat} is the message template itself, which every structured provider adds.
         // Asserted rather than filtered out, because its presence is what makes the line a template
-        // with named holes instead of a pre-rendered string — which is the difference between this
+        // with named holes instead of a pre-rendered string - which is the difference between this
         // and the LogWarning($"...") A-09 forbids.
         Assert.Equal(
             ["CorrelationId", "Description", "Detail", "Error", "Reason", "RequirementId", "Status", "Surface", "{OriginalFormat}"],
@@ -1035,14 +1035,14 @@ public sealed partial class RejectionLoggingTests
     /// <remarks>
     /// <para>
     /// Before this, X-10 emitted its own <c>[LoggerMessage]</c> line <i>and</i> would now emit a
-    /// rejection line — two lines for one refusal, which is what A-09's "exactly one" forbids. The
+    /// rejection line - two lines for one refusal, which is what A-09's "exactly one" forbids. The
     /// endpoint's own line is kept for the single case the writer cannot reach: a response that has
     /// already started, where there is nothing left to write and therefore nothing to log it.
     /// </para>
     /// <para>
     /// The level assertion is the part that caught a real defect. This scenario throws at stage 7,
     /// <i>after</i> the redirect URI is validated, so X-10 comes back as a <c>303</c> carrying
-    /// <c>error=server_error</c> — and a writer that derived the level from the HTTP status logged
+    /// <c>error=server_error</c> - and a writer that derived the level from the HTTP status logged
     /// every crash past stage 3 at Warning. Measured here, then fixed by keying on the error code.
     /// </para>
     /// </remarks>
@@ -1073,8 +1073,8 @@ public sealed partial class RejectionLoggingTests
     /// not match.
     /// </para>
     /// <para>
-    /// The sweep is over the whole captured event — the rendered message, every property value and
-    /// the exception — rather than over the fields this code happens to set, because the point is
+    /// The sweep is over the whole captured event - the rendered message, every property value and
+    /// the exception - rather than over the fields this code happens to set, because the point is
     /// that the secret is nowhere, not that one field is clean. Hosting and framework lines are in
     /// scope too: the sink captures at Trace from every category.
     /// </para>
@@ -1094,7 +1094,7 @@ public sealed partial class RejectionLoggingTests
                 ("client_id", ClientId),
                 ("code_verifier", Verifier.Value)));
 
-            // The code was accepted here, so present it again to force the replay refusal — the one
+            // The code was accepted here, so present it again to force the replay refusal - the one
             // branch that has the most to say about a specific code.
             using var replay = await fixture.Client.PostAsync("/token", Form(
                 ("grant_type", "authorization_code"),
@@ -1192,7 +1192,7 @@ public sealed partial class RejectionLoggingTests
     /// Reasons with no route through HTTP, and why.
     /// </summary>
     /// <remarks>
-    /// Every one of these is a refusal the code can still make — none is dead — and each is
+    /// Every one of these is a refusal the code can still make - none is dead - and each is
     /// unreachable for a stated structural reason rather than because a scenario was hard to write.
     /// </remarks>
     private static readonly Dictionary<ReasonCode, string> UnreachableOverHttp = new()

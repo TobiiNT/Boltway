@@ -8,7 +8,7 @@ namespace Boltway.OAuth.Tokens;
 /// </summary>
 /// <param name="Issuer">The <c>iss</c>. One configured string, never derived from the request.</param>
 /// <param name="Audience">
-/// The <c>aud</c>. <b>Non-nullable, and obtainable only from the resource registry</b> — which is
+/// The <c>aud</c>. <b>Non-nullable, and obtainable only from the resource registry</b> - which is
 /// how N-01 stops being a rule and becomes a fact about the type system. There is no way to
 /// construct this record without a resource that was validated, so "accept <c>resource</c> and
 /// ignore it" and "fall back to a default audience" have no code path.
@@ -63,8 +63,8 @@ public sealed record AccessTokenDescriptor(
 /// N-10 lives in the type signature. <see cref="Audience"/> here is a
 /// <see cref="ClientIdentifier"/> while <see cref="AccessTokenDescriptor.Audience"/> is a
 /// <see cref="ResourceIdentifier"/>, so passing one where the other belongs does not compile. The
-/// two audiences serve opposite purposes — an ID token says "this is who signed in, and it is for
-/// you, the client", an access token says "present this to that resource" — and unifying them
+/// two audiences serve opposite purposes - an ID token says "this is who signed in, and it is for
+/// you, the client", an access token says "present this to that resource" - and unifying them
 /// breaks every conformant relying party at OIDC Core §3.1.3.7 rule 3.
 /// </remarks>
 public sealed record IdTokenDescriptor(
@@ -80,7 +80,7 @@ public sealed record IdTokenDescriptor(
 
 /// <summary>A minted token, ready to put in a response.</summary>
 /// <param name="Wire">
-/// The compact serialization — <b>a live credential</b>, and the most valuable one this assembly
+/// The compact serialization - <b>a live credential</b>, and the most valuable one this assembly
 /// produces.
 /// </param>
 /// <param name="ExpiresAt">When it expires, for the response's <c>expires_in</c>.</param>
@@ -91,7 +91,7 @@ public sealed record IdTokenDescriptor(
 /// <see cref="ToString"/> override are the same defence <c>OpaqueSecret</c> carries, and this type
 /// needed it more: a positional record's compiler-generated <c>ToString</c> prints
 /// <i>every</i> property, so <c>$"{token}"</c> or a <c>LogInformation("{Token}", token)</c> emitted
-/// the whole access token — a signed, valid, unexpired one — into whatever the logs are shipped to.
+/// the whole access token - a signed, valid, unexpired one - into whatever the logs are shipped to.
 /// Nothing in this repository did that. Nothing stopped it either.
 /// </para>
 /// <para>

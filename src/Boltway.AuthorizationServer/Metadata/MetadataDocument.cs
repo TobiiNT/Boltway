@@ -13,8 +13,8 @@ namespace Boltway.AuthorizationServer.Metadata;
 /// <para>
 /// Bytes rather than an object, because the requirement is that E-01 through E-06 serve
 /// <b>byte-identical</b> bodies. Serializing per request would satisfy that only as long as nothing
-/// about the serializer's behaviour varied — dictionary ordering, a culture-sensitive formatter, a
-/// future property whose value is computed — and each of those is a bug that would show up as one
+/// about the serializer's behaviour varied - dictionary ordering, a culture-sensitive formatter, a
+/// future property whose value is computed - and each of those is a bug that would show up as one
 /// endpoint disagreeing with another under load rather than in a test.
 /// </para>
 /// <para>
@@ -40,7 +40,7 @@ public sealed class MetadataDocument
     /// An <see cref="ImmutableArray{T}"/> rather than a <see cref="ReadOnlyMemory{T}"/>, because
     /// the latter is not read-only in the sense the ETag needs. Measured:
     /// <c>MemoryMarshal.TryGetArray</c> handed back the live array and writing through it changed
-    /// the body every subsequent request received, while <see cref="ETag"/> — computed once here —
+    /// the body every subsequent request received, while <see cref="ETag"/> - computed once here -
     /// went on advertising the old bytes. This object is a singleton, so that is a cache-poisoning
     /// primitive, not a theoretical aliasing note. Reaching the array now requires
     /// <c>ImmutableCollectionsMarshal</c>, which is an explicit opt-out of the guarantee rather

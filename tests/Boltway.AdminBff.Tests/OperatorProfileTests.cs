@@ -12,7 +12,7 @@ namespace Boltway.AdminBff.Tests;
 /// Every assertion here is about a way the lookup does <i>not</i> get an answer, and that ratio is
 /// the point. The happy path is two lines; what this had to be written for is that a label drawn in
 /// the page shell must never be able to stop somebody signing in, and each of these is a shape that
-/// would have if <c>GetClaimsFromUserInfoEndpoint</c> had been the fetch instead — the framework's
+/// would have if <c>GetClaimsFromUserInfoEndpoint</c> had been the fetch instead - the framework's
 /// switch throws on all four of them.
 /// </para>
 /// <para>
@@ -39,7 +39,7 @@ public sealed class OperatorProfileTests
     /// It is asked for with the token, as a bearer credential.
     /// </summary>
     /// <remarks>
-    /// <c>/userinfo</c> is bearer-only — <c>N-17</c> — so a request that carried the token any other
+    /// <c>/userinfo</c> is bearer-only - <c>N-17</c> - so a request that carried the token any other
     /// way would be refused, and the refusal would look exactly like a server that does not serve
     /// the endpoint. Worth pinning rather than inferring from a passing happy path.
     /// </remarks>
@@ -61,7 +61,7 @@ public sealed class OperatorProfileTests
     /// <remarks>
     /// <c>UserInfoEnabled</c> defaults to true and is a deployment's to turn off; the document then
     /// names no endpoint. That absence is the answer, and it is the case that decided this is not
-    /// <c>GetClaimsFromUserInfoEndpoint</c> — that switch would have made such a deployment one
+    /// <c>GetClaimsFromUserInfoEndpoint</c> - that switch would have made such a deployment one
     /// where the admin UI cannot be entered.
     /// </remarks>
     [Theory]
@@ -114,7 +114,7 @@ public sealed class OperatorProfileTests
     /// </summary>
     /// <remarks>
     /// OIDC Core §5.3.2 requires <c>sub</c> in every response and the endpoint sends the handle only
-    /// when the account has one — so a body without it is a well-formed answer, not a broken one.
+    /// when the account has one - so a body without it is a well-formed answer, not a broken one.
     /// </remarks>
     [Fact]
     public async Task An_account_with_no_username_is_nothing() =>
@@ -123,7 +123,7 @@ public sealed class OperatorProfileTests
     /// <summary>A handle that is blank, or is not a string, is not a handle.</summary>
     /// <remarks>
     /// The shell tests <c>Length: &gt; 0</c> before drawing the element, so an empty string would
-    /// render as an empty span rather than as a fallback to the subject — the label would simply be
+    /// render as an empty span rather than as a fallback to the subject - the label would simply be
     /// missing. Folding it to null here is what keeps the subject as the answer.
     /// </remarks>
     [Theory]
@@ -141,7 +141,7 @@ public sealed class OperatorProfileTests
     /// <remarks>
     /// This is the case that decided the body is parsed from a string instead of through
     /// <c>ReadFromJsonAsync</c>: that helper checks the media type first and throws
-    /// <c>NotSupportedException</c> — which no <c>catch (JsonException)</c> covers — for exactly the
+    /// <c>NotSupportedException</c> - which no <c>catch (JsonException)</c> covers - for exactly the
     /// proxy error page this has to survive.
     /// </remarks>
     [Fact]
@@ -161,7 +161,7 @@ public sealed class OperatorProfileTests
     /// <remarks>
     /// It is the only outcome worth a line in a log, and the log belongs where it knows this ran
     /// during a sign-in. <c>Program.cs</c> catches it, writes that line, and lets the sign-in finish
-    /// — swallowing it here would leave nothing able to say it happened.
+    /// - swallowing it here would leave nothing able to say it happened.
     /// </remarks>
     [Fact]
     public async Task A_transport_failure_reaches_the_caller() =>
@@ -195,7 +195,7 @@ public sealed class OperatorProfileTests
     /// </summary>
     /// <remarks>
     /// Recorded inside <see cref="SendAsync"/> rather than by keeping the request, because
-    /// <c>HandleAsync</c> disposes it — a test reading the headers afterwards would be asserting
+    /// <c>HandleAsync</c> disposes it - a test reading the headers afterwards would be asserting
     /// against an object the code under test has finished with.
     /// </remarks>
     private sealed class Stub(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler

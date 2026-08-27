@@ -23,7 +23,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </para>
 /// <para>
 /// Two directions are asserted and the second is the one that keeps this honest. A transient
-/// failure must become <c>503</c> with a <c>Retry-After</c> — and an ordinary defect must not,
+/// failure must become <c>503</c> with a <c>Retry-After</c> - and an ordinary defect must not,
 /// because a bug dressed as "come back shortly" is a bug every client retries forever and nobody
 /// sees.
 /// </para>
@@ -47,8 +47,8 @@ public sealed partial class StoreUnavailableTests
     /// The shape production raised, for every store double in this file and its partial.
     /// </summary>
     /// <remarks>
-    /// EF Core recognises a transient provider error and, with <c>EnableRetryOnFailure</c> off —
-    /// which DESIGN §1.2 requires on <c>/token</c> — rethrows it wrapped. Testing the bare driver
+    /// EF Core recognises a transient provider error and, with <c>EnableRetryOnFailure</c> off -
+    /// which DESIGN §1.2 requires on <c>/token</c> - rethrows it wrapped. Testing the bare driver
     /// exception would pass while the wrapped one, which is the only one an endpoint ever sees,
     /// still became a 500.
     /// </remarks>
@@ -98,7 +98,7 @@ public sealed partial class StoreUnavailableTests
     /// Minted rather than invented, because the grant parses before it queries: an arbitrary string
     /// is refused as malformed and never reaches the store, which made a first draft of these tests
     /// pass on a 400 while asserting nothing about the failure they exist for. Whether the store
-    /// would have recognised it does not matter here — it never answers.
+    /// would have recognised it does not matter here - it never answers.
     /// </remarks>
     private static FormUrlEncodedContent Refresh() =>
         new(new Dictionary<string, string>(StringComparer.Ordinal)
@@ -140,7 +140,7 @@ public sealed partial class StoreUnavailableTests
     /// <c>temporarily_unavailable</c> is the code that means exactly this and it belongs to
     /// §4.1.2.1, the authorization endpoint. Emitting it here would be an invention on the one
     /// endpoint whose error strings clients branch on hardest, and <c>{"error":""}</c> is worse
-    /// still — a member the RFC says must be one of a closed set, holding a value in no set at all.
+    /// still - a member the RFC says must be one of a closed set, holding a value in no set at all.
     /// </remarks>
     [Fact]
     public async Task The_load_shed_invents_no_error_code()
@@ -160,7 +160,7 @@ public sealed partial class StoreUnavailableTests
     /// <remarks>
     /// The 503 is built inside the endpoint rather than by middleware precisely so it travels the
     /// rejection writer. If it stopped doing so, the response would still look right and the outage
-    /// would become invisible — which is the failure mode A-09 exists to remove, arriving on the one
+    /// would become invisible - which is the failure mode A-09 exists to remove, arriving on the one
     /// refusal that means the database is gone.
     /// </remarks>
     [Fact]

@@ -46,7 +46,7 @@
       Microsoft.EntityFrameworkCore.Sqlite 10.0.10 resolves SQLitePCLRaw 2.1.11, which carries a
       known high-severity advisory (GHSA-2m69-gcr7-jv3q). NuGet audit reports it as NU1903, and
       because Directory.Build.props sets TreatWarningsAsErrors, it fails the build rather than
-      scrolling past in restore output — which is the entire reason that property is set.
+      scrolling past in restore output - which is the entire reason that property is set.
 
       2.1.12 is the fix and it is the *only* one available: lib.e_sqlite3 has a 3.x line, but
       bundle_e_sqlite3 and core stop at 3.0.5, so the four packages cannot be moved to 3.x
@@ -70,7 +70,7 @@
     <PackageVersion Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
     <!--
       SMTP submission. MIT, and it replaces System.Net.Mail.SmtpClient in
-      Boltway.Notifications.Smtp — that client cannot do implicit TLS, and Cloudflare Email
+      Boltway.Notifications.Smtp - that client cannot do implicit TLS, and Cloudflare Email
       Service offers 465 with implicit TLS and nothing else. MimeKit comes with it.
     -->
     <PackageVersion Include="MailKit" Version="4.17.0" />

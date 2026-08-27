@@ -14,7 +14,7 @@ namespace Boltway.Mcp;
 /// <para>
 /// <strong>It does not authenticate and it never challenges.</strong> That is the point.
 /// <c>UseBoltwayProtectedResource()</c> already validated the signature, the audience
-/// and the scopes, and it writes the 401 — the one that carries the vendor-researched
+/// and the scopes, and it writes the 401 - the one that carries the vendor-researched
 /// challenge shape. A second authenticator producing a second 401 is exactly the
 /// duplication this library exists to prevent, so this one only reads what that middleware
 /// left behind.
@@ -29,14 +29,14 @@ namespace Boltway.Mcp;
 /// app.UseBoltwayProtectedResource();          // validates, and owns the 401
 /// app.UseConnectorCaller("/mcp", bindState);  // maps the result onto the caller
 /// app.MapProtectedResourceMetadata();
-/// app.MapMcp("/mcp").RequireBearer();         // gated, and no required scope — see below
+/// app.MapMcp("/mcp").RequireBearer();         // gated, and no required scope - see below
 /// </code>
 ///
 /// <para>
 /// <b><c>RequireBearer()</c>, not <c>RequireScope(...)</c>, and the difference is not a
 /// preference.</b> For a release the last line of this example ended in <c>RequireScope</c>
 /// instead, annotated "what makes the gate apply". It does not: one MCP endpoint carries every
-/// tool, so a scope required there is the intersection of what the tools need — see
+/// tool, so a scope required there is the intersection of what the tools need - see
 /// <see cref="CallerPrincipal.Scopes"/>, which says the same thing from the other side.
 /// </para>
 ///
@@ -47,7 +47,7 @@ namespace Boltway.Mcp;
 /// document. So naming one scope there tells every client to ask for that scope <em>and nothing
 /// else</em>, for the whole server. A connector that did this advertised a second scope in both
 /// RFC 9728 documents, showed it on its consent screen and enforced it in its tools, and no token
-/// its authorization server ever minted carried it — reads worked, health was green, and it
+/// its authorization server ever minted carried it - reads worked, health was green, and it
 /// surfaced only when the tools began enforcing, at which point every write stopped at once and
 /// re-consenting could not help.
 /// </para>
@@ -56,7 +56,7 @@ namespace Boltway.Mcp;
 /// Naming both scopes is not the fix either: <c>RequireScope</c> requires <em>every</em> scope
 /// listed, so a genuine read-only grant would be refused its reads. Declare none, leave the
 /// challenge carrying the resource's whole <c>ScopesSupported</c>, and gate each tool on
-/// <see cref="CallerPrincipal.Grants"/> — which is the only place a single endpoint can make a
+/// <see cref="CallerPrincipal.Grants"/> - which is the only place a single endpoint can make a
 /// per-tool decision anyway.
 /// </para>
 /// </summary>
@@ -75,13 +75,13 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
     /// </param>
     /// <param name="permissionsClaim">
     /// Claim holding what those roles stand for, space-separated. Absent means the authorization
-    /// server does not publish them — not that this caller holds none — so a connector with its own
+    /// server does not publish them - not that this caller holds none - so a connector with its own
     /// role table falls back to it.
     /// </param>
     /// <param name="downstreamToken">
     /// The credential the connector writes with. An access token minted for <em>this</em>
     /// resource is not one the store upstream would accept, so a connector that needs the
-    /// caller's own credential downstream has to obtain it separately — passing this token
+    /// caller's own credential downstream has to obtain it separately - passing this token
     /// through would fail in a way that looks like the caller's fault.
     /// </param>
     public static ResourceServerAuthenticator FromClaims(
@@ -89,7 +89,7 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
         new(principal =>
         {
             // Read once, and keep both halves of the answer. The claim's *presence* and its
-            // *readability* are two different facts, and the parse below throws the first away —
+            // *readability* are two different facts, and the parse below throws the first away -
             // it returns the same empty set for a claim that granted nothing, a claim that could
             // not be read, and no claim at all. A connector cannot recover the difference
             // afterwards, so it is recorded here where it is still known.
@@ -111,7 +111,7 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
             // stored one role for a year: it would have dropped the second and third silently, on
             // the surface furthest from anybody who could notice.
             //
-            // A JWT array claim arrives as one Claim per element, so `FindAll` covers both shapes —
+            // A JWT array claim arrives as one Claim per element, so `FindAll` covers both shapes -
             // the array a multi-role server emits and the bare string an older one does.
             Roles = [.. principal.FindAll(roleClaim).Select(c => c.Value)],
 
@@ -126,7 +126,7 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
             // a scope and the middleware gating the route on one cannot disagree about what the
             // claim said. A malformed claim yields the empty set here rather than throwing: the
             // token already validated, and this is the read that decides how much authority it
-            // carries — less, never more.
+            // carries - less, never more.
             //
             // "Less, never more" holds for this property and stopped holding one call further out,
             // which is what ScopeClaim below is for: a connector falling back on an empty set
@@ -138,7 +138,7 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
 
             // Absent beats readability: TryParse answers true for null, so the null check has to
             // come first or a token with no claim at all would be reported as one that granted
-            // nothing — the refusal, instead of the fall-back.
+            // nothing - the refusal, instead of the fall-back.
             ScopeClaim = scopeClaim is null
                 ? ScopeClaimState.Absent
                 : readable ? ScopeClaimState.Readable : ScopeClaimState.Unreadable,
@@ -183,7 +183,7 @@ public sealed class ResourceServerAuthenticator(Func<ClaimsPrincipal, CallerPrin
         if (token is null)
         {
             // Deliberately not an UnauthorizedException. A missing feature here does not mean
-            // the caller failed to authenticate — it means the resource-server middleware
+            // the caller failed to authenticate - it means the resource-server middleware
             // never gated this endpoint, so *nothing* checked the token. Answering 401 would
             // present a wiring bug as the caller's problem and leave it in production; the
             // alternative, treating the request as anonymous, would let everyone through.

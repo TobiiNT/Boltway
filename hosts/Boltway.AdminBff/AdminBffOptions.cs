@@ -22,7 +22,7 @@ public sealed class AdminBffOptions
     /// </summary>
     /// <remarks>
     /// Usually the same origin as <see cref="Authority"/> and settable separately because §1.4 puts
-    /// the admin API on its own hostname in a deployment that wants one — the rule is that it is a
+    /// the admin API on its own hostname in a deployment that wants one - the rule is that it is a
     /// separate <i>resource</i>, and a separate host is the ordinary way to make that visible.
     /// </remarks>
     public required string AdminApi { get; init; }
@@ -45,7 +45,7 @@ public sealed class AdminBffOptions
     /// </summary>
     /// <remarks>
     /// Binds the access token's <c>aud</c> to the admin API, so a token minted for this app cannot
-    /// be replayed against the customer's connector. §1.4 — the admin API is its own resource, and
+    /// be replayed against the customer's connector. §1.4 - the admin API is its own resource, and
     /// this parameter is what makes that a property of the token rather than of the documentation.
     /// </remarks>
     public required string Resource { get; init; }
@@ -64,7 +64,7 @@ public sealed class AdminBffOptions
     /// </para>
     /// <para>
     /// The default is the sheet this app ships and serves out of <c>wwwroot</c>, so a deployment that
-    /// sets nothing is unchanged. Setting this <i>replaces</i> the list rather than adding to it —
+    /// sets nothing is unchanged. Setting this <i>replaces</i> the list rather than adding to it -
     /// name <c>/css/admin.css</c> alongside your own to keep it.
     /// </para>
     /// <para>
@@ -108,7 +108,7 @@ public sealed class AdminBffOptions
     /// The same check as the authorization server's <c>InteractionOptions</c>, for the same reason
     /// and against the same two cases. <c>//evil.example/x.css</c> is the one worth naming: it looks
     /// like a path, and a browser reads it as protocol-relative and fetches it from another origin.
-    /// <c>/\evil.example</c> is the same attack spelled differently — browsers normalise the
+    /// <c>/\evil.example</c> is the same attack spelled differently - browsers normalise the
     /// backslash to a forward slash, so a check that only looked for <c>//</c> would pass it through.
     /// </para>
     /// <para>

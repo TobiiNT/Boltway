@@ -15,7 +15,7 @@ namespace Boltway.AuthorizationServer.Administration;
 /// Which account acted, when one did. <see langword="null"/> for a command line.
 /// </param>
 /// <remarks>
-/// <b>The CLI's subject is honestly null.</b> Inventing one for a shell — or reusing the target's —
+/// <b>The CLI's subject is honestly null.</b> Inventing one for a shell - or reusing the target's -
 /// would make an audit trail that reads as if the person being changed made the change. "Somebody
 /// with shell access did this" is a smaller claim and a true one, and it is the one an incident
 /// review can act on.
@@ -87,7 +87,7 @@ public enum AdministrationStatus
 /// <param name="Handle">What they type at the login page.</param>
 /// <param name="Email">Their address, if one was given.</param>
 /// <param name="Role">
-/// What its tokens will claim it is, if anything — what was actually assigned, so a creation the
+/// What its tokens will claim it is, if anything - what was actually assigned, so a creation the
 /// deployment's defaults filled in reports them here rather than <see langword="null"/>.
 /// Space-separated when there are several, the same shape the claim has.
 /// </param>
@@ -107,7 +107,7 @@ public sealed record PasswordResetResult(
 
 /// <summary>The outcome of somebody changing their own password.</summary>
 /// <param name="Status">Whether it happened.</param>
-/// <param name="Subject">Whose password. Always the caller's — this operation reaches nobody else.</param>
+/// <param name="Subject">Whose password. Always the caller's - this operation reaches nobody else.</param>
 /// <param name="Revoked">
 /// How many grants were revoked on the way, when the caller asked. Zero when they did not, and zero
 /// when there was nothing live: the two are the same number and the caller knows which they asked
@@ -158,7 +158,7 @@ public sealed record RolesChangeResult(
 /// <remarks>
 /// <para>
 /// <b>This field is the reason the whole operation is one call.</b> The store holds a SHA-256 and
-/// nothing else, so this string cannot be recovered from anywhere afterwards — not from the
+/// nothing else, so this string cannot be recovered from anywhere afterwards - not from the
 /// database, not from a log, not by an administrator with every permission there is. A caller that
 /// does not show it to somebody has destroyed it.
 /// </para>
@@ -175,7 +175,7 @@ public sealed record ServiceAccountResult(
 /// <param name="Status">Whether it happened.</param>
 /// <param name="Subject">Whose sessions, when there was an account.</param>
 /// <param name="Revoked">
-/// How many grants <b>this call</b> revoked. Zero means there was nothing live, not that it failed —
+/// How many grants <b>this call</b> revoked. Zero means there was nothing live, not that it failed -
 /// running it twice is how an operator makes sure, and the second run should say zero rather than
 /// repeat the first answer.
 /// </param>
@@ -184,7 +184,7 @@ public sealed record SessionRevocationResult(
 
 /// <summary>The outcome of anonymising an account.</summary>
 /// <param name="Status">Whether it happened.</param>
-/// <param name="Subject">Which account. It still exists — that is the point of the operation.</param>
+/// <param name="Subject">Which account. It still exists - that is the point of the operation.</param>
 /// <param name="Handle">What the username is now.</param>
 /// <param name="Revoked">How many grants were revoked on the way.</param>
 public sealed record AnonymisationResult(
@@ -197,14 +197,14 @@ public sealed record AnonymisationResult(
 /// <para>
 /// <b>Every caller is a caller.</b> The CLI verbs used to reach <see cref="IUserStore"/> directly
 /// from the host's <c>Program.cs</c>. The moment an HTTP admin surface exists, that would be two
-/// implementations of one operation — and the half that drifts first is the audit write, on the
+/// implementations of one operation - and the half that drifts first is the audit write, on the
 /// operator path, which is the path used at 2am during an incident.
 /// </para>
 /// <para>
 /// <b>An operator never supplies a password; the account holder must.</b> This paragraph used to
 /// read "the password is generated here and never accepted", and the reasoning under it was about a
 /// value typed into a terminal, where it lands in shell history, in scrollback, and in whatever ran
-/// the command. That reasoning holds exactly where it was aimed —
+/// the command. That reasoning holds exactly where it was aimed -
 /// <see cref="ResetPasswordAsync"/> is one person acting on another's account and still takes no
 /// password, so no CLI verb can grow a field that puts one in a shell.
 /// </para>
@@ -228,7 +228,7 @@ public sealed record AnonymisationResult(
 /// </param>
 /// <param name="audit">
 /// Where administrative actions are recorded. Optional so that a deployment without an audit store
-/// keeps working — the entry is skipped rather than the operation refused, because refusing to reset
+/// keeps working - the entry is skipped rather than the operation refused, because refusing to reset
 /// a password because a log is unavailable locks somebody out to protect a record of locking them
 /// out.
 /// </param>
@@ -249,14 +249,14 @@ public sealed record AnonymisationResult(
 /// </param>
 /// <param name="tokens">
 /// The one-time links, so that changing a password destroys every outstanding reset link for the
-/// account — <c>S-47</c>'s fourth clause, which applies to <b>every</b> route and therefore to the
+/// account - <c>S-47</c>'s fourth clause, which applies to <b>every</b> route and therefore to the
 /// two here as well as to the reset link itself. Optional, because a deployment that has not turned
 /// the email flows on has no links to destroy; when one is registered, every password change
 /// destroys them, including the operator's.
 /// </param>
 /// <param name="accountDefaults">
 /// What a new account holds when its creator names no role. Optional because absence is the
-/// meaning: unregistered, creation assigns nothing it was not told to — see
+/// meaning: unregistered, creation assigns nothing it was not told to - see
 /// <see cref="AccountDefaults"/> for why there is no empty value of it.
 /// </param>
 public sealed class UserAdministration(
@@ -278,7 +278,7 @@ public sealed class UserAdministration(
     /// </summary>
     /// <remarks>
     /// Derived from the subject, which is unique, so the <c>(realm, normalized_username)</c> index
-    /// cannot collide however many accounts are anonymised — and so anonymising the same account
+    /// cannot collide however many accounts are anonymised - and so anonymising the same account
     /// twice is idempotent rather than a unique-violation. The subject is already on the row and in
     /// every audit entry about it, so this reveals nothing the record does not already hold.
     /// </remarks>
@@ -301,12 +301,12 @@ public sealed class UserAdministration(
     /// <param name="email">Their address, or <see langword="null"/>.</param>
     /// <param name="role">
     /// What its tokens should claim, or <see langword="null"/> to take the deployment's
-    /// <see cref="AccountDefaults"/> — which fill an absence only: a named role is exactly what the
+    /// <see cref="AccountDefaults"/> - which fill an absence only: a named role is exactly what the
     /// account gets, defaults not unioned in.
     /// </param>
     /// <param name="cancellationToken">Cancels the write.</param>
     /// <exception cref="InvalidOperationException">
-    /// The handle is taken. Raised by the store, whose message already says so — accounts are
+    /// The handle is taken. Raised by the store, whose message already says so - accounts are
     /// add-only, and overwriting one would replace its credentials. Also raised by the role
     /// assignment when a default names a role the realm does not define, which is the misconfigured
     /// deployment the host's <c>migrate</c> verb exists to catch first.
@@ -320,7 +320,7 @@ public sealed class UserAdministration(
         CancellationToken cancellationToken)
     {
         // Optional on the constructor and demanded here, because only this method needs it. The
-        // shipped factory lives in Boltway.Identity, which this assembly does not reference —
+        // shipped factory lives in Boltway.Identity, which this assembly does not reference -
         // so a deployment that never creates an account should not have to register one, and the
         // one that does should be told which line is missing rather than reading a container
         // activation failure naming a type it has never heard of.
@@ -342,13 +342,13 @@ public sealed class UserAdministration(
             },
             cancellationToken).ConfigureAwait(false);
 
-        // Created first, assigned second, because creation does not assign — see UserAccount.Roles.
+        // Created first, assigned second, because creation does not assign - see UserAccount.Roles.
         // Not one transaction, and the failure that leaves behind is an account with no roles rather
         // than a half-made one: it can sign in, it holds nothing, and `set-role` finishes the job.
         // The alternative, deleting the account when the assignment fails, turns a mistyped role
         // into a handle that is taken by a row nobody can see.
         //
-        // A named role wins outright; the defaults only ever fill an absence — see AccountDefaults
+        // A named role wins outright; the defaults only ever fill an absence - see AccountDefaults
         // for why they are not unioned in. An empty string counts as absence: it is what a form
         // whose role field was left blank submits, and treating it as a name would record `role=`
         // in the audit trail and assign nothing.
@@ -405,7 +405,7 @@ public sealed class UserAdministration(
             .ConfigureAwait(false);
 
         // Every session this account had predates the new password, so none of them are its
-        // sessions any more. Separate from the write above by design — see StampSessionsAsync —
+        // sessions any more. Separate from the write above by design - see StampSessionsAsync -
         // and unconditional on this path, because a password change nobody asked for is exactly
         // the case where the old browser must stop working.
         await users.StampSessionsAsync(account.Subject, _clock.GetUtcNow(), cancellationToken).ConfigureAwait(false);
@@ -428,7 +428,7 @@ public sealed class UserAdministration(
     /// Change your own password, proving you know the current one. <c>E-34</c>, <c>S-49</c>.
     /// </summary>
     /// <param name="actor">Who is asking. The subject on it is the account being changed.</param>
-    /// <param name="subject">Whose password. <b>Never taken from a request body</b> — see remarks.</param>
+    /// <param name="subject">Whose password. <b>Never taken from a request body</b> - see remarks.</param>
     /// <param name="currentPassword">What is on the account now.</param>
     /// <param name="newPassword">What to replace it with.</param>
     /// <param name="revokeSessions">Whether to end every other session on the way.</param>
@@ -439,7 +439,7 @@ public sealed class UserAdministration(
     /// The rest resolve what a person typed, because an operator starts from a name. This one starts
     /// from the token: the caller supplies no identifier at all, so there is no parameter an
     /// <c>/account</c> handler could fill from a request body and no code path that reaches another
-    /// account. §1.6 — two surfaces rather than one with a guard.
+    /// account. §1.6 - two surfaces rather than one with a guard.
     /// </para>
     /// <para>
     /// <b>The current password is required even though the bearer token already authenticated the
@@ -458,7 +458,7 @@ public sealed class UserAdministration(
     /// <para>
     /// <b>The session this call is made from is revoked along with the rest.</b> Sparing it would
     /// mean deciding which grant the caller is holding, from a token that names a grant this service
-    /// is not given — and getting that wrong leaves the compromised session alive, which is the one
+    /// is not given - and getting that wrong leaves the compromised session alive, which is the one
     /// case the flag exists for.
     /// </para>
     /// </remarks>
@@ -520,7 +520,7 @@ public sealed class UserAdministration(
             .ConfigureAwait(false);
 
         // Every session this account had predates the new password, so none of them are its
-        // sessions any more. Separate from the write above by design — see StampSessionsAsync —
+        // sessions any more. Separate from the write above by design - see StampSessionsAsync -
         // and unconditional on this path, because a password change nobody asked for is exactly
         // the case where the old browser must stop working.
         await users.StampSessionsAsync(subject, _clock.GetUtcNow(), cancellationToken).ConfigureAwait(false);
@@ -534,7 +534,7 @@ public sealed class UserAdministration(
         }
 
         // After the password, not before. Dying in between this way leaves an account whose new
-        // password works and whose old sessions are still live — recoverable by asking again. The
+        // password works and whose old sessions are still live - recoverable by asking again. The
         // other order signs somebody out and then fails to change the credential they were signing
         // out to protect.
         await DestroyResetLinksAsync(subject, cancellationToken).ConfigureAwait(false);
@@ -606,7 +606,7 @@ public sealed class UserAdministration(
     /// <param name="cancellationToken">Cancels the write.</param>
     /// <remarks>
     /// Disabling stops the next sign-in and nothing else. Tokens already issued are signed rather
-    /// than looked up, so nothing can withdraw one before it expires — which is worth knowing before
+    /// than looked up, so nothing can withdraw one before it expires - which is worth knowing before
     /// disabling somebody in response to an incident and believing it is over.
     /// </remarks>
     public async Task<EnablementResult> SetEnabledAsync(
@@ -657,12 +657,12 @@ public sealed class UserAdministration(
     /// <remarks>
     /// <para>
     /// <b>Clearing an address always clears the flag</b>, whatever the caller passed. A verified
-    /// null is not a state — it would put <c>email_verified: true</c> in a token with no <c>email</c>
+    /// null is not a state - it would put <c>email_verified: true</c> in a token with no <c>email</c>
     /// claim beside it, which is a proof about nothing.
     /// </para>
     /// <para>
     /// Marking an address verified is an operator asserting it, not this server checking it. The
-    /// flow that checks — a link sent to the address — is not built; until it is, this is the only
+    /// flow that checks - a link sent to the address - is not built; until it is, this is the only
     /// thing that can make <c>email_verified</c> anything other than the constant it has always
     /// been, and it is worth knowing which of the two a given token's claim came from.
     /// </para>
@@ -716,7 +716,7 @@ public sealed class UserAdministration(
     /// <b>Refresh chains stop immediately; access tokens do not.</b> The refresh handler loads the
     /// grant and refuses when it is not active, so every chain descended from a revoked grant is
     /// dead on its next rotation. An access token already issued is signed rather than looked up,
-    /// and <c>IGrantStore.IsRevokedAsync</c> — the denylist a resource server would consult — is
+    /// and <c>IGrantStore.IsRevokedAsync</c> - the denylist a resource server would consult - is
     /// called by nothing in this repository. So "signed out everywhere" is true after one access
     /// token lifetime and not before, and an operator responding to a compromise should know which
     /// of the two they just did.
@@ -749,7 +749,7 @@ public sealed class UserAdministration(
             .RevokeAllForSubjectAsync(account.Subject, now, cancellationToken)
             .ConfigureAwait(false);
 
-        // Succeeded even at zero. There were no live grants, which is a true and useful answer —
+        // Succeeded even at zero. There were no live grants, which is a true and useful answer -
         // recording it as a refusal would put "somebody tried and was stopped" in the log for an
         // operator who did exactly what they meant to.
         await RecordAsync(actor, "user.sessions.revoke", realm, account.Subject, handle,
@@ -770,13 +770,13 @@ public sealed class UserAdministration(
     /// <para>
     /// Username becomes a tombstone, email and credential and role are gone, external links are
     /// deleted, the account is disabled, and every grant is revoked. <b>The subject row stays</b>,
-    /// so audit entries and grant history keep their referent — an audit trail that empties when the
+    /// so audit entries and grant history keep their referent - an audit trail that empties when the
     /// audited party asks is not an audit trail.
     /// </para>
     /// <para>
     /// <b>Sessions first, then the account, and the order is the recovery story.</b> These are two
     /// writes and nothing here can make them one. Anonymising first and dying in between would leave
-    /// a tombstoned account whose refresh tokens still mint — a session belonging to a person the
+    /// a tombstoned account whose refresh tokens still mint - a session belonging to a person the
     /// directory says is gone. This way round, dying in between leaves an ordinary account whose
     /// owner has been signed out, which is a state an operator can see and rerun.
     /// </para>
@@ -808,7 +808,7 @@ public sealed class UserAdministration(
             .AnonymiseAsync(account.Subject, tombstone, now, cancellationToken)
             .ConfigureAwait(false);
 
-        // The handle as typed is in the entry, which is the one place it survives — the account no
+        // The handle as typed is in the entry, which is the one place it survives - the account no
         // longer carries it. That is deliberate and it is the boundary of what this operation
         // promises: the directory stops naming the person, and the record of who was administered
         // stays readable, because otherwise nobody can answer "was this done properly".
@@ -828,7 +828,7 @@ public sealed class UserAdministration(
     /// <remarks>
     /// <para>
     /// Called after the password has actually changed, on every route that changes one. A link that
-    /// still works afterwards is a second key to the account, held by whoever asked for it — which
+    /// still works afterwards is a second key to the account, held by whoever asked for it - which
     /// on the operator route may be a person who has since been let go, and on the self-service
     /// route may be the attacker whose access is the reason the password is being changed.
     /// </para>
@@ -904,7 +904,7 @@ public sealed class UserAdministration(
     }
 
     /// <summary>Define the roles a deployment declares, skipping every one already defined.</summary>
-    /// <param name="actor">Who is doing this — the CLI, when this runs from the migrate step.</param>
+    /// <param name="actor">Who is doing this - the CLI, when this runs from the migrate step.</param>
     /// <param name="realm">The directory.</param>
     /// <param name="seeds">What should exist.</param>
     /// <param name="cancellationToken">Cancels the writes.</param>
@@ -913,19 +913,19 @@ public sealed class UserAdministration(
     /// <para>
     /// <b>Create-if-absent, never converge-to-config.</b> After bootstrap the definitions belong to
     /// the admin surface, so a seed that finds its role already defined leaves it exactly as it is
-    /// — name and permissions both — even when they differ from the seed. Re-asserting the seed on
+    /// - name and permissions both - even when they differ from the seed. Re-asserting the seed on
     /// every deploy would quietly revert any edit an operator made in between, which turns the
     /// roles page into a lie that holds until the next deploy.
     /// </para>
     /// <para>
     /// Every seed is validated before anything is written, so one malformed entry fails the whole
-    /// pass rather than applying half of it — a deploy log then shows either what was done or one
+    /// pass rather than applying half of it - a deploy log then shows either what was done or one
     /// message naming what to fix, never both. Validation must not depend on absence, or a typo in
     /// a seed would sit unnoticed exactly as long as the role it names exists.
     /// </para>
     /// <para>
     /// Each created role is audited through <see cref="CreateRoleAsync"/>; a skip writes no entry,
-    /// because it changes nothing and this runs on every deploy — an entry per deploy per role
+    /// because it changes nothing and this runs on every deploy - an entry per deploy per role
     /// would bury the writes that matter.
     /// </para>
     /// </remarks>
@@ -962,7 +962,7 @@ public sealed class UserAdministration(
             }
             catch (InvalidOperationException)
             {
-                // Defined between the read and the write — a concurrent migrate, or an operator on
+                // Defined between the read and the write - a concurrent migrate, or an operator on
                 // the admin page at the wrong second. The role exists, which is all a seed asks for,
                 // so this is the same outcome as finding it above, not a failure to report.
                 outcomes.Add(new SeededRole(seed.Id, Created: false));
@@ -1028,7 +1028,7 @@ public sealed class UserAdministration(
     /// <param name="cancellationToken">Cancels the write.</param>
     /// <remarks>
     /// Accounts holding only this role are left holding none. That is the least-privileged outcome
-    /// rather than a refusal, and the audit entry is the only record that it happened to them —
+    /// rather than a refusal, and the audit entry is the only record that it happened to them -
     /// which is why this one is audited even when it changes nobody.
     /// </remarks>
     public async Task<bool> DeleteRoleAsync(
@@ -1094,8 +1094,8 @@ public sealed class UserAdministration(
     /// <param name="cancellationToken">Cancels the writes.</param>
     /// <remarks>
     /// <para>
-    /// <b>Scopes are a parameter and cannot be derived.</b> A role holds <i>permissions</i> —
-    /// <c>docs_read</c>, in the resource server's vocabulary — and a token carries <i>scopes</i>,
+    /// <b>Scopes are a parameter and cannot be derived.</b> A role holds <i>permissions</i> -
+    /// <c>docs_read</c>, in the resource server's vocabulary - and a token carries <i>scopes</i>,
     /// <c>docs:read</c>, in OAuth's. Nothing maps one to the other, and inventing a mapping here would
     /// be this library guessing at a vocabulary that belongs to somebody else's resource server.
     /// So the caller names them, and whoever presses the button sees what they are granting.
@@ -1108,13 +1108,13 @@ public sealed class UserAdministration(
     /// </para>
     /// <para>
     /// <b>The owner's roles are the ceiling on what the token can do.</b> Nothing here checks it,
-    /// because there is nothing to check against yet — roles move after a service account is made.
+    /// because there is nothing to check against yet - roles move after a service account is made.
     /// <c>ClientCredentialsGrant</c> applies it at every token request instead, refusing to issue
     /// when the owner is not entitled to a scope the client holds.
     ///
     /// This paragraph used to say the ceiling was applied "when the token is used, by whatever
     /// reads its roles". Nothing did: <c>AdminAuthorization</c> deliberately reads only the scope,
-    /// which is the correct division, and this grant took scope straight off the client record —
+    /// which is the correct division, and this grant took scope straight off the client record -
     /// so the ceiling was a sentence true of nowhere, and a service account owned by an account
     /// with no administrative role could rewrite the whole directory.
     ///
@@ -1143,7 +1143,7 @@ public sealed class UserAdministration(
         }
 
         // Refused rather than issued with nothing, because the grant refuses an empty scope set at
-        // the token endpoint — so this would otherwise mint a credential that can never obtain a
+        // the token endpoint - so this would otherwise mint a credential that can never obtain a
         // token, and the operator would find out at the service's first run rather than here.
         if (!ScopeSet.TryParse(string.Join(' ', scopes), out var parsed, out var scopeError)
             || parsed.IsEmpty)
@@ -1205,7 +1205,7 @@ public sealed class UserAdministration(
     /// <remarks>
     /// <b>Not revocation.</b> It stops new tokens being issued; one already out lives until it
     /// expires. A service account holds no refresh token, so that window is one access-token
-    /// lifetime and nothing can extend it — but it is not zero, and a caller telling somebody "this
+    /// lifetime and nothing can extend it - but it is not zero, and a caller telling somebody "this
     /// is off now" is telling them something that becomes true shortly.
     /// </remarks>
     public async Task<ServiceAccountResult> SetServiceAccountEnabledAsync(

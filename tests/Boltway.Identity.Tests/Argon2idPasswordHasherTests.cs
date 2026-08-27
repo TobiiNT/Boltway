@@ -30,8 +30,8 @@ public sealed class Argon2idPasswordHasherTests
     /// </summary>
     /// <remarks>
     /// The known-answer test for the whole choice. Everything else in this file would pass against a
-    /// hasher that did something plausible and wrong — a round trip verifies against itself, and
-    /// "wrong password fails" holds for any deterministic function — so without this, "we use
+    /// hasher that did something plausible and wrong - a round trip verifies against itself, and
+    /// "wrong password fails" holds for any deterministic function - so without this, "we use
     /// Argon2id" rests on the package name. RFC 9106 §5.3, with the secret and associated-data
     /// inputs the vector specifies; the hasher itself uses neither, which is why this test drives
     /// the library directly rather than through <see cref="Argon2idPasswordHasher"/>.
@@ -145,7 +145,7 @@ public sealed class Argon2idPasswordHasherTests
     /// The single most common way a password upgrade path is botched, stated as a test: the deploy
     /// that raises the cost invalidates every password already stored, and the symptom is every
     /// existing user unable to sign in with a correct password. Reading the cost from the stored
-    /// string is the only thing that prevents it — and a hasher that read its own configuration
+    /// string is the only thing that prevents it - and a hasher that read its own configuration
     /// instead would pass every other test in this file.
     /// </remarks>
     [Fact]
@@ -201,7 +201,7 @@ public sealed class Argon2idPasswordHasherTests
         var stored = weaker.Hash("pw");
         var current = new Argon2idPasswordHasher(Cheap);
 
-        // Still verifies — the upgrade is transparent, not a lockout — and is flagged in the same
+        // Still verifies - the upgrade is transparent, not a lockout - and is flagged in the same
         // call, because the only moment a rehash is possible is the moment the plaintext has just
         // been confirmed.
         var result = current.VerifyForUpgrade("pw", stored);
@@ -240,7 +240,7 @@ public sealed class Argon2idPasswordHasherTests
     public void A_stored_value_we_cannot_read_fails_the_login_rather_than_the_request(string stored)
     {
         // Fail closed, and without an exception. This value comes from a database column reached by
-        // an unauthenticated POST, so an exception here is a 500 anyone can provoke — and the shape
+        // an unauthenticated POST, so an exception here is a 500 anyone can provoke - and the shape
         // of the failure would itself distinguish "this row is odd" from "wrong password".
         var hasher = Hasher();
 
@@ -270,7 +270,7 @@ public sealed class Argon2idPasswordHasherTests
     public void Nothing_about_the_hasher_prints_a_password()
     {
         // N-16's spirit: the password is not in ToString, and not in the exception a bad parameter
-        // raises. There is no field holding it — Derive turns it into bytes and drops them — so this
+        // raises. There is no field holding it - Derive turns it into bytes and drops them - so this
         // pins the absence rather than a redaction.
         var hasher = Hasher();
 
@@ -297,7 +297,7 @@ public sealed class Argon2idPasswordHasherTests
     /// </summary>
     /// <remarks>
     /// Found by <c>LoginFlowTests</c>, not by reading: the library throws
-    /// <see cref="ArgumentException"/> — "Argon2 needs a password set" — on a zero-length input, and
+    /// <see cref="ArgumentException"/> - "Argon2 needs a password set" - on a zero-length input, and
     /// the login endpoint does not catch it. Posting an empty password field was a 500 that any
     /// unauthenticated request could provoke at will, and whose shape differed from every ordinary
     /// failed login.
@@ -313,7 +313,7 @@ public sealed class Argon2idPasswordHasherTests
         Assert.False(hasher.VerifyForUpgrade(string.Empty, stored).Succeeded);
 
         // Hash: a throw, because storing one is a registration-policy failure. It is what makes the
-        // answer above sound — no hash this type produced can be of an empty password, so refusing
+        // answer above sound - no hash this type produced can be of an empty password, so refusing
         // to verify one cannot be a false negative.
         Assert.Throws<ArgumentException>(() => hasher.Hash(string.Empty));
     }
@@ -323,7 +323,7 @@ public sealed class Argon2idPasswordHasherTests
     {
         // The short-circuit must not become a second oracle. It is keyed on the password the caller
         // sent, so it has to answer identically for a real hash, an unreadable one and an empty one
-        // — otherwise it distinguishes accounts again, one layer down.
+        // - otherwise it distinguishes accounts again, one layer down.
         var hasher = Hasher();
 
         Assert.False(hasher.Verify(string.Empty, hasher.Hash("pw")));
@@ -336,7 +336,7 @@ public sealed class Argon2idPasswordHasherTests
     /// </summary>
     /// <remarks>
     /// Pinned because it is a limitation rather than a feature, and an unpinned limitation gets
-    /// "fixed" by someone adding a <c>Normalize()</c> call — which would invalidate every stored
+    /// "fixed" by someone adding a <c>Normalize()</c> call - which would invalidate every stored
     /// hash of a password containing a composable character. <c>InvariantGlobalization</c> is set
     /// tree-wide, so normalization is not available here anyway; this records the consequence.
     /// </remarks>

@@ -23,7 +23,7 @@ public sealed record OAuthErrorSpec(string Wire, int Status, ErrorDelivery Deliv
 /// <see cref="Resolve"/> <b>throws</b> on a pair that is not listed. That is the point of the type:
 /// it turns "<c>access_denied</c> is never emitted from <c>/token</c>" from a sentence in a
 /// specification into something the process cannot do. A call site that tries it does not produce a
-/// subtly wrong response for a client to misinterpret — it fails loudly, in a test, at the moment
+/// subtly wrong response for a client to misinterpret - it fails loudly, in a test, at the moment
 /// someone writes it.
 /// </para>
 /// </remarks>
@@ -34,7 +34,7 @@ public static class OAuthErrors
         {
             // ── /authorize, before a redirect URI is validated ───────────────────
             //
-            // X-01, X-02 and X-03: HTML at 400, never a redirect. RFC 6749 §4.1.2.1 — with an
+            // X-01, X-02 and X-03: HTML at 400, never a redirect. RFC 6749 §4.1.2.1 - with an
             // unknown client or a redirect URI that does not match, there is no address it is safe
             // to send the user to, and redirecting anyway makes the authorization endpoint an open
             // redirector that also leaks `state`.
@@ -53,7 +53,7 @@ public static class OAuthErrors
             // The design note for the exception boundary said HTML 400 here, and 400 is the wrong
             // answer to a server fault: it tells the caller their request was malformed when the
             // server broke, which sends whoever is debugging it to the client. There is no redirect
-            // available on this surface — that is what the surface means — so the status is the only
+            // available on this surface - that is what the surface means - so the status is the only
             // channel left to say which side failed.
             //
             // Without this row Resolve() throws, which would turn every pre-redirect crash into a
@@ -63,12 +63,12 @@ public static class OAuthErrors
 
             // 503 rather than 500, and it is the same distinction X-43 draws at /token: server_error
             // says the request cannot succeed, temporarily_unavailable says it can, shortly. This is
-            // the half of that pair the person sees — the store failed before a redirect URI could be
+            // the half of that pair the person sees - the store failed before a redirect URI could be
             // validated, so there is nowhere safe to send them and the answer renders here.
             //
             // The row is new; the requirement is not. X-11 has been in the table for the redirect
             // half since before there was anything to emit it, and A_pre_redirect_status_says_which
-            // _side_failed has been asserting that this exact pair must be 5xx — against a row that
+            // _side_failed has been asserting that this exact pair must be 5xx - against a row that
             // did not exist. Adding it is what gives that assertion something to hold.
             [(OAuthSurface.AuthorizePreRedirect, OAuthErrorCode.TemporarilyUnavailable)] =
                 new("temporarily_unavailable", 503, ErrorDelivery.Html, "X-11"),
@@ -77,8 +77,8 @@ public static class OAuthErrors
             //
             // 303 throughout, not 302. OAuth 2.1 §7.5.3 and RFC 9700 §4.12: an authorization server
             // redirecting a request that may carry user credentials MUST NOT use 307 and SHOULD use
-            // 303. Several of these arise from the consent POST — access_denied is by definition
-            // the answer to one — so a uniform 303 satisfies N-12 without asking each call site to
+            // 303. Several of these arise from the consent POST - access_denied is by definition
+            // the answer to one - so a uniform 303 satisfies N-12 without asking each call site to
             // know whether it got here by GET or POST. 303 is legal on the GET paths too.
             [(OAuthSurface.Authorize, OAuthErrorCode.InvalidRequest)] =
                 new("invalid_request", 303, ErrorDelivery.Redirect, "X-04"),
@@ -125,7 +125,7 @@ public static class OAuthErrors
             // this code specifically "MAY return an HTTP 401 … If the client attempted to
             // authenticate via the Authorization request header field, the authorization server
             // MUST respond with an HTTP 401." So 401 is conditional on evidence the table does not
-            // have — see StatusForClientAuthFailure, which the endpoint calls with what it observed.
+            // have - see StatusForClientAuthFailure, which the endpoint calls with what it observed.
             [(OAuthSurface.Token, OAuthErrorCode.InvalidClient)] =
                 new("invalid_client", 400, ErrorDelivery.JsonWithChallenge, "X-18"),
             [(OAuthSurface.Token, OAuthErrorCode.InvalidGrant)] =
@@ -163,7 +163,7 @@ public static class OAuthErrors
             // RFC 7592 §2.2: "If the client attempts to set an invalid metadata field and the
             // authorization server does not set a default value, the authorization server responds
             // with an error as described in [RFC7591]." So a PUT carrying bad metadata rejects with
-            // the RFC 7591 codes — without these rows Resolve would throw on a legitimate rejection.
+            // the RFC 7591 codes - without these rows Resolve would throw on a legitimate rejection.
             [(OAuthSurface.RegistrationManagement, OAuthErrorCode.InvalidRedirectUri)] =
                 new("invalid_redirect_uri", 400, ErrorDelivery.Json, "X-24"),
             [(OAuthSurface.RegistrationManagement, OAuthErrorCode.InvalidClientMetadata)] =
@@ -191,7 +191,7 @@ public static class OAuthErrors
             // conformant resource server conclude its own credentials are broken and stop asking.
             //
             // §2.3 also defines a 401 for a caller authenticating with a BEARER token that lacks
-            // privileges — note 401, not 403. There is no row for it because this server accepts
+            // privileges - note 401, not 403. There is no row for it because this server accepts
             // only client credentials at this endpoint; if bearer-authenticated introspection is
             // ever added, that row is required.
             [(OAuthSurface.Introspection, OAuthErrorCode.InvalidRequest)] =
@@ -215,8 +215,8 @@ public static class OAuthErrors
             // There is no row for it anywhere in this table, and there cannot be one. X-31 is the
             // only requirement whose `error` column is literally *(none)*: being over a limit is a
             // transport condition and no registered OAuth code means it. This table is keyed on an
-            // OAuthErrorCode, and the one member that could stand for "no code" —
-            // OAuthErrorCode.None — is excluded by Resolve's contract and by a test that walks every
+            // OAuthErrorCode, and the one member that could stand for "no code" -
+            // OAuthErrorCode.None - is excluded by Resolve's contract and by a test that walks every
             // surface asserting it, because None describes a response rather than naming an error.
             //
             // So a 429 is built where it is emitted, not looked up here: AuthorizeHtmlError.Throttled

@@ -17,8 +17,8 @@ namespace Boltway.Federation.Google;
 /// the "Google is special" this project split exists to prevent.
 /// </para>
 /// <para>
-/// Adding Facebook, Entra or an enterprise OIDC deployment is a file of this shape, or — because
-/// discovery fills in the endpoints — three lines of configuration and no file at all.
+/// Adding Facebook, Entra or an enterprise OIDC deployment is a file of this shape, or - because
+/// discovery fills in the endpoints - three lines of configuration and no file at all.
 /// </para>
 /// <para>
 /// <b>The endpoints are not hard-coded.</b> Only the issuer is, because the issuer is the one value
@@ -35,7 +35,7 @@ public static class GoogleFederation
     /// Not <c>https://www.googleapis.com</c> and not the <c>accounts.google.com</c> spelling without
     /// a scheme. Google historically issued tokens under two <c>iss</c> values, and the one it uses
     /// for the OIDC flow is this. A deployment that needs the other configures it explicitly rather
-    /// than having this constant accept both — an issuer comparison that accepts two values is a
+    /// than having this constant accept both - an issuer comparison that accepts two values is a
     /// comparison that accepts whichever an attacker prefers.
     /// </remarks>
     public const string Issuer = "https://accounts.google.com";
@@ -51,7 +51,7 @@ public static class GoogleFederation
     /// The client secret, or <see langword="null"/>. Google issues one for a web application and it
     /// is required at its token endpoint, so a null here will surface as a rejected exchange.
     /// </param>
-    /// <param name="configure">Anything else — extra scopes, <c>hd</c>, a different scheme name.</param>
+    /// <param name="configure">Anything else - extra scopes, <c>hd</c>, a different scheme name.</param>
     /// <returns>Options ready to hand to <c>AddExternalIdentityProvider</c>.</returns>
     public static OidcProviderOptions Options(
         string clientId, string? clientSecret, Action<OidcProviderOptions>? configure = null)

@@ -12,7 +12,7 @@ public sealed class CloudLoggingOptions
 {
     /// <summary>
     /// The Google Cloud project, for the trace field. Absent means the trace fields are omitted
-    /// rather than guessed — a malformed <c>logging.googleapis.com/trace</c> is dropped silently by
+    /// rather than guessed - a malformed <c>logging.googleapis.com/trace</c> is dropped silently by
     /// the ingestion side, which looks exactly like tracing not being on.
     /// </summary>
     public string? ProjectId { get; set; }
@@ -25,13 +25,13 @@ public sealed class CloudLoggingOptions
 /// <para>
 /// Cloud Run captures stdout and ships it to Cloud Logging with no agent and no configuration, so
 /// the logs were already arriving. What they were not was <i>queryable</i>: Google's documentation
-/// draws the line at the payload's shape — a JSON object lands in <c>jsonPayload</c> where fields
+/// draws the line at the payload's shape - a JSON object lands in <c>jsonPayload</c> where fields
 /// can be indexed and searched by path, a string lands in <c>textPayload</c> where "you can search
 /// the text field, but you can't index its content."
 /// </para>
 /// <para>
 /// That mattered here more than it does in most services, because <c>RejectionResult</c> already
-/// goes to the trouble of emitting every field of a refusal as a <b>named property</b> — its own
+/// goes to the trouble of emitting every field of a refusal as a <b>named property</b> - its own
 /// remarks explain that the point is for "how many <c>AccessTokenRejected</c> in the last hour, and
 /// did they all name the same <c>kid</c>" to be a query instead of a grep. The console provider
 /// flattened all of it back into a sentence at the last step.
@@ -39,13 +39,13 @@ public sealed class CloudLoggingOptions
 /// <para>
 /// <b>The field names are Google's and are not interchangeable.</b> The built-in
 /// <c>AddJsonConsole</c> emits <c>LogLevel</c> and <c>Message</c>; Cloud Logging reads
-/// <c>severity</c> and <c>message</c>. Wiring the built-in one gets structure and loses severity —
+/// <c>severity</c> and <c>message</c>. Wiring the built-in one gets structure and loses severity -
 /// every line arrives at DEFAULT, so a page of errors looks like a page of chatter. The names below
 /// are from Google's Cloud Run logging sample, not from memory.
 /// </para>
 /// <para>
-/// <b>A copy rather than a shared type, on purpose.</b> It is deployment-specific — it knows the
-/// name of a logging product — and the libraries underneath it are meant not to, so it stays in the
+/// <b>A copy rather than a shared type, on purpose.</b> It is deployment-specific - it knows the
+/// name of a logging product - and the libraries underneath it are meant not to, so it stays in the
 /// host that needs it even where a second process wants the same thing. The same argument
 /// <c>RejectionResult</c> makes about its own duplicated declaration.
 /// </para>
@@ -95,7 +95,7 @@ public sealed class CloudLoggingFormatter(IOptions<CloudLoggingOptions> options)
             }
 
             // What ties a line to the request it came from, and to a trace if one is being
-            // exported. Written only when the project is known — see CloudLoggingOptions.
+            // exported. Written only when the project is known - see CloudLoggingOptions.
             if (Activity.Current is { } activity && _options.ProjectId is { Length: > 0 } project)
             {
                 json.WriteString(

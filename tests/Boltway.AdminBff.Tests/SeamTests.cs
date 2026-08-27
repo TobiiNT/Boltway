@@ -6,7 +6,7 @@ namespace Boltway.AdminBff.Tests;
 /// That the three tiers are actually seams, rather than interfaces nothing consults.
 /// </summary>
 /// <remarks>
-/// An extension point is a claim, and the way it fails is not an exception — it is a deployment
+/// An extension point is a claim, and the way it fails is not an exception - it is a deployment
 /// writing an implementation, registering it, and getting the shipped page anyway. Each assertion
 /// here is one of those claims, made by rendering through the seam and looking for what only the
 /// replacement could have produced.
@@ -116,7 +116,7 @@ public sealed class SeamTests
     /// </para>
     /// <para>
     /// The mismatch is the signal. A page that does not look like the others is how somebody finds
-    /// out they have not written it — which is a better outcome than a page that looks right and is
+    /// out they have not written it - which is a better outcome than a page that looks right and is
     /// missing whatever their layout was for.
     /// </para>
     /// </remarks>

@@ -26,7 +26,7 @@ public abstract record ClientAuthentication
         /// <summary>Whether the credential arrived in the <c>Authorization</c> header.</summary>
         /// <remarks>
         /// Derived from the method rather than stored, so it cannot disagree with it. Carried past
-        /// authentication because a failure raised <i>later</i> — an unauthorized grant type, say —
+        /// authentication because a failure raised <i>later</i> - an unauthorized grant type, say -
         /// still has to answer §5.2's 401-versus-400 question about how this client authenticated.
         /// </remarks>
         public bool UsedAuthorizationHeader => Method is ClientAuthMethod.ClientSecretBasic;
@@ -38,7 +38,7 @@ public abstract record ClientAuthentication
         /// A constant rather than a function of <see cref="Method"/>, because only one method is
         /// challengeable. <c>client_secret_post</c> and <c>private_key_jwt</c> carry their credential
         /// in the body, which RFC 7235 has no challenge form for, and <c>none</c> carries none at all
-        /// — all three answer 400, where <see cref="UsedAuthorizationHeader"/> is false and this
+        /// - all three answer 400, where <see cref="UsedAuthorizationHeader"/> is false and this
         /// value is never read.
         /// </remarks>
         public static string ChallengeScheme => "Basic";
@@ -54,9 +54,9 @@ public abstract record ClientAuthentication
     /// <param name="ChallengeScheme">The scheme to echo in <c>WWW-Authenticate</c> on a 401.</param>
     /// <remarks>
     /// The rejection travels with the failure rather than being rebuilt at the endpoint. Client
-    /// authentication is where the response is deliberately least informative — "Client
+    /// authentication is where the response is deliberately least informative - "Client
     /// authentication failed" covers an unknown client, a disabled one, a missing secret and a wrong
-    /// one — so this is the type that most needs the two halves kept together.
+    /// one - so this is the type that most needs the two halves kept together.
     /// </remarks>
     public sealed record Failed(
         Rejection Rejection,
@@ -77,15 +77,15 @@ public abstract record ClientAuthentication
 /// <remarks>
 /// <para>
 /// The order below is not interchangeable. Counting the presented mechanisms happens <b>before</b>
-/// any of them is validated, because OAuth 2.1 §2.4 forbids using more than one — "to prevent a
-/// conflict of which authentication mechanism is authoritative for the request" — and a server that
+/// any of them is validated, because OAuth 2.1 §2.4 forbids using more than one - "to prevent a
+/// conflict of which authentication mechanism is authoritative for the request" - and a server that
 /// validates first and counts second has already picked one.
 /// </para>
 /// <para>
 /// The method a client may use is the one it <b>registered</b>, not the one it presents. A client
 /// registered <c>none</c> that arrives with a secret is refused rather than upgraded, and a client
 /// registered <c>client_secret_basic</c> that arrives with nothing is refused rather than
-/// downgraded — the second is the one that matters, because a downgrade is silent and turns a
+/// downgraded - the second is the one that matters, because a downgrade is silent and turns a
 /// confidential client into a public one.
 /// </para>
 /// </remarks>
@@ -105,9 +105,9 @@ public sealed class ClientAuthenticator(
     /// <remarks>
     /// Optional rather than required, and the arm below turns its absence into
     /// <c>ClientAuthMethodNotImplemented</c> rather than a null reference. That path is not
-    /// reachable from configuration — options validation refuses <c>private_key_jwt</c> in
+    /// reachable from configuration - options validation refuses <c>private_key_jwt</c> in
     /// <c>TokenEndpointAuthMethods</c> when nothing is registered to serve it, which is the same
-    /// rule <c>KnownGrantTypes</c> applies to grants — so reaching it means a host constructed this
+    /// rule <c>KnownGrantTypes</c> applies to grants - so reaching it means a host constructed this
     /// type by hand. Answering rather than throwing keeps that a refused request instead of a 500.
     /// </remarks>
     private readonly ClientAssertionAuthenticator? _assertions = assertions;
@@ -148,7 +148,7 @@ public sealed class ClientAuthenticator(
                     "The Authorization header is not a well-formed Basic credential.",
                     // The scheme, never the credential. A header that failed to parse may still be
                     // a real secret badly encoded, and "which scheme did they send" is the whole
-                    // diagnosis — a client sending Bearer here is pointed at the wrong endpoint.
+                    // diagnosis - a client sending Bearer here is pointed at the wrong endpoint.
                     $"scheme={Scheme(context.AuthorizationHeader)}"),
                 UsedAuthorizationHeader: true);
         }
@@ -166,7 +166,7 @@ public sealed class ClientAuthenticator(
 
         // §4.1.3 binds an authorization code to "the authenticated confidential client, or if the
         // client is public, the client_id in the request". If the header and the body name different
-        // clients, that binding check has two candidate identities and no rule for choosing — so the
+        // clients, that binding check has two candidate identities and no rule for choosing - so the
         // request is refused rather than resolved by precedence.
         if (basic && bodyClientId is not null
             && !string.Equals(parsed.ClientId, bodyClientId, StringComparison.Ordinal))
@@ -185,7 +185,7 @@ public sealed class ClientAuthenticator(
         if (!ClientIdentifier.TryParseFromRequest(rawClientId, out var clientId))
         {
             // Missing client_id is invalid_request (a missing required parameter, §3.2.4's first
-            // clause), not invalid_client — there is no client to have failed authentication.
+            // clause), not invalid_client - there is no client to have failed authentication.
             return new ClientAuthentication.Failed(
                 Rejection.Of(
                     ReasonCode.ClientIdMalformed,
@@ -242,7 +242,7 @@ public sealed class ClientAuthenticator(
                 await _assertions.AuthenticateAsync(client, context.Parameters, cancellationToken),
 
             // Registered but not offered is caught above, so reaching here means the enabled list
-            // contains a method with no implementation — a wiring error, not a client error.
+            // contains a method with no implementation - a wiring error, not a client error.
             _ => new ClientAuthentication.Failed(
                 Rejection.Of(
                     ReasonCode.ClientAuthMethodNotImplemented,
@@ -272,7 +272,7 @@ public sealed class ClientAuthenticator(
         var space = header.IndexOf(' ', StringComparison.Ordinal);
 
         // Capped as well as split. A header with no space at all is malformed, and "the token before
-        // the first space" is then the entire header — which is the credential. The cap is longer
+        // the first space" is then the entire header - which is the credential. The cap is longer
         // than every registered scheme name and far shorter than any credential.
         const int MaxSchemeLength = 20;
 
@@ -286,7 +286,7 @@ public sealed class ClientAuthenticator(
     {
         // A public client that presents a credential is refused rather than accepted-and-ignored.
         // Accepting it would mean the client believes it is authenticating and the server knows it
-        // is not — and the client has no way to discover the disagreement.
+        // is not - and the client has no way to discover the disagreement.
         if (basic || hasSecretInBody || hasAssertion)
         {
             return new ClientAuthentication.Failed(
@@ -340,7 +340,7 @@ public sealed class ClientAuthenticator(
         {
             // Which of the two it was, for the log only. "No secret is stored for this client" and
             // "the presented value is not shaped like one of our secrets" are one answer on the wire
-            // — telling them apart says whether a client id exists — and completely different
+            // - telling them apart says whether a client id exists - and completely different
             // remedies. The presented value itself is never recorded: it is a credential, whatever
             // it turned out to be.
             return new ClientAuthentication.Failed(
@@ -384,12 +384,12 @@ public sealed class ClientAuthenticator(
             }
 
             // Every non-NotFound outcome, X-31's RateLimited included, ends as invalid_client here
-            // — X-18's row already covers "unresolvable CIMD client_id", and RFC 6749 §5.2 defines
+            // - X-18's row already covers "unresolvable CIMD client_id", and RFC 6749 §5.2 defines
             // no 429 at this endpoint. That is not a gap papered over: reaching /token means
             // /authorize resolved this client seconds earlier, and a successful resolution is cached
             // for at least 300 s and clears the breaker, so a throttled resolution here needs the
             // cache to have been evicted between the two requests. If that ever stops being true,
-            // the fix is a shorter path — not a 429 the token endpoint's clients do not parse.
+            // the fix is a shorter path - not a 429 the token endpoint's clients do not parse.
             if (resolution.Error is not ClientResolutionError.NotFound)
             {
                 return null;
@@ -423,7 +423,7 @@ internal readonly record struct BasicCredentials(string ClientId, string Secret)
     /// encoded using the application/x-www-form-urlencoded encoding algorithm … and the encoded
     /// value is used as the username; the client secret is encoded using the same algorithm and
     /// used as the password." The RFC adds that missing this step "has led to many interoperability
-    /// problems in the past" — and a CIMD <c>client_id</c> is a URL full of <c>:</c> and <c>/</c>,
+    /// problems in the past" - and a CIMD <c>client_id</c> is a URL full of <c>:</c> and <c>/</c>,
     /// so the encoding is doing real work here rather than covering an edge case.
     /// </para>
     /// <para>

@@ -42,7 +42,7 @@ appsettings.*.Local.json
 .env
 
 # Agent worktrees. Created by background agents working in parallel on this repo,
-# and holding live git metadata for worktrees that are locked while they run —
+# and holding live git metadata for worktrees that are locked while they run -
 # committing it would check another checkout's bookkeeping into the tree.
 .claude/worktrees/
 

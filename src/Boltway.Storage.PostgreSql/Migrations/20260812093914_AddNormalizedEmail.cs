@@ -25,7 +25,7 @@ namespace Boltway.Storage.PostgreSql.Migrations
             // The column is useless without this. Every account that already exists has an address
             // in `email` and nothing in `normalized_email`, so without a backfill this migration
             // ships an index over nulls and sign-in by address works only for accounts whose email
-            // is written again afterwards — which is no account anybody has, and a failure that
+            // is written again afterwards - which is no account anybody has, and a failure that
             // looks exactly like the feature not existing.
             //
             // SQL UPPER rather than the C# fold, because a migration has no C#. They agree on

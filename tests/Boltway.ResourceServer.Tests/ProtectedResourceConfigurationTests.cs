@@ -20,7 +20,7 @@ public sealed class ProtectedResourceConfigurationTests
     // RFC 8707 §2 and RFC 9728 §1.2: no fragment.
     [InlineData("https://mcp.example.com/mcp#frag", "fragment")]
     // Not canonical. Claude sends the resource in RFC 8707 canonical form no matter what the user
-    // typed, and every comparison against it is ordinal — a registration that differs from its own
+    // typed, and every comparison against it is ordinal - a registration that differs from its own
     // canonical form can never match a compliant client, and nothing reports the mismatch until
     // somebody's sign-in fails. These four are the ways a URL drifts from that form.
     [InlineData("HTTPS://mcp.example.com/mcp", "canonical")]
@@ -40,7 +40,7 @@ public sealed class ProtectedResourceConfigurationTests
     {
         // RFC 9728 §1.2 says SHOULD NOT; this server says MUST NOT, and the reason is routing
         // rather than purity. The document is served by matching the request PATH, and a query is
-        // not part of it — so two identifiers differing only in their query resolve to one route
+        // not part of it - so two identifiers differing only in their query resolve to one route
         // and one of them is served the other's document. The client applies §3.3, finds a
         // `resource` it did not insert, and discards a document that arrived with a 200.
         var options = new ProtectedResourceOptions
@@ -90,7 +90,7 @@ public sealed class ProtectedResourceConfigurationTests
     [InlineData("https://mcp.example.com:8443/mcp")]
     // A root resource: the canonical form of a bare origin has no trailing slash to trim.
     [InlineData("https://mcp.example.com")]
-    // Path case is preserved — canonicalization lowercases the scheme and host only.
+    // Path case is preserved - canonicalization lowercases the scheme and host only.
     [InlineData("https://mcp.example.com/MCP")]
     public void A_canonical_resource_identifier_is_accepted(string resource)
     {
@@ -127,7 +127,7 @@ public sealed class ProtectedResourceConfigurationTests
         // ResourceIdentifier's factory is internal so that N-01 has no public bypass: an access
         // token cannot be minted for an audience nobody validated, because the descriptor requires
         // one of these and only IResourceRegistry can produce one. The grant lets this assembly
-        // name ITSELF from configuration, which is a different act — but InternalsVisibleTo is
+        // name ITSELF from configuration, which is a different act - but InternalsVisibleTo is
         // granted per assembly, not per member, so one careless `public` here would re-open the
         // public factory that the design deliberately removed.
         var offenders = new List<string>();

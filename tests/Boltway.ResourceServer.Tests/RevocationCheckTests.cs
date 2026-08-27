@@ -17,7 +17,7 @@ namespace Boltway.ResourceServer.Tests;
 /// <remarks>
 /// <para>
 /// <b>What this closes.</b> A signed access token verifies offline, so ending a session on the
-/// authorization server reached no resource server until the token expired — up to thirty minutes,
+/// authorization server reached no resource server until the token expired - up to thirty minutes,
 /// which is thirty minutes of access somebody believed they had cut. The authorization server's own
 /// denylist was written for a resource server to consult and had no caller in either repository.
 /// </para>
@@ -42,8 +42,8 @@ public sealed class RevocationCheckTests
 
         using var response = await BearerChallengeTests.Get(fixture, "/mcp", Mint.AccessToken());
 
-        // A 401 and not a 403. A 403 without `insufficient_scope` is terminal for Claude — no
-        // re-authentication prompt, permanently — and re-authorizing is exactly what fixes this.
+        // A 401 and not a 403. A 403 without `insufficient_scope` is terminal for Claude - no
+        // re-authentication prompt, permanently - and re-authorizing is exactly what fixes this.
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal("invalid_token", BearerChallengeTests.Parameter(response, "error"));
 
@@ -150,7 +150,7 @@ public sealed class RevocationCheckTests
     /// <summary>A revoked answer is not cached, so nothing keeps a session dead by accident.</summary>
     /// <remarks>
     /// Only live answers are stored. The cache exists to spare a round trip on the hot path, and
-    /// the hot path is tokens that work — a revoked one is refused immediately and its client
+    /// the hot path is tokens that work - a revoked one is refused immediately and its client
     /// re-authorizes, so caching that answer would optimise the case that stops happening.
     /// </remarks>
     [Fact]
@@ -177,7 +177,7 @@ public sealed class RevocationCheckTests
     {
         // Three ways to get no answer, all of them the same decision: allow the request, and write
         // a warning naming the cause. Failing closed here would take the resource server down with
-        // the authorization server — they share a host in the deployment this was built for, so an
+        // the authorization server - they share a host in the deployment this was built for, so an
         // ordinary deploy would log everybody out several times.
         var log = new Recorder();
         var check = Check(new StubIntrospection(body), log);
@@ -304,7 +304,7 @@ public sealed class RevocationCheckTests
     /// <remarks>
     /// The number worth alerting on is fail-opens over the decisions that actually asked. Cache hits
     /// dominate a busy resource server, so folding them in with <c>live</c> would put a
-    /// hit-rate-shaped denominator under a reliability number — the ratio would fall whenever
+    /// hit-rate-shaped denominator under a reliability number - the ratio would fall whenever
     /// traffic rose, and rise whenever it dropped, with revocation behaving identically throughout.
     /// </remarks>
     [Fact]
@@ -319,7 +319,7 @@ public sealed class RevocationCheckTests
         await check.IsRevokedAsync("token-a", Anonymous, CancellationToken.None);
         await check.IsRevokedAsync("token-a", Anonymous, CancellationToken.None);
 
-        // One round trip, two decisions — the same asymmetry the cache test above asserts, now
+        // One round trip, two decisions - the same asymmetry the cache test above asserts, now
         // visible in the series rather than only in the stub's call count.
         Assert.Equal(1, server.Calls);
 
@@ -370,7 +370,7 @@ public sealed class RevocationCheckTests
             [RevocationOutcome.Live, RevocationOutcome.FailedOpen],
             instruments.Recorded.Select(r => r.Tags["outcome"]));
 
-        // A cache hit is not an ask, so it contributes no duration — otherwise the histogram would
+        // A cache hit is not an ask, so it contributes no duration - otherwise the histogram would
         // report the latency of a dictionary lookup as the authorization server's.
         await check.IsRevokedAsync("token-a", Anonymous, CancellationToken.None);
 
@@ -433,8 +433,8 @@ public sealed class RevocationCheckTests
 
     /// <summary>An introspection endpoint that answers with one canned body, or not at all.</summary>
     /// <remarks>
-    /// A null body means the request throws, which is the transport failure — a restart, a deploy,
-    /// a network blip — that the fail-open path exists for.
+    /// A null body means the request throws, which is the transport failure - a restart, a deploy,
+    /// a network blip - that the fail-open path exists for.
     /// </remarks>
     private sealed class StubIntrospection(string? body, HttpStatusCode status = HttpStatusCode.OK)
         : HttpMessageHandler
@@ -483,7 +483,7 @@ public sealed class RevocationCheckTests
     /// </para>
     /// <para>
     /// <b>Filtered by meter name, which is also a check on it.</b> A rename would leave this
-    /// collecting nothing and every assertion below counting an empty list — so the tests fail
+    /// collecting nothing and every assertion below counting an empty list - so the tests fail
     /// rather than pass vacuously, which is the opposite of what a listener that took everything
     /// would do.
     /// </para>

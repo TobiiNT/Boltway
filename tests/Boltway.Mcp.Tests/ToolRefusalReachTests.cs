@@ -13,7 +13,7 @@ using Xunit;
 namespace Boltway.Mcp.Tests;
 
 /// <summary>
-/// How far a per-tool refusal can reach — measured, because the answer decides a design.
+/// How far a per-tool refusal can reach - measured, because the answer decides a design.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -29,7 +29,7 @@ namespace Boltway.Mcp.Tests;
 /// use yet.
 /// </para>
 /// <para>
-/// The second is the HTTP challenge the resource server already writes well — and the tests below
+/// The second is the HTTP challenge the resource server already writes well - and the tests below
 /// are why it cannot be reached from a tool. Streamable HTTP requires a client to accept
 /// <c>text/event-stream</c>, and the transport has opened that stream before any tool filter runs,
 /// so the status line is already <c>200</c> and already sent. A per-tool refusal therefore cannot
@@ -38,7 +38,7 @@ namespace Boltway.Mcp.Tests;
 /// <para>
 /// <b>These are measurements pinned as tests rather than notes.</b> If a future SDK buffers the
 /// response, or a future revision defines the tool-level field, one of them goes red and the design
-/// is worth reopening — which is the only way a closed door gets re-checked.
+/// is worth reopening - which is the only way a closed door gets re-checked.
 /// </para>
 /// </remarks>
 public sealed class ToolRefusalReachTests : IAsyncLifetime
@@ -64,7 +64,7 @@ public sealed class ToolRefusalReachTests : IAsyncLifetime
                         .WithRequestFilters(f => f.AddCallToolFilter(next => (context, ct) =>
                         {
                             // The accessor is the documented way to reach the request from a
-                            // handler, and it works here — what has moved on by now is the
+                            // handler, and it works here - what has moved on by now is the
                             // response, not the context.
                             var http = context.Services?.GetService<IHttpContextAccessor>()?.HttpContext;
                             _startedWhenTheFilterRan = http?.Response.HasStarted;

@@ -31,7 +31,7 @@ internal sealed record CapturedLog(
 /// </summary>
 /// <remarks>
 /// Registered as an <see cref="ILoggerProvider"/> singleton, which is how the host's own
-/// <see cref="ILoggerFactory"/> picks it up — so what these tests observe is what a deployment's
+/// <see cref="ILoggerFactory"/> picks it up - so what these tests observe is what a deployment's
 /// logging pipeline would observe, through the same interface, rather than a seam the production
 /// code only has because tests wanted one.
 /// </remarks>
@@ -46,7 +46,7 @@ internal sealed class LogSink : ILoggerProvider
     /// <remarks>
     /// The precise half of "exactly one": this counts lines the rejection writer produced, and says
     /// which reason each carried. It cannot see a <i>second</i> line about the same refusal written
-    /// under a different event id — <see cref="Mentioning"/> is the half that can, and the tests use
+    /// under a different event id - <see cref="Mentioning"/> is the half that can, and the tests use
     /// both.
     /// </remarks>
     internal IReadOnlyList<CapturedLog> Rejections =>
@@ -58,7 +58,7 @@ internal sealed class LogSink : ILoggerProvider
     /// <remarks>
     /// What an operator's <c>grep</c> would return, which is the thing A-09's "exactly one" is
     /// actually about. <see cref="Rejections"/> filters on the event id and so cannot see a second
-    /// line about the same refusal written under a different event — measured: adding a duplicate
+    /// line about the same refusal written under a different event - measured: adding a duplicate
     /// X-10 line back into the authorize endpoint left the event-id assertion green.
     /// </remarks>
     internal IReadOnlyList<CapturedLog> Mentioning(string correlationId) =>

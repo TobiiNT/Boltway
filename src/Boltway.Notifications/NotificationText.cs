@@ -9,8 +9,8 @@ namespace Boltway.Notifications;
 /// <para>
 /// The pages a person signs in on can be translated, and until this existed the mail they receive
 /// could not. Measured on a running deployment: every page came out in Vietnamese and the reset mail
-/// arrived in English — <i>"Hello ada, Somebody asked to reset the password for this account"</i>
-/// — which is the message somebody reads while they are locked out and least able to work past a
+/// arrived in English - <i>"Hello ada, Somebody asked to reset the password for this account"</i>
+/// - which is the message somebody reads while they are locked out and least able to work past a
 /// language they do not use.
 /// </para>
 /// <para>
@@ -32,7 +32,7 @@ namespace Boltway.Notifications;
 /// <para>
 /// <b>Whole messages, not fragments.</b> A letter is not assembled from sentences in English order;
 /// a translator needs to move a paragraph, and splitting a body into six keys prevents that. The one
-/// exception is the sessions line, which is a whole sentence that is sometimes absent — see
+/// exception is the sessions line, which is a whole sentence that is sometimes absent - see
 /// <see cref="PasswordChangedOneSessionText"/>.
 /// </para>
 /// <para>
@@ -156,7 +156,7 @@ public sealed record NotificationText
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>What it does not claim.</b> Not "somebody signed in" — an approval is a sign-in that also
+    /// <b>What it does not claim.</b> Not "somebody signed in" - an approval is a sign-in that also
     /// granted an application access, and a reader told the smaller thing would go and change their
     /// password while the grant kept working. The two instructions are therefore both here and in
     /// that order: end the access first, because that is the one this message is about.
@@ -246,8 +246,8 @@ public sealed record NotificationText
     /// Every sentence that will not render, named by its property.
     /// </summary>
     /// <remarks>
-    /// A configured string with a placeholder the message does not supply — a stray <c>{3}</c>, or
-    /// <c>{0}</c> in a subject that takes none — throws <see cref="FormatException"/> at
+    /// A configured string with a placeholder the message does not supply - a stray <c>{3}</c>, or
+    /// <c>{0}</c> in a subject that takes none - throws <see cref="FormatException"/> at
     /// <see cref="string.Format(IFormatProvider, string, object?[])"/>. Left to the sender, that
     /// surfaces as a caught-and-logged failure at the moment somebody is waiting for a reset link,
     /// and the message they needed silently does not arrive. A host calls this at startup instead

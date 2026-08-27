@@ -22,17 +22,17 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// </para>
 /// <para>
 /// <b>What it is for, concretely.</b> An OIDC client that is not a resource server has no business
-/// reading an access token — it is not the audience, and the claims in it are not addressed to it.
+/// reading an access token - it is not the audience, and the claims in it are not addressed to it.
 /// So a client that needs to know who signed in, and what they are allowed to be in its own
 /// application, has exactly two channels: the ID token, and here. The ID token deliberately carries
-/// neither the address nor the role — see <c>UserAccountClaims</c>, which says a client "has no
+/// neither the address nor the role - see <c>UserAccountClaims</c>, which says a client "has no
 /// business routing on somebody's role" out of a token whose job is to prove who signed in. That
 /// argument is about the ID token and does not reach this endpoint: this one is called <i>with</i>
 /// the access token, which already carries the role, so nothing here is disclosed that the caller
 /// could not already have been told.
 /// </para>
 /// <para>
-/// <b>Read from the store, not projected from the token's claims</b> — the same decision
+/// <b>Read from the store, not projected from the token's claims</b> - the same decision
 /// <c>AccountEndpoints</c> makes and for the same reason. A token is a snapshot taken up to half an
 /// hour ago, so a role changed since would be answered with the old value by the endpoint whose
 /// entire job is to say what the account holds now. A client that maps roles onto its own
@@ -40,7 +40,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// directory should reach their next login, not their next token expiry.
 /// </para>
 /// <para>
-/// <b>Bearer only, like every other API surface here — <c>N-17</c>.</b> The sign-in pages share this
+/// <b>Bearer only, like every other API surface here - <c>N-17</c>.</b> The sign-in pages share this
 /// origin, so a cookie-authenticated API turns any XSS on the login page into a read of every
 /// account the browser can reach. The gate is inside the handler rather than an
 /// <c>.RequireAuthorization()</c> policy, for the reason <c>AdminEndpoints</c> gives: a policy
@@ -81,7 +81,7 @@ public static class UserInfoEndpoint
     /// <para>
     /// <b>The reason this surface needs it is sharper than elsewhere: the plausible wrong answer
     /// destroys a good credential.</b> RFC 6750 registers no code meaning "come back shortly", and
-    /// the nearest one to reach for is <c>invalid_token</c> — which every conforming client treats as
+    /// the nearest one to reach for is <c>invalid_token</c> - which every conforming client treats as
     /// "this token is dead", so it discards a token that is perfectly valid and sends the person
     /// back through a sign-in they did not need. A store that is briefly unreachable would then cost
     /// a re-authorization on every session that happened to call during it.
@@ -89,7 +89,7 @@ public static class UserInfoEndpoint
     /// <para>
     /// So the refusal carries no <c>error</c> at all, the same as at <c>/token</c>: a status and a
     /// <c>Retry-After</c>, which every HTTP client already understands without being taught an OAuth
-    /// code. The 401s and 403s below are unchanged — they are about the credential, and they are
+    /// code. The 401s and 403s below are unchanged - they are about the credential, and they are
     /// still the right answers when the store can be reached.
     /// </para>
     /// <para>
@@ -116,7 +116,7 @@ public static class UserInfoEndpoint
 
         // `openid` rather than a scope of this library's own invention. It is the scope that makes a
         // request an OpenID Connect one at all, so a token granted it is a token whose holder was
-        // told they were signing in — which is precisely the consent this endpoint answers on.
+        // told they were signing in - which is precisely the consent this endpoint answers on.
         var failure = AdminAuthorization.Check(http, "openid", out var subject);
 
         if (failure is AdminAuthorizationFailure.None && subject.Value is null)
@@ -146,7 +146,7 @@ public static class UserInfoEndpoint
 
         if (account is null)
         {
-            // The token verifies and names an account the directory no longer has — anonymised, or
+            // The token verifies and names an account the directory no longer has - anonymised, or
             // deleted out from under an outstanding token. `invalid_token` rather than 404: the
             // subject is not a resource this endpoint locates, it is who the credential says you
             // are, and the honest answer is that the credential no longer identifies anybody.
@@ -164,14 +164,14 @@ public static class UserInfoEndpoint
         var scopes = Scopes(http);
 
         // **Not behind `profile`, and that is a correction rather than a shortcut.** The obvious
-        // reading of OIDC puts the handle behind `profile` — but `UserAccountClaims` already
+        // reading of OIDC puts the handle behind `profile` - but `UserAccountClaims` already
         // releases `preferred_username` into the access token with no scope at all, gating only the
         // address. Gating it here would mean the same fact about the same person is governed by two
         // different rules depending on which surface asked, which is not a rule.
         //
         // It would also be a gate that never opens on the deployment this was measured against: `profile` is not a
-        // scope this server knows anywhere — `ScopesSupported` is whatever a deployment configures,
-        // and nothing here treats `profile` specially — so a client asking for it gets
+        // scope this server knows anywhere - `ScopesSupported` is whatever a deployment configures,
+        // and nothing here treats `profile` specially - so a client asking for it gets
         // `invalid_scope`, and one that does not ask gets a person named by ULID.
         //
         // Sending it under `preferred_username` rather than inventing a name is what lets a client
@@ -186,7 +186,7 @@ public static class UserInfoEndpoint
         {
             claims["email"] = email;
 
-            // Shipped alongside, never alone — the same rule UserAccountClaims applies to the token.
+            // Shipped alongside, never alone - the same rule UserAccountClaims applies to the token.
             // An absent `email_verified` reads as false to some clients and as unknown to others,
             // and a client deciding anything on an address wants to know which it is looking at.
             claims["email_verified"] = account.EmailVerified;
@@ -195,7 +195,7 @@ public static class UserInfoEndpoint
         // Not gated on a scope, and the asymmetry is the same one the access token makes: `email` is
         // personal data the subject consents to release, while a role is what the client needs in
         // order to decide what this person may do at all. Behind a scope, a client that forgot to
-        // ask gets a login that succeeds and then grants nothing — which surfaces to a person as
+        // ask gets a login that succeeds and then grants nothing - which surfaces to a person as
         // "my account is broken" rather than as a missing scope.
         //
         // Nothing is disclosed here that the caller was not already holding: this endpoint is

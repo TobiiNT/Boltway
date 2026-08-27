@@ -9,8 +9,8 @@ namespace Boltway.AdminBff;
 /// <remarks>
 /// <para>
 /// <b>Public because a replacement renderer needs it.</b> Every page here renders handles, email
-/// addresses, roles and audit details that an operator typed and that this app has never validated —
-/// it is a client, not the directory — so "it came from our own API" is not a reason to trust a
+/// addresses, roles and audit details that an operator typed and that this app has never validated -
+/// it is a client, not the directory - so "it came from our own API" is not a reason to trust a
 /// string. An implementer of <see cref="IAdminRenderer"/> who had to bring their own encoder would
 /// be one <c>string.Format</c> away from the injection this app's own pages are careful about, and
 /// the seam would have handed them that risk on its first day.
@@ -58,7 +58,7 @@ public static class AdminMarkup
     /// <b>Written after this exact shape shipped broken.</b> <c>AdminUserView</c> serialises an
     /// account's roles under the key <c>role</c>, and that value became an <i>array</i> when an
     /// account started holding several. <see cref="Text"/> requires a JSON string and answers empty
-    /// for anything else, so every role rendered blank — and because the patch form posts every
+    /// for anything else, so every role rendered blank - and because the patch form posts every
     /// field it shows, saving an unrelated change then cleared the account's roles.
     /// </para>
     /// <para>
@@ -100,8 +100,8 @@ public static class AdminMarkup
     /// <param name="o">An object from the admin API.</param>
     /// <param name="name">The property to read.</param>
     /// <remarks>
-    /// Absent is false, and so is any other kind. The two flags read through here —
-    /// <c>email_verified</c> and the presence of a password — are both cases where guessing "true"
+    /// Absent is false, and so is any other kind. The two flags read through here -
+    /// <c>email_verified</c> and the presence of a password - are both cases where guessing "true"
     /// from a value this app did not understand would state a security property that may not hold.
     /// </remarks>
     public static bool Flag(JsonElement o, string name) =>

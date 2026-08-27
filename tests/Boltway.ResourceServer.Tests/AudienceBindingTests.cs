@@ -24,7 +24,7 @@ public sealed class AudienceBindingTests
         // The threat is RFC 9700 §4.9.1 access-token phishing. A user adds an attacker's MCP
         // server; the client does everything right; a server that stamped a house default audience
         // hands the attacker a token that works at every other resource the user has. RFC 8707
-        // registers no discovery flag, so a client cannot tell "honoured" from "ignored" — this
+        // registers no discovery flag, so a client cannot tell "honoured" from "ignored" - this
         // check is the only thing standing between the two.
         await using var fixture = await ResourceServerFixture.StartAsync();
 
@@ -41,7 +41,7 @@ public sealed class AudienceBindingTests
     {
         // Stated separately because the distinction is the whole point and a test asserting only
         // "not 200" would pass on a 403. A 403 without error="insufficient_scope" is terminal for
-        // Claude — no re-authentication prompt, permanently — so answering the wrong-audience case
+        // Claude - no re-authentication prompt, permanently - so answering the wrong-audience case
         // that way leaves the user with a connector that can never recover. A 401 plus a metadata
         // pointer asks the client to go and get a token that names THIS resource, which is the one
         // thing that fixes it.
@@ -61,7 +61,7 @@ public sealed class AudienceBindingTests
     {
         // A-22. Comparing `aud` to the request's origin only is a shipped real-world bug
         // (cloudflare/workers-oauth-provider #108) that broke ChatGPT custom connectors. Same
-        // origin here, different path — so a comparison that stopped at the host would accept this,
+        // origin here, different path - so a comparison that stopped at the host would accept this,
         // and every resource behind one hostname would share one audience.
         await using var fixture = await ResourceServerFixture.StartAsync();
 
@@ -82,8 +82,8 @@ public sealed class AudienceBindingTests
         //
         // Minted outside the descriptor path, because inside it this token no longer exists:
         // TryRegister refuses the trailing-slash form at registration, so a Boltway issuer
-        // cannot audience a token at it. A foreign issuer still can — its `aud` is whatever string
-        // it wrote — and that is the token a resource server actually has to turn away.
+        // cannot audience a token at it. A foreign issuer still can - its `aud` is whatever string
+        // it wrote - and that is the token a resource server actually has to turn away.
         await using var fixture = await ResourceServerFixture.StartAsync();
 
         var trailingSlash = Mint.AccessTokenForAudience(Build.Resource + "/");
@@ -101,8 +101,8 @@ public sealed class AudienceBindingTests
         // The audience is this resource's identifier ON PURPOSE, and it is what makes this a test
         // of N-09 rather than a second test of N-01. Everything else about this token is already
         // acceptable: same signing key, same kid, same iss, same sub, unexpired, and now the same
-        // aud. `typ` is the only remaining difference — which is exactly RFC 9068 §5's cross-JWT
-        // confusion — and TokenValidationParameters.ValidTypes is UNSET by default, so a resource
+        // aud. `typ` is the only remaining difference - which is exactly RFC 9068 §5's cross-JWT
+        // confusion - and TokenValidationParameters.ValidTypes is UNSET by default, so a resource
         // server built the obvious way accepts this.
         //
         // Measured: with an ordinary client id in `aud`, this test passes with ValidTypes set to
@@ -132,8 +132,8 @@ public sealed class AudienceBindingTests
     [Fact]
     public async Task The_matching_audience_is_the_control_for_all_of_the_above()
     {
-        // Every test in this file asserts a refusal, and a middleware that refused everything —
-        // a mis-wired key, a typo in the issuer, a validator that always threw — would make all of
+        // Every test in this file asserts a refusal, and a middleware that refused everything -
+        // a mis-wired key, a typo in the issuer, a validator that always threw - would make all of
         // them pass. This is the row that says the server can say yes.
         await using var fixture = await ResourceServerFixture.StartAsync();
 

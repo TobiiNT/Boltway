@@ -27,8 +27,8 @@ public abstract class UserStoreContract
     /// concerned.
     /// </summary>
     /// <remarks>
-    /// Two factories would hand back two databases for the relational implementations — each call to
-    /// their fixture makes a fresh one — and every assignment test would then be defining a role in
+    /// Two factories would hand back two databases for the relational implementations - each call to
+    /// their fixture makes a fresh one - and every assignment test would then be defining a role in
     /// one and assigning it in another.
     /// </remarks>
     protected abstract (IUserStore Users, IRoleStore Roles) NewStores();
@@ -67,7 +67,7 @@ public abstract class UserStoreContract
     /// <remarks>
     /// <b>Null before anything writes it, and that is a value rather than an absence.</b> Every
     /// account predating this column has null, and the validator reads null as "these sessions are
-    /// fine" — a backend defaulting it to the epoch would sign a whole deployment out on the
+    /// fine" - a backend defaulting it to the epoch would sign a whole deployment out on the
     /// migration that added it.
     /// </remarks>
     [Fact]
@@ -105,7 +105,7 @@ public abstract class UserStoreContract
     /// <remarks>
     /// The reverse of <c>FindByExternalLoginAsync</c>, and the read a person makes about their own
     /// account. Without it a self-service page can offer to connect a provider and cannot say
-    /// whether connecting already happened — measured on a running deployment, where a user linked
+    /// whether connecting already happened - measured on a running deployment, where a user linked
     /// an upstream account and got back an identical page.
     /// </remarks>
     [Fact]
@@ -165,7 +165,7 @@ public abstract class UserStoreContract
     /// <summary>And an account that does not exist is empty rather than a failure.</summary>
     /// <remarks>
     /// Reached with a subject taken from a session, so "the account was deleted a moment ago" is a
-    /// real ordering rather than a bug — and a page that throws there is worse than one that shows
+    /// real ordering rather than a bug - and a page that throws there is worse than one that shows
     /// no providers.
     /// </remarks>
     [Fact]
@@ -182,7 +182,7 @@ public abstract class UserStoreContract
     /// <remarks>
     /// The point of the method: <c>/forgot</c> accepted an address and <c>/login</c> did not, so a
     /// person who asked for a reset by email and then typed the same string to sign in was refused
-    /// with "that username and password did not match" — a true sentence about the wrong question.
+    /// with "that username and password did not match" - a true sentence about the wrong question.
     /// </remarks>
     [Fact]
     public async Task A_verified_address_finds_the_account()
@@ -201,7 +201,7 @@ public abstract class UserStoreContract
     /// <remarks>
     /// Both directions, because the fold has to happen on the stored value as well as the submitted
     /// one. A store that folds only what was typed passes the first of these and fails the second,
-    /// and the second is the ordinary case — somebody registered with a capital letter.
+    /// and the second is the ordinary case - somebody registered with a capital letter.
     /// </remarks>
     [Theory]
     [InlineData("ada@example.com", "ADA@EXAMPLE.COM")]
@@ -256,8 +256,8 @@ public abstract class UserStoreContract
     /// Two accounts holding one verified address resolve to neither.
     /// </summary>
     /// <remarks>
-    /// Nothing makes an address unique — a username has a unique index and an address has never had
-    /// one — so this state is reachable, most plainly by an operator running <c>set-email … 
+    /// Nothing makes an address unique - a username has a unique index and an address has never had
+    /// one - so this state is reachable, most plainly by an operator running <c>set-email … 
     /// --verified</c> twice. Returning either one would make which account a password reaches depend
     /// on the store's ordering, which is the same class of defect as two usernames differing only by
     /// case.
@@ -405,7 +405,7 @@ public abstract class UserStoreContract
         Assert.Equal("new@example.com", bySubject!.Email);
         Assert.True(bySubject.EmailVerified);
 
-        // Both lookups, because a token is built from whichever one the flow reached — and
+        // Both lookups, because a token is built from whichever one the flow reached - and
         // `email_verified` is the claim a resource server is most likely to trust without checking.
         Assert.Equal("new@example.com", byUsername!.Email);
         Assert.True(byUsername.EmailVerified);
@@ -414,7 +414,7 @@ public abstract class UserStoreContract
     /// <summary>Clearing the address clears the verified flag with it.</summary>
     /// <remarks>
     /// The flag is a claim about an address, so one left standing over a null one is a proof about an
-    /// address the account no longer holds — and <c>email_verified</c> is the claim a resource server
+    /// address the account no longer holds - and <c>email_verified</c> is the claim a resource server
     /// is most likely to trust without checking.
     /// </remarks>
     [Fact]
@@ -455,7 +455,7 @@ public abstract class UserStoreContract
     /// </summary>
     /// <remarks>
     /// The property that <c>OFFSET</c> does not have. Subjects are ULIDs, so ordering by subject is
-    /// ordering by creation and "after this one" is an index seek — but the reason to pin it is the
+    /// ordering by creation and "after this one" is an index seek - but the reason to pin it is the
     /// other half: a keyset page cannot skip or repeat a row when the set changes underneath it,
     /// which on a directory means an account nobody reviewing it ever sees.
     ///
@@ -496,7 +496,7 @@ public abstract class UserStoreContract
 
         // Set equality and no repeats, rather than a pinned order. Both the cursor comparison and
         // the ordering run in the column's collation on a relational store, so they agree with each
-        // other — which is what makes paging sound — without being guaranteed to agree with C#'s
+        // other - which is what makes paging sound - without being guaranteed to agree with C#'s
         // ordinal. Asserting the ordinal order here would be asserting a collation nobody has
         // configured; asserting this is asserting the property a caller depends on.
         Assert.Equal(subjects.Count, walked.Count);
@@ -507,7 +507,7 @@ public abstract class UserStoreContract
     /// <summary>The limit bounds the page: five accounts asked for two come back two.</summary>
     /// <remarks>
     /// The control for the walk above, which passes against a store that ignores the limit and returns
-    /// the whole directory in one page — set equality and no repeats both survive that. Nothing else
+    /// the whole directory in one page - set equality and no repeats both survive that. Nothing else
     /// here would notice.
     /// </remarks>
     [Fact]
@@ -559,7 +559,7 @@ public abstract class UserStoreContract
     /// <remarks>
     /// <para>
     /// This passes today with one realm configured, and that is the point of writing it now. A realm
-    /// column that exists and is not part of the key reads as tenancy and is not — the <c>A-09</c>
+    /// column that exists and is not part of the key reads as tenancy and is not - the <c>A-09</c>
     /// shape, where a document and a database describe different systems. Enforcing it from the
     /// first migration is what makes a second directory later a configuration change rather than an
     /// audit of every query in the repository.
@@ -600,7 +600,7 @@ public abstract class UserStoreContract
     /// <remarks>
     /// An upstream subject is chosen by the upstream provider, so one Google account presented to
     /// two directories is the same pair of strings both times. Without the realm in the key the
-    /// second realm's link is refused as "already linked to a different local account" — and the
+    /// second realm's link is refused as "already linked to a different local account" - and the
     /// person is told their Google account belongs to someone else.
     /// </remarks>
     [Fact]
@@ -665,8 +665,8 @@ public abstract class UserStoreContract
     [Fact]
     public async Task A_role_set_at_creation_comes_back_on_both_lookups()
     {
-        // Both, because the two lookups are two code paths in every implementation here — one
-        // keyed by subject, one by a normalized username — and a store that updated only the
+        // Both, because the two lookups are two code paths in every implementation here - one
+        // keyed by subject, one by a normalized username - and a store that updated only the
         // index it was written through would answer differently depending on how it was asked.
         var store = NewUserStore();
 
@@ -880,7 +880,7 @@ public abstract class UserStoreContract
     public async Task A_second_account_with_the_same_username_is_refused_even_in_a_different_case()
     {
         // The rule the interface states in prose. Two rows differing only by case means which one a
-        // login reaches depends on the store's collation — so two implementations would disagree on
+        // login reaches depends on the store's collation - so two implementations would disagree on
         // identical input, and one of them would let an attacker register "Admin" beside "admin".
         var store = NewUserStore();
         await store.StoreAsync(Account("ada", "AA"), CancellationToken.None);
@@ -939,7 +939,7 @@ public abstract class UserStoreContract
     /// </summary>
     /// <remarks>
     /// The property underneath it is the one federation rests on: a local account is reached by the
-    /// <c>(issuer, subject)</c> pair and by nothing looser — never by the address the upstream
+    /// <c>(issuer, subject)</c> pair and by nothing looser - never by the address the upstream
     /// asserted, which is the classic federated takeover. This measures the positive half. That no
     /// caller resolves a federated sign-in by address is enforced where the callers are, not here.
     /// </remarks>
@@ -1059,7 +1059,7 @@ public abstract class UserStoreContract
     }
 
     /// <summary>
-    /// An account carrying no password hash can be stored and linked, and comes back active — the
+    /// An account carrying no password hash can be stored and linked, and comes back active - the
     /// shape an account reachable only through an upstream provider has.
     /// </summary>
     [Fact]
@@ -1089,7 +1089,7 @@ public abstract class UserStoreContract
     public async Task A_disabled_account_is_still_found_but_reports_itself_inactive()
     {
         // Found, deliberately. The login endpoint checks IsActive itself, and a store that hid
-        // disabled accounts would turn "your account is suspended" into "no such user" — which also
+        // disabled accounts would turn "your account is suspended" into "no such user" - which also
         // makes the timing of the two differ, since one path skips the hash.
         var store = NewUserStore();
         var suspended = Account() with { DisabledAt = DateTimeOffset.UnixEpoch };
@@ -1142,7 +1142,7 @@ public abstract class UserStoreContract
     /// </summary>
     /// <remarks>
     /// Sign-in arrives by username. A store that changed only the subject index would leave the
-    /// person's own name resolving to the tombstone — with no password on it, so the failure would
+    /// person's own name resolving to the tombstone - with no password on it, so the failure would
     /// read as "wrong password" rather than as a half-applied operation.
     /// </remarks>
     [Fact]
@@ -1164,7 +1164,7 @@ public abstract class UserStoreContract
     /// </summary>
     /// <remarks>
     /// Two reasons and both matter. A surviving link is the person's upstream subject still in the
-    /// database, which is one of the identifiers this removes; and it is a live route back in — the
+    /// database, which is one of the identifiers this removes; and it is a live route back in - the
     /// next federated sign-in would resolve to the tombstone and be let through, since federation
     /// never asks for a password.
     /// </remarks>
@@ -1189,7 +1189,7 @@ public abstract class UserStoreContract
     /// Anonymising the same account twice is not an error.
     /// </summary>
     /// <remarks>
-    /// The tombstone is derived from the subject, so a second run writes the same username — which
+    /// The tombstone is derived from the subject, so a second run writes the same username - which
     /// would be a unique-index violation if the store did not tolerate a row keeping its own name.
     /// An operator rerunning a command that failed halfway is exactly when this happens.
     /// </remarks>
@@ -1223,7 +1223,7 @@ public abstract class UserStoreContract
     /// <remarks>
     /// The point of the operation from the directory's side: the name a person used is free again.
     /// It fails if the store leaves the old normalized username on the row, which is the mistake a
-    /// store that only sets <c>Username</c> makes — invisible until somebody re-uses a handle.
+    /// store that only sets <c>Username</c> makes - invisible until somebody re-uses a handle.
     /// </remarks>
     [Fact]
     public async Task The_freed_handle_can_be_used_again()

@@ -8,7 +8,7 @@ namespace Boltway.OAuth.Primitives.Diagnostics;
 /// <remarks>
 /// <para>
 /// The reason an operator needs is almost never the reason the client is told. Several of the
-/// members below share one <c>error</c> and one <c>error_description</c> on purpose — every
+/// members below share one <c>error</c> and one <c>error_description</c> on purpose - every
 /// <c>AuthorizationCode*</c> member answers the client with <c>invalid_grant</c> and the words
 /// "The authorization code is invalid", because distinguishing them on the wire is an oracle. The
 /// distinction still has to exist somewhere, and this enum is where.
@@ -103,7 +103,7 @@ public enum ReasonCode
     ResourceMalformed,
 
     /// <summary>
-    /// A <c>resource</c> value is unknown or not permitted. Deliberately one reason for both — the
+    /// A <c>resource</c> value is unknown or not permitted. Deliberately one reason for both - the
     /// registry returns the same answer, and this enum must not become the oracle the response is not.
     /// </summary>
     ResourceUnavailable,
@@ -156,7 +156,7 @@ public enum ReasonCode
     /// </summary>
     /// <remarks>
     /// A federation-only deployment registers no <c>IPasswordHasher</c>, so the sign-in page renders
-    /// no password form. This is the refusal for a POST that arrives anyway — a stale tab, a
+    /// no password form. This is the refusal for a POST that arrives anyway - a stale tab, a
     /// bookmarked form, or someone probing. It is deliberately distinguishable from
     /// <see cref="PasswordRejected"/> in the log: one means a credential was wrong, the other means
     /// this deployment does not do passwords, and an operator chasing "nobody can sign in" needs
@@ -170,7 +170,7 @@ public enum ReasonCode
     ExternalProviderUnknown,
 
     /// <summary>
-    /// The provider is registered and answered <c>Disabled</c>, or cannot run at all — no endpoints,
+    /// The provider is registered and answered <c>Disabled</c>, or cannot run at all - no endpoints,
     /// no keys, a discovery document that does not name the configured issuer.
     /// </summary>
     ExternalProviderUnavailable,
@@ -181,7 +181,7 @@ public enum ReasonCode
     /// </summary>
     /// <remarks>
     /// Distinct from <see cref="ExternalStateMismatch"/> on purpose. This one is almost always
-    /// benign — a user who left the tab open, or a bookmarked callback URL — while a mismatch means
+    /// benign - a user who left the tab open, or a bookmarked callback URL - while a mismatch means
     /// two values that both exist disagree, which is the shape of an injected authorization
     /// response.
     /// </remarks>
@@ -240,8 +240,8 @@ public enum ReasonCode
     /// account.
     /// </summary>
     /// <remarks>
-    /// Refused rather than re-pointed. Moving a link is how whoever controls an upstream subject —
-    /// or anyone who can replay a link request — lands the next federated sign-in inside somebody
+    /// Refused rather than re-pointed. Moving a link is how whoever controls an upstream subject -
+    /// or anyone who can replay a link request - lands the next federated sign-in inside somebody
     /// else's data.
     /// </remarks>
     ExternalIdentityLinkedElsewhere,
@@ -270,7 +270,7 @@ public enum ReasonCode
     GrantTypeUnsupported,
 
     /// <summary>
-    /// The grant is offered and has no handler. A wiring error, not a client error — options
+    /// The grant is offered and has no handler. A wiring error, not a client error - options
     /// validation is supposed to make it unreachable.
     /// </summary>
     GrantTypeHasNoHandler,
@@ -403,7 +403,7 @@ public enum ReasonCode
 
     /// <summary>
     /// Anything else the validator refused: signature, <c>kid</c>, <c>alg</c>, <c>typ</c>,
-    /// <c>iss</c>, unparseable. The detail carries which — the response cannot. X-33.
+    /// <c>iss</c>, unparseable. The detail carries which - the response cannot. X-33.
     /// </summary>
     AccessTokenRejected,
 
@@ -414,8 +414,8 @@ public enum ReasonCode
     /// Distinct from <see cref="AccessTokenRejected"/> because the cause and the cure are different
     /// and only one of them is the caller's. A rejected token failed a check on the token itself; a
     /// revoked one is a perfectly good token whose session somebody ended, which is the one 401 a
-    /// deployment should expect to see on purpose. Rolled into the same response — the client is
-    /// told <c>invalid_token</c> either way, per RFC 6750 — and separated in the log, where "how
+    /// deployment should expect to see on purpose. Rolled into the same response - the client is
+    /// told <c>invalid_token</c> either way, per RFC 6750 - and separated in the log, where "how
     /// often does ending a session actually cut something" is a question with an answer.
     /// </remarks>
     AccessTokenRevoked,
@@ -430,7 +430,7 @@ public enum ReasonCode
     /// </summary>
     /// <remarks>
     /// <para>
-    /// One of the two reasons whose response carries no OAuth <c>error</c> code — X-31's row in the
+    /// One of the two reasons whose response carries no OAuth <c>error</c> code - X-31's row in the
     /// requirements has <i>(none)</i> in that column, because being over a limit is a transport
     /// condition and RFC 6749 §4.1.2.1 registers nothing that means it. <see cref="StoreUnavailable"/>
     /// is the other, for the same reason on a different surface. The detail says which limit,
@@ -473,10 +473,10 @@ public enum ReasonCode
     /// <b>The code on the wire depends on the surface, and that is the specification rather than an
     /// inconsistency.</b> At <c>/token</c>, <c>/introspect</c> and <c>/userinfo</c> the response
     /// carries no OAuth <c>error</c> at all, like <see cref="RateLimited"/>: RFC 6749 §5.2 defines a
-    /// closed set for the token endpoint — which RFC 7662 §2.3 adopts — and none of its members
+    /// closed set for the token endpoint - which RFC 7662 §2.3 adopts - and none of its members
     /// means "come back shortly", while RFC 6750 registers nothing for it either. The status and the
     /// <c>Retry-After</c> carry the meaning instead. At <c>/authorize</c> the code
-    /// <c>temporarily_unavailable</c> <i>is</i> registered, by §4.1.2.1, and means exactly this — so
+    /// <c>temporarily_unavailable</c> <i>is</i> registered, by §4.1.2.1, and means exactly this - so
     /// there the honest answer is to use it rather than to imitate the other surfaces' silence.
     /// <c>OAuthErrors</c> refusing to resolve that pair anywhere else is what keeps the two apart.
     /// </para>
@@ -484,7 +484,7 @@ public enum ReasonCode
     /// <b>Every surface that reads a store sheds, and each for its own reason.</b> <c>/token</c>
     /// because <c>DESIGN.md</c> §1.2 says it load-sheds rather than queuing, and because a client
     /// hits it unattended. <c>/introspect</c> because neither <c>active</c> is available when the
-    /// revocation lookup failed — <c>true</c> is failing open on the denylist the endpoint exists to
+    /// revocation lookup failed - <c>true</c> is failing open on the denylist the endpoint exists to
     /// consult, and <c>false</c> is a definite answer built from no information. <c>/userinfo</c>
     /// because the nearest code a caller might otherwise be given, <c>invalid_token</c>, makes every
     /// conforming client discard a credential that is perfectly good. <c>/authorize</c> because
@@ -493,7 +493,7 @@ public enum ReasonCode
     /// <para>
     /// The detail names the exception type and nothing else. A driver message can carry the host,
     /// the database, the role and the driver version, and this response is readable by anyone who
-    /// can reach the endpoint — the exception itself goes to the log, where the correlation id
+    /// can reach the endpoint - the exception itself goes to the log, where the correlation id
     /// leads.
     /// </para>
     /// </remarks>
@@ -507,8 +507,8 @@ public enum ReasonCode
     /// <remarks>
     /// <para>
     /// Refused rather than served with the client as its own subject. A token whose <c>sub</c> is a
-    /// client id looks exactly like one a person got, and every consumer downstream — role checks,
-    /// audit trails, anything that attributes a write — would resolve it against an account table
+    /// client id looks exactly like one a person got, and every consumer downstream - role checks,
+    /// audit trails, anything that attributes a write - would resolve it against an account table
     /// it is not in. The failure would surface as "this account has no roles", far from here.
     /// </para>
     /// <para>
@@ -537,7 +537,7 @@ public enum ReasonCode
     /// Its own reason rather than <see cref="RefreshTokenGrantInactive"/>, which names the same
     /// state reached down a different path. Nothing was refreshed here and no refresh token exists
     /// to be inactive; what happened is that somebody revoked this client's standing authorization
-    /// and it stayed revoked, which is the design — the grant id is derived from the client and its
+    /// and it stayed revoked, which is the design - the grant id is derived from the client and its
     /// owner, so the next request finds the same revoked row rather than minting a new one.
     /// </remarks>
     ClientCredentialsGrantRevoked,
@@ -551,7 +551,7 @@ public enum ReasonCode
     /// Its own code rather than folding into <see cref="ClientCredentialsMissing"/>, because the two
     /// point an operator at different things: a missing assertion is a client that did not
     /// authenticate, and a wrong type is a client that authenticated by a mechanism this endpoint
-    /// does not implement — RFC 7521 §4.2 registers the URN, and a different one means SAML or
+    /// does not implement - RFC 7521 §4.2 registers the URN, and a different one means SAML or
     /// something nobody here has built.
     /// </remarks>
     ClientAssertionTypeUnsupported,
@@ -568,7 +568,7 @@ public enum ReasonCode
     /// <summary>The assertion has no usable <c>jti</c>, so replay could not be prevented.</summary>
     /// <remarks>
     /// Refused rather than accepted-without-the-check. RFC 7523 §3 makes <c>jti</c> optional and the
-    /// replay check a MAY, so this is stricter than the letter — and the alternative is a credential
+    /// replay check a MAY, so this is stricter than the letter - and the alternative is a credential
     /// whose reuse this server cannot detect, silently, on the one endpoint where reuse matters.
     /// </remarks>
     ClientAssertionIdentifierUnusable,
@@ -580,7 +580,7 @@ public enum ReasonCode
     /// <remarks>
     /// Distinct from <see cref="ClientAssertionInvalid"/> because the fault is not the assertion's:
     /// the client may have signed correctly and its own origin be unreachable. The client is still
-    /// told only that authentication failed — it cannot fix this server's view of its keys — but an
+    /// told only that authentication failed - it cannot fix this server's view of its keys - but an
     /// operator reading the log needs to know they are looking at somebody else's outage.
     /// </remarks>
     ClientAssertionKeysUnavailable,
@@ -593,7 +593,7 @@ public enum ReasonCode
 /// <para>
 /// A-09. This is the <b>diagnostic payload</b> and not a response: it carries no status, no wire
 /// string and no delivery. Those come from <see cref="OAuthErrors"/> keyed on the surface, and the
-/// separation is deliberate — <c>DESIGN.md</c> §1.3 flaw 5 records what happens when the diagnostic
+/// separation is deliberate - <c>DESIGN.md</c> §1.3 flaw 5 records what happens when the diagnostic
 /// type and the delivery type are merged. An error delivered by redirect still requires a validated
 /// redirect URI to construct, and folding the log obligation into that type would have made the
 /// obligation reachable without one.
@@ -631,7 +631,7 @@ public sealed record Rejection
     /// Detail for the log only. <see langword="null"/> when the reason says everything.
     /// </summary>
     /// <remarks>
-    /// Control characters are stripped and the value is capped in <see cref="Of"/> — several call
+    /// Control characters are stripped and the value is capped in <see cref="Of"/> - several call
     /// sites put a caller-supplied URL or header value here, and a CR/LF pair in a log line is a
     /// forged second line. Filtering in the factory rather than at each call site is the same
     /// argument <c>ErrorText.Safe</c> makes about the wire: a call site is a place to forget.
@@ -731,14 +731,14 @@ public static class DiagnosticHeaders
     /// </summary>
     /// <remarks>
     /// <para>
-    /// A-09 accepts the id in <c>error_description</c> or in a header, and this is the header —
+    /// A-09 accepts the id in <c>error_description</c> or in a header, and this is the header -
     /// chosen because it is the only channel that works on all four delivery shapes this project
     /// emits. A redirect error carries its description in the <c>Location</c> query of a 303 the
     /// browser immediately follows away from; a challenge carries it inside a quoted
     /// <c>WWW-Authenticate</c> parameter that competes with <c>resource_metadata</c> for the same
     /// line; and <c>error_description</c> is filtered to OAuth 2.1 §4.1.2.1's set and capped at 240
     /// characters, so an id appended to a long description is an id that gets truncated. A header
-    /// is one place, on the response the caller actually received, and <c>curl -D-</c> shows it —
+    /// is one place, on the response the caller actually received, and <c>curl -D-</c> shows it -
     /// which is what A-12 asks of every failure.
     /// </para>
     /// <para>

@@ -6,8 +6,8 @@ namespace Boltway.OAuth.Tokens;
 /// <remarks>
 /// <para>
 /// N-09. RFC 9068 §2.1 requires an access token to carry <c>typ: at+jwt</c>, and the reason is
-/// cross-JWT confusion: without it, an <b>ID token</b> — which the client legitimately holds, and
-/// which is signed by the same key, carries the same <c>iss</c> and a <c>sub</c> — is a
+/// cross-JWT confusion: without it, an <b>ID token</b> - which the client legitimately holds, and
+/// which is signed by the same key, carries the same <c>iss</c> and a <c>sub</c> - is a
 /// structurally valid access token. A resource server that checks the signature, the issuer, the
 /// expiry and the subject, but not the type, accepts it.
 /// </para>
@@ -123,13 +123,13 @@ public static class SigningAlgorithms
     /// this server can produce.
     /// </para>
     /// <para>
-    /// Accepting more than you issue is ordinary and safe — it is what makes a rotation across
+    /// Accepting more than you issue is ordinary and safe - it is what makes a rotation across
     /// algorithms possible. Advertising more than you issue is a promise to somebody else's code.
     /// </para>
     /// <para>
     /// <b>This is the default, and no longer what the document is built from.</b> Which algorithm
     /// signs is <c>AuthorizationServerOptions.TokenSigningAlgorithm</c>, and
-    /// <c>id_token_signing_alg_values_supported</c> is derived from that same value — so the
+    /// <c>id_token_signing_alg_values_supported</c> is derived from that same value - so the
     /// advertised set is the minted set by construction rather than by a list somebody remembers to
     /// grow. A second hand-maintained list here would have been the original defect waiting to
     /// happen again the moment the issuing algorithm became configurable.

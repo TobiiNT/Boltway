@@ -12,7 +12,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// <remarks>
 /// <para>
 /// The write half of <see cref="IUserSession"/>, and it lives <b>here</b> rather than in the
-/// abstractions assembly because it needs <see cref="HttpContext"/> and a scheme name — and that
+/// abstractions assembly because it needs <see cref="HttpContext"/> and a scheme name - and that
 /// assembly's whole promise is that it has no ASP.NET Core reference.
 /// </para>
 /// <para>
@@ -53,12 +53,12 @@ public interface IUserSignIn
 /// <para>
 /// <c>auth_time</c> is written as a claim rather than derived from the ticket's issue time, and that
 /// is load-bearing. Sliding expiration rewrites the issue time on every request, so a session
-/// derived from it is permanently fresh — and <c>max_age</c>, which the relying party believes it is
+/// derived from it is permanently fresh - and <c>max_age</c>, which the relying party believes it is
 /// enforcing, silently becomes a no-op.
 /// </para>
 /// <para>
 /// Nothing is carried over from before sign-in. <c>SignInAsync</c> writes a new ticket, so classic
-/// fixation is structurally absent — but it returns the moment a pre-login cookie survives and is
+/// fixation is structurally absent - but it returns the moment a pre-login cookie survives and is
 /// later treated as identity-bearing. This flow sets no pre-login cookie at all, which is the
 /// property that makes that true rather than merely likely.
 /// </para>
@@ -103,7 +103,7 @@ public sealed class CookieUserSignIn(string scheme = CookieAuthenticationDefault
 /// browser arrives at <c>/authorize</c> by a top-level cross-site navigation from
 /// <c>claude.ai</c> or <c>chatgpt.com</c>; a <c>Strict</c> cookie is not sent on that navigation, so
 /// every user looks signed out on every connect and is shown a login page they should not see. The
-/// antiforgery cookie may stay <c>Strict</c> — it is only needed on the same-site form POST.
+/// antiforgery cookie may stay <c>Strict</c> - it is only needed on the same-site form POST.
 /// </remarks>
 public sealed class CookieUserSession(IHttpContextAccessor accessor) : IUserSession
 {
@@ -133,7 +133,7 @@ public sealed class CookieUserSession(IHttpContextAccessor accessor) : IUserSess
         var authTime = principal.FindFirstValue(CookieUserSignIn.AuthTimeClaim);
 
         // Both or neither. A principal with a subject and no authentication time cannot answer
-        // `max_age`, and inventing one — "now", or the ticket's issue time — answers it wrongly in
+        // `max_age`, and inventing one - "now", or the ticket's issue time - answers it wrongly in
         // the direction that always says yes.
         if (string.IsNullOrEmpty(subject)
             || !long.TryParse(authTime, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var seconds)
@@ -142,7 +142,7 @@ public sealed class CookieUserSession(IHttpContextAccessor accessor) : IUserSess
         {
             // The range check is not belt-and-braces. `long.TryParse` happily returns
             // 9223372036854775807, and `DateTimeOffset.FromUnixTimeSeconds` throws
-            // ArgumentOutOfRangeException on it — measured — from a method with no exception
+            // ArgumentOutOfRangeException on it - measured - from a method with no exception
             // boundary above it, on the path every authenticated request takes. Treating it as "not
             // a session" is the same answer this method already gives to every other unreadable
             // claim, and it fails in the safe direction: the user is asked to sign in.

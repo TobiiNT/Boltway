@@ -60,7 +60,7 @@ public sealed class AdminFormTests
     /// </summary>
     /// <remarks>
     /// A form submitted with no box ticked sends the field not at all. The server refuses an empty
-    /// set with a sentence saying so, and that is the intended outcome — but only if what reaches it
+    /// set with a sentence saying so, and that is the intended outcome - but only if what reaches it
     /// is empty rather than a set containing one nameless scope, which it would refuse as a parse
     /// error instead and say something else.
     /// </remarks>

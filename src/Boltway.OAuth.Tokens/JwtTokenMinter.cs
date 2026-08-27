@@ -9,7 +9,7 @@ namespace Boltway.OAuth.Tokens;
 /// <remarks>
 /// Constructing one stamps <see cref="SecurityKey.KeyId"/> from <see cref="Kid"/>, and that is not
 /// bookkeeping. The verifier is configured with <c>TryAllIssuerSigningKeys = false</c>, so it only
-/// considers keys whose id matches the token's <c>kid</c> header — a key without an id matches
+/// considers keys whose id matches the token's <c>kid</c> header - a key without an id matches
 /// nothing and every signature check fails with "no security keys were provided", which reads like
 /// a missing key rather than an unlabelled one. Trying every key instead would be worse: it turns
 /// each verification into a scan over the whole JWKS and hides a genuine rotation problem.
@@ -84,7 +84,7 @@ public sealed class JwtTokenMinter
         };
 
         // RFC 9068 §2.2.3: scope is a space-delimited STRING, not an array. Emitting an array is a
-        // common and quiet defect — most resource servers read it with a string accessor and see
+        // common and quiet defect - most resource servers read it with a string accessor and see
         // nothing at all, so the token appears to carry no scopes.
         if (!descriptor.Scope.IsEmpty)
         {
@@ -168,7 +168,7 @@ public sealed class JwtTokenMinter
             SigningCredentials = new SigningCredentials(key.Key, key.Algorithm.ToJwaName()),
 
             // The header that distinguishes an access token from an ID token. Without it the two
-            // are interchangeable to any verifier that does not check `typ` — and `ValidTypes` is
+            // are interchangeable to any verifier that does not check `typ` - and `ValidTypes` is
             // unset by default, so most do not.
             TokenType = tokenType,
 

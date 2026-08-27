@@ -12,7 +12,7 @@ namespace Boltway.AdminBff;
 /// <para>
 /// <b>This is the whole reason the admin UI is a BFF rather than a single-page app.</b> §7.1 chose
 /// this shape because the token stays server side; the default cookie handler would put the tokens
-/// <i>in</i> the cookie — encrypted, so a script cannot read them, but still handed to the browser
+/// <i>in</i> the cookie - encrypted, so a script cannot read them, but still handed to the browser
 /// on every response and sitting in whatever the browser writes to disk. An
 /// <see cref="ITicketStore"/> is what makes "never sent to the browser" true rather than
 /// approximately true.
@@ -21,8 +21,8 @@ namespace Boltway.AdminBff;
 /// <b>In memory, which is the honest limit of this implementation.</b> Signing everybody out on a
 /// deploy is a real cost and an acceptable one here: the population is operators, the session is a
 /// browser tab, and signing in again is one redirect. A deployment running more than one replica
-/// needs a shared store — the operator would otherwise be signed out whenever the load balancer
-/// moved them — and it is the same seam either way. Named rather than left to be discovered by the
+/// needs a shared store - the operator would otherwise be signed out whenever the load balancer
+/// moved them - and it is the same seam either way. Named rather than left to be discovered by the
 /// second replica.
 /// </para>
 /// <para>
@@ -57,7 +57,7 @@ public sealed class InMemoryTicketStore : ITicketStore
     public Task<AuthenticationTicket?> RetrieveAsync(string key)
     {
         // Expiry is checked here as well as by the cookie handler. The handler will not present an
-        // expired ticket, but the entry would otherwise outlive it in memory — and a store that
+        // expired ticket, but the entry would otherwise outlive it in memory - and a store that
         // keeps a session for longer than the session lasts is one whose contents are a bigger
         // target than they need to be.
         if (_tickets.TryGetValue(key, out var ticket)

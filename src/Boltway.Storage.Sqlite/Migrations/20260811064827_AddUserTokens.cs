@@ -1,6 +1,6 @@
 ﻿// The one-time links behind the email flows. S-47.
 //
-// The hash is the primary key, and the plaintext is never stored — N-16, the same rule the
+// The hash is the primary key, and the plaintext is never stored - N-16, the same rule the
 // authorization codes and refresh tokens follow. A stolen backup is then a list of digests rather
 // than a set of live links into every account.
 //
@@ -9,7 +9,7 @@
 // is not asked to.
 //
 // Two indexes. (subject, purpose) is S-47's bulk delete, which runs on every password change by any
-// route and is therefore on a request path — without it that is a scan of every live link in the
+// route and is therefore on a request path - without it that is a scan of every live link in the
 // deployment each time anybody changes a password. expires_at is the sweeper's, on the same
 // reasoning the codes table records: housekeeping that scans is housekeeping that gets turned off.
 

@@ -40,7 +40,7 @@ public sealed class NegativeResultBreakerOptions
 /// reason this type exists rather than a negative cache.</b> CIMD §5.2 says an authorization server
 /// "MUST NOT cache error responses" and "MUST NOT cache documents which are invalid or malformed".
 /// Nothing here holds a response, a status, a body or a reason: an entry is a count and two
-/// timestamps. When the breaker is open the caller does not receive a remembered failure — it
+/// timestamps. When the breaker is open the caller does not receive a remembered failure - it
 /// receives a different answer, computed now, that says the operation was not attempted and when to
 /// ask again. The moment the cooldown elapses the next caller performs a real fetch and its real
 /// result is used, and a single success clears the entry outright. That is the distinction §5.2
@@ -178,12 +178,12 @@ public sealed class NegativeResultBreaker
                 return;
             }
 
-            // Open entries last, closed ones first, oldest of each first — not simply by expiry, and
+            // Open entries last, closed ones first, oldest of each first - not simply by expiry, and
             // not by recency. A flood of fresh keys is all newer than the key that is actually open,
             // so either of those orderings drops precisely the entry that is doing the work.
             //
             // Dropping a live entry closes the breaker for that key, which costs one more attempt at
-            // whatever was failing. The alternative — refusing to track a new key once full — leaves
+            // whatever was failing. The alternative - refusing to track a new key once full - leaves
             // the breaker permanently blind to every key after the first MaxTrackedKeys, which is
             // the failure mode the CIMD cache had.
             var batch = Math.Max(1, _options.MaxTrackedKeys / 16);

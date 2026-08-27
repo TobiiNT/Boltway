@@ -14,7 +14,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// The two halves of "a fresh directory comes up ready": <c>SeedRolesAsync</c> is what the host's
 /// <c>migrate</c> verb runs, and <see cref="AccountDefaults"/> is what fills the role argument
-/// nobody passed. They are tested together because they fail together — a default naming a role
+/// nobody passed. They are tested together because they fail together - a default naming a role
 /// nothing seeded is the misconfiguration both halves exist to keep impossible.
 /// </remarks>
 public sealed class RoleSeedingTests
@@ -44,7 +44,7 @@ public sealed class RoleSeedingTests
         Assert.Equal("Chief", founder!.Name);
         Assert.Equal(["docs_read", "docs_write"], founder.Permissions.Order(StringComparer.Ordinal));
 
-        // No name and no permissions is a role that stands for nothing yet, named after itself —
+        // No name and no permissions is a role that stands for nothing yet, named after itself -
         // the same defaults CreateRoleAsync applies, because it is CreateRoleAsync that ran.
         var member = await roles.FindAsync(RealmId.Default, "member", CancellationToken.None);
         Assert.Equal("member", member!.Name);
@@ -93,7 +93,7 @@ public sealed class RoleSeedingTests
 
     /// <summary>
     /// One malformed seed fails the pass before anything lands, so a deploy log shows either what
-    /// was done or one message naming what to fix — never both.
+    /// was done or one message naming what to fix - never both.
     /// </summary>
     [Fact]
     public async Task A_malformed_seed_applies_nothing()
@@ -132,7 +132,7 @@ public sealed class RoleSeedingTests
 
     /// <summary>
     /// Two migrates racing: the loser's refusal from the store means the role exists, which is all
-    /// a seed asks for — the same outcome as having found it, not a failure.
+    /// a seed asks for - the same outcome as having found it, not a failure.
     /// </summary>
     [Fact]
     public async Task Losing_the_race_to_define_a_role_reads_as_already_defined()
@@ -173,7 +173,7 @@ public sealed class RoleSeedingTests
         // prints the truth and its "no role set" warning stays quiet.
         Assert.Equal("member monitor", created.Role);
 
-        // The trail says the operator did not choose this — the deployment did.
+        // The trail says the operator did not choose this - the deployment did.
         var entry = Assert.Single(await audit.ReadAsync(new AuditQuery(), CancellationToken.None));
         Assert.Equal("role=member monitor (defaulted)", entry.Detail);
     }
@@ -195,7 +195,7 @@ public sealed class RoleSeedingTests
 
         var stored = await users.FindByUsernameAsync(RealmId.Default, "ada", CancellationToken.None);
 
-        // Exactly the named role — the defaults are not unioned in. An assignment the operator did
+        // Exactly the named role - the defaults are not unioned in. An assignment the operator did
         // not make and cannot see in their own request is how an account holds more than anyone
         // decided it should.
         Assert.Equal(["founder"], stored!.Roles);
@@ -242,7 +242,7 @@ public sealed class RoleSeedingTests
 
     /// <summary>
     /// A default naming a role the realm does not define fails the creation with the store's own
-    /// message naming it. The half-state left behind — an account with no roles — is the one
+    /// message naming it. The half-state left behind - an account with no roles - is the one
     /// CreateAsync already documents, and the migrate verb exists to make this unreachable.
     /// </summary>
     [Fact]
@@ -262,7 +262,7 @@ public sealed class RoleSeedingTests
     public void An_empty_default_set_is_refused()
     {
         // "No defaults" is said by not constructing one at all, so an empty set can only be a
-        // configuration mistake — the ADMIN_ROLES lesson, refused at the type.
+        // configuration mistake - the ADMIN_ROLES lesson, refused at the type.
         Assert.Throws<ArgumentException>(() => new AccountDefaults([]));
         Assert.Throws<ArgumentException>(() => new AccountDefaults([" "]));
         Assert.Throws<ArgumentException>(() => new AccountDefaults(["two words"]));
@@ -275,7 +275,7 @@ public sealed class RoleSeedingTests
     }
 
     /// <summary>
-    /// FindAsync answers null and StoreAsync then refuses — the window between a seed's read and
+    /// FindAsync answers null and StoreAsync then refuses - the window between a seed's read and
     /// its write, held open on purpose.
     /// </summary>
     private sealed class RacingRoleStore : IRoleStore

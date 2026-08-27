@@ -26,7 +26,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// Options validation was eager from the beginning; the service graph was not. Every seam the
 /// request path reaches sits behind an <c>AddScoped(sp =&gt; …)</c> factory lambda, which
-/// <c>ValidateOnBuild</c> cannot see through — measured with it switched on. So a host missing eight
+/// <c>ValidateOnBuild</c> cannot see through - measured with it switched on. So a host missing eight
 /// services started cleanly, logged <c>Now listening on…</c>, and served both discovery documents
 /// with HTTP 200 before failing on the first real request.
 /// </para>
@@ -89,7 +89,7 @@ public sealed class StartupValidationTests
     /// <summary>Reported one at a time, so each message is attributable to its own omission.</summary>
     /// <remarks>
     /// The control for the first test. "Names them all" is also satisfied by a message that names
-    /// every service unconditionally, which would be worse than useless — it would send a customer
+    /// every service unconditionally, which would be worse than useless - it would send a customer
     /// to register things they already had.
     /// </remarks>
     [Theory]
@@ -216,7 +216,7 @@ public sealed class StartupValidationTests
     /// <remarks>
     /// Demanded only when the policy that needs it is on. The seam is in
     /// <c>Boltway.AuthorizationServer.Abstractions</c> and the implementation is in
-    /// <c>Boltway.Identity</c>, which the server does not reference — so this is the only place
+    /// <c>Boltway.Identity</c>, which the server does not reference - so this is the only place
     /// a host can be told it is missing.
     /// </remarks>
     [Fact]
@@ -268,7 +268,7 @@ public sealed class StartupValidationTests
                 new TestResourceRegistry().Add(Build.Resource, "mcp:tools"));
         }
 
-        // The shipped one-liner, then removed again when a test wants that store missing — which is
+        // The shipped one-liner, then removed again when a test wants that store missing - which is
         // also a small check that the extension really does register what it says.
         services.AddBoltwayInMemoryStores();
 
@@ -287,7 +287,7 @@ public sealed class StartupValidationTests
             services.AddScoped<IUserSession>(_ => new TestUserSession(null));
         }
 
-        // The shipped implementations, not doubles — this file is about what a real host must
+        // The shipped implementations, not doubles - this file is about what a real host must
         // register, so substituting fakes here would test the fixture rather than the wiring.
         services.AddSingleton<IUserStore>(new InMemoryUserStore());
                     services.AddSingleton<IRoleStore>(new InMemoryRoleStore());
@@ -297,7 +297,7 @@ public sealed class StartupValidationTests
     /// <summary>A provider that exists, so the startup condition can see one.</summary>
     /// <remarks>
     /// Never reached by a request in this file: these tests are about whether the host starts, and a
-    /// provider that threw on use would still satisfy the condition — which is the point. Whether a
+    /// provider that threw on use would still satisfy the condition - which is the point. Whether a
     /// provider works is <c>ExternalLoginFlowTests</c>' subject.
     /// </remarks>
     private sealed class StubExternalProvider(string scheme) : IExternalIdentityProvider

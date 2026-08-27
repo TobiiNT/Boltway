@@ -2,14 +2,14 @@
 #
 # This exists because the packages had no home. `Boltway.Mcp` was consumed by a connector in
 # another repository at version 0.3.0, and that version existed only as a `dotnet pack` output in
-# one developer's home directory — nowhere on nuget.org, nowhere in a feed. Measured with a cold
+# one developer's home directory - nowhere on nuget.org, nowhere in a feed. Measured with a cold
 # package cache, the connector's deploy failed twice over: `NU1301 The local source doesn't exist`
 # on the CI runner, and `NU1101 Unable to find package Boltway.Mcp` inside the image. Neither
 # had ever been seen, because no image had ever been built.
 #
 # No token is stored anywhere. `GITHUB_TOKEN` is minted for this run and expires with it, and the
 # nuget.org push trades an OIDC token for a key that lives an hour. If a credential has to exist,
-# make it the one that expires — the same preference that picks a GitHub App over a PAT.
+# make it the one that expires - the same preference that picks a GitHub App over a PAT.
 #
 # Two feeds, and they are not interchangeable. GitHub Packages requires a token to install even a
 # package that is public, so it can never be the feed an outside consumer restores from: that is
@@ -26,7 +26,7 @@ on:
   # Called by `release`, which cuts the tag first and then calls this with the sha it cut.
   #
   # It is a call rather than the `push: tags` trigger above because a tag pushed with GITHUB_TOKEN
-  # does not start another workflow — GitHub blocks that to stop a workflow triggering itself, and
+  # does not start another workflow - GitHub blocks that to stop a workflow triggering itself, and
   # the failure here would be silent: a tag in the repository, a green run, and no packages.
   workflow_call:
     inputs:
@@ -44,7 +44,7 @@ permissions:
 
   # For nuget.org Trusted Publishing. The job asks GitHub for a short-lived OIDC token, hands it to
   # nuget.org, and gets back an API key that lives one hour. Without this the token request fails
-  # *silently* — NuGet/login then has no key and the push fails for a reason that does not name the
+  # *silently* - NuGet/login then has no key and the push fails for a reason that does not name the
   # cause, which is why it is written down here rather than assumed.
   #
   # It is also what the provenance attestation below signs with. Two uses, one grant, and the second
@@ -60,12 +60,12 @@ jobs:
 
     # Every job in this repository carries a ceiling, and this one carries the widest: it restores,
     # builds, runs the whole suite against a live Postgres, packs, and pushes two feeds. The default
-    # is 360 minutes, which is not a ceiling — it is six hours of a hung step holding a runner and,
+    # is 360 minutes, which is not a ceiling - it is six hours of a hung step holding a runner and,
     # here, holding a release that has already cut its tag. Sized well above the honest duration so
     # that hitting it means "stuck", not "slow".
     timeout-minutes: 45
 
-    # The storage contract suite runs against a real Postgres, not a double — the whole point of
+    # The storage contract suite runs against a real Postgres, not a double - the whole point of
     # `GrantStoreContract` is that two implementations answer identically, and an in-memory stand-in
     # here would test the stand-in. Credentials match the tests' default connection string, so
     # BOLTWAY_TEST_POSTGRES stays unset.
@@ -87,7 +87,7 @@ jobs:
       # **The two skips are not the same skip, and they used to be one condition.** `NUGET_USER`
       # was ANDed into the guard on the `NuGet/login` step below, so an unset variable on this
       # repository skipped the login, skipped the push, and reported a green release with nothing on
-      # nuget.org — while every sentence in this file described a workflow that publishes there.
+      # nuget.org - while every sentence in this file described a workflow that publishes there.
       # Nothing in this repository ever told anybody to set that variable, so the state that
       # produces the silent skip was also the state a fresh clone is in.
       #
@@ -131,8 +131,8 @@ jobs:
       # comment. A tag is a mutable pointer in somebody else's repository: whoever can move `v1` can
       # replace the code that runs in this job, and this job is the one that receives an OIDC token
       # which mints a nuget.org publishing key for these package ids. `Directory.Packages.props`
-      # already makes this argument about NuGet dependencies — "one silent minor bump away from a
-      # different security posture than the one that was reviewed" — and an action is a dependency
+      # already makes this argument about NuGet dependencies - "one silent minor bump away from a
+      # different security posture than the one that was reviewed" - and an action is a dependency
       # that appears in no lockfile at all.
       #
       # `.github/dependabot.yml` is the other half: it moves the sha and the trailing comment
@@ -141,11 +141,11 @@ jobs:
       #
       # One trap, because it costs a red release to learn: `NuGet/login`'s `v1` is an *annotated*
       # tag, so `git ls-remote` reports the tag object's sha and `uses:` will not resolve it. Peel
-      # it — `git ls-remote https://github.com/NuGet/login 'v1^{}'` — or read the sha off the
+      # it - `git ls-remote https://github.com/NuGet/login 'v1^{}'` - or read the sha off the
       # release tag it points at, which is what the pin below is.
       #
       # `ref` is empty for a tag push and for a manual dispatch, and empty is what checkout reads as
-      # "the ref that started this run" — so those two paths behave exactly as before.
+      # "the ref that started this run" - so those two paths behave exactly as before.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref }}
@@ -155,7 +155,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       # Before packing, never after. A package pushed to a feed cannot be unpublished in any way
-      # that helps — a consumer who restored it already has it — so the tests are the last moment
+      # that helps - a consumer who restored it already has it - so the tests are the last moment
       # anything is reversible.
       #
       # `--logger trx` because a release that fails here fails on the one path where re-running to
@@ -165,7 +165,7 @@ jobs:
       # Deliberately without `--collect:"XPlat Code Coverage"`, for the reason measured and written
       # out in ci.yml's `Test` step: the collector's injected `RecordHit(<index>)` calls are
       # `ldc.i4` operands in the ranges two architecture rules read as HTTP status codes, and the
-      # suite goes red for a defect that is not there. Keep the two commands the same — a release
+      # suite goes red for a defect that is not there. Keep the two commands the same - a release
       # that runs the tests differently from CI is a release testing something else.
       - name: Test
         run: dotnet test Boltway.slnx --configuration Release --logger trx
@@ -173,7 +173,7 @@ jobs:
       # `if: always()`, because the run that failed is the only one whose results anybody wants.
       #
       # No --results-directory: each project writes into its own TestResults/ by default, and that
-      # is collision-free by construction. A shared directory is not — the trx logger's default
+      # is collision-free by construction. A shared directory is not - the trx logger's default
       # filename is the machine and a timestamp, so two projects finishing in the same second write
       # the same name and the second silently wins.
       - name: Test results
@@ -187,7 +187,7 @@ jobs:
 
       # The solution, not a list of projects. Boltway.Mcp reaches across a ProjectReference into
       # Boltway.ResourceServer, and packing a subset produces a package whose dependency is not in
-      # the feed — which restores cleanly on a machine that happens to have it cached and fails on
+      # the feed - which restores cleanly on a machine that happens to have it cached and fails on
       # every other one. This said "two solutions" while there has been one since the trees were
       # folded together, which is the change that let the architecture scan reach Boltway.Mcp.
       #
@@ -210,7 +210,7 @@ jobs:
       # `Boltway.ResourceServer` stayed at 0.1.0 across the change that added
       # `ProtectedResourceOptions.SigningKeySource`. The feed already held a 0.1.0, so
       # --skip-duplicate skipped it and this workflow was green. `Boltway.Mcp` 0.4.0 was new
-      # in the same run, so it was pushed — depending, via its ProjectReference, on the 0.1.0 that
+      # in the same run, so it was pushed - depending, via its ProjectReference, on the 0.1.0 that
       # does not have that setter. The downstream connector built green, its image built green, and the
       # container threw MissingMethodException out of Host.StartAsync on every start.
       #
@@ -229,7 +229,7 @@ jobs:
       #
       # **The gap this closes is the one Trusted Publishing leaves open, and they are complementary
       # rather than redundant.** OIDC publishing means no long-lived key exists for an attacker to
-      # steal — it proves *the push came from here*, to nuget.org, at push time. It says nothing to a
+      # steal - it proves *the push came from here*, to nuget.org, at push time. It says nothing to a
       # consumer six months later holding a `.nupkg`, who can verify the signature nuget.org applied
       # and learn only that nuget.org accepted it. This attestation is the half that travels with the
       # artefact: `gh attestation verify <file>.nupkg --repo TobiiNT/Boltway` binds those exact bytes
@@ -237,8 +237,8 @@ jobs:
       # against anybody's word.
       #
       # That matters more here than for most packages. This one issues credentials that grant access
-      # to somebody's data, and the failure that motivated the version guard above — a consumer
-      # restoring bytes nobody meant to ship — is the benign version of the same shape.
+      # to somebody's data, and the failure that motivated the version guard above - a consumer
+      # restoring bytes nobody meant to ship - is the benign version of the same shape.
       #
       # **Before both pushes, deliberately, and it is the same argument the version guard makes two
       # steps up.** A feed cannot be unpublished in any way that helps, so anything that can refuse
@@ -248,7 +248,7 @@ jobs:
       #
       # One glob rather than a matrix: `subject-path` takes them all and produces one statement per
       # file, so a package added to `StructuralRuleTests.PackableProjects` is covered here with no
-      # second list to forget — the same reason the *What was packed* step refuses to hard-code a
+      # second list to forget - the same reason the *What was packed* step refuses to hard-code a
       # count.
       - name: Attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -262,7 +262,7 @@ jobs:
       # bumps Boltway.Mcp alone must not fail on the fifteen packages whose version did not
       # move. That stays true and stays useful; what makes it safe is the step above, which is the
       # difference between "skipped because it is unchanged" and "skipped, and the change is being
-      # dropped on the floor" — two things this flag reports identically.
+      # dropped on the floor" - two things this flag reports identically.
       - name: Push to GitHub Packages
         run: |
           dotnet nuget push 'packages/*.nupkg' \
@@ -282,7 +282,7 @@ jobs:
       # stored NUGET_API_KEY would have been a secret with no expiry, held by a public repository,
       # able to publish under this owner forever.
       #
-      # Requested immediately before the push on purpose — the key lives one hour and a token buys
+      # Requested immediately before the push on purpose - the key lives one hour and a token buys
       # exactly one key, so asking early is how a slow run publishes with something already expired.
       #
       # Guarded on the repository rather than on a secret, because there is no longer a secret to
@@ -290,7 +290,7 @@ jobs:
       # something it was never meant to do; it publishes to its own GitHub Packages and skips here.
       #
       # The variable this needs is checked in the job's first step, before anything is built or
-      # pushed — see *nuget.org is configured* up there for why an unset one is red rather than a
+      # pushed - see *nuget.org is configured* up there for why an unset one is red rather than a
       # skip.
       - name: NuGet login (OIDC to a one-hour key)
         id: nuget_login

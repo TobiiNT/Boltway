@@ -21,15 +21,15 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <remarks>
 /// <para>
 /// <b>A different surface from <see cref="AdminEndpoints"/>, not the same one with a guard.</b>
-/// §1.6. The alternative — one set of handlers that act on a target "unless the target is yourself"
-/// — is how an authorization bug is written: the guard is correct on the day it is added and
+/// §1.6. The alternative - one set of handlers that act on a target "unless the target is yourself"
+/// - is how an authorization bug is written: the guard is correct on the day it is added and
 /// acquires an exception the first time somebody needs a support tool. Here there is no target
 /// parameter at all. Every handler reads its subject from
 /// <see cref="AdminAuthorization.Check(HttpContext, string, out SubjectId)"/> and there is nothing
 /// in a request that could name another account.
 /// </para>
 /// <para>
-/// <b>Bearer only — <c>N-17</c>, the same as <c>/admin</c>, and the same architecture test covers
+/// <b>Bearer only - <c>N-17</c>, the same as <c>/admin</c>, and the same architecture test covers
 /// both prefixes.</b> The scope is <see cref="AdminScopes.Self"/>, which the default entitlement
 /// policy grants to everyone because it conveys no authority over anyone else.
 /// </para>
@@ -42,7 +42,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <para>
 /// <b>What ending a session reaches.</b> Revoking a grant kills every refresh chain descended from
 /// it. It does not reach an access token already issued: those are signed rather than looked up.
-/// So the responses carry counts and never say "signed out" — the gap is one access-token lifetime
+/// So the responses carry counts and never say "signed out" - the gap is one access-token lifetime
 /// long, and the person reading this page is the one deciding whether that is good enough.
 /// </para>
 /// </remarks>
@@ -124,7 +124,7 @@ public static class AccountEndpoints
     /// permanent access and every rotation the token design pays for is wasted.
     /// </para>
     /// <para>
-    /// <b>A wrong current password is 403, not 401.</b> The caller authenticated fine — a 401 would
+    /// <b>A wrong current password is 403, not 401.</b> The caller authenticated fine - a 401 would
     /// invite them to get a new token, which is a loop that cannot terminate because the token was
     /// never the problem.
     /// </para>
@@ -152,7 +152,7 @@ public static class AccountEndpoints
         // client sending an empty field it did not notice was empty, and accepting it locks somebody
         // out of their own account with a credential they cannot retype. Anything about length or
         // composition is a decision a deployment makes, and this library ships no vocabulary for it
-        // — the same reason the role is an opaque string.
+        // - the same reason the role is an opaque string.
         if (string.IsNullOrWhiteSpace(body.NewPassword))
         {
             return Problem(
@@ -202,7 +202,7 @@ public static class AccountEndpoints
     /// </summary>
     /// <remarks>
     /// One entry per grant, which is one per (client, authorization). A client authorized twice
-    /// appears twice, because it is two things a person can end separately — collapsing them by
+    /// appears twice, because it is two things a person can end separately - collapsing them by
     /// client id would make the list shorter and the delete ambiguous.
     /// </remarks>
     private static async Task<IResult> GetSessionsAsync(HttpContext http, CancellationToken cancellationToken)
@@ -228,7 +228,7 @@ public static class AccountEndpoints
     /// <para>
     /// <b>The grant is loaded and its subject checked before anything is revoked.</b> The id comes
     /// from the URL, so without this the endpoint revokes any grant in the deployment for anyone
-    /// holding <c>users:self</c> — which is everyone. <c>IGrantStore.RevokeAsync</c> takes an id and
+    /// holding <c>users:self</c> - which is everyone. <c>IGrantStore.RevokeAsync</c> takes an id and
     /// no subject; it is the caller's job to have earned the right to name that id, and this is that
     /// caller.
     /// </para>
@@ -294,7 +294,7 @@ public static class AccountEndpoints
     /// </summary>
     /// <remarks>
     /// <b>This forgets the approval; it does not end the sessions.</b> A grant already issued keeps
-    /// working — the next authorization will ask again rather than proceeding silently, which is
+    /// working - the next authorization will ask again rather than proceeding silently, which is
     /// what withdrawing consent means. Ending the access is <c>E-36</c>, and a person who wants both
     /// wants both. Saying so in the response rather than doing the second one quietly: revoking
     /// grants from here would make "I want to be asked again" also mean "sign me out", and only one
@@ -310,7 +310,7 @@ public static class AccountEndpoints
 
         // The same parse the authorization endpoint runs on a `client_id` off the wire, and for the
         // same reason: this one arrives in a URL segment, so it is untrusted input that reaches a
-        // store key and a log line. It also settles the kind — `Unknown`, because whoever sent it
+        // store key and a log line. It also settles the kind - `Unknown`, because whoever sent it
         // does not get to say what kind of client they are, and the store compares on the value.
         if (!ClientIdentifier.TryParseFromRequest(clientId, out var client))
         {
@@ -350,7 +350,7 @@ public static class AccountEndpoints
         if (failure is AdminAuthorizationFailure.None && subject.Value is null)
         {
             // Scoped correctly and carrying no `sub`. A client-credentials token, or one minted by
-            // something that forgot the claim — either way there is no account for this surface to
+            // something that forgot the claim - either way there is no account for this surface to
             // be about, and proceeding would run every handler against a default SubjectId.
             failure = AdminAuthorizationFailure.InsufficientScope;
         }
@@ -441,7 +441,7 @@ public static class AccountEndpoints
 }
 
 /// <summary>What a password change carries.</summary>
-/// <param name="CurrentPassword">What is on the account now. Required — <c>S-49</c>.</param>
+/// <param name="CurrentPassword">What is on the account now. Required - <c>S-49</c>.</param>
 /// <param name="NewPassword">What to replace it with.</param>
 /// <param name="RevokeSessions">
 /// Whether to end every session on the way, including the one this request was made from. Absent
@@ -456,7 +456,7 @@ public sealed record ChangePasswordRequest(
 /// <summary>An account, as its owner sees it.</summary>
 /// <remarks>
 /// <b>The same fields <c>AdminUserView</c> carries, minus the realm.</b> Not because a realm is a
-/// secret — the caller is in it — but because it is an answer to "which directory is this
+/// secret - the caller is in it - but because it is an answer to "which directory is this
 /// deployment serving", which is an operator's question and not a thing an account holder can act
 /// on. No password hash here for the reason there is none there: a hash is a credential's shadow.
 /// </remarks>
@@ -466,7 +466,7 @@ public sealed record ChangePasswordRequest(
 /// <param name="EmailVerified">Whether it has been proven.</param>
 /// <param name="Roles">What your tokens claim you are. Every one the account holds, in id order.</param>
 /// <param name="DisabledAt">When the account was disabled, if it is.</param>
-/// <param name="HasPassword">Whether a password exists here at all — not what it is.</param>
+/// <param name="HasPassword">Whether a password exists here at all - not what it is.</param>
 public sealed record AccountView(
     [property: JsonPropertyName("subject")] string Subject,
     [property: JsonPropertyName("handle")] string Handle,
@@ -505,7 +505,7 @@ public sealed record PasswordChangedView(
 /// <summary>One session, as its owner sees it.</summary>
 /// <remarks>
 /// <b>No token, no hash and no family id.</b> What a person needs to recognise a session is which
-/// client, what it may do, and when it started — and anything more here is a credential-shaped value
+/// client, what it may do, and when it started - and anything more here is a credential-shaped value
 /// in a response that a browser extension can read.
 /// </remarks>
 /// <param name="Id">The grant id. What <c>DELETE /account/sessions/{id}</c> takes.</param>

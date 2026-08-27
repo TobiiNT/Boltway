@@ -8,7 +8,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// <para>
 /// <b>Every one of these headers is a real one</b>, because the thing under test is a pile of
-/// heuristics over a string format that has been lying about itself since 1994 — every browser here
+/// heuristics over a string format that has been lying about itself since 1994 - every browser here
 /// claims to be Mozilla, Chrome claims to be Safari, and Edge claims to be both. Invented headers
 /// would test the matcher against the shape somebody imagined rather than the shape it will meet.
 /// </para>
@@ -75,7 +75,7 @@ public sealed class ApprovingDeviceTests
     /// <summary>An iPhone is an iPhone, though its header also says Mac OS X.</summary>
     /// <remarks>
     /// The platform half of the same trap: every iOS header carries <c>like Mac OS X</c>, so testing
-    /// <c>Macintosh</c> first would report a phone as a laptop — on the page whose entire job is
+    /// <c>Macintosh</c> first would report a phone as a laptop - on the page whose entire job is
     /// telling somebody which of their devices approved something.
     /// </remarks>
     [Fact]

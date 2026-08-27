@@ -28,7 +28,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Users;
 /// note that used to sit here said so: <c>ResourceServerAuthenticator.FromClaims</c> read the role
 /// with <c>FindFirst</c>, which takes one value and silently ignores the rest, so a set stored here
 /// would have produced tokens whose second and third roles were dropped by the only consumer this
-/// repository ships — a rule existing on one surface and not the other. Both halves moved together.
+/// repository ships - a rule existing on one surface and not the other. Both halves moved together.
 /// Anything else reading the <c>role</c> claim as a single string has to move with them, and the
 /// deployment's own configuration counts: a role mapping that matches on one value will silently
 /// pick whichever arrives first.
@@ -48,8 +48,8 @@ public sealed record UserAccount(
     /// <remarks>
     /// <para>
     /// Empty for an account holding none, never null. An account with no roles is a legitimate
-    /// thing for a directory to hold — it is what every account looks like the moment before
-    /// somebody is given something — and a null here would put a null check on every consumer for
+    /// thing for a directory to hold - it is what every account looks like the moment before
+    /// somebody is given something - and a null here would put a null check on every consumer for
     /// a state that is not exceptional.
     /// </para>
     /// <para>
@@ -58,7 +58,7 @@ public sealed record UserAccount(
     /// </para>
     /// <para>
     /// <b>Read on the way out, refused on the way in.</b> <see cref="IUserStore.StoreAsync"/> will
-    /// not accept an account carrying roles — assignment is
+    /// not accept an account carrying roles - assignment is
     /// <see cref="IUserStore.SetRolesAsync"/>'s job and nothing else's. Two ways to assign would be
     /// two places the "does this role exist" rule has to be remembered in the same way, and the
     /// relational store gets that rule from a foreign key whether or not anybody remembered. One
@@ -76,7 +76,7 @@ public sealed record UserAccount(
     /// <b>What a session cookie could not previously survive being wrong about.</b> The cookie is
     /// self-contained: nothing is stored about it, so nothing could be revoked. Changing a password
     /// left every browser already holding one signed in, and so did ending every application's
-    /// access — the two controls a person reaches for when they believe somebody else is in their
+    /// access - the two controls a person reaches for when they believe somebody else is in their
     /// account. This is the one fact that lets a stateless cookie be refused.
     /// </para>
     /// <para>
@@ -93,7 +93,7 @@ public sealed record UserAccount(
     /// </para>
     /// <para>
     /// <b>Null on every account that existed before this column, and null means valid.</b> Sessions
-    /// are not invalidated by an upgrade — a deployment that signed everybody out on deploy would be
+    /// are not invalidated by an upgrade - a deployment that signed everybody out on deploy would be
     /// spending its users' trust to buy nothing, since the sessions it killed were not suspected of
     /// anything.
     /// </para>
@@ -109,12 +109,12 @@ public sealed record UserAccount(
     /// <remarks>
     /// <para>
     /// An init-only property with a default rather than a constructor parameter, so that adding it
-    /// broke nothing: a single-realm deployment — which is every deployment today — never mentions
+    /// broke nothing: a single-realm deployment - which is every deployment today - never mentions
     /// it, and the column is there when a second directory turns up.
     /// </para>
     /// <para>
     /// <b>The subject is not scoped by it.</b> Subjects are ULIDs, so they are unique across every
-    /// realm by construction, and the stores keyed on them — grants, consents, refresh families —
+    /// realm by construction, and the stores keyed on them - grants, consents, refresh families -
     /// need no realm column. Only lookups by something a person chose do.
     /// </para>
     /// </remarks>
@@ -134,7 +134,7 @@ public sealed record UserAccount(
 /// through into a token.
 /// </para>
 /// <para>
-/// The alternative — emitting the upstream <c>sub</c> directly — looks simpler until a second
+/// The alternative - emitting the upstream <c>sub</c> directly - looks simpler until a second
 /// provider appears, at which point two users at different providers can collide, and every token
 /// already issued is under an identifier this server does not control. Adding the table later
 /// means a migration across every deployed database; adding it now costs one join.
@@ -155,8 +155,8 @@ public sealed record ExternalLogin(string UpstreamIssuer, string UpstreamSubject
 
 /// <summary>Stores users.</summary>
 /// <remarks>
-/// One aggregate, deliberately small. A customer replacing this — pointing the server at an
-/// existing directory — does not inherit refresh rotation or consent along with it, and can unit
+/// One aggregate, deliberately small. A customer replacing this - pointing the server at an
+/// existing directory - does not inherit refresh rotation or consent along with it, and can unit
 /// test the result without a web host, because nothing here mentions <c>HttpContext</c>.
 /// </remarks>
 public interface IUserStore
@@ -170,12 +170,12 @@ public interface IUserStore
     /// <remarks>
     /// <para>
     /// Implementations must compare case-insensitively on a normalized form and must not let two
-    /// accounts differ only by case — otherwise <c>Alice</c> and <c>alice</c> are two users, and
+    /// accounts differ only by case - otherwise <c>Alice</c> and <c>alice</c> are two users, and
     /// which one a login reaches depends on the store's collation.
     /// </para>
     /// <para>
     /// <b>The realm is part of the key, not a filter applied afterwards.</b> Two realms may hold the
-    /// same username, and a lookup in one must never return the other's row — enforced by the unique
+    /// same username, and a lookup in one must never return the other's row - enforced by the unique
     /// index being <c>(realm, normalized_username)</c> rather than by every query remembering.
     /// </para>
     /// </remarks>
@@ -185,33 +185,33 @@ public interface IUserStore
     /// <summary>
     /// Find by an address the account has proved it controls.
     /// </summary>
-    /// <param name="realm">The realm to look in — part of the key, as it is for a username.</param>
+    /// <param name="realm">The realm to look in - part of the key, as it is for a username.</param>
     /// <param name="email">The address as typed.</param>
     /// <param name="cancellationToken">Cancellation.</param>
     /// <returns>
     /// The one account in this realm whose address matches <b>and is verified</b>, or
-    /// <see langword="null"/> — including when more than one matches.
+    /// <see langword="null"/> - including when more than one matches.
     /// </returns>
     /// <remarks>
     /// <para>
     /// <b>Verified only, and that is the whole security of it.</b> An unverified address is a string
     /// somebody typed about themselves. Accepting one here would mean anybody who can create an
     /// account can name a colleague's address and sign in under it once that colleague's password
-    /// leaks anywhere — the address would authenticate nothing while looking like it did.
+    /// leaks anywhere - the address would authenticate nothing while looking like it did.
     /// <c>AccountRecovery</c> deliberately matches unverified addresses too, because a reset link is
     /// <i>sent to</i> the address and so proves control rather than assuming it; that is the
     /// opposite direction and the reason the two lookups are not one method.
     /// </para>
     /// <para>
     /// <b>More than one match is <see langword="null"/>, not a choice.</b> Nothing makes an address
-    /// unique — a username has a unique index and an address has never had one, and adding one would
+    /// unique - a username has a unique index and an address has never had one, and adding one would
     /// refuse to migrate any deployment that already holds a duplicate. So ambiguity is answered by
     /// refusing rather than by returning whichever row the store happened to order first, which is a
     /// sign-in whose outcome depends on a collation.
     /// </para>
     /// <para>
     /// <b>Implementations must index this.</b> It is reached from the sign-in form, so a scan is
-    /// unbounded work an anonymous caller can ask for — the shipped stores index
+    /// unbounded work an anonymous caller can ask for - the shipped stores index
     /// <c>(realm, email)</c>. Compare case-insensitively: addresses are handed out on business
     /// cards in whatever case somebody felt like.
     /// </para>
@@ -239,7 +239,7 @@ public interface IUserStore
     /// <para>
     /// The reverse of <see cref="FindByExternalLoginAsync"/>, and it is a read a person makes about
     /// their own account rather than one a sign-in makes. Without it the self-service page could
-    /// offer to connect a provider and could not say whether connecting had already happened —
+    /// offer to connect a provider and could not say whether connecting had already happened -
     /// measured, on a running deployment: a user pressed "Link Google", the round trip
     /// succeeded, the page came back identical, and nothing anywhere could tell them it had
     /// worked.
@@ -247,7 +247,7 @@ public interface IUserStore
     /// <para>
     /// <b>This is not a resolution path and must not become one.</b> It answers "what does this
     /// account hold", keyed on a subject the caller has already authenticated as. The question it
-    /// must never be turned into is the reverse — "which account holds this identity" — which is
+    /// must never be turned into is the reverse - "which account holds this identity" - which is
     /// <see cref="FindByExternalLoginAsync"/>, keyed on <c>(issuer, subject)</c> and on nothing
     /// looser, for the federation-takeover reason written there.
     /// </para>
@@ -323,7 +323,7 @@ public interface IUserStore
 
     /// <summary>
     /// Replace an account's stored password hash. <see langword="false"/> when no such account
-    /// exists — the same contract as <see cref="SetRolesAsync"/>, and for the same reason: the
+    /// exists - the same contract as <see cref="SetRolesAsync"/>, and for the same reason: the
     /// caller's next move is to report a typo in a handle, not to have created one.
     /// </summary>
     /// <param name="subject">The account to change.</param>
@@ -356,8 +356,8 @@ public interface IUserStore
     /// <param name="cancellationToken">Cancels the write.</param>
     /// <remarks>
     /// <para>
-    /// <b>The rule this completes was enforced and unsettable.</b> Both sign-in paths — local and
-    /// federated — refuse an account whose <see cref="UserAccount.DisabledAt"/> is set, and nothing
+    /// <b>The rule this completes was enforced and unsettable.</b> Both sign-in paths - local and
+    /// federated - refuse an account whose <see cref="UserAccount.DisabledAt"/> is set, and nothing
     /// in the library, the CLI or any store method could set it. The rule existed; the control did
     /// not, so the only way to disable somebody was to write SQL against a live directory.
     /// </para>
@@ -416,7 +416,7 @@ public interface IUserStore
     /// </para>
     /// <para>
     /// It also does not skip or repeat when the set changes underneath it. An account created while
-    /// somebody is paging shifts every subsequent <c>OFFSET</c> by one, so a row is silently missed —
+    /// somebody is paging shifts every subsequent <c>OFFSET</c> by one, so a row is silently missed -
     /// which on this table means an account nobody reviewing the directory ever sees.
     /// </para>
     /// <para>
@@ -434,7 +434,7 @@ public interface IUserStore
     /// <param name="subject">Whose account.</param>
     /// <param name="tombstoneUsername">
     /// What the username becomes. Supplied rather than generated here so that every store agrees on
-    /// it — the caller derives it from the subject, which is unique, so the
+    /// it - the caller derives it from the subject, which is unique, so the
     /// <c>(realm, normalized_username)</c> index cannot collide however many accounts are
     /// anonymised.
     /// </param>
@@ -445,8 +445,8 @@ public interface IUserStore
     /// <para>
     /// <b>The subject row stays, and that is the whole point.</b> Deleting a user with outstanding
     /// grants leaves dangling references, and an audit trail that empties when the audited party
-    /// asks is not an audit trail. What a person is owed is that the account stops naming them —
-    /// which this does — not that the record of what was done stops existing.
+    /// asks is not an audit trail. What a person is owed is that the account stops naming them -
+    /// which this does - not that the record of what was done stops existing.
     /// </para>
     /// <para>
     /// <b>One method because it must be one write.</b> Username, email, credential, role,
@@ -455,7 +455,7 @@ public interface IUserStore
     /// person reads as anonymised to anybody looking at it.
     /// </para>
     /// <para>
-    /// <b>The role goes with it.</b> An anonymised account carries no entitlement — not because a
+    /// <b>The role goes with it.</b> An anonymised account carries no entitlement - not because a
     /// tombstone could sign in, it has no credential and no link, but because a role surviving on it
     /// is an entitlement waiting for anything that ever re-enables an account by subject.
     /// </para>
@@ -478,8 +478,8 @@ public interface IUserStore
 /// <para>
 /// A seam, and it lives here rather than in <c>Boltway.Identity</c> because the authorization
 /// server needs it: provisioning a local account for a first-time federated sign-in has to mint a
-/// subject, and the server does not reference that assembly. The shipped implementation —
-/// <c>UlidSubjectIdFactory</c> — stays there with the ULID it produces.
+/// subject, and the server does not reference that assembly. The shipped implementation -
+/// <c>UlidSubjectIdFactory</c> - stays there with the ULID it produces.
 /// </para>
 /// <para>
 /// A-18 is what this is for. <see cref="SubjectId.FromStorage"/> wraps whatever string it is handed,
@@ -510,7 +510,7 @@ public interface IPasswordHasher
     /// </summary>
     /// <remarks>
     /// Implementations must do the work even when the account does not exist, or the response time
-    /// distinguishes "no such user" from "wrong password" — which turns the login form into a
+    /// distinguishes "no such user" from "wrong password" - which turns the login form into a
     /// username oracle.
     /// </remarks>
     bool Verify(string password, string encodedHash);

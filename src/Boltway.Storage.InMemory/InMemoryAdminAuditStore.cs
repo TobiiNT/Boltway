@@ -8,7 +8,7 @@ namespace Boltway.Storage.InMemory;
 /// <remarks>
 /// Ships for the reason the other in-memory stores do: the shared contract suite needs a second
 /// implementation, or the contract describes one data access layer rather than a behaviour. It is
-/// not a deployment option — an audit trail that a restart empties is not one.
+/// not a deployment option - an audit trail that a restart empties is not one.
 /// </remarks>
 public sealed class InMemoryAdminAuditStore : IAdminAuditStore
 {

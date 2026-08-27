@@ -47,7 +47,7 @@ public sealed class CimdClientResolverOptions
     /// <remarks>
     /// A bound, because the cache key is attacker-chosen: every distinct URL-shaped
     /// <c>client_id</c> that resolves is an entry, and nothing stops a caller sending a new one each
-    /// time. At the cap the least recently <i>used</i> entries are dropped — see
+    /// time. At the cap the least recently <i>used</i> entries are dropped - see
     /// <see cref="CimdClientResolver"/> for why used rather than oldest, and for what the previous
     /// policy of refusing new entries cost.
     /// </remarks>
@@ -60,7 +60,7 @@ public sealed class CimdClientResolverOptions
     /// <para>
     /// One hour. The trade is stated rather than implied: for up to this long after a document has
     /// expired, an origin that is unreachable or answering 5xx does not take its client's users
-    /// offline — and, equally, a client that has taken its document down and expects to stop being
+    /// offline - and, equally, a client that has taken its document down and expects to stop being
     /// trusted keeps being trusted for this long. An hour is short against the 24-hour ceiling on a
     /// fresh entry and long against every transient outage worth surviving.
     /// </para>
@@ -95,8 +95,8 @@ public sealed class CimdClientResolverOptions
     /// </summary>
     /// <remarks>
     /// Three, then a 60 s cooldown that doubles per failed probe up to ten minutes. Nothing a user
-    /// can do is lost by this: the authorization was going to fail anyway — the document is not
-    /// fetchable — and the only difference is that it now fails in microseconds with a
+    /// can do is lost by this: the authorization was going to fail anyway - the document is not
+    /// fetchable - and the only difference is that it now fails in microseconds with a
     /// <c>Retry-After</c> instead of after a DNS lookup, a TLS handshake and a request. A single
     /// successful fetch clears the whole entry.
     /// </remarks>
@@ -123,8 +123,8 @@ public sealed class CimdClientResolverOptions
 /// <para>
 /// <b>Nothing here writes to <see cref="IClientStore"/>, and the constructor is where that is
 /// visible.</b> A-08: a hundred sequential CIMD connections must leave the client table unchanged.
-/// The obvious optimisation — persist the resolved record so the next authorization skips the fetch
-/// — turns every client that ever tried to connect into a row somebody has to garbage-collect, which
+/// The obvious optimisation - persist the resolved record so the next authorization skips the fetch
+/// - turns every client that ever tried to connect into a row somebody has to garbage-collect, which
 /// is the failure mode CIMD exists to avoid. The cache below is in memory, bounded, and expires.
 /// </para>
 /// <para>
@@ -134,7 +134,7 @@ public sealed class CimdClientResolverOptions
 /// <para>
 /// <b>Everything this class keeps is per process.</b> The cache, the single-flight table, the fetch
 /// budget and the breaker are all fields of one instance. A deployment of <i>n</i> replicas has
-/// <i>n</i> caches that miss independently, <i>n</i> budgets, and <i>n</i> breakers — so the
+/// <i>n</i> caches that miss independently, <i>n</i> budgets, and <i>n</i> breakers - so the
 /// outbound volume a client can cause across the fleet is <i>n</i> times what the options here say,
 /// and a breaker open on one replica says nothing about the others. That is a statement of what
 /// these limits are, not a caveat on them: they bound one instance, which is where the sockets and
@@ -169,14 +169,14 @@ public sealed class CimdClientResolver : IClientResolver
     /// <remarks>
     /// <para>
     /// Without this, a burst of sign-ins for a client whose entry has just expired is one outbound
-    /// request each — measured at 64 fetches for 64 concurrent first resolutions. Since the entry
+    /// request each - measured at 64 fetches for 64 concurrent first resolutions. Since the entry
     /// expires at a fixed instant for everybody, that burst is exactly the shape a popular client
     /// produces, not a contrived one.
     /// </para>
     /// <para>
     /// <see cref="Lazy{T}"/> rather than <c>GetOrAdd</c> with a task-returning factory:
     /// <see cref="ConcurrentDictionary{TKey, TValue}.GetOrAdd(TKey, Func{TKey, TValue})"/> does not
-    /// hold a lock across the factory, so several threads can run it and only one result is kept —
+    /// hold a lock across the factory, so several threads can run it and only one result is kept -
     /// which starts the fetches this is here to collapse and then throws all but one away.
     /// <see cref="LazyThreadSafetyMode.ExecutionAndPublication"/> is the mode that runs it once.
     /// </para>
@@ -239,14 +239,14 @@ public sealed class CimdClientResolver : IClientResolver
     /// <para>
     /// Only the prefix test, not the whole of §3. The rest of §3 is applied in
     /// <see cref="ResolveAsync"/> on purpose: a resolver that answers <see langword="false"/> is
-    /// skipped silently, and the request then ends at the chain's fall-through message — "no client
-    /// is registered with that identifier" — for a <c>client_id</c> whose real problem is that it
+    /// skipped silently, and the request then ends at the chain's fall-through message - "no client
+    /// is registered with that identifier" - for a <c>client_id</c> whose real problem is that it
     /// has no path component. A-07 asks for the description that names the failed check, and only
     /// the resolver that recognised the identifier can produce one.
     /// </para>
     /// <para>
     /// It is not a claim about kind. §7.1 warns that an <c>https://</c> prefix is not a reliable
-    /// signal that a client is a CIMD client — an administrator may issue URL-shaped identifiers for
+    /// signal that a client is a CIMD client - an administrator may issue URL-shaped identifiers for
     /// other reasons. What keeps those apart from these is chain order: a pre-registered resolver
     /// runs first and answers for its own clients before this one is asked.
     /// </para>
@@ -267,8 +267,8 @@ public sealed class CimdClientResolver : IClientResolver
 
         if (TryReadFresh(url.Value, now, out var cached))
         {
-            // Recorded with a duration too, not just counted. A cache hit is not free — it is a
-            // dictionary read on the authorize path — and the point of the histogram is that "how
+            // Recorded with a duration too, not just counted. A cache hit is not free - it is a
+            // dictionary read on the authorize path - and the point of the histogram is that "how
             // long does resolving a client_id take" has one answer covering both routes, with
             // `outcome` telling you which population you are looking at.
             Record(started, "hit");
@@ -279,7 +279,7 @@ public sealed class CimdClientResolver : IClientResolver
             url.Value,
             key => new Lazy<Task<ClientResolution>>(() => RefreshAsync(key, url), LazyThreadSafetyMode.ExecutionAndPublication));
 
-        // The shared work runs on no caller's cancellation token — see RefreshAsync — and each
+        // The shared work runs on no caller's cancellation token - see RefreshAsync - and each
         // caller waits on its own. Awaiting the shared task directly would let the first browser to
         // navigate away cancel the fetch for every other caller queued behind it.
         return await flight.Value.WaitAsync(cancellationToken);
@@ -291,15 +291,15 @@ public sealed class CimdClientResolver : IClientResolver
     /// <remarks>
     /// Takes no <see cref="CancellationToken"/>, deliberately. It is awaited by callers who each
     /// have their own, and a cancellation that propagated in here would abort work the other callers
-    /// are still waiting on. What bounds it instead is the fetcher's own budget —
+    /// are still waiting on. What bounds it instead is the fetcher's own budget -
     /// <see cref="SafeHttpFetcherOptions.TotalTimeout"/>, or
-    /// <see cref="CimdClientResolverOptions.FetchTimeout"/> when the caller sets one — which is a
+    /// <see cref="CimdClientResolverOptions.FetchTimeout"/> when the caller sets one - which is a
     /// bound on the fetch itself rather than on one caller's patience.
     /// </remarks>
     private async Task<ClientResolution> RefreshAsync(string key, CimdClientIdUrl url)
     {
         // One timer for the shared work, and the tag set at whichever return actually fires. The
-        // duration measured is the fetch every waiting caller is behind, not one caller's wait —
+        // duration measured is the fetch every waiting caller is behind, not one caller's wait -
         // which is the number that answers "is the origin slow".
         var started = System.Diagnostics.Stopwatch.GetTimestamp();
         var outcome = "error";
@@ -383,7 +383,7 @@ public sealed class CimdClientResolver : IClientResolver
             // Inside the shared work rather than in each caller, so the entry is gone before the
             // task is observable as completed. A caller arriving after this line starts a fresh
             // fetch; one arriving before it joins this one. Neither reads a finished result out of
-            // the table, which is what would make this a cache of the outcome — including, for a
+            // the table, which is what would make this a cache of the outcome - including, for a
             // failure, the error §5.2 forbids caching.
             _ = _inFlight.TryRemove(key, out _);
         }
@@ -401,7 +401,7 @@ public sealed class CimdClientResolver : IClientResolver
     /// </para>
     /// <para>
     /// The answer is a whole <see cref="ClientResolution"/> and not a refusal, because a stale
-    /// entry — if there is one inside its window — is a better answer than a 429 and the decision
+    /// entry - if there is one inside its window - is a better answer than a 429 and the decision
     /// belongs in one place.
     /// </para>
     /// </remarks>
@@ -475,12 +475,12 @@ public sealed class CimdClientResolver : IClientResolver
     /// </para>
     /// <para>
     /// <strong>A special-use address is on the serving side, and it used to be on the other one.</strong>
-    /// The reason given was that it "means the name now resolves somewhere private — a rebinding
+    /// The reason given was that it "means the name now resolves somewhere private - a rebinding
     /// signal", and serving stale would hide the event. That is an inference from one lookup: a
     /// resolver that filters the name, split-horizon DNS for a name a company hosts internally, and
     /// an attack are the same observation from here. It also cost more than it bought. Serving a
-    /// stale document connects to nothing — the address check has already refused, and refusing the
-    /// cache as well does not refuse anything further — so the only effect was to sign out every
+    /// stale document connects to nothing - the address check has already refused, and refusing the
+    /// cache as well does not refuse anything further - so the only effect was to sign out every
     /// client of a filtered name, while <see cref="BlockReason.DnsFailed" /> a line above kept
     /// serving them for the same block delivered as <c>NXDOMAIN</c> instead of as <c>0.0.0.0</c>.
     /// Two spellings of one event, answered opposite ways.
@@ -515,7 +515,7 @@ public sealed class CimdClientResolver : IClientResolver
     {
         // §5: "The authorization server MUST NOT automatically follow HTTP redirects when fetching
         // the Client ID Metadata Document." A redirect is therefore something to report, not
-        // something to chase — and §3 notes this is why URL shorteners cannot be client identifiers.
+        // something to chase - and §3 notes this is why URL shorteners cannot be client identifiers.
         FetchOutcome.Redirected redirected =>
             $"The client metadata document answered HTTP {Number(redirected.Status)}; redirects are not followed (CIMD section 5).",
 
@@ -601,7 +601,7 @@ public sealed class CimdClientResolver : IClientResolver
         // After the insert, never instead of it. The previous policy refused admission at the cap,
         // and a measurement showed what that bought: 1024 anonymous requests carrying documents with
         // max-age=86400 filled the cache with live entries, and every client that connected
-        // afterwards was then re-fetched on every single authorization — for a day, at the
+        // afterwards was then re-fetched on every single authorization - for a day, at the
         // attacker's choice, at no further cost to them. Evicting means an attacker can instead cost
         // some other client one fetch, which the budgets above bound and which recovers by itself.
         EnforceBound(now);
@@ -628,7 +628,7 @@ public sealed class CimdClientResolver : IClientResolver
     /// <para>
     /// Recency of <i>use</i> has the opposite bias: a filler is written once and never read again,
     /// while a client that is actually authorizing is read on every request. What it does not do is
-    /// make any entry safe — a flood large enough, sustained long enough, still evicts anything. It
+    /// make any entry safe - a flood large enough, sustained long enough, still evicts anything. It
     /// costs the evicted client one fetch, not a day of them.
     /// </para>
     /// </remarks>
@@ -672,7 +672,7 @@ public sealed class CimdClientResolver : IClientResolver
     /// <summary>A cached document, when it goes stale, and when it stops being usable at all.</summary>
     /// <remarks>
     /// Absolute instants rather than a duration plus a fetch time, so reading the entry needs one
-    /// comparison and no arithmetic — and so there is no second place that could apply the clamp
+    /// comparison and no arithmetic - and so there is no second place that could apply the clamp
     /// differently. <see cref="StaleUntil"/> is fixed when the entry is written and is never pushed
     /// out by serving it, which is what bounds how long a dead origin can be papered over.
     /// </remarks>

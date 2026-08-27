@@ -4,8 +4,8 @@
 # tag is a mutable pointer in somebody else's repository and one of those actions runs with
 # `packages: write` and a registry password while another receives the OIDC token that mints a
 # nuget.org publishing key. That is the same argument `Directory.Packages.props` makes about
-# floating a NuGet version — "one silent minor bump away from a different security posture than the
-# one that was reviewed" — applied to the dependencies that appear in no lockfile at all.
+# floating a NuGet version - "one silent minor bump away from a different security posture than the
+# one that was reviewed" - applied to the dependencies that appear in no lockfile at all.
 #
 # **A pin without this file is the other failure, not the absence of one.** A sha that nobody moves
 # is a workflow running two-year-old code, including whatever was fixed in it since. Dependabot
@@ -13,7 +13,7 @@
 # in that exact form: the comment is what makes a diff of forty hex characters reviewable, and it
 # stays true because the same tool moves both halves.
 #
-# The trade this file makes is deliberate — a pin turns "trusted forever, silently" into "reviewed
+# The trade this file makes is deliberate - a pin turns "trusted forever, silently" into "reviewed
 # on a schedule", and the review is the part that has to actually happen.
 
 version: 2
@@ -47,8 +47,8 @@ updates:
   # looked at, which is what the pinning was for.
   #
   # The one exception is the persistence family. `Npgsql` is pinned to the same version the EF
-  # provider resolves transitively — the props file says so and says pinning it "changes nothing
-  # today and makes the next bump one decision instead of two" — so a pull request that moved one
+  # provider resolves transitively - the props file says so and says pinning it "changes nothing
+  # today and makes the next bump one decision instead of two" - so a pull request that moved one
   # without the other would either be a no-op or a mismatch a person has to notice by hand. They
   # move together or the reason for pinning them alike is gone.
   - package-ecosystem: nuget

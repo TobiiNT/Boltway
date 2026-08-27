@@ -7,7 +7,7 @@ namespace Boltway.Interaction.Tests;
 /// Which way in leads, and why the answer is in the markup rather than in a stylesheet.
 /// </summary>
 /// <remarks>
-/// A deployment asked for the providers to come first — everyone there signs in with Google, so a
+/// A deployment asked for the providers to come first - everyone there signs in with Google, so a
 /// page opening with two empty text fields is friction on every visit. The reorder could have been
 /// four lines of CSS on a flex container, and that is the version these tests exist to rule out:
 /// <c>order</c> moves the boxes and leaves the tab order alone, so the eye and the keyboard would
@@ -51,7 +51,7 @@ public sealed class ProvidersFirstTests
     }
 
     /// <summary>
-    /// Turned on, the provider comes first <b>in the markup</b> — which is the whole point.
+    /// Turned on, the provider comes first <b>in the markup</b> - which is the whole point.
     /// </summary>
     /// <remarks>
     /// Asserted on source position rather than on anything visual, because source position is
@@ -92,7 +92,7 @@ public sealed class ProvidersFirstTests
         Assert.DoesNotContain("bw-or", Render(providersFirst: false, Login()), StringComparison.Ordinal);
 
     /// <summary>
-    /// Everything the page had, it still has — reordering is not an excuse to lose a control.
+    /// Everything the page had, it still has - reordering is not an excuse to lose a control.
     /// </summary>
     /// <remarks>
     /// The forgot-password link is the one most at risk: it is emitted inside the password branch,

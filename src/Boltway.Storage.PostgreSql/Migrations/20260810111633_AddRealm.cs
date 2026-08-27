@@ -7,7 +7,7 @@
 //
 // The username index becomes (realm, normalized_username) and the external-login key becomes
 // (realm, upstream_issuer, upstream_subject). A realm column that exists and is not part of those
-// keys reads as tenancy and is not — two realms would be unable to hold the same username, which is
+// keys reads as tenancy and is not - two realms would be unable to hold the same username, which is
 // the one thing having realms is for.
 //
 // Nothing is scoped by realm that is keyed on a subject: subjects are ULIDs and unique everywhere,

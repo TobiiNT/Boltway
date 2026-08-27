@@ -29,7 +29,7 @@ public sealed record TokenResponseBody
 
     /// <summary>RECOMMENDED, and always sent.</summary>
     /// <remarks>
-    /// Omitting it means the client must decode the access token to learn when to refresh — which
+    /// Omitting it means the client must decode the access token to learn when to refresh - which
     /// works only because our access tokens happen to be JWTs, and would break the moment they were
     /// not. Claude refreshes proactively against this value.
     /// </remarks>
@@ -71,7 +71,7 @@ public sealed record OAuthErrorBody
 
 /// <summary>Serializers for the OAuth JSON bodies.</summary>
 /// <remarks>
-/// <c>GenerationMode</c> is left at its default — both metadata and the fast path — rather than
+/// <c>GenerationMode</c> is left at its default - both metadata and the fast path - rather than
 /// <c>Serialization</c>. Serialization-only emits the synchronous fast path and no property
 /// metadata, and <c>JsonSerializer.SerializeAsync</c> needs the metadata: it throws
 /// "did not provide property metadata for type" at runtime, on every response this endpoint writes.
@@ -90,7 +90,7 @@ internal sealed partial class OAuthJsonContext : JsonSerializerContext;
 /// <remarks>
 /// A single writer rather than <c>Results.Json(...)</c> at each call site, because two of the
 /// requirements here are easy to satisfy at four call sites out of five.
-/// <c>Cache-Control: no-store</c> is one — RFC 6749 §5.1 makes it a MUST on every token response
+/// <c>Cache-Control: no-store</c> is one - RFC 6749 §5.1 makes it a MUST on every token response
 /// including the errors, and a cached token response on a shared proxy is a credential handed to
 /// the next caller. <c>WWW-Authenticate</c> on a 401 is the other: §5.2 makes it mandatory, and it
 /// is invisible when missing.
@@ -108,8 +108,8 @@ public static class OAuthJsonResults
     /// <remarks>
     /// Written through the same result as a token response so it carries <c>no-store</c> without
     /// anybody having to remember. RFC 6749 §5.1 phrases that requirement about token responses,
-    /// and the reason reaches further than the letter does: this body describes a live credential —
-    /// its scope, its subject, when it expires — and a shared proxy caching it hands the next
+    /// and the reason reaches further than the letter does: this body describes a live credential -
+    /// its scope, its subject, when it expires - and a shared proxy caching it hands the next
     /// caller an answer about somebody else's token.
     /// </remarks>
     public static IResult Introspection(IntrospectionResponseBody body) =>

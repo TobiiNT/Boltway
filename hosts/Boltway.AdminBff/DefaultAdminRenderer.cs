@@ -12,13 +12,13 @@ namespace Boltway.AdminBff;
 /// <remarks>
 /// <para>
 /// <b>Everything interpolated is encoded, without exception.</b> These pages render handles, email
-/// addresses, roles and audit details that an operator typed and that this app has never validated —
-/// it is a client, not the directory — so "it came from our own API" is not a reason to trust a
+/// addresses, roles and audit details that an operator typed and that this app has never validated -
+/// it is a client, not the directory - so "it came from our own API" is not a reason to trust a
 /// string. <see cref="AdminMarkup.Encode"/> is the only way a value reaches the output.
 /// </para>
 /// <para>
 /// <b>Every sentence comes from <see cref="AdminText"/>, and none is a literal here.</b> That said
-/// "English only" for a while and gave a reason that was true when it was written — an internal
+/// "English only" for a while and gave a reason that was true when it was written - an internal
 /// tool's second localization mechanism is a cost with no reader. The reader appeared: the
 /// deployment this ships to runs every other page in Vietnamese and its operators are the two people
 /// who read these.
@@ -37,7 +37,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <remarks>
     /// <para>
     /// A file in <c>wwwroot</c>, so <c>default-src 'self'</c> covers it and the policy the shell
-    /// sends is unchanged — no <c>script-src</c>, no nonce, nothing inline. It is emitted beside the
+    /// sends is unchanged - no <c>script-src</c>, no nonce, nothing inline. It is emitted beside the
     /// copy buttons rather than in the shell, so the six pages with nothing to copy are still the
     /// zero-JavaScript pages §7.1 counted as the BFF's advantage.
     /// </para>
@@ -78,7 +78,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// The permission vocabulary this deployment's resource server understands, from
     /// <c>ADMIN_PERMISSIONS</c>. <see langword="null"/> or empty when the app was not told, and the
     /// roles page keeps its free-text box. This is the deployment's own list, not the server's
-    /// rule — the server stores any permission string — which is why the picker it feeds keeps an
+    /// rule - the server stores any permission string - which is why the picker it feeds keeps an
     /// extras box beside it rather than becoming a closed list.
     /// </param>
     public DefaultAdminRenderer(
@@ -101,14 +101,14 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <remarks>
     /// <para>
     /// The API sends <c>2026-08-13T08:00:31.0367474+00:00</c> and the page printed it. Seven
-    /// fractional digits and a <c>T</c> is a wire format, and it was the widest column on the page —
+    /// fractional digits and a <c>T</c> is a wire format, and it was the widest column on the page -
     /// the audit table's whole left edge given over to precision no operator uses. It is public
     /// because it is the third thing a stylesheet could not supply, and a replacement renderer
     /// wanting the same answer should not have to re-derive it.
     /// </para>
     /// <para>
     /// <b>Still UTC, and it says so.</b> Converting to the reader's zone means knowing it, and this
-    /// app is not told — a deployment's operators are not necessarily where its server is. Printing
+    /// app is not told - a deployment's operators are not necessarily where its server is. Printing
     /// a local-looking time that is actually UTC is how somebody reads an incident an hour wrong, so
     /// the suffix stays until there is a real timezone to use.
     /// </para>
@@ -228,7 +228,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
             .Append("<label for=\"email\">").Append(_text[AdminText.ColumnEmail]).Append("</label>")
             .Append("<input id=\"email\" name=\"email\" value=\"").Append(Encode(Text(user, "email")))
             .Append("\" placeholder=\"").Append(_text[AdminText.PlaceholderClear]).Append("\">")
-            // Both labels used to name a state — "Address is proven", "May sign in" — and neither
+            // Both labels used to name a state - "Address is proven", "May sign in" - and neither
             // said what turning it off does, which is the only thing an operator is deciding. The
             // caveats under Operations were already written that way; these now match them.
             //
@@ -261,7 +261,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <remarks>
     /// <para>
     /// Rendered only when the authorization server answered about one. An older server returns
-    /// nothing here and the page is simply the page it was — a section that appeared as an error
+    /// nothing here and the page is simply the page it was - a section that appeared as an error
     /// would make an upgrade look like a fault.
     /// </para>
     /// <para>
@@ -272,7 +272,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <para>
     /// <b>A live secret takes the whole section over, and everything else waits.</b> It is on screen
     /// for one render and is then gone from every copy anywhere, so the page it is on is the page
-    /// for taking it — the enabled checkbox and the two irreversible buttons under it are things
+    /// for taking it - the enabled checkbox and the two irreversible buttons under it are things
     /// that can be come back to and this cannot. That is also why the two credential fields sit
     /// together in one card: the client id is useless without the secret and the operator is about
     /// to paste both into the same configuration file.
@@ -291,20 +291,20 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
         // ── the row, and when it is already open ────────────────────────────
         //
         // A disclosure, the same shape as a role and for the same reason: this is the rarest thing
-        // on the longest page here — most accounts hold no service account and most visits are not
-        // about one — and it sat below three sections a reader had to scroll past every time.
+        // on the longest page here - most accounts hold no service account and most visits are not
+        // about one - and it sat below three sections a reader had to scroll past every time.
         //
         // Open on the two states where the body is the point. With none, the only thing that can be
         // done is inside it, and a create form behind a triangle is a capability nobody finds. With
         // a secret, the body holds a credential that exists in this response and in no other copy
-        // anywhere — collapsed, that is a page that has destroyed something by rendering.
+        // anywhere - collapsed, that is a page that has destroyed something by rendering.
         var body = new StringBuilder("<details class=\"service\"")
             .Append(none || secret is not null ? " open" : string.Empty)
             .Append("><summary><span class=\"role-title\">")
             .Append(_text[AdminText.SectionServiceAccount]).Append("</span>");
 
         // The identifying pair rides on the row, so "does this account have one, and what may it
-        // do" is answered without opening anything — the question the whole section is usually
+        // do" is answered without opening anything - the question the whole section is usually
         // visited for. Not when a secret is on screen: the card below is then showing the same id
         // beside the value it goes with, and printing it twice on the one render where it is most
         // closely read would make the reader check whether the two agreed.
@@ -380,7 +380,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <summary>
     /// A secret that exists in this response and nowhere else, with the client id beside it.
     /// </summary>
-    /// <param name="account">The service account, for the id and scopes — or a JSON null.</param>
+    /// <param name="account">The service account, for the id and scopes - or a JSON null.</param>
     /// <param name="secret">The plaintext, which the server keeps only a digest of.</param>
     /// <remarks>
     /// <para>
@@ -389,7 +389,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// exists on one; putting the <c>&lt;script&gt;</c> beside the buttons keeps the two together,
     /// so a replacement layout cannot leave a dead button behind and the other six pages stay what
     /// the CSP header says they are. It is a same-origin file, which
-    /// <c>default-src 'self'</c> already allows — nothing inline, and no change to the policy.
+    /// <c>default-src 'self'</c> already allows - nothing inline, and no change to the policy.
     /// </para>
     /// <para>
     /// <b>Without it the page still works</b>, which is why the value is in a
@@ -448,21 +448,21 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <summary>
     /// How a role's permissions are edited: a box, or the deployment's vocabulary as checkboxes.
     /// </summary>
-    /// <param name="id">The role id, for unique control ids — <c>new</c> on the create form.</param>
+    /// <param name="id">The role id, for unique control ids - <c>new</c> on the create form.</param>
     /// <param name="held">The permissions the role holds now.</param>
     /// <remarks>
     /// <para>
     /// <b>Unlike the scopes picker, this list is not the server's rule.</b> <c>scopes_supported</c>
     /// is enforced at <c>/authorize</c>, so those checkboxes are a closed field. This list is
-    /// <c>ADMIN_PERMISSIONS</c> — the deployment's hand-written copy of its resource server's
-    /// vocabulary — and the server stores any string, so the field must not lose what the list
+    /// <c>ADMIN_PERMISSIONS</c> - the deployment's hand-written copy of its resource server's
+    /// vocabulary - and the server stores any string, so the field must not lose what the list
     /// does not name.
     /// </para>
     /// <para>
     /// <b>Hence the union, and it is the part of this method that must not regress:</b> a held
     /// permission outside the vocabulary renders as a checkbox too, ticked. It used to ride in a
     /// free-text box beside the list, which read as two controls for one field; a ticked box is
-    /// the same guarantee — saving an unrelated edit cannot silently strip it — with one control.
+    /// the same guarantee - saving an unrelated edit cannot silently strip it - with one control.
     /// What was dropped with the box is typing a brand-new permission here, deliberately: the
     /// resource server ignores permission names it does not implement, so a word the vocabulary
     /// has never heard of grants nothing, and the day the resource server learns it is the day
@@ -512,14 +512,14 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// an opaque string and a dropdown would invent a rule it does not have. Scopes are the other
     /// case: <c>scopes_supported</c> is documented as every scope the server will issue, and the
     /// authorize pipeline refuses anything outside it. Offering a box to type into was offering a
-    /// way to mint a credential that obtains a token and is then refused by every resource server —
+    /// way to mint a credential that obtains a token and is then refused by every resource server -
     /// which is the empty-scope failure the server already refuses, arriving one typo later and
     /// looking like it worked.
     /// </para>
     /// <para>
     /// <b>Nothing is filtered out.</b> <c>openid</c> and <c>offline_access</c> do nothing for a
     /// grant that returns no id token and no refresh token, and dropping them would still be this
-    /// app deciding what a service account may hold — the mistake the role field documents, made
+    /// app deciding what a service account may hold - the mistake the role field documents, made
     /// about scopes instead. They are inert rather than harmful, so they are offered.
     /// </para>
     /// <para>
@@ -630,7 +630,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <remarks>
     /// <para>
     /// <b>Everything on one page, and every role editable in place.</b> A realm has a handful of
-    /// roles and the reason to open this page is to compare what they stand for — which a list
+    /// roles and the reason to open this page is to compare what they stand for - which a list
     /// linking to a detail page each cannot do, and which is the question somebody is asking when
     /// they wonder why an account can do something.
     /// </para>
@@ -641,7 +641,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// than as decided.
     /// </para>
     /// <para>
-    /// <b>Permissions are typed, not ticked</b> — the opposite of the service account's scopes, and
+    /// <b>Permissions are typed, not ticked</b> - the opposite of the service account's scopes, and
     /// for the reason that made those checkboxes right. A scope is in <c>scopes_supported</c> and
     /// the authorize pipeline enforces it, so a closed list matches a real rule. A permission is the
     /// resource server's word, stored here and never interpreted, and this server publishes no list
@@ -659,7 +659,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
 
             // Once, at the top, rather than under every role. Both sentences are about how this
             // page works rather than about any one role, and repeating them per role turned a page
-            // with three roles into the same paragraph three times — which is how a caveat stops
+            // with three roles into the same paragraph three times - which is how a caveat stops
             // being read.
             .Append("<p class=\"field-note\">").Append(_text[AdminText.RoleIdFixed]).Append("</p>")
 
@@ -726,7 +726,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <summary>One role: what it is, what it is called, who holds it, and how to remove it.</summary>
     /// <param name="role">The role, as the admin API returned it.</param>
     /// <param name="hidden">The antiforgery field, already rendered.</param>
-    /// <param name="accounts">Every account, for the holder list — or undefined for silence.</param>
+    /// <param name="accounts">Every account, for the holder list - or undefined for silence.</param>
     private string Role(JsonElement role, string hidden, JsonElement accounts)
     {
         var id = Text(role, "id");
@@ -734,12 +734,12 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
 
         // Ordinal, matching AdminRoleScopePolicy on the authorization server. A case-insensitive
         // match here would warn about a role the server does not privilege, or stay silent about one
-        // it does — and this is the page with a delete button on it.
+        // it does - and this is the page with a delete button on it.
         var administers = _adminRoles is not null && _adminRoles.Contains(id, StringComparer.Ordinal);
 
         // Who holds this role, read with the same Texts(user, "role") the accounts list uses, so
         // the two pages cannot disagree about what an account holds. Null when the accounts were
-        // not fetched — which renders as silence, never as "nobody".
+        // not fetched - which renders as silence, never as "nobody".
         var holders = accounts.ValueKind is JsonValueKind.Array
             ? accounts.EnumerateArray()
                 .Where(user => Texts(user, "role").Contains(id, StringComparer.Ordinal))
@@ -758,14 +758,14 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
             .Append("<span class=\"role-title\">").Append(Encode(Text(role, "name"))).Append("</span>");
 
         // On the summary rather than only inside, because a warning behind a disclosure triangle is
-        // a warning nobody reads. The badge is the accounts list's own — one term for one concept —
+        // a warning nobody reads. The badge is the accounts list's own - one term for one concept -
         // and the sentence it stands for is still in the body, next to the button it is about.
         if (administers)
         {
             body.Append("<span class=\"admin-badge\">").Append(_text[AdminText.AdminBadge]).Append("</span>");
         }
 
-        // The count rides on the row — the groups question is "who is in what", asked across all
+        // The count rides on the row - the groups question is "who is in what", asked across all
         // roles at once. Only when there is somebody: a zero here would be a claim, and the body
         // states the empty case in a full sentence instead.
         if (holders is { Length: > 0 })
@@ -792,7 +792,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
                 .Append(_text[AdminText.RoleAdminWarning]).Append("</p>");
         }
 
-        // Holders, spelled out where the buttons are. Absent accounts render nothing — "no account
+        // Holders, spelled out where the buttons are. Absent accounts render nothing - "no account
         // holds this role" is only ever said when the walk actually saw the whole directory's page.
         if (holders is not null)
         {
@@ -878,15 +878,15 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <para>
     /// <b>The refusal itself is not translated here, and that is deliberate.</b> The API's own
     /// <c>error_description</c> is printed rather than a sentence composed in this app: those
-    /// sentences were written to name the rule that was broken — "<c>users:write</c> is not one of
-    /// this token's scopes" — and a friendlier paraphrase would lose the part an operator acts on. They
+    /// sentences were written to name the rule that was broken - "<c>users:write</c> is not one of
+    /// this token's scopes" - and a friendlier paraphrase would lose the part an operator acts on. They
     /// belong to the authorization server, and it is the thing that should learn to say them in
     /// another language; a lookup table here could only ever cover the refusals that existed when it
     /// was written.
     /// </para>
     /// <para>
     /// So a Vietnamese deployment gets this page's own words in Vietnamese around a refusal that may
-    /// still be English. That is the per-string fallback working rather than failing — the
+    /// still be English. That is the per-string fallback working rather than failing - the
     /// alternative is losing the sentence that says what to do next.
     /// </para>
     /// </remarks>
@@ -917,7 +917,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <remarks>
     /// <para>
     /// A layout has exactly one way to lose the page, which is to leave <see cref="AdminPage.Body"/>
-    /// out — so unlike a renderer's many ways, that one is checkable, and checking it is cheap
+    /// out - so unlike a renderer's many ways, that one is checkable, and checking it is cheap
     /// enough to do on every render. Serving an empty document is a page an operator reports as
     /// "the admin UI is broken" with nothing in any log; throwing names the layout and the page.
     /// </para>
@@ -950,21 +950,21 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     }
 
     /// <summary>
-    /// What just happened, as a banner — or nothing.
+    /// What just happened, as a banner - or nothing.
     /// </summary>
     /// <param name="key">
     /// One of <see cref="AdminText.NoticeKeys"/>, straight off the query string. Anything else,
     /// including <see langword="null"/>, is no banner.
     /// </param>
     /// <param name="value">
-    /// The <c>{0}</c> of the two notices that have one — a count, or the handle an account used to
+    /// The <c>{0}</c> of the two notices that have one - a count, or the handle an account used to
     /// have. Encoded here; it is query-string text like the key.
     /// </param>
     /// <remarks>
     /// <para>
     /// <b>The membership test is the security property, and it has to come first.</b> This argument
     /// arrives from a link, so before the change it was arbitrary text reflected into this app's own
-    /// banner — encoded, so never an injection, and still a sentence a reader takes as their console
+    /// banner - encoded, so never an injection, and still a sentence a reader takes as their console
     /// speaking to them. Matching it against a closed set means a crafted link chooses which of six
     /// sentences appears and cannot write a seventh. Echoing an unrecognised key, or handing one to
     /// <see cref="AdminText"/> to see what comes back, hands the channel straight back.
@@ -973,14 +973,14 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// It is also what keeps a bad link from being a 500: <see cref="AdminText.Plain"/> throws for a
     /// key it does not know, on purpose, and asking it about a string somebody else wrote is exactly
     /// the misuse that documents. <see cref="AdminText.Keys"/> would answer the question and answer
-    /// it too generously — every sentence on these pages is in it, so a link could hoist a
+    /// it too generously - every sentence on these pages is in it, so a link could hoist a
     /// credential warning over a page with no credential on it.
     /// </para>
     /// <para>
     /// A notice whose value did not arrive renders nothing rather than a sentence with a visible
     /// <c>{0}</c> in it. The placeholder is the tell: <see cref="AdminText.Format"/> always replaces
     /// it, so one still standing here means nobody supplied the count or the handle the sentence is
-    /// about — a half-written notice, which is what a hand-typed URL produces.
+    /// about - a half-written notice, which is what a hand-typed URL produces.
     /// </para>
     /// </remarks>
     private string Notice(string? key, string? value = null)
@@ -1008,7 +1008,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <remarks>
     /// <para>
     /// A <c>datalist</c> rather than a <c>select</c>, which is the whole point: it suggests without
-    /// constraining, so an operator can still type a role this app has never heard of — which the
+    /// constraining, so an operator can still type a role this app has never heard of - which the
     /// server allows and some deployment will want.
     /// </para>
     /// <para>
@@ -1033,7 +1033,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <remarks>
     /// <para>
     /// <b>A sentence and a datalist, not a select.</b> The server treats the role as an opaque string
-    /// it never compares to a constant — <c>AdminAuthorization</c> says so, and turning a role into
+    /// it never compares to a constant - <c>AdminAuthorization</c> says so, and turning a role into
     /// an entitlement is the deployment's job through <c>IScopeEntitlementPolicy</c>. A dropdown here
     /// would invent a validation rule the server does not have, and a deployment using a role this
     /// app was never told about could no longer set it. So the input stays free text, the datalist
@@ -1041,7 +1041,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// </para>
     /// <para>
     /// <b>Why it is here at all.</b> Typing <c>foundeur</c> into that box saves cleanly, returns no
-    /// error, and silently removes the account from <c>ADMIN_ROLES</c> — the one field on this page
+    /// error, and silently removes the account from <c>ADMIN_ROLES</c> - the one field on this page
     /// whose value is a privilege decision was also the one with no feedback at all. Nothing
     /// downstream refuses it, because nothing downstream is supposed to: an unknown role is a
     /// legitimate thing for a directory to hold.
@@ -1068,7 +1068,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <param name="handle">Whose account the form acts on.</param>
     /// <param name="verb">The endpoint's verb, which is also what the danger styling matches on.</param>
     /// <param name="hidden">The antiforgery field, already rendered.</param>
-    /// <param name="label">Already encoded — it comes from <see cref="AdminText"/>.</param>
+    /// <param name="label">Already encoded - it comes from <see cref="AdminText"/>.</param>
     /// <param name="caveat">Already encoded, same reason.</param>
     /// <remarks>
     /// <b>No <see cref="AdminMarkup.Encode"/> on those two.</b> They arrive encoded from the text

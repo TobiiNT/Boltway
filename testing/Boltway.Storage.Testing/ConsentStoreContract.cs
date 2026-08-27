@@ -11,7 +11,7 @@ namespace Boltway.Storage.Testing;
 /// <para>
 /// The third suite, and the one with the shortest rule: <b>consent widens, it never replaces</b>.
 /// C-24. A client that comes back asking for one more scope must end up with the union, because
-/// replacing silently revokes authority the user granted earlier and never withdrew — and the
+/// replacing silently revokes authority the user granted earlier and never withdrew - and the
 /// symptom is a tool that worked yesterday returning 403 today, with a consent record that looks
 /// perfectly reasonable.
 /// </para>
@@ -83,7 +83,7 @@ public abstract class ConsentStoreContract
     {
         // C-24, and the whole reason this interface has a GrantAsync rather than a StoreAsync. A
         // store that assigns the new record keeps only `story:write` here, so the client's next call
-        // on `story:read` — a scope the user approved and never withdrew — is refused.
+        // on `story:read` - a scope the user approved and never withdrew - is refused.
         var now = DateTimeOffset.UtcNow;
         var store = NewConsentStore();
 
@@ -128,7 +128,7 @@ public abstract class ConsentStoreContract
     }
 
     /// <summary>
-    /// One approval answers for that subject and that client only — another client finds nothing, and
+    /// One approval answers for that subject and that client only - another client finds nothing, and
     /// so does another subject.
     /// </summary>
     [Fact]

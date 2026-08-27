@@ -35,7 +35,7 @@ public sealed class DefaultNotificationRenderer : INotificationRenderer
 
     /// <summary>The messages, in a deployment's own words.</summary>
     /// <param name="text">
-    /// The sentences. Anything left unset stays English, per property — see
+    /// The sentences. Anything left unset stays English, per property - see
     /// <see cref="NotificationText"/> for why that is a record rather than a dictionary.
     /// </param>
     public DefaultNotificationRenderer(NotificationText text)

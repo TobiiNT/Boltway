@@ -21,7 +21,7 @@ internal enum BearerCredentialKind
 /// <param name="Token">The credential, when <see cref="BearerCredentialKind.Present"/>.</param>
 /// <param name="Reason">
 /// Why it was rejected, when <see cref="BearerCredentialKind.Malformed"/>. A constant chosen from a
-/// closed set — never assembled from the request. See <see cref="BearerCredential"/>.
+/// closed set - never assembled from the request. See <see cref="BearerCredential"/>.
 /// </param>
 internal readonly record struct BearerCredentialResult(BearerCredentialKind Kind, string? Token, string? Reason);
 
@@ -38,7 +38,7 @@ internal readonly record struct BearerCredentialResult(BearerCredentialKind Kind
 /// </para>
 /// <para>
 /// So the boundary drawn here is a <b>syntactic</b> one. Absent or non-Bearer credentials are not
-/// malformed — they are the case where the client has not authenticated, and the answer is a
+/// malformed - they are the case where the client has not authenticated, and the answer is a
 /// <c>401</c> carrying a challenge that says how. Malformed means the client did claim to present a
 /// Bearer token and the presentation itself does not parse: an empty credential, a credential
 /// outside RFC 6750's <c>b64token</c> grammar, two <c>Authorization</c> headers, or a token in the
@@ -88,7 +88,7 @@ internal static class BearerCredential
         if (string.IsNullOrEmpty(header))
         {
             // A token in the query string and nowhere else. The MCP specification forbids it and
-            // bearer_methods_supported advertises "header" only, so this is not a fallback route —
+            // bearer_methods_supported advertises "header" only, so this is not a fallback route -
             // it is a request this server declines to read, and 400 says so without inviting a
             // token refresh that would change nothing.
             return queryToken
@@ -102,7 +102,7 @@ internal static class BearerCredential
         }
 
         // RFC 6750 §2.1 credentials = "Bearer" 1*SP b64token. The scheme match is case-insensitive
-        // per RFC 9110 §11.1 — "Bearer", "bearer" and "BEARER" are one scheme, and a client sending
+        // per RFC 9110 §11.1 - "Bearer", "bearer" and "BEARER" are one scheme, and a client sending
         // the lower-case spelling is conformant.
         if (!header.StartsWith(Scheme, StringComparison.OrdinalIgnoreCase))
         {
@@ -118,7 +118,7 @@ internal static class BearerCredential
 
         if (header[Scheme.Length] is not ' ')
         {
-            // "BearerToken" — the prefix matched but this is some other scheme whose name starts
+            // "BearerToken" - the prefix matched but this is some other scheme whose name starts
             // with the same six letters, not a badly spaced Bearer credential.
             return NotBearer();
         }
@@ -150,7 +150,7 @@ internal static class BearerCredential
 
     private static bool ReadQueryToken(HttpRequest request)
     {
-        // Presence is the whole question — the value is never read, so there is nothing here for a
+        // Presence is the whole question - the value is never read, so there is nothing here for a
         // crafted parameter to reach.
         return request.Query.ContainsKey(QueryParameter);
     }

@@ -8,7 +8,7 @@ using ModelContextProtocol;
 namespace Boltway.Mcp;
 
 /// <summary>
-/// A tool refused for a reason the caller could act on — a schema violation, a missing
+/// A tool refused for a reason the caller could act on - a schema violation, a missing
 /// record, a credential detected on the way in.
 ///
 /// <para>
@@ -20,13 +20,13 @@ namespace Boltway.Mcp;
 /// <para>
 /// <strong>It derives from <see cref="McpException"/> for a load-bearing reason.</strong>
 /// The SDK returns <c>isError</c> for any exception, but it only puts the
-/// <em>message</em> on the wire for this one type — every other exception is replaced with
+/// <em>message</em> on the wire for this one type - every other exception is replaced with
 /// "An error occurred invoking '<c>tool</c>'." That is the right default, because an
 /// arbitrary exception message can carry a connection string. It also means a refusal
 /// thrown as a plain <see cref="Exception"/> is silently reduced to noise: the server logs
 /// the sentence it carefully wrote and the model never sees it. Deriving from
 /// <see cref="Exception"/> here cost exactly that for one release, and nothing reported it
-/// — the tool still "failed", just uselessly.
+/// - the tool still "failed", just uselessly.
 /// </para>
 ///
 /// <para>
@@ -41,7 +41,7 @@ public class ConnectorToolException : McpException
     /// <param name="code">Machine-readable reason, e.g. <c>schema_violation</c> or <c>forbidden</c>.</param>
     public ConnectorToolException(string reason, string code = "invalid_input")
         // The code travels inside the message because that is the only field the SDK puts
-        // on the wire — a property here would stay on this side of the connection.
+        // on the wire - a property here would stay on this side of the connection.
         : base($"ToolError [{code}]: {reason}")
     {
         Code = code;
@@ -66,8 +66,8 @@ public class ConnectorToolException : McpException
 /// </para>
 /// <para>
 /// <b>This does not become an authorization challenge, and that is measured rather than assumed.</b>
-/// Both channels for one are closed. The tool-level field — <c>_meta["mcp/www_authenticate"]</c> on
-/// an <c>isError</c> result — is SEP-1489, a sponsored draft, absent from the <c>2025-11-25</c>
+/// Both channels for one are closed. The tool-level field - <c>_meta["mcp/www_authenticate"]</c> on
+/// an <c>isError</c> result - is SEP-1489, a sponsored draft, absent from the <c>2025-11-25</c>
 /// schema and from the draft the <c>2026-07-28</c> release candidate is cut from. And the HTTP
 /// challenge the resource server writes cannot be reached from here: Streamable HTTP requires the
 /// client to accept an event stream, and the transport has opened it before any tool filter runs,
@@ -91,7 +91,7 @@ public sealed class InsufficientScopeException : ConnectorToolException
     /// <b>Every</b> scope the operation needs, not only the ones missing. The reason is the same one
     /// <c>X-34</c> gives for the <c>403</c> challenge, measured against a vendor client: it asks for
     /// the union of what it is told and what it already had, and does not reliably carry forward
-    /// what an earlier step-up granted — so naming only the delta re-authorizes somebody into a
+    /// what an earlier step-up granted - so naming only the delta re-authorizes somebody into a
     /// narrower grant than they started with.
     /// </param>
     public InsufficientScopeException(params string[] required)
@@ -113,7 +113,7 @@ public sealed class InsufficientScopeException : ConnectorToolException
 ///
 /// <para>
 /// Scoped, and populated exactly once by the middleware. Nothing about one request
-/// survives into the next — that is not tidiness, it is the difference between a connector
+/// survives into the next - that is not tidiness, it is the difference between a connector
 /// that writes as the right person and one that will eventually write as the wrong one.
 /// </para>
 /// </summary>
@@ -132,7 +132,7 @@ public sealed class ConnectorCaller
     /// </remarks>
     internal bool IsAnonymous => ReferenceEquals(Principal, Anonymous);
 
-    /// <summary>Whatever the connector attached at authentication time — a store, a client, a tenant.</summary>
+    /// <summary>Whatever the connector attached at authentication time - a store, a client, a tenant.</summary>
     public object? State { get; set; }
 
     /// <summary>Shorthand for <see cref="CallerPrincipal.Actor"/>.</summary>
@@ -148,7 +148,7 @@ public sealed class ConnectorCaller
     /// <remarks>
     /// Here for symmetry with the two above; <see cref="Grants"/> is what a tool gate should
     /// actually call. An empty set is three different situations and this property cannot say
-    /// which — see <see cref="ScopeClaimState"/>.
+    /// which - see <see cref="ScopeClaimState"/>.
     /// </remarks>
     public IReadOnlySet<string> Scopes => Principal.Scopes;
 
@@ -167,7 +167,7 @@ public sealed class ConnectorCaller
 ///
 /// <para>
 /// <strong>The RFC 9728 discovery surface is not here.</strong> It used to be, and for a
-/// while this repository carried two implementations of it — this one and
+/// while this repository carried two implementations of it - this one and
 /// <c>Boltway.ResourceServer</c>'s. That collided by name four times in one afternoon,
 /// once failing a host at startup rather than at compile time, because an unqualified call
 /// to an extension method binds by namespace proximity rather than by intent.
@@ -177,7 +177,7 @@ public sealed class ConnectorCaller
 /// The one that survived is the better one at the job: a challenge shape measured against
 /// three vendors, RFC 9728 §3.1 path insertion, audience binding, and header values reduced
 /// to the RFC 6750 §3 character set rather than escaped. The argument is the same one that
-/// deleted the JavaScript transport layer — two half-supported implementations is worse than
+/// deleted the JavaScript transport layer - two half-supported implementations is worse than
 /// one supported one, and the one nobody exercises is the one that will be wrong.
 /// </para>
 /// </summary>
@@ -197,7 +197,7 @@ public static class BoltwayExtensions
 
     /// <summary>
     /// Bind the caller for everything under <paramref name="pathPrefix"/>, <strong>without
-    /// authenticating or challenging</strong> — something upstream already did both.
+    /// authenticating or challenging</strong> - something upstream already did both.
     ///
     /// <para>
     /// Use this when <c>Boltway.ResourceServer</c> validates the token: it owns the
@@ -230,27 +230,27 @@ public static class BoltwayExtensions
             // The resource server already decided this: BearerAuthenticationMiddleware passes a
             // request with no endpoint straight through and sets no token feature. This asked for
             // one anyway, so ResourceServerAuthenticator threw "No validated access token on this
-            // request" — a diagnostic naming a wiring mistake, for a pipeline that is wired
-            // correctly — and with no exception handler registered that reached the client as an
+            // request" - a diagnostic naming a wiring mistake, for a pipeline that is wired
+            // correctly - and with no exception handler registered that reached the client as an
             // empty 500. Measured live: GET /mcp/zzq7x4v-nope returned 500 with no body, while
             // /mcphello and /nope-unrouted both returned 404, and the same path on the static-token
             // branch returned 401. Three answers to one question. A client probing paths in
             // sequence reads 500 as "the server is broken" and stops, which is the failure
             // ProtectedResourceOptions warns about.
             //
-            // Falling through leaves Principal at its Anonymous default and State null — exactly
-            // the state a request has when this middleware was never added — so nothing downstream
+            // Falling through leaves Principal at its Anonymous default and State null - exactly
+            // the state a request has when this middleware was never added - so nothing downstream
             // can mistake it for an authenticated caller, and routing answers 404 as it does for
             // every other unmapped path.
             //
             // What this cannot distinguish, measured rather than assumed (EndpointFeatureProbeTests):
             // a request that routed to nothing and a request that has not been routed yet look
-            // identical — neither carries an endpoint and neither carries IEndpointFeature. So this
+            // identical - neither carries an endpoint and neither carries IEndpointFeature. So this
             // skip reads "not routed yet" as "routed to nothing". Reaching that arrangement takes an
             // explicit UseRouting() placed *after* this call; leaving UseRouting() out does not do
             // it, because a WebApplication inserts routing at the front of the pipeline. And that
             // arrangement puts UseBoltwayProtectedResource() ahead of routing too, where it
-            // authenticates nothing — so the pipeline it would weaken is one that authenticates no
+            // authenticates nothing - so the pipeline it would weaken is one that authenticates no
             // request at all today.
             if (context.GetEndpoint() is null)
             {
@@ -275,7 +275,7 @@ public static class BoltwayExtensions
     /// <param name="pathPrefix">Usually the MCP endpoint, <c>/mcp</c>.</param>
     /// <param name="realm">Shown in the challenge. Usually the server name.</param>
     /// <param name="bindState">
-    /// Attach whatever the tools need for this caller — a store, a client, a tenant.
+    /// Attach whatever the tools need for this caller - a store, a client, a tenant.
     /// Returning null leaves <see cref="ConnectorCaller.State"/> unset.
     /// </param>
     public static IApplicationBuilder UseConnectorAuth(
@@ -301,13 +301,13 @@ public static class BoltwayExtensions
             }
             catch (UnauthorizedException ex)
             {
-                // A real challenge, built by the one header builder in this repository —
+                // A real challenge, built by the one header builder in this repository -
                 // Boltway.OAuth.Primitives, which reduces every value to the RFC 6750
                 // §3 character set so a quote cannot close the quoted string early and a
                 // newline cannot split the response.
                 //
                 // Deliberately **no** `resource_metadata`. Static tokens mean there is no
-                // authorization server, so there is nothing to point at — and a pointer to a
+                // authorization server, so there is nothing to point at - and a pointer to a
                 // document naming no issuer is precisely LESSONS #8: a client told it needs a
                 // token and handed a dead end that looks like a discovery chain. Saying "this
                 // server has no discovery" is the honest answer, and the reason to move to

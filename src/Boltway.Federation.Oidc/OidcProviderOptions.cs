@@ -13,8 +13,8 @@ namespace Boltway.Federation.Oidc;
 /// <c>Boltway.Federation.Google</c> is a file that fills three of these fields in.
 /// </para>
 /// <para>
-/// <b>Validated once, at startup, by <see cref="TryValidate"/>.</b> The alternative — checking each
-/// field where it is used — means a deployment learns its issuer is malformed at the moment a user
+/// <b>Validated once, at startup, by <see cref="TryValidate"/>.</b> The alternative - checking each
+/// field where it is used - means a deployment learns its issuer is malformed at the moment a user
 /// clicks the button, which is the failure mode this whole codebase is a reaction to.
 /// </para>
 /// </remarks>
@@ -25,7 +25,7 @@ public sealed class OidcProviderOptions
     /// </summary>
     /// <remarks>
     /// Constrained to <c>[a-z0-9-]{1,32}</c> by <see cref="TryValidate"/> so it needs no escaping in
-    /// a path — the A-18 rule, applied to a value that becomes part of a URL. It is also the key
+    /// a path - the A-18 rule, applied to a value that becomes part of a URL. It is also the key
     /// this server's <c>ExternalLogin</c> rows are <i>not</i> stored under: those use the issuer, so
     /// renaming a scheme does not orphan anybody's account.
     /// </remarks>
@@ -73,8 +73,8 @@ public sealed class OidcProviderOptions
     /// <remarks>
     /// <para>
     /// Derived as <c>{issuer}/.well-known/openid-configuration</c>, which is OIDC Discovery §4's
-    /// append form. RFC 8414 §3.1's <i>insertion</i> form —
-    /// <c>https://host/.well-known/openid-configuration/tenant</c> — is <b>not</b> tried, and that is
+    /// append form. RFC 8414 §3.1's <i>insertion</i> form -
+    /// <c>https://host/.well-known/openid-configuration/tenant</c> - is <b>not</b> tried, and that is
     /// a stated limitation rather than an oversight: probing several spellings would mean several
     /// outbound requests against an upstream that is almost always reachable at the first one. An
     /// issuer with a path whose provider serves only the insertion form is configured here
@@ -82,7 +82,7 @@ public sealed class OidcProviderOptions
     /// </para>
     /// <para>
     /// Ignored entirely when <see cref="AuthorizationEndpoint"/>, <see cref="TokenEndpoint"/> and
-    /// <see cref="JwksUri"/> are all set — in which case this server makes no discovery request at
+    /// <see cref="JwksUri"/> are all set - in which case this server makes no discovery request at
     /// all.
     /// </para>
     /// </remarks>
@@ -101,7 +101,7 @@ public sealed class OidcProviderOptions
     /// The scopes requested at the upstream.
     /// </summary>
     /// <remarks>
-    /// <c>openid</c> is required and is added by <see cref="TryValidate"/> if it is missing — without
+    /// <c>openid</c> is required and is added by <see cref="TryValidate"/> if it is missing - without
     /// it the upstream is not obliged to return an ID token at all, and an ID token is the only
     /// thing this integration consumes. The default asks for nothing else: an email address is not
     /// needed to identify a user here, because identity is
@@ -140,7 +140,7 @@ public sealed class OidcProviderOptions
     /// </summary>
     /// <remarks>
     /// Bounded rather than indefinite so a key an upstream has retired stops being accepted within a
-    /// known window. It is not the rotation mechanism — see
+    /// known window. It is not the rotation mechanism - see
     /// <see cref="JwksMinimumRefreshInterval"/>, which is what handles a key appearing early.
     /// </remarks>
     public TimeSpan JwksCacheLifetime { get; set; } = TimeSpan.FromHours(1);

@@ -19,7 +19,7 @@
   <!--
     The resource-server half of the authorization server, for connectors that have one.
     Lightweight on purpose: Primitives and Tokens are BCL-and-IdentityModel only, with no
-    storage, no EF Core and no reference to Boltway.AuthorizationServer — that absence
+    storage, no EF Core and no reference to Boltway.AuthorizationServer - that absence
     is that package's design, and it is what makes an AS and an RS separate deployables.
 
     Referencing it here is the beginning of the answer to this repository holding two RFC 9728

@@ -52,8 +52,8 @@ internal sealed class EfConsentStore(
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
         // Read-merge-write, so it needs the write transaction: two authorizations for the same user
-        // and client can be in flight at once — a browser tab and a native app, or a user who
-        // double-submits — and a lost update here silently drops a scope the user approved.
+        // and client can be in flight at once - a browser tab and a native app, or a user who
+        // double-submits - and a lost update here silently drops a scope the user approved.
         await using var transaction = await _behavior.BeginWriteAsync(context, cancellationToken);
 
         var subjectValue = subject.Value;

@@ -1,7 +1,7 @@
 # Who gets the review request.
 #
 # **One line, and the single line is the point rather than a placeholder.** There is one maintainer
-# — `GOVERNANCE.md` says so and says what follows from it — so every path here resolves to the same
+# - `GOVERNANCE.md` says so and says what follows from it - so every path here resolves to the same
 # person and this file distributes nothing. What it does instead is make that fact structural: a
 # reader who opens CODEOWNERS expecting to find out who owns the token code finds out, in the same
 # breath, that the answer is the same for every directory in the tree. That is a bus factor of 1
@@ -12,7 +12,7 @@
 # outside is not waiting on somebody noticing it exists.
 #
 # **Add per-path owners the day there is a second maintainer, not before.** A CODEOWNERS full of
-# paths that all name one account is the shape this repository keeps refusing — configuration that
+# paths that all name one account is the shape this repository keeps refusing - configuration that
 # describes a behaviour the project does not have. The paths worth splitting first, when there is
 # somebody to split them with: `src/Boltway.OAuth.Tokens/` and `src/Boltway.OAuth.Net/`, because
 # that is where a mistake mints or accepts a credential.

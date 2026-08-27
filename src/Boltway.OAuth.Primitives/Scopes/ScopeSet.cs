@@ -5,14 +5,14 @@ namespace Boltway.OAuth.Primitives.Scopes;
 /// </summary>
 /// <remarks>
 /// <para>
-/// One representation, used everywhere — the <c>scope</c> request parameter, the <c>scope</c> claim
+/// One representation, used everywhere - the <c>scope</c> request parameter, the <c>scope</c> claim
 /// (RFC 9068 §2.2.3 makes it a <b>string</b>, not an array), the challenge header, and the database
 /// column. No JSON, no join table, no serializer: the bytes stored are the bytes emitted.
 /// </para>
 /// <para>
 /// Validation happens on write, and the reason is A-13. A scope configured as <c>"story:read "</c>
-/// with a trailing space is a <i>different</i> scope from <c>story:read</c> — every comparison is
-/// literal — and a dashboard renders the two identically. That cost real hours on a market-leading
+/// with a trailing space is a <i>different</i> scope from <c>story:read</c> - every comparison is
+/// literal - and a dashboard renders the two identically. That cost real hours on a market-leading
 /// IdP. Refusing the whitespace at the point of writing means the ambiguity never exists, and it
 /// also makes the space delimiter unambiguous by construction.
 /// </para>
@@ -53,7 +53,7 @@ public readonly struct ScopeSet : IEquatable<ScopeSet>
     /// <param name="scopes">The parsed set. Sorted and deduplicated.</param>
     /// <param name="invalid">The first token that is not a valid <c>scope-token</c>.</param>
     /// <remarks>
-    /// RFC 6749 §3.3 defines <c>scope-token</c> as <c>%x21 / %x23-5B / %x5D-7E</c> — printable
+    /// RFC 6749 §3.3 defines <c>scope-token</c> as <c>%x21 / %x23-5B / %x5D-7E</c> - printable
     /// ASCII without space, without <c>"</c> and without <c>\</c>. Anything else fails here rather
     /// than being quietly dropped, because a silently-dropped scope becomes a token with less
     /// authority than the client asked for, and the failure surfaces much later as a 403 the client

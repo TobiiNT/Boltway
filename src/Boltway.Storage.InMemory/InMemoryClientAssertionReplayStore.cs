@@ -9,7 +9,7 @@ namespace Boltway.Storage.InMemory;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Per process, and for this store that is not merely a persistence limit — it is a hole in the
+/// <b>Per process, and for this store that is not merely a persistence limit - it is a hole in the
 /// property.</b> Every other in-memory store here loses state on restart and shares none of it
 /// between replicas, which costs a re-authorization or a re-asked consent. This one costs the thing
 /// it exists to prevent: with <i>n</i> replicas behind a load balancer, one assertion can be
@@ -24,7 +24,7 @@ namespace Boltway.Storage.InMemory;
 /// <para>
 /// <see cref="ConcurrentDictionary{TKey,TValue}.TryAdd"/> is the whole atomicity argument. It is one
 /// operation and it reports whether it was the one that inserted, which is what
-/// <see cref="IClientAssertionReplayStore.TryClaimAsync"/> asks for — a read followed by an insert
+/// <see cref="IClientAssertionReplayStore.TryClaimAsync"/> asks for - a read followed by an insert
 /// would race precisely when two requests carry the same assertion, which is the case being
 /// defended against.
 /// </para>
@@ -36,7 +36,7 @@ public sealed class InMemoryClientAssertionReplayStore : IClientAssertionReplayS
     /// </summary>
     /// <remarks>
     /// <c>StringComparer.Ordinal</c> on both halves of the key. A <c>jti</c> is an opaque string the
-    /// client chose and two that differ only in case are two different identifiers — folding them
+    /// client chose and two that differ only in case are two different identifiers - folding them
     /// would refuse an assertion nobody replayed.
     /// </remarks>
     private readonly ConcurrentDictionary<(string ClientId, string JwtId), DateTimeOffset> _claimed =

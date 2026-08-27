@@ -9,14 +9,14 @@ namespace Boltway.Mcp;
 /// <remarks>
 /// <para>
 /// One MCP endpoint carries every tool, so a scope required on the route is the intersection of
-/// what the tools need and the widest one a connector advertises is enforced by nothing — see
+/// what the tools need and the widest one a connector advertises is enforced by nothing - see
 /// <see cref="CallerPrincipal.Scopes"/>. The per-tool decision has to happen per tool, and this is
 /// where a connector puts it.
 /// </para>
 /// <para>
 /// <b>What this library deliberately does not ship is the answer.</b> No role table, no scope
 /// naming convention, no default. A deployment's role vocabulary is its own, and the fallback for a
-/// scope claim is subtle enough — <see cref="ScopeClaimState"/> — that a shipped default would be
+/// scope claim is subtle enough - <see cref="ScopeClaimState"/> - that a shipped default would be
 /// wrong in the fail-open direction for every consumer at once. What is shipped is the plumbing:
 /// the two places the decision has to be applied, and the guarantee that it is applied to both.
 /// </para>
@@ -58,12 +58,12 @@ public interface IConnectorToolPolicy
     /// <para>
     /// <b>Asked only on <c>tools/call</c>, and that is the shape of the question rather than a
     /// limitation.</b> A listing has no arguments, and whether somebody may see a tool does not
-    /// depend on what they would pass it. So this cannot hide anything — it refuses.
+    /// depend on what they would pass it. So this cannot hide anything - it refuses.
     /// </para>
     /// <para>
     /// The case it exists for is an argument that names a <em>resource</em>: which host, which
     /// path, which job. An identifier that refers to something the caller may not reach is the one
-    /// gate <see cref="Allows"/> cannot express, because the tool is the same tool either way — a
+    /// gate <see cref="Allows"/> cannot express, because the tool is the same tool either way - a
     /// caller allowed to poll their own long-running work and handed somebody else's identifier is
     /// refused here or nowhere.
     /// </para>
@@ -91,7 +91,7 @@ public static class ConnectorToolPolicyExtensions
     /// <remarks>
     /// <para>
     /// <b>Both, always, and that is the point of it being one call.</b> Filtering the listing alone
-    /// produces a surface that looks gated and is not — a caller that already knows a name still
+    /// produces a surface that looks gated and is not - a caller that already knows a name still
     /// reaches the tool. Gating the call alone leaves a model reading an advertised tool as a
     /// capability and retrying against something that will always refuse. Shipping them separately
     /// would let a connector wire one and believe it had both, which is the shape of <c>N-06</c> this
@@ -104,7 +104,7 @@ public static class ConnectorToolPolicyExtensions
     /// <c>HttpServerSessionMode.Stateless</c>, the default since the 2026-07-28 revision removed
     /// sessions from Streamable HTTP altogether. Under the stateful back-compat modes it holds
     /// unless the transport is also told to run handlers on one execution context for the whole
-    /// session — an option the SDK has since obsoleted, and one that would freeze a policy's input
+    /// session - an option the SDK has since obsoleted, and one that would freeze a policy's input
     /// at session start with nothing else in the pipeline failing.
     /// </para>
     /// <para>
@@ -112,11 +112,11 @@ public static class ConnectorToolPolicyExtensions
     /// <see cref="IConnectorToolPolicy.Allows"/> runs on both the listing and the call, so refusing
     /// there hides the tool as well as blocking it.
     /// <see cref="IConnectorToolPolicy.AllowsArguments"/> runs on the call only, because a listing
-    /// has no arguments — it refuses and cannot hide, which is the honest shape for a gate about
+    /// has no arguments - it refuses and cannot hide, which is the honest shape for a gate about
     /// which resource a call names rather than which tool it is.
     /// </para>
     /// <para>
-    /// Register the policy before calling this — any lifetime, resolved per request.
+    /// Register the policy before calling this - any lifetime, resolved per request.
     /// </para>
     /// <code>
     /// builder.Services.AddSingleton&lt;IConnectorToolPolicy, MyPolicy&gt;();

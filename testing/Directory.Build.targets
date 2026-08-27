@@ -5,7 +5,7 @@
 
     Both projects here set `GenerateRuntimeConfigurationFiles=false` in their own PropertyGroup and
     both were still packing one. xunit's targets are imported after the project body and set it back
-    to true, so the property has to be written somewhere that runs later than they do — which is what
+    to true, so the property has to be written somewhere that runs later than they do - which is what
     `Directory.Build.targets` is, and the reason this file exists rather than a third copy of the
     line inside each csproj.
 

@@ -10,7 +10,7 @@ namespace Boltway.OAuth.Primitives.Secrets;
 /// <c>bw_rat_</c> string never gets that far.
 /// <para>
 /// Registration access tokens are the case that motivates this. They are the sole authenticator for
-/// full control of a client record — read, rewrite, delete — so a bug that let one be accepted
+/// full control of a client record - read, rewrite, delete - so a bug that let one be accepted
 /// somewhere else is not a small bug. Minting them from the same pipeline as everything else, with
 /// a distinct prefix, means the separation is checked on every parse rather than remembered.
 /// </para>
@@ -23,7 +23,7 @@ public enum TokenPurpose
     /// <remarks>
     /// Zero is deliberately not a real purpose. With <c>AuthorizationCode = 0</c>, the
     /// <see langword="out"/> value from a <i>failed</i> <c>TryParse</c> described itself as an
-    /// authorization code — so a caller who ignored the returned <see cref="bool"/> got a struct
+    /// authorization code - so a caller who ignored the returned <see cref="bool"/> got a struct
     /// that logged as <c>"AuthorizationCode:&lt;redacted&gt;"</c>, reading exactly like a live code,
     /// and then threw on first use. Reserving zero makes the uninitialised value name itself.
     /// </remarks>

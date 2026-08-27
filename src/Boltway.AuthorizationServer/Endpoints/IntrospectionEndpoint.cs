@@ -24,7 +24,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <b>What it is for here, concretely.</b> This server's access tokens are signed JWTs, so a
 /// resource server verifies them offline and never asks us anything. That is fast and it has one
 /// consequence: <b>ending a session does not cut access</b>, because the token keeps verifying
-/// until it expires. <c>IGrantStore.IsRevokedAsync</c> — the denylist — existed for a resource
+/// until it expires. <c>IGrantStore.IsRevokedAsync</c> - the denylist - existed for a resource
 /// server to consult and, measured across this repository and a deployment consuming it, had no
 /// production caller, because there was no channel to reach it through. This is that channel.
 /// </para>
@@ -32,20 +32,20 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <b>An unusable token is <c>{"active": false}</c> with status 200, never an error.</b> RFC 7662
 /// §2.2 requires it: a garbage string, an expired token, one signed by somebody else and one whose
 /// grant was revoked are all the same answer, so an attacker holding a stolen token learns only
-/// that it does not work — not why, and not whether it was ever real. The error responses on this
+/// that it does not work - not why, and not whether it was ever real. The error responses on this
 /// endpoint are all about the <i>caller</i>: a missing parameter, or client authentication.
 /// </para>
 /// <para>
 /// <b>Confidential clients only.</b> §2.1 requires authorization on this endpoint "to prevent token
 /// scanning attacks", and <c>MetadataBuilder</c> already refuses to advertise <c>none</c> as an
-/// auth method here. <c>OAuthErrors</c> has carried the two rows for this surface — X-37 and X-38 —
+/// auth method here. <c>OAuthErrors</c> has carried the two rows for this surface - X-37 and X-38 -
 /// since before the endpoint existed, including a note that a bearer-authenticated variant would
 /// need a third; it still would, and there still is not one.
 /// </para>
 /// <para>
 /// <b>Any authenticated client may introspect any token, and that is a decision rather than an
 /// oversight.</b> RFC 7662 §5 warns against disclosing a token's contents to a party not entitled
-/// to it, and the tighter rule — a client may introspect only tokens whose audience it owns — needs
+/// to it, and the tighter rule - a client may introspect only tokens whose audience it owns - needs
 /// a client-to-resource mapping this server does not have, since resources are registered
 /// independently of clients. What bounds the disclosure instead is who can get here at all: a
 /// configured confidential client with a secret, which in a deployment is the resource servers and
@@ -98,13 +98,13 @@ public static class IntrospectionEndpoint
     /// <para>
     /// <b>Neither <c>active</c> is available when the lookup failed, and that is the whole reason
     /// this endpoint sheds.</b> <c>true</c> would report a token whose grant may have been revoked
-    /// as usable — the denylist is the one thing this endpoint exists to consult, so failing open on
+    /// as usable - the denylist is the one thing this endpoint exists to consult, so failing open on
     /// it is failing at the job. <c>false</c> is worse in a quieter way: it is a definite answer
     /// built from no information, and a resource server reading it discards a live session. "The
     /// revocation state could not be determined" is neither of those, and 503 is how it is said.
     /// </para>
     /// <para>
-    /// The caller here is a resource server on a schedule, not a person — the same case
+    /// The caller here is a resource server on a schedule, not a person - the same case
     /// <c>/token</c> makes for a <c>Retry-After</c> mattering more than an explanation. RFC 7662
     /// §2.3 sends error responses through RFC 6749 §5.2, so the closed set applies here exactly as
     /// it does there and the refusal carries no <c>error</c> member.
@@ -197,7 +197,7 @@ public static class IntrospectionEndpoint
     /// Null and <see cref="Inactive"/> are deliberately different returns. Null means "this is not
     /// something I recognise as an access token", which lets the caller try the refresh-token
     /// lookup; <see cref="Inactive"/> is the final answer. Collapsing them would make a revoked
-    /// access token fall through to a refresh-token lookup that cannot match it — harmless today
+    /// access token fall through to a refresh-token lookup that cannot match it - harmless today
     /// and the kind of thing that stops being harmless when a third token type is added.
     /// </para>
     /// <para>
@@ -205,12 +205,12 @@ public static class IntrospectionEndpoint
     /// signature: a valid signature says the token was minted, not that the grant behind it still
     /// stands. It is keyed on the <c>gid</c> claim, which <c>JwtTokenMinter</c> writes for exactly
     /// this and which <c>AccessTokenDescriptor</c> describes as "emitted so a resource server can
-    /// consult a revocation denylist without introspection" — a resource server can now do it
+    /// consult a revocation denylist without introspection" - a resource server can now do it
     /// <i>with</i> introspection, which is the part that needed a channel.
     /// </para>
     /// <para>
     /// A token with no <c>gid</c> is reported active on its signature and expiry alone. This server
-    /// has always written the claim, so that case is a token from a build that did not — treating
+    /// has always written the claim, so that case is a token from a build that did not - treating
     /// its absence as revoked would refuse every live session on the deploy that introduced this.
     /// </para>
     /// </remarks>
@@ -227,8 +227,8 @@ public static class IntrospectionEndpoint
             options.ValidatedIssuer, keys.PublicVerificationKeys());
 
         // **Expiry is judged against the system clock, not this server's injected TimeProvider.**
-        // `TokenValidationParameters.TimeProvider` is internal in Microsoft.IdentityModel 8.22.0 —
-        // present in the assembly, not callable — so there is no way to hand the library the clock
+        // `TokenValidationParameters.TimeProvider` is internal in Microsoft.IdentityModel 8.22.0 -
+        // present in the assembly, not callable - so there is no way to hand the library the clock
         // the revocation lookup below is timestamped against. In production they are the same
         // clock and nothing turns on it; the two only diverge under a fake one, which is why the
         // tests for this endpoint run the fixture at wall-clock time and say so.
@@ -237,7 +237,7 @@ public static class IntrospectionEndpoint
         if (!result.IsValid)
         {
             // Not ours, or no longer valid. Either way this is not an access token this server can
-            // vouch for — and the caller cannot tell which, which is §2.2 working.
+            // vouch for - and the caller cannot tell which, which is §2.2 working.
             return null;
         }
 
@@ -262,7 +262,7 @@ public static class IntrospectionEndpoint
 
             // The claim as it was minted. An access token here carries exactly one audience, and
             // returning the first is reporting what is on the token rather than choosing among
-            // several — a token with two would need this to be an array, which RFC 7662 §2.2 allows
+            // several - a token with two would need this to be an array, which RFC 7662 §2.2 allows
             // and nothing in this server can produce.
             Audience = identity.FindFirst("aud")?.Value,
             Issuer = identity.FindFirst("iss")?.Value,
@@ -279,14 +279,14 @@ public static class IntrospectionEndpoint
     /// grant behind it still stands.</b> There is no separate check for a revoked token
     /// <i>family</i>, and that is worth stating rather than leaving to be noticed:
     /// <c>IRefreshTokenStore</c> exposes no read for it, and the one production call to
-    /// <c>RevokeFamilyAsync</c> — reuse detection in <c>GrantHandlers</c> — revokes the grant on
+    /// <c>RevokeFamilyAsync</c> - reuse detection in <c>GrantHandlers</c> - revokes the grant on
     /// the very next line. So the grant check covers it today. A second caller of
     /// <c>RevokeFamilyAsync</c> that did not also revoke the grant would make this endpoint report
     /// a dead family as live, and would need a store read added here.
     /// </para>
     /// <para>
     /// <b>The scope and the subject come from the grant, not from the token.</b> A refresh token is
-    /// an opaque string carrying nothing, so the grant is the only source — and it is the current
+    /// an opaque string carrying nothing, so the grant is the only source - and it is the current
     /// one rather than a snapshot, which is the honest answer to "what would this token get you if
     /// you used it right now".
     /// </para>
@@ -311,7 +311,7 @@ public static class IntrospectionEndpoint
 
         var now = services.GetRequiredService<TimeProvider>().GetUtcNow();
 
-        // Consumed rows are retained on purpose — reuse detection needs them — so "found" is not
+        // Consumed rows are retained on purpose - reuse detection needs them - so "found" is not
         // "usable", and this is the difference.
         if (record.ConsumedAt is not null || record.ExpiresAt <= now)
         {
@@ -334,7 +334,7 @@ public static class IntrospectionEndpoint
             Subject = grant.Subject.Value,
 
             // Not "Bearer". §2.2 defines this as the token's type per RFC 6749 §5.1, and a refresh
-            // token is not a credential a resource server accepts — saying Bearer here would invite
+            // token is not a credential a resource server accepts - saying Bearer here would invite
             // exactly the confusion of presenting one to an API.
             TokenType = "refresh_token",
             IssuedAt = record.IssuedAt.ToUnixTimeSeconds(),
@@ -394,7 +394,7 @@ public sealed record IntrospectionResponseBody
     /// <summary>OPTIONAL. The subject, as the token carries it.</summary>
     /// <remarks>
     /// <c>sub</c> and not <c>username</c>. RFC 7662 defines <c>username</c> as "a human-readable
-    /// identifier for the resource owner", which this server would have to look up — disclosing
+    /// identifier for the resource owner", which this server would have to look up - disclosing
     /// more about the person than the token being introspected carries.
     /// </remarks>
     [JsonPropertyName("sub")]

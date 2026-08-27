@@ -19,7 +19,7 @@ namespace Boltway.OAuth.Primitives.Tests;
 /// Writing these found two types with no defence at all. <c>CodeVerifier</c> reads as a request
 /// parameter and is the secret PKCE turns on. <c>MintedToken</c> was worse: a positional record,
 /// whose compiler-generated <c>ToString</c> prints every property, holding a signed and unexpired
-/// access token — so <c>$"{token}"</c> emitted the credential itself. Both now carry what
+/// access token - so <c>$"{token}"</c> emitted the credential itself. Both now carry what
 /// <c>OpaqueSecret</c> carries.
 /// </para>
 /// <para>
@@ -61,7 +61,7 @@ public sealed class SecretsDoNotSerializeTests
     }
 
     /// <summary>
-    /// The challenge is not a secret and must stay readable — the inverse assertion, so that
+    /// The challenge is not a secret and must stay readable - the inverse assertion, so that
     /// "hide everything" is not how the tests above get satisfied.
     /// </summary>
     /// <remarks>
@@ -98,8 +98,8 @@ public sealed class SecretsDoNotSerializeTests
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This is the route <c>OpaqueSecret</c>'s own comment names — Serilog's <c>{@secret}</c>, and
-    /// any provider that "expands objects" — and it is the one <c>[JsonIgnore]</c> does not close,
+    /// This is the route <c>OpaqueSecret</c>'s own comment names - Serilog's <c>{@secret}</c>, and
+    /// any provider that "expands objects" - and it is the one <c>[JsonIgnore]</c> does not close,
     /// because reflection does not read attributes it was not told to. The only way to close it is
     /// to stop the value being a public property at all: a method, which destructuring does not
     /// call. That is a rename across roughly seventy call sites on the token path, and it has not
@@ -108,8 +108,8 @@ public sealed class SecretsDoNotSerializeTests
     /// <para>
     /// So this asserts the leak, deliberately. It is the reason Serilog is not a dependency of this
     /// repository and the reason <c>{@x}</c> must not appear in one: with
-    /// <c>AddJsonConsole</c> the logger serialises the log <i>state</i> — the message and its named
-    /// properties — which the attributes above do cover.
+    /// <c>AddJsonConsole</c> the logger serialises the log <i>state</i> - the message and its named
+    /// properties - which the attributes above do cover.
     /// </para>
     /// <para>
     /// It will fail the day somebody closes the route properly. That is the point: the failure is

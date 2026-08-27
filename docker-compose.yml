@@ -3,7 +3,7 @@
 #
 #   docker compose up
 #
-# It needs no `.env` and no arguments. `.env.example` is a list of overrides, not a prerequisite —
+# It needs no `.env` and no arguments. `.env.example` is a list of overrides, not a prerequisite -
 # every value below carries its own default.
 #
 # ── What this is for ─────────────────────────────────────────────────────────────────────────────
@@ -27,14 +27,14 @@
 # Nothing in this file is a credential. The signing key ring, the refresh-token derivation key and
 # the admin UI's client secret are *generated* by the `init` service on first boot, using the verbs
 # the authorization server ships for exactly that. A development RSA key committed here would be a
-# private key in a public repository whose whole subject is not doing that — and it would be the one
+# private key in a public repository whose whole subject is not doing that - and it would be the one
 # most likely to reach a real deployment, because it is the one that is already typed.
 #
 # ── Unexecuted ───────────────────────────────────────────────────────────────────────────────────
 #
 # This file has never been run. It was written by reading `hosts/*/Program.cs`, both `Dockerfile`s
 # and the Compose specification; every environment variable below appears in `Program.cs` and every
-# one `Program.cs` requires appears below. What that does not prove is that the parts fit together —
+# one `Program.cs` requires appears below. What that does not prove is that the parts fit together -
 # see the report that accompanied it for the four things worth checking first.
 name: boltway
 
@@ -45,7 +45,7 @@ name: boltway
 # `context: .` because both Dockerfiles say so and CI passes the same: every `COPY` in them is
 # written from the repository root. A narrower context fails on `Directory.Build.props`.
 #
-# Two services share one build — `init` and `auth` are the same image with different arguments,
+# Two services share one build - `init` and `auth` are the same image with different arguments,
 # which is the property the authorization server's Dockerfile is protecting when it says "`migrate`
 # and `new-key` are arguments to this same entrypoint". Naming the same `image:` is what makes
 # Compose build it once instead of twice.
@@ -61,7 +61,7 @@ x-auth-image: &auth-image
 #
 # **`migrate` builds the whole host before it migrates anything.** Every `Required(...)` in
 # `Program.cs` runs above `var app = builder.Build()`, and the `migrate` block is six hundred lines
-# below that — so the migration step needs `ISSUER`, `SIGNING_KEYS`, `RESOURCES` and
+# below that - so the migration step needs `ISSUER`, `SIGNING_KEYS`, `RESOURCES` and
 # `REFRESH_TOKEN_DERIVATION_KEY` exactly as much as the serving process does, plus `ADMIN_ROLES`
 # because `ADMIN_API=true` is refused without it.
 #
@@ -71,7 +71,7 @@ x-auth-image: &auth-image
 x-auth-config: &auth-config
   # Every token carries this as `iss` and every resource server compares it ordinally.
   #
-  # **It must be https, path-less, and must not end in a slash** — `IssuerString.TryCreate` refuses
+  # **It must be https, path-less, and must not end in a slash** - `IssuerString.TryCreate` refuses
   # all three, so `http://localhost:8080` is a startup failure and not a shortcut. That single rule
   # is why there is a proxy in this file at all.
   #
@@ -80,13 +80,13 @@ x-auth-config: &auth-config
   # inside the admin UI's container, and it has to be the same string in both places.
   ISSUER: "https://${AUTH_HOST:-auth.localhost}:${HTTPS_PORT:-8443}"
 
-  # Empty here, filled by the entrypoint from the volume `init` wrote — see the `auth` service.
+  # Empty here, filled by the entrypoint from the volume `init` wrote - see the `auth` service.
   # Present as a line at all so that a `.env` naming a real key ring wins over the generated one.
   SIGNING_KEYS: "${SIGNING_KEYS:-}"
   REFRESH_TOKEN_DERIVATION_KEY: "${REFRESH_TOKEN_DERIVATION_KEY:-}"
 
   # **Key/value pairs, deliberately not a `postgres://` URL.** `Normalise()` in `Program.cs` rewrites
-  # a URL into key/value pairs and appends `SSL Mode=Require` while it does — correct for the hosted
+  # a URL into key/value pairs and appends `SSL Mode=Require` while it does - correct for the hosted
   # databases that hand out URLs, and fatal here, because the stock `postgres` image serves no TLS
   # at all. The connection would fail with "SSL connection is required", naming nothing an operator
   # could connect to this file. A key/value string is passed through untouched.
@@ -97,7 +97,7 @@ x-auth-config: &auth-config
 
   # At least one resource, or no token could ever be issued. This one is a placeholder audience so
   # that `/authorize?resource=…` has something valid to name; nothing in this stack serves it.
-  # Replace it with your MCP server's URL — the URL *is* the audience, compared byte for byte, so a
+  # Replace it with your MCP server's URL - the URL *is* the audience, compared byte for byte, so a
   # trailing slash here is a different resource.
   #
   # Not `${RESOURCES:-…}`, and the reason is Compose rather than taste: the first `}` of a JSON
@@ -105,11 +105,11 @@ x-auth-config: &auth-config
   RESOURCES: '{"https://mcp.example.test/mcp":{"name":"Demo MCP server","scopes":"demo:read demo:write"}}'
 
   # Shown verbatim on the consent page. Without them `A-14` renders the bare scope name rather than
-  # inventing a sentence — legible, but it reads like a leak.
+  # inventing a sentence - legible, but it reads like a leak.
   SCOPE_DESCRIPTIONS: '{"demo:read":"Read the demo resource.","demo:write":"Write to the demo resource."}'
 
   # Routes `/admin/*`, which is the whole reason the admin UI has anything to talk to. The server
-  # derives the admin resource URL and its scopes from `ISSUER` — there is nothing else to set, and
+  # derives the admin resource URL and its scopes from `ISSUER` - there is nothing else to set, and
   # `ADMIN_RESOURCE` is left unset on both sides so they cannot disagree.
   ADMIN_API: "true"
 
@@ -133,13 +133,13 @@ x-auth-config: &auth-config
   # resolved to the default.
   LOG_FORMAT: "${LOG_FORMAT:-simple}"
 
-  # How many proxies stand in front. One — the `proxy` service. Getting it wrong is silent: too high
+  # How many proxies stand in front. One - the `proxy` service. Getting it wrong is silent: too high
   # and `LoginThrottle`'s per-source limit is attributed to a header the client can assert, too low
   # and it degrades to one bucket for the whole deployment. Behind a CDN as well, this is 2.
   FORWARDED_HOPS: "${FORWARDED_HOPS:-1}"
 
-  # Lifetimes. Unset leaves the library's default, and an empty string reads as unset — `Duration()`
-  # tests `{ Length: > 0 }` — so these are safe to pass through empty. One spelling only: a count
+  # Lifetimes. Unset leaves the library's default, and an empty string reads as unset - `Duration()`
+  # tests `{ Length: > 0 }` - so these are safe to pass through empty. One spelling only: a count
   # and a unit, `30s`, `15m`, `24h`, `30d`.
   ACCESS_TOKEN_LIFETIME: "${ACCESS_TOKEN_LIFETIME:-}"
   REFRESH_TOKEN_LIFETIME: "${REFRESH_TOKEN_LIFETIME:-}"
@@ -157,9 +157,9 @@ x-auth-config: &auth-config
   # **Not every setting is safe to pass through as an empty string, so most of them are not here.**
   # Measured in `Program.cs`: `UI_STYLESHEETS` reads empty as "serve the pages unstyled", and
   # `UI_DEFAULT_LOCALE` is tested with `is not null`, so an empty value turns localization on with a
-  # culture named "". Settings guarded by `{ Length: > 0 }` — `SMTP_HOST`, `GOOGLE_CLIENT_ID`,
+  # culture named "". Settings guarded by `{ Length: > 0 }` - `SMTP_HOST`, `GOOGLE_CLIENT_ID`,
   # `OTEL_EXPORTER_OTLP_ENDPOINT`, `DEFAULT_ROLES`, `SELF_SERVICE`, `SELF_SERVICE_PAGES`,
-  # `PASSWORD_RECOVERY`, `INTROSPECTION`, `ADMIN_RESOURCE`, `UI_TRANSLATIONS_FILE` — are. Adding one
+  # `PASSWORD_RECOVERY`, `INTROSPECTION`, `ADMIN_RESOURCE`, `UI_TRANSLATIONS_FILE` - are. Adding one
   # of those is a line here and a line in `.env.example`; adding one of the first two means giving
   # it a real default rather than an empty one.
 
@@ -186,7 +186,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
     # Readiness is what `depends_on` waits on, and the postgres image ships no healthcheck of its
-    # own — so without this, "the port accepts a connection" is the only ordering available and
+    # own - so without this, "the port accepts a connection" is the only ordering available and
     # `migrate` races a server that is still recovering. `-d boltway` because `pg_isready` with no
     # database checks the one named after the user, which is not necessarily the one we migrate.
     healthcheck:
@@ -197,7 +197,7 @@ services:
       start_period: 10s
 
     # Nothing published. A database reachable from the host is a database reachable from anything
-    # else on the host, and nothing here needs it — `docker compose exec postgres psql` is the way in.
+    # else on the host, and nothing here needs it - `docker compose exec postgres psql` is the way in.
     expose:
       - "5432"
 
@@ -211,8 +211,8 @@ services:
   # it; this is that verb, run as a real dependency rather than as a sentence in a README.
   #
   # It matters more than it sounds. The host boots perfectly well un-migrated: `/health` answers
-  # `{"ok":true}` — it deliberately touches no database, because a probe that fails when Postgres
-  # blinks takes the server out of rotation for a dependency most requests never reach — while every
+  # `{"ok":true}` - it deliberately touches no database, because a probe that fails when Postgres
+  # blinks takes the server out of rotation for a dependency most requests never reach - while every
   # endpoint that does answers 500 with "relation does not exist".
   #
   # `/health/ready` is the other question, and it does catch this: it reads one row out of the user
@@ -268,7 +268,7 @@ services:
         #
         # Skipped entirely when `SIGNING_KEYS` is already set, so a ring supplied through `.env` is
         # the one `migrate` runs under as well. This step and the server must not see different
-        # configuration — that is the whole reason they share one anchor above.
+        # configuration - that is the whole reason they share one anchor above.
         if [ -z "$${SIGNING_KEYS:-}" ] && [ ! -s "$$secrets/signing-keys.json" ]; then
             {   printf '['
                 dotnet Boltway.AuthorizationServer.Host.dll new-key "dev-$$(date -u +%Y-%m-%d)"
@@ -279,7 +279,7 @@ services:
 
         # ── The refresh-token derivation key ──────────────────────────────────────────────────
         #
-        # 32 random bytes, base64 — the spelling `REFRESH_TOKEN_DERIVATION_KEY`'s own error message
+        # 32 random bytes, base64 - the spelling `REFRESH_TOKEN_DERIVATION_KEY`'s own error message
         # asks for. Every refresh token is derived from it, so a value that differs between restarts
         # silently breaks all of them.
         #
@@ -298,7 +298,7 @@ services:
         #
         # **It cannot be a passphrase somebody invents.** `ClientAuthenticator` parses the presented
         # value as an `OpaqueSecret` before it hashes anything, so a secret this server did not mint
-        # fails authentication whatever its hash says — and the refusal is the same `invalid_client`
+        # fails authentication whatever its hash says - and the refusal is the same `invalid_client`
         # as a wrong password.
         #
         # `new-client-secret` prints both halves because they go to two different places and neither
@@ -342,7 +342,7 @@ services:
         # default, so without this the stack comes up healthy with no way in at all.
         #
         # **Guarded by a marker, because `new-user` is not idempotent.** It mints a new subject
-        # every time, so a second run does not reset a password — it makes a second account. The
+        # every time, so a second run does not reset a password - it makes a second account. The
         # store's unique index on (realm, username) is the backstop, but it would fail this service
         # and take the stack with it.
         #
@@ -352,7 +352,7 @@ services:
         #
         # DEV: the password is generated, printed once, and is in `docker compose logs init` and
         # nowhere else. A deployment moves it into a vault from a terminal, which is why the verb
-        # takes no password argument — an argument is visible in the process list and in history.
+        # takes no password argument - an argument is visible in the process list and in history.
         if [ ! -e "$$secrets/first-account" ]; then
             dotnet Boltway.AuthorizationServer.Host.dll new-user \
                 "$$FIRST_ACCOUNT_HANDLE" "$$FIRST_ACCOUNT_EMAIL" "$$ADMIN_ROLE"
@@ -384,19 +384,19 @@ services:
     volumes:
       - boltway-secrets:/run/boltway:ro
 
-      # The Data Protection key ring — what encrypts the login cookie and the antiforgery token.
+      # The Data Protection key ring - what encrypts the login cookie and the antiforgery token.
       # Left inside the container it dies with the container: every restart signs everyone out, and
       # anyone mid-OAuth is bounced to `/login` by a redirect that names nothing, which reads
       # exactly like the consent page looping.
       #
-      # The path exists in the image and is owned by `$APP_UID` on purpose — the Dockerfile's own
+      # The path exists in the image and is owned by `$APP_UID` on purpose - the Dockerfile's own
       # comment explains that Docker copies ownership into a new named volume only from a path the
       # image already has, and that a directory created at runtime instead mounts root-owned and
       # fails the same way as having no volume at all.
       - auth-dpkeys:/home/app/.aspnet/DataProtection-Keys
 
     # Nothing published, and that is load-bearing rather than tidy. `ProxyHeaders.BehindOneProxy`
-    # clears the known-proxy lists — "believe the immediate peer" — which is sound only while this
+    # clears the known-proxy lists - "believe the immediate peer" - which is sound only while this
     # application is unreachable except through the proxy. Publish 8080 and `X-Forwarded-Proto`
     # becomes a header anyone on this machine can assert.
     expose:
@@ -404,7 +404,7 @@ services:
 
     # ── Why there is a shell here ─────────────────────────────────────────────────────────────
     #
-    # Three settings are generated by `init` into a volume, and there is no `SIGNING_KEYS_FILE` —
+    # Three settings are generated by `init` into a volume, and there is no `SIGNING_KEYS_FILE` -
     # only `UI_TRANSLATIONS` and `NOTIFICATION_TEXT` have file forms. Compose cannot pipe one
     # service's output into another's environment (`env_file` is read when the file is parsed, long
     # before `init` runs), so something has to read the file at start. This is that.
@@ -414,7 +414,7 @@ services:
     # **`"$@"` is what keeps every verb reachable.** `docker compose run --rm auth migrate` and
     # `docker compose run --rm auth set-role ada founder` replace the command, not the entrypoint,
     # so the arguments arrive here and are forwarded. Without the forwarding they would be read as
-    # shell commands — and `Program.cs` has a paragraph about what happens when an argument the host
+    # shell commands - and `Program.cs` has a paragraph about what happens when an argument the host
     # does not recognise falls through to the serve path: a second authorization server, holding the
     # same keys and the same database, that `--rm` never removes because it never exits.
     entrypoint:
@@ -427,7 +427,7 @@ services:
         # `new-client-secret` are dispatched before any configuration is read, so
         # `docker compose run --rm auth new-key 2026-08` has to work against a stack that has never
         # been up. Left empty, a setting that is genuinely needed is refused by the host, by name,
-        # in a sentence an operator can act on — which is better than `cat: can't open`.
+        # in a sentence an operator can act on - which is better than `cat: can't open`.
         : "$${SIGNING_KEYS:=$$(cat "$$secrets/signing-keys.json" 2>/dev/null || :)}"
         : "$${REFRESH_TOKEN_DERIVATION_KEY:=$$(cat "$$secrets/refresh-key" 2>/dev/null || :)}"
         : "$${CLIENTS:=$$(cat "$$secrets/clients.json" 2>/dev/null || :)}"
@@ -436,8 +436,8 @@ services:
       - boltway-auth
     command: []
 
-    # No `healthcheck:` here on purpose. The image ships one — `curl -fsS /health`, liveness only,
-    # touching no database — and a copy in this file is a copy that drifts from the Dockerfile.
+    # No `healthcheck:` here on purpose. The image ships one - `curl -fsS /health`, liveness only,
+    # touching no database - and a copy in this file is a copy that drifts from the Dockerfile.
     # `depends_on: condition: service_healthy` reads the image's just as happily as an override.
 
   # ───────────────────────────────────────────────────────────────────────────────────────────────
@@ -485,21 +485,21 @@ services:
 
       # Read only so the pages can say what a role means; nothing here enforces anything.
       # `AdminRoleScopePolicy` on the server is the only thing that does, and there is no endpoint
-      # through which this app could check that the two agree — hence one variable feeding both.
+      # through which this app could check that the two agree - hence one variable feeding both.
       ADMIN_ROLES: "${ADMIN_ROLE:-administrator}"
 
       # DEV: how this app comes to trust the proxy's invented certificate authority.
       #
       # It has to. `AUTHORITY` is the issuer, the issuer is https, and the OIDC handler refuses a
-      # non-https metadata address unless a deployment sets `RequireHttpsMetadata=false` — which is
+      # non-https metadata address unless a deployment sets `RequireHttpsMetadata=false` - which is
       # code rather than configuration and is not exposed here. So discovery, the token exchange and
       # the `/userinfo` lookup all go out over TLS to a chain nothing ships trusting.
       #
       # .NET on Linux builds chains with OpenSSL and honours `SSL_CERT_FILE`, the same mechanism
       # `samples/README.md` uses to make the two sample hosts trust the ASP.NET Core development
       # certificate. Setting it replaces the default *bundle file*, so this container trusts the
-      # proxy's authority and not the public roots. That costs nothing here — every outbound request
-      # this app makes goes to the authorization server through that proxy — and it is a line to
+      # proxy's authority and not the public roots. That costs nothing here - every outbound request
+      # this app makes goes to the authorization server through that proxy - and it is a line to
       # delete on a deployment with a real certificate.
       SSL_CERT_FILE: /run/boltway-ca/root.crt
 
@@ -528,8 +528,8 @@ services:
   #
   # This service exists for one rule: `IssuerString.TryCreate` refuses a non-https issuer, so there
   # is no arrangement of these containers that serves plain HTTP and still starts. Both hosts are
-  # also written for a proxy — each calls `UseForwardedHeaders` with the known-proxy lists cleared,
-  # and their cookies are `Secure` — so terminating TLS in front is the shape they expect rather
+  # also written for a proxy - each calls `UseForwardedHeaders` with the known-proxy lists cleared,
+  # and their cookies are `Secure` - so terminating TLS in front is the shape they expect rather
   # than a workaround.
   #
   # DEV: `tls internal` means the proxy runs its own certificate authority and signs for these two
@@ -557,7 +557,7 @@ services:
       - proxy-ca:/ca
 
     # No `depends_on`. Upstreams are resolved per request, so waiting for them would only delay the
-    # certificate authority that the admin UI is waiting for — and this file would then have proxy
+    # certificate authority that the admin UI is waiting for - and this file would then have proxy
     # waiting on auth while adminbff waits on proxy, for no gain.
 
     # Ready means "the certificate authority exists and has been copied", which is exactly what
@@ -571,7 +571,7 @@ services:
       start_period: 5s
 
     # The copy in the background is the whole of the wrapper. The proxy writes its authority with
-    # mode 0600 as root — correct, since the private key sits in the same directory — and the admin
+    # mode 0600 as root - correct, since the private key sits in the same directory - and the admin
     # UI runs as a non-root uid and has to read the root *certificate* to validate this proxy's
     # chain. Copying one public file out at 0644 is what lets that happen without running that
     # container as root or mounting a directory of private keys into it.

@@ -9,9 +9,9 @@ namespace Boltway.OAuth.Net;
 /// <remarks>
 /// <para>
 /// The SSRF blocklist. Everything an attacker would point a fetch at that is not a globally
-/// routable host on the public internet: loopback, the RFC 1918 private ranges, link-local — which
+/// routable host on the public internet: loopback, the RFC 1918 private ranges, link-local - which
 /// is where <c>169.254.169.254</c> lives, the cloud instance-metadata endpoint that hands out
-/// credentials to anything that asks — carrier-grade NAT, multicast, and the IPv6 equivalents of
+/// credentials to anything that asks - carrier-grade NAT, multicast, and the IPv6 equivalents of
 /// each.
 /// </para>
 /// <para>
@@ -55,19 +55,19 @@ public static class SpecialUseAddresses
     /// <para>
     /// Link-local: <c>169.254.0.0/16</c>, <c>fe80::/10</c>, and the encoded forms of the first. It
     /// is where <c>169.254.169.254</c> lives, and it is the one part of the blocklist with no
-    /// innocent explanation — a name in public DNS resolving into it is not a filtered resolver,
+    /// innocent explanation - a name in public DNS resolving into it is not a filtered resolver,
     /// not split-horizon DNS, and not a host somebody has not configured yet.
     /// </para>
     /// <para>
     /// <strong>This does not decide whether to connect.</strong> <see cref="IsBlocked" /> decides
     /// that and refuses every special-use address either way. What this decides is what the server
     /// is entitled to <em>say</em> about the answer, and whether the event is worth keeping a client
-    /// broken over — because everything else in the blocklist is ambiguous and this is not.
+    /// broken over - because everything else in the blocklist is ambiguous and this is not.
     /// </para>
     /// <para>
     /// The rest of the list looks the same from here whatever produced it. <c>0.0.0.0</c> and
     /// <c>127.0.0.1</c> are what a DNS blocklist answers with, what an unconfigured host answers
-    /// with, <em>and</em> live targets — measured on 2026-08-26, Linux 6.18: connecting to
+    /// with, <em>and</em> live targets - measured on 2026-08-26, Linux 6.18: connecting to
     /// <c>0.0.0.0</c> reaches a service bound to <c>127.0.0.1</c>, so a sinkhole answer is not a
     /// harmless one. The RFC 1918 ranges are what split-horizon DNS answers with for a name a
     /// company hosts internally, which is ordinary. None of those can be told apart from an attack
@@ -163,7 +163,7 @@ public static class SpecialUseAddresses
     /// <remarks>
     /// <para>
     /// Default-deny, and the inversion is the fix rather than a style choice. The first version of
-    /// this method enumerated special ranges, and an audit measured sixteen it did not cover —
+    /// this method enumerated special ranges, and an audit measured sixteen it did not cover -
     /// including two with real teeth: <c>2002:7f00:1::</c> and <c>2002:a9fe:a9fe::</c>, which are
     /// 6to4-encoded <c>127.0.0.1</c> and <c>169.254.169.254</c>, and <c>::169.254.169.254</c>, the
     /// deprecated IPv4-<i>compatible</i> form (RFC 4291 §2.5.5.1) that is the sibling of the
@@ -192,7 +192,7 @@ public static class SpecialUseAddresses
             return true;
         }
 
-        // 2001::/23 — the IETF protocol assignments block: Teredo, PCP anycast, NAT64 discovery,
+        // 2001::/23 - the IETF protocol assignments block: Teredo, PCP anycast, NAT64 discovery,
         // AMT, ORCHIDv2 and the rest all live inside it.
         if (b[0] is 0x20 && b[1] is 0x01 && (b[2] & 0xfe) is 0)
         {
@@ -205,7 +205,7 @@ public static class SpecialUseAddresses
             return true;
         }
 
-        // 2002::/16 — 6to4. Encodes an IPv4 destination in the address, which is the same argument
+        // 2002::/16 - 6to4. Encodes an IPv4 destination in the address, which is the same argument
         // that makes NAT64 dangerous: 2002:7f00:1:: is 127.0.0.1 and 2002:a9fe:a9fe:: is the cloud
         // metadata endpoint.
         if (b[0] is 0x20 && b[1] is 0x02)
@@ -213,7 +213,7 @@ public static class SpecialUseAddresses
             return true;
         }
 
-        // 3fff::/20 — documentation, RFC 9637.
+        // 3fff::/20 - documentation, RFC 9637.
         if (b[0] is 0x3f && b[1] is 0xff && (b[2] & 0xf0) is 0)
         {
             return true;

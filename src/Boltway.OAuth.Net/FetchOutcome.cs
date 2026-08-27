@@ -56,7 +56,7 @@ public enum FetchPurpose
     /// </summary>
     /// <remarks>
     /// See <see cref="AuthorizationServerDiscovery"/> for why this is not <see cref="UpstreamJwks"/>,
-    /// and <see cref="JwksUri"/> for the third case — a client's key set, read from a host an
+    /// and <see cref="JwksUri"/> for the third case - a client's key set, read from a host an
     /// attacker chose, which is the one with the tight budgets.
     /// </remarks>
     AuthorizationServerJwks,
@@ -77,7 +77,7 @@ public enum BlockReason
     /// <strong>What produced it cannot be told from here.</strong> A name in public DNS resolving
     /// to <c>0.0.0.0</c> or <c>127.0.0.1</c> is what a DNS blocklist answers with, what a host
     /// nobody has configured yet answers with, and what an attacker aiming a fetch at this machine
-    /// arranges — the three are the same observation. RFC 1918 is ordinary split-horizon DNS for a
+    /// arranges - the three are the same observation. RFC 1918 is ordinary split-horizon DNS for a
     /// name a company hosts internally. The fetch is refused for all of them, and the refusal says
     /// what was seen rather than what it means.
     /// </para>
@@ -130,8 +130,8 @@ public sealed record SafeFetchRequest(
 /// <see cref="Blocked"/> carrying <see cref="BlockReason.LinkLocalAddress"/> is worth an alert
 /// because nothing benign resolves a public name into link-local space.
 ///
-/// This paragraph used to say that of <see cref="Blocked"/> as a whole — "it means someone pointed
-/// the server at a private address" — which is an inference from one lookup stated as a fact about
+/// This paragraph used to say that of <see cref="Blocked"/> as a whole - "it means someone pointed
+/// the server at a private address" - which is an inference from one lookup stated as a fact about
 /// somebody else's network. A filtered resolver, split-horizon DNS and an attack are the same
 /// observation from here. <c>LESSONS.md</c> is twelve instances of that mistake and this was the
 /// thirteenth.
@@ -191,7 +191,7 @@ public abstract record FetchOutcome
 /// <remarks>
 /// The single outbound HTTP surface. An architecture test asserts that no assembly other than
 /// <c>Boltway.OAuth.Net</c> references <c>System.Net.Http</c> at all, and the exception list
-/// for that rule is empty — which is what makes "every outbound fetch is guarded" checkable rather
+/// for that rule is empty - which is what makes "every outbound fetch is guarded" checkable rather
 /// than a claim. An allowlist would be a place to add an entry.
 /// </remarks>
 public interface ISafeHttpFetcher

@@ -21,7 +21,7 @@ namespace Boltway.AuthorizationServer.Token;
 /// <para>
 /// <b>This grant exists here in one specific shape: the client names an owner and the token is
 /// issued for that account.</b> RFC 6749 §4.4 describes a client acting for itself, and that is the
-/// shape this deliberately does not implement — see <c>ReasonCode.ClientHasNoOwner</c>. A token
+/// shape this deliberately does not implement - see <c>ReasonCode.ClientHasNoOwner</c>. A token
 /// whose <c>sub</c> is a client id resolves against no account, so roles, permissions and anything
 /// that attributes a write have nothing to read, and the failure surfaces somewhere else entirely
 /// as "this account has no roles".
@@ -57,7 +57,7 @@ public sealed class ClientCredentialsGrant(
 {
     // Optional and last, the same shape RefreshTokenGrant uses, so a host constructing this by
     // hand keeps working. It reaches the entitlement policy and the directory, and a null one
-    // means the ceiling is not applied — which is the behaviour every deployment that registers
+    // means the ceiling is not applied - which is the behaviour every deployment that registers
     // no policy already has, and the registration in AddAuthorizationServer passes it.
     private readonly IServiceProvider _services = services ?? EmptyServices.Instance;
 
@@ -74,8 +74,8 @@ public sealed class ClientCredentialsGrant(
         ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(client);
 
-        // The client is already authenticated by the time this runs — TokenEndpoint will not
-        // dispatch without it — and it has already been checked against its declared grant types.
+        // The client is already authenticated by the time this runs - TokenEndpoint will not
+        // dispatch without it - and it has already been checked against its declared grant types.
         // What is left is whether it is the *kind* of client this grant can serve.
         if (client.Owner is not { } owner)
         {
@@ -113,7 +113,7 @@ public sealed class ClientCredentialsGrant(
 
         var account = await _users.FindBySubjectAsync(owner, cancellationToken);
 
-        // One reason for both branches, and the detail is the only place they differ — see
+        // One reason for both branches, and the detail is the only place they differ - see
         // ClientOwnerUnusable. A client holding a valid secret is still not entitled to learn
         // whether a particular person's account was deleted or merely suspended.
         if (account is null || !account.IsActive)
@@ -128,13 +128,13 @@ public sealed class ClientCredentialsGrant(
 
         // ───────── the owner's roles are the ceiling, and this is where it is applied ─────────
         //
-        // `UserAdministration` says so at the moment a service account is created — "the ceiling is
-        // applied when the token is used, by whatever reads its roles" — and the surface that reads
+        // `UserAdministration` says so at the moment a service account is created - "the ceiling is
+        // applied when the token is used, by whatever reads its roles" - and the surface that reads
         // this token, `AdminAuthorization`, deliberately never reads the role, which is the correct
         // division. So the ceiling was a sentence true of nowhere: this grant took scope straight
         // off the client record, and a service account owned by an account holding no
         // administrative role was issued `users:write`, read the whole directory including every
-        // email, and rewrote it — including promoting its own owner. Measured end to end.
+        // email, and rewrote it - including promoting its own owner. Measured end to end.
         //
         // /authorize and refresh both filter here already. This is the third caller, and the one
         // whose absence was reachable from a credential rather than from a browser.
@@ -250,7 +250,7 @@ public sealed class ClientCredentialsGrant(
     /// <b>Why this grant may derive an audience where <c>/authorize</c> may not.</b> A-02 refuses to
     /// nominate a resource as soon as two are registered, because picking one would make the
     /// audience depend on registration order. That reasoning holds wherever the scope set arrives in
-    /// the request — it can be anything, so it says nothing about which resource is meant. Here it
+    /// the request - it can be anything, so it says nothing about which resource is meant. Here it
     /// cannot: <b>scope is fixed on the client</b>, so the complete set is known from the record
     /// before any request input is read. If exactly one registered resource defines all of it, that
     /// is a derivation rather than a guess, and every other resource would refuse a token carrying
@@ -258,7 +258,7 @@ public sealed class ClientCredentialsGrant(
     /// </para>
     /// <para>
     /// <b>What it fixes.</b> With two resources registered, a service account had to send
-    /// <c>resource</c> or be refused <c>invalid_target</c> — so "copy the client id and the secret
+    /// <c>resource</c> or be refused <c>invalid_target</c> - so "copy the client id and the secret
     /// into your service" was not true, and the service failed at its first run naming a parameter
     /// nobody had mentioned. The credential is now self-contained in the case that has an
     /// unambiguous answer.
@@ -274,7 +274,7 @@ public sealed class ClientCredentialsGrant(
     /// <para>
     /// <b>Ambiguous and empty both fall back to everything, which is the behaviour before this
     /// existed.</b> Two candidates is genuinely ambiguous and the caller must say. Zero means the
-    /// registry declares no scopes for anything — a deployment this cannot reason about — and
+    /// registry declares no scopes for anything - a deployment this cannot reason about - and
     /// narrowing to nothing there would refuse a request that works today.
     /// </para>
     /// </remarks>
@@ -303,8 +303,8 @@ public sealed class ClientCredentialsGrant(
     /// <summary>The stable grant id for a (client, owner) pair.</summary>
     /// <remarks>
     /// Public because revoking a service account requires computing it. The grant id is not handed
-    /// out anywhere else — there is no authorization request to read it from and no consent row to
-    /// look it up in — so an administrator who wants to stop one has to be able to derive it from
+    /// out anywhere else - there is no authorization request to read it from and no consent row to
+    /// look it up in - so an administrator who wants to stop one has to be able to derive it from
     /// the two things they do know. Keeping it internal would mean the only way to revoke a service
     /// account is to find its row by scanning.
     /// </remarks>

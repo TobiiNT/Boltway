@@ -17,7 +17,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// The build order says this is where the flow first runs, and until it does, everything before it
 /// is a claim. These tests exercise the two endpoints against a host wired the way a customer would
-/// wire one — which is the only place a missing route, an unresolvable service or a status the
+/// wire one - which is the only place a missing route, an unresolvable service or a status the
 /// framework chose becomes visible.
 /// </remarks>
 public sealed class AuthorizationCodeFlowTests
@@ -197,8 +197,8 @@ public sealed class AuthorizationCodeFlowTests
     /// Every redirect out of <c>/authorize</c> is a 303.
     /// </summary>
     /// <remarks>
-    /// Not 302 and never 307. Under 307 the browser replays the POST body — which on the login and
-    /// consent paths is the user's credentials — to the client's redirect URI, and a malicious
+    /// Not 302 and never 307. Under 307 the browser replays the POST body - which on the login and
+    /// consent paths is the user's credentials - to the client's redirect URI, and a malicious
     /// client can then impersonate them. OAuth 2.1 §7.5.3: "only the status code 303 unambiguously
     /// enforces rewriting the HTTP POST request to an HTTP GET request."
     /// </remarks>
@@ -222,7 +222,7 @@ public sealed class AuthorizationCodeFlowTests
     /// <remarks>
     /// OAuth 2.1 §2.3: a redirect URI "MAY include a query string component, which MUST be retained
     /// when adding additional query parameters". Concatenation would emit a second <c>?</c>, which
-    /// is a legal character inside a query string — so nothing errors and the client parses one
+    /// is a legal character inside a query string - so nothing errors and the client parses one
     /// parameter whose value happens to contain the code.
     /// </remarks>
     [Fact]
@@ -255,7 +255,7 @@ public sealed class AuthorizationCodeFlowTests
     /// <remarks>
     /// The value is opaque and caller-controlled, and it is echoed verbatim. Concatenating it would
     /// let <c>&amp;code=</c> inside it add a second code, and <c>#</c> truncate the response at the
-    /// fragment boundary so <c>iss</c> silently disappears — which, for a client that must reject a
+    /// fragment boundary so <c>iss</c> silently disappears - which, for a client that must reject a
     /// response without <c>iss</c>, is a remote off switch for the flow.
     /// </remarks>
     [Fact]
@@ -326,7 +326,7 @@ public sealed class AuthorizationCodeFlowTests
 
     /// <summary>An unparseable body is an OAuth error, not a 500.</summary>
     /// <remarks>
-    /// <c>Request.Form</c> throws rather than returning empty, and an uncaught throw here is a 500 —
+    /// <c>Request.Form</c> throws rather than returning empty, and an uncaught throw here is a 500 -
     /// which a client reads as "the server is broken" rather than "my request was".
     /// </remarks>
     [Fact]
@@ -393,7 +393,7 @@ public sealed class AuthorizationCodeFlowTests
     /// N-07, and the whole reason redemption runs last. OAuth 2.1 §7.5.2: revoking on a replay that
     /// contains invalid parameters "would create a denial of service opportunity for an attacker who
     /// is able to obtain an authorization code but unable to obtain the client authentication or
-    /// code_verifier" — they could kill the legitimate client's session at will. So this asserts the
+    /// code_verifier" - they could kill the legitimate client's session at will. So this asserts the
     /// refusal <i>and</i> that the grant survived it.
     /// </remarks>
     [Fact]
@@ -554,7 +554,7 @@ public sealed class AuthorizationCodeFlowTests
     /// </summary>
     /// <remarks>
     /// N-08: "two concurrent redemptions ⇒ one successor, both callers get it." The previous version
-    /// of this test asserted the opposite — that the second presentation is refused — on the
+    /// of this test asserted the opposite - that the second presentation is refused - on the
     /// reasoning that any working token would fork the family. That reasoning was wrong: the grace
     /// path hands back the token that already exists, so there is one successor and no fork. And
     /// the refusal went to exactly the client that could not act on it, since Claude's proactive and
@@ -590,7 +590,7 @@ public sealed class AuthorizationCodeFlowTests
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The grace branch does not read the successor's plaintext from anywhere — it recomputes it
+    /// The grace branch does not read the successor's plaintext from anywhere - it recomputes it
     /// from <c>(familyId, generation)</c> under whatever key <i>this</i> process holds. On the
     /// rotation branch the derived value is the seed, so it matches by construction; here nothing
     /// guaranteed it did. A review measured the result: the client got HTTP 200, a working access
@@ -599,8 +599,8 @@ public sealed class AuthorizationCodeFlowTests
     /// logs nothing because it never sees the dud again.
     /// </para>
     /// <para>
-    /// Two hosts over one <see cref="SharedStores"/> is the deployment shape that produces it — a
-    /// load balancer in front of two instances, one database — and a key generated per process
+    /// Two hosts over one <see cref="SharedStores"/> is the deployment shape that produces it - a
+    /// load balancer in front of two instances, one database - and a key generated per process
     /// rather than configured is the ordinary way to get there. <c>invalid_grant</c> is the right
     /// answer because it is one the client can act on: it re-runs the authorization flow. A corpse
     /// is not.
@@ -638,7 +638,7 @@ public sealed class AuthorizationCodeFlowTests
     /// The control: the same two-instance replay succeeds when the key agrees.
     /// </summary>
     /// <remarks>
-    /// Without this, the test above passes against a server that refuses <i>every</i> grace replay —
+    /// Without this, the test above passes against a server that refuses <i>every</i> grace replay -
     /// which is the pre-N-08 behaviour it was written to prevent, and which would look identical
     /// from the outside. It also proves the sharing seam works, so a failure there cannot be read as
     /// the guard firing.
@@ -674,7 +674,7 @@ public sealed class AuthorizationCodeFlowTests
     /// </summary>
     /// <remarks>
     /// The control for the test above, and the half that carries RFC 9700 §2.2.2. Without it, the
-    /// grace behaviour would be indistinguishable from "replays are always fine" — and a mutation
+    /// grace behaviour would be indistinguishable from "replays are always fine" - and a mutation
     /// deleting the entire reuse-detection response survived the suite before this existed.
     /// </remarks>
     [Fact]
@@ -696,7 +696,7 @@ public sealed class AuthorizationCodeFlowTests
         Assert.Equal(HttpStatusCode.BadRequest, replay.StatusCode);
         Assert.Equal("invalid_grant", (await ReadJsonAsync(replay)).GetProperty("error").GetString());
 
-        // The live head is dead too — the whole family goes, not just the replayed token.
+        // The live head is dead too - the whole family goes, not just the replayed token.
         var afterwards = await fixture.Client.PostAsync("/token", Refresh(successor));
 
         Assert.Equal(HttpStatusCode.BadRequest, afterwards.StatusCode);
@@ -707,7 +707,7 @@ public sealed class AuthorizationCodeFlowTests
     /// </summary>
     /// <remarks>
     /// The check the previous suite was missing entirely. <c>A_code_cannot_be_exchanged_twice</c>
-    /// asserts the refusal and never looks at the blast radius — and measured before this fix, fifty
+    /// asserts the refusal and never looks at the blast radius - and measured before this fix, fifty
     /// unforced double-submits revoked the winner's grant fifty times out of fifty. An HTTP retry
     /// after a lost response is indistinguishable from a double-click, and neither is an attack.
     /// </remarks>
@@ -734,7 +734,7 @@ public sealed class AuthorizationCodeFlowTests
     /// </summary>
     /// <remarks>
     /// The control for the test above. Without it, "duplicate does not revoke" would pass against a
-    /// server that never revokes at all — which is §4.1.3's SHOULD deleted.
+    /// server that never revokes at all - which is §4.1.3's SHOULD deleted.
     /// </remarks>
     [Fact]
     public async Task A_replay_outside_the_retry_window_revokes_the_grant()
@@ -747,7 +747,7 @@ public sealed class AuthorizationCodeFlowTests
 
         // Past the 10-second retry window but inside the code's one-minute lifetime. Advancing
         // further would hit the expiry check first, which fires BEFORE redemption and deliberately
-        // does not revoke — so the test would pass for the wrong reason and prove nothing about
+        // does not revoke - so the test would pass for the wrong reason and prove nothing about
         // replay. That ordering is N-07: an expired code must not be a way to kill a session.
         fixture.Clock.Advance(TimeSpan.FromSeconds(30));
 
@@ -788,7 +788,7 @@ public sealed class AuthorizationCodeFlowTests
     /// <remarks>
     /// It was computed from <c>TimeProvider.System</c> while <c>exp</c> came from the injected one.
     /// Measured with a ten-hour offset: <c>expires_in</c> of 37799 against an <c>exp - iat</c> of
-    /// 1800 — a client trusting it uses a dead token for ten hours; with the offset reversed it
+    /// 1800 - a client trusting it uses a dead token for ten hours; with the offset reversed it
     /// clamps to zero and the client refresh-loops.
     /// </remarks>
     [Fact]
@@ -842,8 +842,8 @@ public sealed class AuthorizationCodeFlowTests
 
     /// <summary>An unknown refresh token is exactly <c>invalid_grant</c>.</summary>
     /// <remarks>
-    /// The string matters: Anthropic's guidance is explicit that a client branches on it — "not
-    /// <c>invalid_request</c> or a custom code" — and one that cannot recognise a dead refresh token
+    /// The string matters: Anthropic's guidance is explicit that a client branches on it - "not
+    /// <c>invalid_request</c> or a custom code" - and one that cannot recognise a dead refresh token
     /// has no recovery path.
     /// </remarks>
     [Fact]
@@ -945,7 +945,7 @@ public sealed class AuthorizationCodeFlowTests
         var response = await fixture.Client.GetAsync(Authorize());
 
         // The fixture's policy says AlreadyGranted and the client is public, so the guard the
-        // endpoint composes around it must turn that into Required — a consent page, not a code.
+        // endpoint composes around it must turn that into Required - a consent page, not a code.
         Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
         Assert.StartsWith("/consent?returnUrl=", response.Headers.Location!.ToString(), StringComparison.Ordinal);
     }
@@ -955,7 +955,7 @@ public sealed class AuthorizationCodeFlowTests
     /// </summary>
     /// <remarks>
     /// The control for the test above. Without it, that one passes just as well against an endpoint
-    /// that shows the consent page unconditionally — which would assert nothing about the guard.
+    /// that shows the consent page unconditionally - which would assert nothing about the guard.
     /// </remarks>
     [Fact]
     public async Task A_confidential_client_with_standing_consent_is_not_asked_again()

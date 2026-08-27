@@ -12,14 +12,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>
-/// <c>/logout</c> — the endpoint this server advertised for its whole history and never routed.
+/// <c>/logout</c> - the endpoint this server advertised for its whole history and never routed.
 /// </summary>
 /// <remarks>
 /// <para>
 /// <c>AuthorizationServerPaths.EndSession</c>, <c>AuthorizationServerOptions.EndSessionEnabled</c>
 /// and <c>AuthorizationServerMetadata.EndSessionEndpoint</c> all existed, <c>MetadataBuilder</c>
 /// published the URL when the flag was set, and nothing mapped the path. A deployment turning the
-/// flag on put an <c>end_session_endpoint</c> in both discovery documents pointing at a 404 — the
+/// flag on put an <c>end_session_endpoint</c> in both discovery documents pointing at a 404 - the
 /// <c>N-06</c> failure, in the shape <c>N-06</c> is written about.
 /// </para>
 /// <para>
@@ -66,7 +66,7 @@ public sealed partial class LogoutFlowTests
     /// <remarks>
     /// A URL that ends a session on <c>GET</c> is one anybody can put in an <c>&lt;img src&gt;</c> on
     /// a page the user merely visits. It is denial of service against a person rather than a server,
-    /// which is why OIDC RP-Initiated Logout §2 says the provider SHOULD ask — and why this asserts
+    /// which is why OIDC RP-Initiated Logout §2 says the provider SHOULD ask - and why this asserts
     /// the session is still there afterwards rather than only that a form was drawn.
     /// </remarks>
     [Fact]
@@ -190,7 +190,7 @@ public sealed partial class LogoutFlowTests
     /// </summary>
     /// <remarks>
     /// <see cref="TestUserSession"/> hands a session over regardless of what the browser holds, so a
-    /// sign-out test built on it would pass with <c>SignOutAsync</c> deleted — the page would still
+    /// sign-out test built on it would pass with <c>SignOutAsync</c> deleted - the page would still
     /// say "Signed out" and the cookie would still be there. Only the real handler can be asked
     /// whether the cookie went away.
     /// </remarks>

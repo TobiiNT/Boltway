@@ -29,7 +29,7 @@ public sealed class RedirectUriMatcherTests
     /// <remarks>
     /// A request refused at parse counts as "no", and is a strictly stronger refusal than one that
     /// parses and then fails to match. The negative rows care about the outcome, not which of the
-    /// two layers produced it — pinning the layer would make the test fail every time a check moved
+    /// two layers produced it - pinning the layer would make the test fail every time a check moved
     /// earlier, which is the direction we want checks to move.
     /// </remarks>
     private static bool Reaches(string registered, string requested)
@@ -67,7 +67,7 @@ public sealed class RedirectUriMatcherTests
     // fail. Simple String Comparison, RFC 3986 §6.2.1.
     [InlineData("https://claude.ai/api/mcp/auth_callback", "https://claude.ai/API/MCP/auth_callback")]
     // Default port written explicitly. System.Uri.AbsoluteUri would elide the :443 and make these
-    // equal — which is exactly the normalization that widens an allowlist, and exactly why
+    // equal - which is exactly the normalization that widens an allowlist, and exactly why
     // Uri.AbsoluteUri is on the banned list.
     [InlineData("https://claude.ai/cb", "https://claude.ai:443/cb")]
     // Trailing slash is a different path.
@@ -76,7 +76,7 @@ public sealed class RedirectUriMatcherTests
     [InlineData("https://claude.ai/cb", "https://claude.ai/a/../cb")]
     // Percent-encoded traversal. AbsolutePath would decode %2e%2e to .. and then resolve it.
     [InlineData("https://claude.ai/cb", "https://claude.ai/a/%2e%2e/cb")]
-    // A different host that merely starts the same — the classic prefix-match bug.
+    // A different host that merely starts the same - the classic prefix-match bug.
     [InlineData("https://claude.ai/cb", "https://claude.ai.evil.example/cb")]
     // Subdomain is not the registered host.
     [InlineData("https://claude.ai/cb", "https://evil.claude.ai/cb")]
@@ -130,7 +130,7 @@ public sealed class RedirectUriMatcherTests
     //
     // These four rows caught a real defect. IPAddress.IsLoopback accepts the whole 127.0.0.0/8
     // block and parses 127.1, 0x7f.1 and 2130706433 into it, so the matcher deliberately never
-    // calls it — but measurement on .NET 10 showed System.Uri performing the SAME normalization one
+    // calls it - but measurement on .NET 10 showed System.Uri performing the SAME normalization one
     // layer earlier, so Uri.Host answered "127.0.0.1" for every one of these and the careful
     // literal comparison downstream was comparing an already-widened value. The host is now cut out
     // of the raw request bytes instead. Without that fix these three rows pass a match.
@@ -185,7 +185,7 @@ public sealed class RedirectUriMatcherTests
         // The gate reads `registration.Kind != Loopback || requested.Kind != Loopback`, and
         // mutation testing turned that `||` into `&&` without a single test noticing. Under `&&`
         // the branch runs whenever EITHER side is loopback, and the body compares only host and
-        // path — so a registration for https://localhost/cb would be satisfied by
+        // path - so a registration for https://localhost/cb would be satisfied by
         // http://localhost:3000/cb: a scheme downgrade to cleartext plus a port the client never
         // registered, handed an authorization code.
         //
@@ -206,7 +206,7 @@ public sealed class RedirectUriMatcherTests
     [InlineData("file:///etc/passwd", RedirectUriError.SchemeNotAllowed)]
     [InlineData("callback", RedirectUriError.NotAbsolute)]
     // On Unix, Uri.TryCreate parses a leading-slash path as an absolute file:// URI, so this
-    // reaches the raw splitter — which finds no ':' and reports it as what it is.
+    // reaches the raw splitter - which finds no ':' and reports it as what it is.
     [InlineData("/relative/cb", RedirectUriError.NotAbsolute)]
     [InlineData("", RedirectUriError.Malformed)]
     [InlineData("http://127.0.0.1:0/callback", RedirectUriError.PortOutOfRange)]

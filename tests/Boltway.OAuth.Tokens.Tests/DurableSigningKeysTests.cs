@@ -7,7 +7,7 @@ namespace Boltway.OAuth.Tokens.Tests;
 
 /// <summary>
 /// Reading a key ring out of a secret. Every test here is a way a deployment can come up
-/// holding keys that look fine and sign tokens nobody can verify — which surfaces to a user
+/// holding keys that look fine and sign tokens nobody can verify - which surfaces to a user
 /// as <c>invalid_token</c> on a session that worked a minute ago, and reads as their fault.
 /// </summary>
 public sealed class DurableSigningKeysTests
@@ -58,7 +58,7 @@ public sealed class DurableSigningKeysTests
         var error = Assert.Throws<InvalidOperationException>(
             () => DurableSigningKeys.Parse(Ring(Entry("next", "pending"))));
 
-        // The ring would throw too, but only once something asked it to sign — by which time
+        // The ring would throw too, but only once something asked it to sign - by which time
         // the server has started, passed its health check and been sent traffic.
         Assert.Contains("No signing key is `active`", error.Message, StringComparison.Ordinal);
         Assert.Contains("next=pending", error.Message, StringComparison.Ordinal);
@@ -70,7 +70,7 @@ public sealed class DurableSigningKeysTests
         // Active, published, and unable to sign anything this server issues. It used to parse:
         // the server started, served a JWKS full of EC keys, passed its health probe, was sent
         // traffic, and then answered every token request with an uncaught exception from inside
-        // the minter — three hops from the configuration that caused it.
+        // the minter - three hops from the configuration that caused it.
         var error = Assert.Throws<InvalidOperationException>(() => DurableSigningKeys.Parse(
             Ring(Entry("es-1", alg: "ES256", pem: ECDsa.Create(ECCurve.NamedCurves.nistP256).ExportPkcs8PrivateKeyPem()))));
 
@@ -84,7 +84,7 @@ public sealed class DurableSigningKeysTests
     [Fact]
     public void An_ES256_key_beside_an_active_RS256_one_is_welcome()
     {
-        // ES256 is not unwelcome in the ring — the verifier accepts it, and holding a key the
+        // ES256 is not unwelcome in the ring - the verifier accepts it, and holding a key the
         // verifier accepts is what makes a rotation across algorithms possible one day. The rule
         // is only that something has to be able to sign what this server issues today.
         var keys = DurableSigningKeys.Parse(Ring(
@@ -139,7 +139,7 @@ public sealed class DurableSigningKeysTests
     public void A_pem_that_lost_its_line_endings_still_works()
     {
         // Measured, against the intuition. The obvious worry about a multi-line secret in an
-        // environment variable is that the newlines are eaten — they are, routinely, and
+        // environment variable is that the newlines are eaten - they are, routinely, and
         // ImportFromPem does not care. Asserting it here so nobody spends an afternoon on it.
         var flattened = Pem().Replace("\n", string.Empty, StringComparison.Ordinal);
         var crlf = Pem().Replace("\n", "\r\n", StringComparison.Ordinal);

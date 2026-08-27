@@ -1,7 +1,7 @@
 // The MCP side: a resource server that accepts access tokens from the sample authorization server.
 //
-// What it is here to show is the handshake Claude actually performs — 401 with a pointer, fetch the
-// pointer, discover the authorization server, come back with a token — and that the resource server
+// What it is here to show is the handshake Claude actually performs - 401 with a pointer, fetch the
+// pointer, discover the authorization server, come back with a token - and that the resource server
 // half needs no reference to the authorization server half.
 //
 //   dotnet run --project samples/Boltway.Sample.ResourceServer
@@ -39,7 +39,7 @@ if (!IssuerString.TryCreate(AuthorizationServer, out var issuer, out var issuerE
 // redirects are not followed, and there is a per-origin budget.
 //
 // DEV: AllowPrivateAddresses, because the sample authorization server is on loopback and the
-// address check refuses that by default — rightly, since it is what stops an operator-configured
+// address check refuses that by default - rightly, since it is what stops an operator-configured
 // URL from turning this process into a port scanner. A deployment leaves it clear.
 var upstream = new UpstreamEndpointClient(new UpstreamEndpointClientOptions
 {
@@ -56,13 +56,13 @@ builder.Services.AddBoltwayProtectedResource(options =>
     options.Resource = Resource;
     options.ResourceName = "Boltway sample MCP server";
 
-    // One authorization server, deliberately — it is both the expected `iss` on every token and the
+    // One authorization server, deliberately - it is both the expected `iss` on every token and the
     // single entry in the published metadata. There is no way to list a second, because advertising
     // an issuer whose tokens this server would then refuse presents as a successful sign-in
     // followed by a permanent 401.
     options.AuthorizationServer = AuthorizationServer;
 
-    // Read by a client when a 401 challenge carries no `scope` of its own. Not `offline_access` —
+    // Read by a client when a 401 challenge carries no `scope` of its own. Not `offline_access` -
     // that is an authorization-server concern and the MCP specification says a protected resource
     // should not list it.
     options.ScopesSupported.Add("stories.read");
@@ -85,7 +85,7 @@ var app = builder.Build();
 // Once, before serving, so the first request does not arrive at an empty key set. Failing here is
 // the point: a resource server that starts with no keys serves 401 to every caller holding a
 // perfectly good token, and that presents as an authentication problem rather than as the startup
-// ordering problem it is. Start the authorization server first — see samples/README.md.
+// ordering problem it is. Start the authorization server first - see samples/README.md.
 var warm = await signingKeys.RefreshAsync(CancellationToken.None);
 
 if (warm.Outcome is not JwksRefreshOutcome.Refreshed)

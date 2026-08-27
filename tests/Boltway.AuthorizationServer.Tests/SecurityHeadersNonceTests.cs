@@ -46,7 +46,7 @@ public sealed partial class SecurityHeadersNonceTests
     /// </summary>
     /// <remarks>
     /// The shipped pages have no inline content, so a nonce would be a token in a header that
-    /// nothing uses — and a <c>script-src</c> naming it would replace the <c>default-src</c>
+    /// nothing uses - and a <c>script-src</c> naming it would replace the <c>default-src</c>
     /// fallback for scripts, which is a change to what the page may load made for no reason.
     /// </remarks>
     [Fact]
@@ -86,7 +86,7 @@ public sealed partial class SecurityHeadersNonceTests
     /// <remarks>
     /// Naming <c>script-src</c> replaces the <c>default-src</c> fallback for scripts entirely, so
     /// dropping <c>'self'</c> from it would stop the deployment's own stylesheet and script files
-    /// loading the moment a nonce was switched on — an unstyled page with a perfectly working nonce,
+    /// loading the moment a nonce was switched on - an unstyled page with a perfectly working nonce,
     /// and nothing connecting the two.
     /// </remarks>
     [Fact]
@@ -112,7 +112,7 @@ public sealed partial class SecurityHeadersNonceTests
     /// <summary>The directives a nonce must never bring with it.</summary>
     /// <remarks>
     /// A nonce is the alternative to <c>'unsafe-inline'</c>, not a step toward it. With a nonce
-    /// present a CSP2 browser ignores <c>'unsafe-inline'</c> anyway — so emitting both would be a
+    /// present a CSP2 browser ignores <c>'unsafe-inline'</c> anyway - so emitting both would be a
     /// policy that reads as permissive, behaves as strict, and misleads whoever audits it next.
     /// </remarks>
     [Fact]
@@ -147,7 +147,7 @@ public sealed partial class SecurityHeadersNonceTests
     /// </summary>
     /// <remarks>
     /// The property the whole mechanism rests on. A nonce reused across responses is a nonce an
-    /// attacker who has seen one page can put on their own injected script — which is every
+    /// attacker who has seen one page can put on their own injected script - which is every
     /// protection gone, with the header still looking exactly right. These pages send
     /// <c>Cache-Control: no-store</c>, which is what stops a cache reintroducing the reuse that
     /// this proves the server does not.
@@ -168,7 +168,7 @@ public sealed partial class SecurityHeadersNonceTests
         Assert.DoesNotContain(string.Empty, seen);
         Assert.Equal(5, seen.Distinct(StringComparer.Ordinal).Count());
 
-        // 16 bytes, base64url — 22 characters. Short of that is a generator someone shortened.
+        // 16 bytes, base64url - 22 characters. Short of that is a generator someone shortened.
         Assert.All(seen, nonce => Assert.True(nonce.Length >= 22, $"'{nonce}' is {nonce.Length} characters."));
     }
 
@@ -182,7 +182,7 @@ public sealed partial class SecurityHeadersNonceTests
     /// <remarks>
     /// The end of the plumbing, and the only part that cannot be checked without an HTTP round trip:
     /// <c>SecurityHeaders</c> mints it, the endpoint reads it onto the view model, the renderer
-    /// copies it onto <c>InteractionPage</c>, and the layout writes it into an attribute — while the
+    /// copies it onto <c>InteractionPage</c>, and the layout writes it into an attribute - while the
     /// header is written separately, at commit time. Two values that must be one.
     /// </remarks>
     [Fact]
@@ -245,8 +245,8 @@ public sealed partial class SecurityHeadersNonceTests
     /// A widened <c>form-action</c> and a nonce compose rather than displacing each other.
     /// </summary>
     /// <remarks>
-    /// They are set at different moments — the redirect origin is learned mid-pipeline and parked,
-    /// the nonce is minted at the top of the handler — and both are read at commit time. A builder
+    /// They are set at different moments - the redirect origin is learned mid-pipeline and parked,
+    /// the nonce is minted at the top of the handler - and both are read at commit time. A builder
     /// that handled one branch at a time would drop whichever was written second, and the symptom
     /// would be a sign-in that completes and delivers no code.
     /// </remarks>

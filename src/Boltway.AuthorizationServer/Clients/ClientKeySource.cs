@@ -40,8 +40,8 @@ public sealed class ClientKeySourceOptions
     /// </summary>
     /// <remarks>
     /// <b>What bounds the unknown-<c>kid</c> trigger.</b> That trigger is reachable by anyone who
-    /// can reach the token endpoint — a syntactically valid assertion naming a random <c>kid</c>
-    /// costs nothing to make — so without a floor it is an outbound request per inbound request,
+    /// can reach the token endpoint - a syntactically valid assertion naming a random <c>kid</c>
+    /// costs nothing to make - so without a floor it is an outbound request per inbound request,
     /// aimed at somebody else's origin. The same shape
     /// <c>OidcProviderOptions.JwksMinimumRefreshInterval</c> bounds upstream.
     /// </remarks>
@@ -52,7 +52,7 @@ public sealed class ClientKeySourceOptions
     /// The trade, stated: for up to this long an origin that is unreachable does not stop its
     /// client's users authenticating, and equally a client that has retired a key keeps being
     /// verified against it. Bounded by the transient-outcome test below, so a document that was
-    /// fetched and found unusable is <b>not</b> covered — only one that could not be fetched.
+    /// fetched and found unusable is <b>not</b> covered - only one that could not be fetched.
     /// </remarks>
     public TimeSpan StaleTolerance { get; set; } = TimeSpan.FromHours(1);
 
@@ -73,7 +73,7 @@ public readonly record struct ClientKeys(IReadOnlyList<SecurityKey> Keys, string
 /// <b>Not <c>JwksKeySource</c>, and the difference is who chose the URL.</b> That type reads the
 /// authorization server's keys from an operator-configured issuer and goes through
 /// <c>UpstreamEndpointClient</c>. This one dereferences a <c>jwks_uri</c> that arrived inside a
-/// document fetched from a host an attacker picked, so it goes through <c>ISafeHttpFetcher</c> —
+/// document fetched from a host an attacker picked, so it goes through <c>ISafeHttpFetcher</c> -
 /// the CIMD-grade fetcher, with the tighter budgets and the per-host governor.
 /// <c>FetchPurpose.JwksUri</c> has existed unused for exactly this caller.
 /// </para>
@@ -86,7 +86,7 @@ public readonly record struct ClientKeys(IReadOnlyList<SecurityKey> Keys, string
 /// abandoned.
 /// </para>
 /// <para>
-/// <b>Everything here is per process</b> — the cache, the refresh floor. A fleet of <i>n</i>
+/// <b>Everything here is per process</b> - the cache, the refresh floor. A fleet of <i>n</i>
 /// replicas holds <i>n</i> caches and admits <i>n</i> times the refresh rate against a client's
 /// origin.
 /// </para>
@@ -156,7 +156,7 @@ public sealed class ClientKeySource(ISafeHttpFetcher fetcher, TimeProvider time,
         }
         catch (ArgumentException ex)
         {
-            // Fetched and unusable, which is the client's problem rather than a transient one — so
+            // Fetched and unusable, which is the client's problem rather than a transient one - so
             // no stale fallback. See Fallback for why the two are separated.
             return new ClientKeys([], $"The client's key set could not be parsed: {ex.GetType().Name}.");
         }
@@ -204,7 +204,7 @@ public sealed class ClientKeySource(ISafeHttpFetcher fetcher, TimeProvider time,
             return;
         }
 
-        // The key is attacker-chosen — every distinct jwks_uri that resolves is an entry — so the
+        // The key is attacker-chosen - every distinct jwks_uri that resolves is an entry - so the
         // map is bounded. Oldest fetch first, which is the cheapest defensible order and is not
         // load-bearing: the cap is about memory, and a wrongly evicted entry costs one refetch.
         foreach (var stale in _cache.OrderBy(e => e.Value.FetchedAt).Take(_cache.Count - _options.MaxCachedClients))

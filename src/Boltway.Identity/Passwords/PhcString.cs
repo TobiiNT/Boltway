@@ -3,7 +3,7 @@ using System.Globalization;
 namespace Boltway.Identity.Passwords;
 
 /// <summary>A stored password hash, decomposed.</summary>
-/// <param name="Parameters">The cost this hash was produced with — <b>not</b> the current configuration.</param>
+/// <param name="Parameters">The cost this hash was produced with - <b>not</b> the current configuration.</param>
 /// <param name="Salt">The salt, as stored.</param>
 /// <param name="Hash">The tag, as stored.</param>
 public sealed record DecodedPasswordHash(Argon2idParameters Parameters, byte[] Salt, byte[] Hash);
@@ -17,14 +17,14 @@ public sealed record DecodedPasswordHash(Argon2idParameters Parameters, byte[] S
 /// verification to use whatever the configuration says today, so the day an operator raises the cost
 /// is the day every existing password stops verifying. Carrying <c>m</c>, <c>t</c>, <c>p</c>, the
 /// salt and the algorithm tag alongside the digest is what makes a cost increase a deploy rather
-/// than a mass password reset — and it is why <see cref="Argon2idPasswordHasher.Verify"/> reads its
+/// than a mass password reset - and it is why <see cref="Argon2idPasswordHasher.Verify"/> reads its
 /// parameters from here and never from the hasher's own configuration.
 /// </para>
 /// <para>
 /// <b>Why this format rather than one of our own.</b> It is what the Argon2 reference implementation
 /// emits and what libsodium, passlib, and the Go and Rust implementations read. A customer migrating
 /// onto this server can bring their existing column across, and one migrating away is not locked in
-/// by a bespoke encoding. The alternative — a private format — costs the same code and gives that up.
+/// by a bespoke encoding. The alternative - a private format - costs the same code and gives that up.
 /// </para>
 /// <para>
 /// The base64 is RFC 4648 §4 <b>without padding</b>, which is what the PHC specification requires
@@ -58,7 +58,7 @@ public static class PhcString
     /// Returns <see langword="false"/> rather than throwing, on anything malformed. The caller is a
     /// login endpoint reading a database column: a row in a format we do not recognise must fail the
     /// login, not return a 500 that an attacker can provoke and read as a signal. The cost of that
-    /// choice is that genuine corruption is silent here, which is why the decoded form is public —
+    /// choice is that genuine corruption is silent here, which is why the decoded form is public -
     /// an operator tool can call this and tell the two apart.
     /// </remarks>
     public static bool TryParse(string? encoded, out DecodedPasswordHash? decoded)
@@ -106,7 +106,7 @@ public static class PhcString
     /// </summary>
     /// <remarks>
     /// Order-sensitive on purpose. The PHC specification lets a producer order the parameters as it
-    /// likes, and accepting any order would mean two different strings encode one hash — so the
+    /// likes, and accepting any order would mean two different strings encode one hash - so the
     /// string a re-encode produces would not always equal the string that was stored, and
     /// "is this the current configuration?" would have to be answered by comparing parsed values
     /// rather than by comparing text. Every implementation writes <c>m,t,p</c>; reading only that
@@ -173,7 +173,7 @@ public static class PhcString
         decoded = null;
 
         // Bounded before anything is allocated. The input is a database column, and the padding
-        // step below concatenates — so the length check has to come first or a very long field is a
+        // step below concatenates - so the length check has to come first or a very long field is a
         // large allocation on the login path. 86 characters is the unpadded encoding of MaxLength.
         const int MaxEncodedLength = 86;
 

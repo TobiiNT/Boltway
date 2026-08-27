@@ -1,7 +1,7 @@
 # The one place `SECURITY.md`'s first instruction reaches the person it is written for.
 #
 # That file opens with **"Do not open a public issue"** and names the private advisory form. A
-# person about to report a vulnerability has, at that moment, clicked New Issue — and nothing on
+# person about to report a vulnerability has, at that moment, clicked New Issue - and nothing on
 # that page had ever mentioned it. A rule that is only in a file somebody has to already have read
 # is a rule enforced by luck; this puts it in the path of the click it is about, which is the same
 # reasoning this repository applies to a refusal naming its boundary rather than returning empty.
@@ -9,7 +9,7 @@
 # `blank_issues_enabled: true` deliberately. `SECURITY.md` tells a reporter who cannot use the
 # private form to open a public issue *with no detail* and say so, and turning blank issues off
 # would close the fallback its own policy depends on. It also keeps an ordinary bug one click away:
-# this project has no issue forms and does not want the ceremony of them — the link below is the
+# this project has no issue forms and does not want the ceremony of them - the link below is the
 # only thing here that has to exist.
 blank_issues_enabled: true
 

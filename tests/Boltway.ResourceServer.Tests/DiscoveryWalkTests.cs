@@ -10,8 +10,8 @@ namespace Boltway.ResourceServer.Tests;
 /// <remarks>
 /// <para>
 /// Every step here is asserted somewhere else in this assembly in isolation. This file exists
-/// because the audit's finding was not that any piece was wrong — the challenge builder and the
-/// validation parameters were both complete and unit-tested — but that nothing joined them up, so
+/// because the audit's finding was not that any piece was wrong - the challenge builder and the
+/// validation parameters were both complete and unit-tested - but that nothing joined them up, so
 /// no test had ever followed the pointer from one to the next. A chain of individually correct
 /// links is not a chain until something pulls on it.
 /// </para>
@@ -36,7 +36,7 @@ public sealed class DiscoveryWalkTests
 
         Assert.Equal(HttpStatusCode.Unauthorized, unauthenticated.StatusCode);
 
-        // Step 2. Read the pointer out of the challenge. Nothing here is constructed by the test —
+        // Step 2. Read the pointer out of the challenge. Nothing here is constructed by the test -
         // the URL is whatever the server said it was, which is the point.
         var metadataUrl = BearerChallengeTests.Parameter(unauthenticated, "resource_metadata");
 
@@ -72,7 +72,7 @@ public sealed class DiscoveryWalkTests
 
         Assert.Contains(Build.ToolScope, scope!.Split(' '), StringComparer.Ordinal);
 
-        // Steps 7-9 — /authorize, consent, /token — happen at the authorization server and are
+        // Steps 7-9 - /authorize, consent, /token - happen at the authorization server and are
         // covered by Boltway.AuthorizationServer.Tests. What arrives back here is a token
         // whose iss is the issuer this document named and whose aud is the resource it named. That
         // is what the minter is handed below: not a token the test invented, but one built from the
@@ -95,7 +95,7 @@ public sealed class DiscoveryWalkTests
     public async Task The_fallback_probe_finds_the_document_without_the_pointer()
     {
         // C-26: when a challenge carries no resource_metadata, Claude probes the MCP server's
-        // origin — the path-inserted form first, then the root form. This server always emits the
+        // origin - the path-inserted form first, then the root form. This server always emits the
         // pointer, so this is the belt to that braces: a client that ignores the header, or a proxy
         // that strips it, still lands on the document.
         await using var fixture = await ResourceServerFixture.StartAsync();
@@ -116,7 +116,7 @@ public sealed class DiscoveryWalkTests
     {
         // Which of the two shapes the pointer names is not arbitrary. RFC 9728 §3.1 makes the
         // path-inserted URL the normative location for an identifier that has a path, and it is the
-        // only one whose §3.3 identity check succeeds — a client fetching the root form finds a
+        // only one whose §3.3 identity check succeeds - a client fetching the root form finds a
         // `resource` of https://mcp.example.com/mcp where it inserted into
         // https://mcp.example.com, and is required to discard the document. The root form is a
         // compatibility probe; the pointer names the answer.

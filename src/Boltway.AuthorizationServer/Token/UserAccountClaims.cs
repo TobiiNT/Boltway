@@ -27,7 +27,7 @@ namespace Boltway.AuthorizationServer.Token;
 /// <para>
 /// It cannot overwrite a protocol claim. <c>JwtTokenMinter</c> refuses that with an
 /// exception rather than a silent skip, which is what stops this interface from being an
-/// escalation seam — a mapper able to set <c>sub</c> or <c>scope</c> would be one.
+/// escalation seam - a mapper able to set <c>sub</c> or <c>scope</c> would be one.
 /// </para>
 /// </summary>
 public sealed class UserAccountClaims(IUserStore users, IRoleStore roles) : IAccessTokenClaims
@@ -41,8 +41,8 @@ public sealed class UserAccountClaims(IUserStore users, IRoleStore roles) : IAcc
     {
         var account = await _users.FindBySubjectAsync(subject, ct);
 
-        // Not an error. A grant can outlive the account it was issued for — a user deleted
-        // between sign-in and refresh — and failing the token exchange here would turn a
+        // Not an error. A grant can outlive the account it was issued for - a user deleted
+        // between sign-in and refresh - and failing the token exchange here would turn a
         // tidy-up into an outage on a path that has nothing to do with the deletion. The token
         // is still valid for what it says; it just says less.
         if (account is null) return Empty;
@@ -75,14 +75,14 @@ public sealed class UserAccountClaims(IUserStore users, IRoleStore roles) : IAcc
         {
             // An array, and one role does not collapse it to a string. A consumer branching on the
             // JSON type to read a claim is one that reads it wrong the day somebody is given a
-            // second role — and that day is invisible from here.
+            // second role - and that day is invisible from here.
             claims["role"] = account.Roles;
 
             // What the roles stand for, resolved here so the resource server does not have to ask.
             // Space-separated, the same shape as `scope`, because it is the same kind of thing: a
             // set of short tokens a server checks membership in.
             //
-            // Roles the realm no longer defines resolve to nothing rather than failing the mint —
+            // Roles the realm no longer defines resolve to nothing rather than failing the mint -
             // the same decision this mapper already makes for an account deleted mid-grant, and the
             // case a restore from an older backup produces. The account signs in holding less.
             var definitions = await _roles

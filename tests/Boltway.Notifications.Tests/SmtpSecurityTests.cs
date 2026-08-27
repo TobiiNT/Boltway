@@ -63,7 +63,7 @@ public sealed class SmtpSecurityTests
     /// </summary>
     /// <remarks>
     /// <c>StartTlsWhenAvailable</c> falls back to plaintext against a server that does not
-    /// advertise the extension — and stripping that advertisement is the whole attack, so the
+    /// advertise the extension - and stripping that advertisement is the whole attack, so the
     /// fallback is chosen by whoever is in the middle of the socket. The assertion is written
     /// against the exact enum member rather than "not None" because the difference between the two
     /// StartTls values is the entire point.
@@ -82,8 +82,8 @@ public sealed class SmtpSecurityTests
     /// Cloudflare Email Service, which is why this whole seam changed shape.
     /// </summary>
     /// <remarks>
-    /// It offers submission on 465 with implicit TLS and nothing else — no STARTTLS on 587, no
-    /// plaintext on 25 — so this row is the one the old boolean could not reach with any value.
+    /// It offers submission on 465 with implicit TLS and nothing else - no STARTTLS on 587, no
+    /// plaintext on 25 - so this row is the one the old boolean could not reach with any value.
     /// </remarks>
     [Fact]
     public void Cloudflare_needs_nothing_but_the_port()

@@ -8,8 +8,8 @@ namespace Boltway.AuthorizationServer.Authorize;
 
 /// <summary>An authorization code, and the grant it will produce tokens for.</summary>
 /// <param name="Code">
-/// The plaintext, which exists only here and in the redirect. Nothing persists it — the store
-/// holds <see cref="Sha256Hash"/> — so a database read cannot yield a usable code.
+/// The plaintext, which exists only here and in the redirect. Nothing persists it - the store
+/// holds <see cref="Sha256Hash"/> - so a database read cannot yield a usable code.
 /// </param>
 /// <param name="GrantId">The grant the code redeems against.</param>
 public readonly record struct IssuedAuthorizationCode(OpaqueSecret Code, string GrantId);
@@ -27,7 +27,7 @@ public readonly record struct IssuedAuthorizationCode(OpaqueSecret Code, string 
 /// </para>
 /// <para>
 /// The grant is written before the code. If the process dies between the two, the result is a grant
-/// with no code — inert, and swept by expiry. The other order would leave a code pointing at a
+/// with no code - inert, and swept by expiry. The other order would leave a code pointing at a
 /// grant that does not exist, which the token endpoint would have to treat as a server error on an
 /// otherwise valid request.
 /// </para>
@@ -51,8 +51,8 @@ public sealed class AuthorizationCodeIssuer(
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        // These are programming errors rather than protocol errors — a caller reaching stage 11
-        // without them has skipped a stage — so they throw rather than producing an OAuth error.
+        // These are programming errors rather than protocol errors - a caller reaching stage 11
+        // without them has skipped a stage - so they throw rather than producing an OAuth error.
         var subject = context.Subject ?? throw new InvalidOperationException(
             "A code cannot be issued before the user is authenticated (stage 9).");
         var redirect = context.Redirect ?? throw new InvalidOperationException(

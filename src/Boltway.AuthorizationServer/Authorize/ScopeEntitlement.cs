@@ -28,8 +28,8 @@ public static class ScopeEntitlement
     /// turn into <c>invalid_scope</c>: the client asked for nothing this account can have.
     /// </returns>
     /// <remarks>
-    /// <b>An account the directory no longer has gets nothing.</b> It is reachable — a session
-    /// outlives the account it names — and the alternative, passing the request through unfiltered,
+    /// <b>An account the directory no longer has gets nothing.</b> It is reachable - a session
+    /// outlives the account it names - and the alternative, passing the request through unfiltered,
     /// would make deleting an account the way to obtain every scope.
     /// </remarks>
     public static async ValueTask<ScopeSet> FilterAsync(

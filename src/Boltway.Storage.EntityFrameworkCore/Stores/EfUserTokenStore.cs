@@ -38,7 +38,7 @@ internal sealed class EfUserTokenStore(
         catch (DbUpdateException duplicate)
         {
             // The primary key. Cannot happen with 256 bits of CSPRNG output, and the in-memory store
-            // throws here too — two implementations disagreeing on identical input is the thing
+            // throws here too - two implementations disagreeing on identical input is the thing
             // these contracts exist to prevent.
             throw new InvalidOperationException(
                 "A user token with this hash already exists. Tokens are add-only: overwriting one "
@@ -67,7 +67,7 @@ internal sealed class EfUserTokenStore(
         // is what makes a reset link single-use under a race rather than only under politeness.
         //
         // The read is scoped to the purpose as well, so a verification link presented at the reset
-        // endpoint is not found and — because the delete never runs — is not consumed either.
+        // endpoint is not found and - because the delete never runs - is not consumed either.
         var row = await context.UserTokens
             .SingleOrDefaultAsync(t => t.TokenHash == hash && t.Purpose == wanted, cancellationToken);
 

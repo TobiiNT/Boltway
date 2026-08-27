@@ -10,7 +10,7 @@ namespace Boltway.ResourceServer.Bearer;
 /// <para>
 /// Present on <see cref="HttpContext.Features"/> only when a token validated. There is no "invalid"
 /// state to check for, because the middleware never lets an unauthenticated request past a
-/// protected endpoint — so a handler that finds this feature knows the token was good, and one that
+/// protected endpoint - so a handler that finds this feature knows the token was good, and one that
 /// does not find it is on an anonymous endpoint.
 /// </para>
 /// <para>

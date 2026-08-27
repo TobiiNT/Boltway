@@ -7,7 +7,7 @@ namespace Boltway.Identity.Tests;
 /// <remarks>
 /// The same shape as the authorization server's <c>MovableClock</c>, and here rather than shared
 /// because this project has no reason to reference that test assembly. Holding the clock still is
-/// what makes the same-millisecond branch reachable on purpose instead of by luck — a real clock
+/// what makes the same-millisecond branch reachable on purpose instead of by luck - a real clock
 /// gives you that branch only when two mints happen to land in one tick.
 /// </remarks>
 internal sealed class FixedClock(DateTimeOffset start) : TimeProvider
@@ -163,18 +163,18 @@ public sealed class UlidTests
     {
         // One factory is shared across requests, so the read of the last timestamp and the increment
         // have to be one critical section. Without the lock two threads read the same randomness and
-        // mint the same subject — and a duplicate `sub` is two users sharing one identity.
+        // mint the same subject - and a duplicate `sub` is two users sharing one identity.
         //
         // The clock is held still deliberately: every thread lands in the same millisecond, which is
         // the branch with shared mutable state and therefore the only branch a race can be found in.
         //
-        // Eight dedicated threads released together by a Barrier, rather than Parallel.For — the
+        // Eight dedicated threads released together by a Barrier, rather than Parallel.For - the
         // same shape as GrantStoreContract.RunConcurrently, and for its stated reason: a Barrier
         // blocks the thread it runs on, so a thread-pool-backed version waits on the pool's slow
         // injection heuristic instead of genuinely colliding.
         //
         // It is also bounded rather than unbounded, which matters on a small machine. It was
-        // suspected of a second sin — that an unbounded contended loop here was starving the
+        // suspected of a second sin - that an unbounded contended loop here was starving the
         // loopback-TLS fetches in Boltway.OAuth.Net.Tests, which time out when the solution's
         // test projects run in parallel on a loaded box. That was measured and is NOT true: the
         // unmodified base fails the same fetch test under the same load with none of this present.

@@ -4,7 +4,7 @@
     python3 scripts/check-published-versions.py <packages-dir> <feed-owner>
 
 `dotnet nuget push --skip-duplicate` is what lets one run push the package whose version moved
-without failing on the fifteen whose version did not. That is worth keeping — versions here are
+without failing on the fifteen whose version did not. That is worth keeping - versions here are
 per-package, not per-tag. What it cannot tell you is *why* a version is already there: "unchanged,
 correctly skipped" and "changed, and the change is being dropped on the floor" are the same exit
 code.
@@ -15,7 +15,7 @@ The second one shipped, and it is worth being exact about how far it got:
     `ProtectedResourceOptions.SigningKeySource`. The feed already held a 0.1.0 from an earlier run,
     so the push skipped it and the workflow was green.
   - `Boltway.Mcp` 0.4.0 was packed in the same run and *was* new, so it was pushed. It calls
-    that setter, and a ProjectReference packs as a dependency on the referenced project's version —
+    that setter, and a ProjectReference packs as a dependency on the referenced project's version -
     which was 0.1.0. So a package that needs the new assembly shipped depending on the old one.
   - The downstream connector then built green, and its image built green, because the C# compiler never
     checks a call that lives inside an already-compiled dependency.
@@ -27,7 +27,7 @@ Nothing between the source change and the outage was red. This step is the check
 been.
 
 **Names, not bytes.** Two builds of the same source are not obliged to be byte-identical, and a
-check that goes red on a rebuild is a check somebody switches off — which would leave this worse
+check that goes red on a rebuild is a check somebody switches off - which would leave this worse
 than it is now. Every type, method and property name a .NET assembly defines or references is in
 its metadata `#Strings` heap, so comparing the *set of names* catches a member that appeared or
 vanished while staying quiet about a recompile. That is exactly the change that must not ship under
@@ -35,12 +35,12 @@ a version somebody has already restored.
 
 Verified against the outage above and against a rebuild, which is the pair that matters:
 `Boltway.ResourceServer 0.1.0` reports `get_SigningKeySource` and `set_SigningKeySource`
-added, and `Boltway.Mcp 0.4.0` — the same source built twice, once here and once on a runner —
+added, and `Boltway.Mcp 0.4.0` - the same source built twice, once here and once on a runner -
 reports no change at all.
 
 **And the nuspec's `<dependencies>`, because names alone miss the half of this that has no
 assembly.** A ProjectReference packs as a dependency on the referenced project's version, so a
-project whose own source never changed still needs a bump when something it references moves —
+project whose own source never changed still needs a bump when something it references moves -
 `Directory.Build.props` says exactly that, in the comment beside the number. When that bump is
 forgotten the packed nuspec names a newer dependency while every assembly in the package is
 byte-for-byte what is published: the name comparison above reports `unchanged`, the push skips, and
@@ -49,11 +49,11 @@ version that is merely old, and no amount of publishing the newer one can reach 
 
 That is the same outage as the one above seen from the other end. `Boltway.Mcp` was caught because
 its own version was new; a sibling package that only *referenced* the changed project would not have
-been caught by anything here at all. Comparing the element is cheap and exact — the nuspec is
+been caught by anything here at all. Comparing the element is cheap and exact - the nuspec is
 generated, so it does not churn between two builds of the same source the way a metadata heap can.
 
-Be clear about what that does not cover: a signature changed without any name changing — the same
-member taking an `int` where it took a `long` — has the same names and passes here, and is still a
+Be clear about what that does not cover: a signature changed without any name changing - the same
+member taking an `int` where it took a `long` - has the same names and passes here, and is still a
 `MissingMethodException` for a consumer. Comparing full signatures needs a metadata reader rather
 than a heap scan. This catches the two shapes that actually bit; it is not a compatibility checker.
 
@@ -102,13 +102,13 @@ def names(dll_bytes):
     builds of *identical source* differed by dozens of "names" like `&~A` and `*.s`. Everything
     would have been flagged, which is the same as nothing being flagged.
 
-    The `#Strings` heap is the real thing — NUL-separated UTF-8, holding every type, method,
+    The `#Strings` heap is the real thing - NUL-separated UTF-8, holding every type, method,
     property, field, namespace and referenced-assembly name, and nothing else. Walking the PE to
     reach it is a fixed sequence: the CLI header lives in data directory 14, the metadata root at
     its offset 8, and the stream headers follow the version string.
 
     Returns an empty set for anything that is not a managed assembly, and the caller treats that as
-    "nothing to compare" rather than as a difference — a native or resource-only DLL has no API
+    "nothing to compare" rather than as a difference - a native or resource-only DLL has no API
     surface this can speak about, and inventing one would be the failure this repository's own
     LESSONS.md is about.
     """
@@ -149,8 +149,8 @@ def names(dll_bytes):
             if name == b'#Strings':
                 heap = dll_bytes[root + offset:root + offset + size]
                 # Only what a consumer could bind to. The heap also holds every compiler-generated
-                # name — `<PrivateImplementationDetails>`, `<>c__DisplayClass10_0`,
-                # `<Prop>k__BackingField`, `<Method>d__6` — and those churn for reasons that are
+                # name - `<PrivateImplementationDetails>`, `<>c__DisplayClass10_0`,
+                # `<Prop>k__BackingField`, `<Method>d__6` - and those churn for reasons that are
                 # not API changes: closure classes are numbered in source order, so editing a
                 # method body renumbers the ones after it. Measured on two builds of identical
                 # source, that alone produced a difference and would have failed this check on
@@ -159,7 +159,7 @@ def names(dll_bytes):
                 # `<` and `>` are the whole filter, and they are exact rather than heuristic: the
                 # CLR permits them in metadata names and C# does not, which is precisely why the
                 # compiler uses them for names it does not want anybody binding to. What is left is
-                # the set a `MissingMethodException` can be about — and the members that caused
+                # the set a `MissingMethodException` can be about - and the members that caused
                 # this one, `get_SigningKeySource` and `set_SigningKeySource`, survive the filter.
                 return {
                     s for s in heap.split(b'\0')
@@ -201,7 +201,7 @@ def dependencies(nupkg_bytes):
     version, and moving that version changes nothing about the bytes in `lib/`.
 
     Grouped by target framework and kept in the comparison, because a dependency that moved from one
-    framework group to another is a real change to what a consumer resolves — flattening the groups
+    framework group to another is a real change to what a consumer resolves - flattening the groups
     would report that as no change at all.
 
     Returns an empty list for a package with no nuspec or no dependencies. Both compare equal to the
@@ -262,7 +262,7 @@ class DropAuthOnCrossHostRedirect(urllib.request.HTTPRedirectHandler):
 
     GitHub Packages answers a download with a 302 to blob storage, where the authorization is a
     signature in the query string. urllib replays every header on a redirect by default, so the
-    Authorization header arrives too and the storage account rejects the whole request — a 403 that
+    Authorization header arrives too and the storage account rejects the whole request - a 403 that
     reads exactly like a bad token. Measured: it is not; the same token works on the first hop.
 
     Dropping it is also the part worth keeping on purpose. A redirect is a target the feed chose,
@@ -290,7 +290,7 @@ def fetch(url, auth_header=None):
     """The bytes at `url`, or None when the feed answers 404.
 
     404 is the answer that means "new"; anything else is raised, because a feed that cannot be read
-    is not evidence that a version is absent — that is the whole failure mode this file exists to
+    is not evidence that a version is absent - that is the whole failure mode this file exists to
     close, one layer up.
     """
     headers = {'Authorization': auth_header} if auth_header else {}
@@ -362,7 +362,7 @@ def dependency_changes(fresh, published):
     """What moved in the nuspec's `<dependencies>` element, as readable lines.
 
     Both sides are printed in full rather than as a count. A dependency drift is almost always one
-    version number in one line, and the whole question a reader has is "from what, to what" — a
+    version number in one line, and the whole question a reader has is "from what, to what" - a
     summary saying `1 added, 1 removed` would make them download both packages to answer it.
     """
     added = sorted(set(fresh) - set(published))

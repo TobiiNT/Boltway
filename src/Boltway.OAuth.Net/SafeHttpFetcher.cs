@@ -15,7 +15,7 @@ public sealed class SafeHttpFetcherOptions
     /// </summary>
     /// <remarks>
     /// Deliberately small. The CIMD fetch happens <i>inside</i> <c>/authorize</c>, and the client
-    /// treats the whole authorization step as terminal after about ten seconds — so an outbound
+    /// treats the whole authorization step as terminal after about ten seconds - so an outbound
     /// fetch that takes longer than a few seconds has already cost the user the flow, and failing
     /// fast leaves room to serve a stale cache entry instead.
     /// </remarks>
@@ -36,7 +36,7 @@ public sealed class SafeHttpFetcherOptions
     /// <para>
     /// <b>The guard is at the DI registration, not here.</b> <c>AddCimdClientResolver</c> refuses to
     /// build a fetcher with this set unless <c>IHostEnvironment.IsDevelopment()</c>. A caller who
-    /// constructs <see cref="SafeHttpFetcher"/> directly — as the test suite deliberately does — is
+    /// constructs <see cref="SafeHttpFetcher"/> directly - as the test suite deliberately does - is
     /// not covered, and cannot be.
     /// </para>
     /// <para>
@@ -66,14 +66,14 @@ public sealed class SafeHttpFetcherOptions
     /// through <i>this</i> client: a resolved document is cached for at least 300 s (S-30's floor),
     /// so one legitimate <c>client_id</c> costs at most one fetch per five minutes <i>per instance</i>.
     /// Sixty a minute therefore leaves room for roughly three hundred distinct clients published on
-    /// one host to all refresh inside the same minute — which no vendor arrangement resembles, since
-    /// the two live vendors publish two documents each — while capping what one instance can be made
+    /// one host to all refresh inside the same minute - which no vendor arrangement resembles, since
+    /// the two live vendors publish two documents each - while capping what one instance can be made
     /// to send at one victim.
     /// </para>
     /// <para>
     /// <b>Per instance, and per client.</b> A fleet of <i>n</i> replicas will send up to <i>n</i>
     /// times this. <see cref="UpstreamEndpointClient"/> carries its own, separate budget, so the two
-    /// do not share a counter — see the note there for why that is right rather than an oversight.
+    /// do not share a counter - see the note there for why that is right rather than an oversight.
     /// </para>
     /// </remarks>
     public int MaxFetchesPerHostPerWindow { get; set; } = 60;
@@ -102,7 +102,7 @@ public sealed class SafeHttpFetcherOptions
     /// server's, which drives a federation flow against a loopback identity provider it stands up
     /// itself. It exists because the alternatives are worse: without it the only tests that can run
     /// are ones refused at the address check, which is exactly how the first version of this suite
-    /// ended up never completing a single fetch — so <c>TooLarge</c>, <c>Timeout</c>,
+    /// ended up never completing a single fetch - so <c>TooLarge</c>, <c>Timeout</c>,
     /// <c>Redirected</c> and <c>NotOk</c> were all unreachable, and the test claiming to prove
     /// connect-pinning proved nothing because <c>SendAsync</c> was never called.
     /// <para>
@@ -146,7 +146,7 @@ public sealed class SafeHttpFetcher : ISafeHttpFetcher, IDisposable
     /// <param name="time">
     /// The clock the outbound budget counts on. Injected so the window is testable without sleeping;
     /// <see cref="TimeProvider.System"/> when a caller does not supply one, which is the case only
-    /// for a hand-constructed fetcher — the DI registration passes the host's.
+    /// for a hand-constructed fetcher - the DI registration passes the host's.
     /// </param>
     public SafeHttpFetcher(
         SafeHttpFetcherOptions? options = null, IAddressResolver? resolver = null, TimeProvider? time = null)

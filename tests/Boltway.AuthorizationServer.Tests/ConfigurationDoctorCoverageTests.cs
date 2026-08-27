@@ -10,7 +10,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// From the mutation run: 72 survivors on <c>ConfigurationDoctor.cs</c>, 55 of them string
 /// mutations and 17 behavioural. Reading them one at a time produced an uncomfortable but useful
-/// answer — <b>twelve of the seventeen are equivalent mutants</b>, because the branches they change
+/// answer - <b>twelve of the seventeen are equivalent mutants</b>, because the branches they change
 /// cannot be reached through the public API at all. They are enumerated at the bottom of this file
 /// with the reason each is unreachable, because "no test kills it" and "no input can produce it"
 /// look identical in a report and mean opposite things.
@@ -34,7 +34,7 @@ public sealed class ConfigurationDoctorCoverageTests
     }
 
     /// <summary>
-    /// A healthy run reports exactly these six checks — no more and, more to the point, no fewer.
+    /// A healthy run reports exactly these six checks - no more and, more to the point, no fewer.
     /// </summary>
     /// <remarks>
     /// Every <c>checks.Add(...)</c> in <c>Run</c> could be deleted without a test failing.
@@ -90,7 +90,7 @@ public sealed class ConfigurationDoctorCoverageTests
     /// <c>arithmeticOk ? Pass : Warn</c> in <c>CheckKeyRing</c>, mutated to always-Pass, survived.
     /// Reaching the Warn branch takes a detail that is easy to miss: <c>CheckKeyRing</c> is added
     /// <b>outside</b> the configured/not-configured branch, so it runs even when the configuration
-    /// did not validate. With a valid configuration it cannot fail — <c>AccessTokenLifetime</c> is
+    /// did not validate. With a valid configuration it cannot fail - <c>AccessTokenLifetime</c> is
     /// capped at 24 hours and <c>RetentionAfterRetirement</c> defaults to exactly 24 hours, so
     /// <c>Retention &lt; lifetime</c> is never true.
     /// </para>
@@ -111,7 +111,7 @@ public sealed class ConfigurationDoctorCoverageTests
         Assert.Equal(DoctorStatus.Fail, Check(checks, "config").Status);
         // Warn, not Fail. The ring can still sign and publish; what it cannot do is retain a
         // retired key for as long as tokens signed with it stay valid, which degrades verification
-        // rather than stopping it. Asserted as written rather than as assumed — the first version
+        // rather than stopping it. Asserted as written rather than as assumed - the first version
         // of this test expected Fail and was wrong about the server, not the other way round.
         Assert.Equal(DoctorStatus.Warn, Check(checks, "signing-keys").Status);
     }
@@ -133,7 +133,7 @@ public sealed class ConfigurationDoctorCoverageTests
     // The twelve equivalent mutants, and why no test can kill them
     // ─────────────────────────────────────────────────────────────────────────
     //
-    // CheckIssuerAgreement — ten of the twelve. Lines 180-187 are eight Check(url, name) calls,
+    // CheckIssuerAgreement - ten of the twelve. Lines 180-187 are eight Check(url, name) calls,
     //   line 193 is the strays.Add inside them (reported NoCoverage, which is the giveaway), and
     //   line 197 is `strays.Count == 0 ? Pass : Warn`.
     //
@@ -143,16 +143,16 @@ public sealed class ConfigurationDoctorCoverageTests
     //   and deleting any individual Check() changes nothing observable.
     //
     //   That is worth saying plainly: this check cannot fail as the server is currently built. It
-    //   is a guard against a future change that makes endpoint paths configurable — which the
+    //   is a guard against a future change that makes endpoint paths configurable - which the
     //   comment above it half-implies is already possible ("a deployment where they diverge"), and
     //   it is not. Left in place rather than deleted, because deleting a check is a product call;
     //   recorded here so the next mutation run does not reopen it.
     //
-    // CheckRegistrationProfile — lines 152 and 166. `!hasRegistration && !hasCimd` and
+    // CheckRegistrationProfile - lines 152 and 166. `!hasRegistration && !hasCimd` and
     //   `hasCimd ? "…Metadata Document." : "Dynamic client registration."`. ClientRegistrationProfile
     //   has three values and options validation rejects two of them: Unspecified ("Choose
     //   ClientIdMetadataDocument") and DynamicRegistration ("nothing routes /register"). Reaching
     //   these lines requires a configuration that validated, so hasCimd is always true and hasRegistration
-    //   always false. The existing test's own remark says as much — "When DCR ships, this becomes a
+    //   always false. The existing test's own remark says as much - "When DCR ships, this becomes a
     //   theory again and that test inverts."
 }

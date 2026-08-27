@@ -14,14 +14,14 @@ namespace Boltway.ResourceServer.Bearer;
 /// <remarks>
 /// <para>
 /// <b>Placed before the endpoint runs, and that placement is the requirement.</b> Once a handler has
-/// executed, whatever it returns is already destined for a <c>200</c> — and a <c>200</c> carrying an
+/// executed, whatever it returns is already destined for a <c>200</c> - and a <c>200</c> carrying an
 /// error is precisely what produces no authentication prompt in Claude. The gate has to be
 /// upstream of the application's own code, which for an MCP server means upstream of the JSON-RPC
 /// message ever reaching the SDK.
 /// </para>
 /// <para>
 /// It runs <i>after</i> routing, because what it does depends on the endpoint: whether the endpoint
-/// is anonymous, and which scopes it declares. A request that matched no endpoint is left alone —
+/// is anonymous, and which scopes it declares. A request that matched no endpoint is left alone -
 /// see <see cref="ProtectedResourceOptions.RequireBearerByDefault"/> for why a 404 is the better
 /// answer there than a challenge.
 /// </para>
@@ -29,7 +29,7 @@ namespace Boltway.ResourceServer.Bearer;
 /// The middleware is written by hand rather than as an
 /// <c>AuthenticationHandler&lt;TOptions&gt;</c>. The stock JWT bearer handler's challenge does not
 /// include <c>resource_metadata</c>, so every deployment has to reach into <c>OnChallenge</c>,
-/// suppress the default header and rebuild it — and a deployment that forgets emits a challenge
+/// suppress the default header and rebuild it - and a deployment that forgets emits a challenge
 /// with no discovery pointer, which is the one failure that leaves a client with nowhere to go. The
 /// pointer is not an option here; it is on every response this type writes.
 /// </para>
@@ -71,13 +71,13 @@ internal sealed class BearerAuthenticationMiddleware
         {
             // Anonymous means "credentials are not required", not "credentials are ignored". An
             // endpoint that decides for itself still has to be told who is asking, so a token
-            // presented here is validated and the principal set — and nothing is ever challenged,
+            // presented here is validated and the principal set - and nothing is ever challenged,
             // because the endpoint said it does not need one.
             //
             // **This gap was measured rather than reasoned about.** The authorization server's own
-            // `/admin/*` routes are AllowAnonymous on purpose — an authorization policy would
+            // `/admin/*` routes are AllowAnonymous on purpose - an authorization policy would
             // authenticate against whichever scheme the host made default, which is how a session
-            // cookie ends up authenticating the directory (N-17) — and they read `HttpContext.User`
+            // cookie ends up authenticating the directory (N-17) - and they read `HttpContext.User`
             // inside each handler. With the early return above covering them, that principal was
             // never populated: every bearer token was answered "Unauthenticated", and the admin API
             // had never worked from the deployable image. Found by pointing the admin BFF at it.
@@ -121,8 +121,8 @@ internal sealed class BearerAuthenticationMiddleware
 
             default:
                 // Unreachable: the enum is closed and every member is handled above. Refusing
-                // rather than falling through, because the alternative shape of this switch — a
-                // default that continues to _next — turns any future member into an authentication
+                // rather than falling through, because the alternative shape of this switch - a
+                // default that continues to _next - turns any future member into an authentication
                 // bypass that compiles cleanly.
                 await BearerChallenge.NoCredentialsAsync(context, _resource.MetadataUrl, challengeScopes);
                 return;
@@ -149,12 +149,12 @@ internal sealed class BearerAuthenticationMiddleware
 
         // The one question the signature cannot answer: has somebody ended this session since the
         // token was minted. Asked after every offline check has passed, so the round trip is spent
-        // only on tokens that were going to be accepted — and skipped entirely on a deployment that
+        // only on tokens that were going to be accepted - and skipped entirely on a deployment that
         // has registered no check, which is what every deployment had before this seam existed.
         //
         // Resolved from the request's container rather than injected into the constructor: this
         // middleware is built once from the root provider, and an implementation that wants a
-        // scoped dependency — an HttpContext-aware client, a per-request cache — would otherwise be
+        // scoped dependency - an HttpContext-aware client, a per-request cache - would otherwise be
         // a captive dependency held for the life of the process.
         if (context.RequestServices.GetService<IAccessTokenRevocationCheck>() is { } revocation
             && await revocation.IsRevokedAsync(credential.Token!, result.Principal!, context.RequestAborted))
@@ -189,12 +189,12 @@ internal sealed class BearerAuthenticationMiddleware
     /// <b>Silent on every failure.</b> A missing token on an anonymous endpoint is the ordinary
     /// case; a malformed or invalid one is a caller's problem to discover from the endpoint's own
     /// answer, which is written to say what that endpoint needs. Challenging here would override a
-    /// refusal somebody wrote deliberately — <c>AdminEndpoints</c>' 401 explains that the surface is
+    /// refusal somebody wrote deliberately - <c>AdminEndpoints</c>' 401 explains that the surface is
     /// bearer-only and why, which is more use than a generic <c>invalid_token</c>.
     /// </para>
     /// <para>
-    /// <b>Scopes are not checked here either.</b> An anonymous endpoint declares none — it is
-    /// deciding for itself — and inventing a requirement would refuse a caller the endpoint would
+    /// <b>Scopes are not checked here either.</b> An anonymous endpoint declares none - it is
+    /// deciding for itself - and inventing a requirement would refuse a caller the endpoint would
     /// have admitted.
     /// </para>
     /// </remarks>
@@ -223,7 +223,7 @@ internal sealed class BearerAuthenticationMiddleware
     /// </summary>
     /// <remarks>
     /// <c>GetOrderedMetadata</c> rather than <c>GetMetadata</c>, because the latter returns only the
-    /// last instance. Two <c>RequireScope</c> calls — one on a route group and one on the route —
+    /// last instance. Two <c>RequireScope</c> calls - one on a route group and one on the route -
     /// is the ordinary way to express "everything under here needs <c>mcp:tools</c>, and this one
     /// also needs <c>story:write</c>", and taking only the last silently drops the group's.
     /// </remarks>

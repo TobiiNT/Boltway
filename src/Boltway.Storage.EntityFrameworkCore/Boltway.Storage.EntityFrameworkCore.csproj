@@ -5,8 +5,8 @@
 
     PROVIDER-NEUTRAL, and that is a constraint rather than an aspiration: there is no Sqlite or
     Npgsql package reference here, so nothing in this assembly *can* name a provider type. The two
-    places where a provider genuinely differs — how a read-decide-write sequence is made atomic, and
-    what a unique-key violation looks like — go through IRelationalStoreBehavior, which the provider
+    places where a provider genuinely differs - how a read-decide-write sequence is made atomic, and
+    what a unique-key violation looks like - go through IRelationalStoreBehavior, which the provider
     package implements.
 
     The check is mechanical: adding `using Microsoft.Data.Sqlite;` to any file here does not compile,

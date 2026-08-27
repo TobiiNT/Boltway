@@ -28,7 +28,7 @@ public enum AdminAuditOutcome
 /// Which account acted, or <see langword="null"/> for a command line.
 /// </param>
 /// <param name="ActorClient">Which client it acted through, when one was involved.</param>
-/// <param name="Action">What was done, as a stable identifier — <c>user.password.reset</c>.</param>
+/// <param name="Action">What was done, as a stable identifier - <c>user.password.reset</c>.</param>
 /// <param name="TargetRealm">Which directory it happened in.</param>
 /// <param name="TargetSubject">
 /// Whose account, when one was resolved. <see langword="null"/> when the handle matched nobody,
@@ -61,7 +61,7 @@ public sealed record AdminAuditEntry(
     /// What changed, in one short string, when that is worth having.
     /// </summary>
     /// <remarks>
-    /// The new role, or <c>disabled</c>. Never a credential and never an old value — see the type's
+    /// The new role, or <c>disabled</c>. Never a credential and never an old value - see the type's
     /// own remarks. Optional because most actions are fully described by <see cref="Action"/>.
     /// </remarks>
     public string? Detail { get; init; }
@@ -90,7 +90,7 @@ public sealed record AuditQuery(
 /// <para>
 /// <b>The entry belongs in the same transaction as the change it describes.</b> A change that lands
 /// without its line is a half-state whose surviving half is the invisible one. That guarantee is
-/// <b>not delivered by the current implementation</b> — see the remarks on
+/// <b>not delivered by the current implementation</b> - see the remarks on
 /// <see cref="RecordAsync"/>, which say exactly what is missing and why it was not faked.
 /// </para>
 /// </remarks>
@@ -105,7 +105,7 @@ public interface IAdminAuditStore
     /// <para>
     /// <b>Not yet in the same transaction as the change, and that is a measured gap rather than an
     /// oversight.</b> Every relational store here creates its own <c>DbContext</c> from a factory
-    /// per call, so two stores cannot presently share one transaction — closing it means giving the
+    /// per call, so two stores cannot presently share one transaction - closing it means giving the
     /// storage layer an ambient context, which changes the lifetime and thread-safety of every write
     /// in a directory holding live credentials. Doing that quickly, to add a log line, is the wrong
     /// trade.

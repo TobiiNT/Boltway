@@ -21,7 +21,7 @@ public sealed class InMemoryClientStore : IClientStore
 {
     private sealed record Entry(ClientRecord Client, Sha256Hash? SecretHash);
 
-    // Ordinal, because a client id is compared ordinally everywhere else — it is not typed at a
+    // Ordinal, because a client id is compared ordinally everywhere else - it is not typed at a
     // login page by somebody who might shift-lock it.
     private readonly Dictionary<string, Entry> _clients = new(StringComparer.Ordinal);
 
@@ -51,7 +51,7 @@ public sealed class InMemoryClientStore : IClientStore
 
         lock (_gate)
         {
-            // Ordered, so a store holding two for one owner answers the same way every time — the
+            // Ordered, so a store holding two for one owner answers the same way every time - the
             // relational twin orders by client id and an unordered dictionary scan would not.
             var found = _clients.Values
                 .Where(e => e.Client.Owner is { } o && string.Equals(o.Value, value, StringComparison.Ordinal))

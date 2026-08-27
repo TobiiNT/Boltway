@@ -8,7 +8,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// <summary>Knobs for <see cref="LoginThrottle"/>. X-31.</summary>
 /// <remarks>
 /// Registered with <c>TryAddSingleton</c>, so a host that adds its own instance before calling
-/// <c>AddBoltwayAuthorizationServer</c> keeps it — the same seam
+/// <c>AddBoltwayAuthorizationServer</c> keeps it - the same seam
 /// <c>SafeHttpFetcherOptions</c> uses.
 /// </remarks>
 public sealed class LoginThrottleOptions
@@ -44,7 +44,7 @@ public sealed class LoginThrottleOptions
     /// How many sign-in attempts one source may make inside <see cref="ClientWindow"/>.
     /// </summary>
     /// <remarks>
-    /// Thirty in a quarter of an hour — two a minute — because a source is not a person. An office
+    /// Thirty in a quarter of an hour - two a minute - because a source is not a person. An office
     /// or a household behind one address is several people, and a deployment behind a proxy that
     /// does not forward the client address is <i>everybody</i> behind one key. See
     /// <see cref="ClientKey"/>.
@@ -75,7 +75,7 @@ public sealed class LoginThrottleOptions
     /// <para>
     /// One per core. Argon2id at these parameters is CPU-bound and allocates 19 MiB for the duration
     /// of each hash, so more in flight than there are cores buys no throughput and costs both memory
-    /// and — because the hash is synchronous — a blocked thread-pool thread each.
+    /// and - because the hash is synchronous - a blocked thread-pool thread each.
     /// </para>
     /// </remarks>
     public int MaxConcurrentPasswordVerifications { get; set; } = Math.Max(2, Environment.ProcessorCount);
@@ -84,7 +84,7 @@ public sealed class LoginThrottleOptions
     /// How long a request will wait for a verification slot before being shed.
     /// </summary>
     /// <remarks>
-    /// Waiting is right up to a point — a queue of two seconds at four hashes per 95 ms is roughly
+    /// Waiting is right up to a point - a queue of two seconds at four hashes per 95 ms is roughly
     /// eighty requests deep, which absorbs an ordinary spike without anybody seeing an error. Past
     /// that, shedding with a <c>Retry-After</c> is the honest answer: the alternative is a queue
     /// that grows without bound and a user watching a spinner for a response that will arrive after
@@ -105,7 +105,7 @@ public sealed class LoginThrottleOptions
     /// <para>
     /// <b>Read this before deploying behind a proxy.</b> The default is
     /// <see cref="ConnectionInfo.RemoteIpAddress"/>, which behind a reverse proxy or a load balancer
-    /// that does not populate it is the <i>proxy's</i> address — so every user in the deployment
+    /// that does not populate it is the <i>proxy's</i> address - so every user in the deployment
     /// shares one bucket, thirty attempts across all of them exhausts it, and the per-source limit
     /// becomes an outage. The framework's answer is <c>UseForwardedHeaders</c> with
     /// <c>KnownProxies</c> configured, which sets <c>RemoteIpAddress</c> to the real client and
@@ -114,7 +114,7 @@ public sealed class LoginThrottleOptions
     /// <para>
     /// This hook is for a deployment whose front end carries the client identity somewhere else. It
     /// receives the whole <see cref="HttpContext"/> and must return a stable, low-cardinality string.
-    /// Returning something the caller controls — a header nothing validates — makes the limit
+    /// Returning something the caller controls - a header nothing validates - makes the limit
     /// bypassable by setting it to a fresh value per request.
     /// </para>
     /// </remarks>
@@ -126,7 +126,7 @@ public sealed class LoginThrottleOptions
 /// <param name="RetryAfter">How long to wait, when it may not.</param>
 /// <param name="Description">
 /// What was exceeded, in words, safe to put in a response body. Deliberately says nothing that
-/// depends on whether the account exists — see <see cref="LoginThrottle"/>.
+/// depends on whether the account exists - see <see cref="LoginThrottle"/>.
 /// </param>
 public readonly record struct LoginAdmission(bool Allowed, TimeSpan RetryAfter, string Description);
 
@@ -137,8 +137,8 @@ public readonly record struct LoginAdmission(bool Allowed, TimeSpan RetryAfter, 
 /// <para>
 /// Three separate limits, because they fail in different directions. A per-account counter stops a
 /// slow guessing attack on one person. A per-source counter stops one attacker spreading across many
-/// accounts. Neither does anything about a hundred requests arriving in the same millisecond — every
-/// one of them is admitted before any has been counted as a failure — and that is what the
+/// accounts. Neither does anything about a hundred requests arriving in the same millisecond - every
+/// one of them is admitted before any has been counted as a failure - and that is what the
 /// concurrency bound is for.
 /// </para>
 /// <para>
@@ -147,7 +147,7 @@ public readonly record struct LoginAdmission(bool Allowed, TimeSpan RetryAfter, 
 /// quickly for a real username and slowly for an invented one, which is the same username oracle the
 /// endpoint's <c>DummyHash</c> exists to close, rebuilt one layer up. Keying on the submitted string
 /// means a throttled unknown username and a throttled known one are indistinguishable, and it also
-/// means the counter has to be bounded and normalised — see <see cref="Key"/>.
+/// means the counter has to be bounded and normalised - see <see cref="Key"/>.
 /// </para>
 /// <para>
 /// <b>All of it is per process.</b> Two instances behind a load balancer enforce twice these numbers
@@ -219,7 +219,7 @@ public sealed class LoginThrottle : IDisposable
         }
 
         // The longer of the two, because a caller told to wait for the shorter one comes back and is
-        // refused again by the other — which reads as a limiter that ignores its own Retry-After.
+        // refused again by the other - which reads as a limiter that ignores its own Retry-After.
         var wait = account.Allowed ? source.RetryAfter
             : source.Allowed ? account.RetryAfter
             : account.RetryAfter > source.RetryAfter ? account.RetryAfter : source.RetryAfter;
@@ -270,7 +270,7 @@ public sealed class LoginThrottle : IDisposable
     /// Normalise a submitted username into a counter key.
     /// </summary>
     /// <remarks>
-    /// Case-folded, because <c>IUserStore</c> matches case-insensitively — a limiter that did not
+    /// Case-folded, because <c>IUserStore</c> matches case-insensitively - a limiter that did not
     /// would be defeated by alternating capitalisation. Bounded, because the value is a form field
     /// and an unbounded one is a dictionary key an attacker chooses the size of. A missing username
     /// is its own bucket rather than being skipped: an empty submission is still an attempt.
@@ -288,8 +288,8 @@ public sealed class LoginThrottle : IDisposable
     /// <remarks>
     /// IPv6 is counted per /64 rather than per address, because a single subscriber is routinely
     /// given a whole /64 and counting per address would let one host rotate through 2^64 buckets.
-    /// IPv4 is counted per address. A request with no remote address — which is what a
-    /// <c>TestServer</c> and some proxy configurations produce — shares one bucket, and that is
+    /// IPv4 is counted per address. A request with no remote address - which is what a
+    /// <c>TestServer</c> and some proxy configurations produce - shares one bucket, and that is
     /// stated rather than hidden: it is a configuration to fix, not a mode to rely on.
     /// </remarks>
     private string SourceKey(HttpContext http)
@@ -308,7 +308,7 @@ public sealed class LoginThrottle : IDisposable
     /// <param name="http">The request.</param>
     /// <remarks>
     /// Internal and shared rather than copied, because <see cref="RecoveryThrottle"/> wants the same
-    /// rule and a second copy of "how do we identify a caller" is a second thing to keep in step —
+    /// rule and a second copy of "how do we identify a caller" is a second thing to keep in step -
     /// the /64 folding in particular is the sort of detail that gets fixed in one place.
     /// </remarks>
     internal static string DefaultSourceKey(HttpContext http)

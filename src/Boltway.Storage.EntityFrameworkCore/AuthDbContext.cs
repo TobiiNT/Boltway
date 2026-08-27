@@ -8,7 +8,7 @@ namespace Boltway.Storage.EntityFrameworkCore;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Public because a host has to name it — <c>AddDbContextFactory&lt;AuthDbContext&gt;</c>, and
+/// Public because a host has to name it - <c>AddDbContextFactory&lt;AuthDbContext&gt;</c>, and
 /// <c>dotnet ef migrations</c> after that. The entity classes behind it are <see langword="internal"/>:
 /// they are the shape of the tables, not an API, and the records in
 /// <c>Boltway.AuthorizationServer.Abstractions</c> are what callers see.
@@ -50,7 +50,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
     /// <summary>Which accounts hold which of them.</summary>
     internal DbSet<UserRoleRow> UserRoles => Set<UserRoleRow>();
 
-    /// <summary>Clients this deployment created. Never written on the CIMD path — A-08.</summary>
+    /// <summary>Clients this deployment created. Never written on the CIMD path - A-08.</summary>
     internal DbSet<ClientRow> Clients => Set<ClientRow>();
 
     /// <summary>Client-assertion identifiers already used, so none is accepted twice. RFC 7523 §3.</summary>
@@ -217,7 +217,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             entity.HasIndex(e => e.At).HasDatabaseName("ix_admin_audit_at");
             entity.HasIndex(e => new { e.TargetSubject, e.At }).HasDatabaseName("ix_admin_audit_target_at");
 
-            // No foreign key to users. An entry must outlive the account it describes — that is most
+            // No foreign key to users. An entry must outlive the account it describes - that is most
             // of the point of anonymisation keeping the subject row, and all of the point of
             // recording an action against a handle that resolved to nobody.
         });
@@ -244,7 +244,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             entity.HasIndex(e => e.ExpiresAt).HasDatabaseName("ix_client_assertions_expires_at");
 
             // No foreign key to clients. A CIMD client is resolved per request and deliberately
-            // never persisted — a hundred sequential connections leave that table empty — so a
+            // never persisted - a hundred sequential connections leave that table empty - so a
             // reference to it would be a reference to a row that is not there.
         });
 
@@ -259,7 +259,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             entity.Property(e => e.Detail).HasColumnName("detail").HasMaxLength(320);
 
             // S-47's bulk delete runs on every password change by any route, so it is on a request
-            // path — unlike the grant sweep, which runs when an operator is signing somebody out.
+            // path - unlike the grant sweep, which runs when an operator is signing somebody out.
             // Without this index it is a scan of every live link in the deployment each time
             // anybody changes a password.
             entity.HasIndex(e => new { e.Subject, e.Purpose }).HasDatabaseName("ix_user_tokens_subject_purpose");
@@ -290,7 +290,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             // Whether the database enforces it is a separate question from whether it is declared:
             // SQLite ignores REFERENCES clauses unless `PRAGMA foreign_keys` is on, and it is off by
             // default and set per connection. EF Core's SQLite provider turns it on when it opens
-            // one — which is a property of a library this project does not own, so
+            // one - which is a property of a library this project does not own, so
             // SqliteSchemaTests.The_connection_enforces_foreign_keys reads the pragma back rather
             // than trusting this comment.
             entity.HasOne<UserRow>()
@@ -304,7 +304,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
         {
             entity.ToTable("roles");
 
-            // Realm first, because every lookup knows it — the same ordering and the same reason as
+            // Realm first, because every lookup knows it - the same ordering and the same reason as
             // the username index above.
             entity.HasKey(e => new { e.Realm, e.Id });
             entity.Property(e => e.Realm).HasColumnName("realm").HasMaxLength(64).HasDefaultValue("default");
@@ -312,7 +312,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(128);
 
             // Space-separated, and sized for it. 1024 holds sixteen sixty-character permissions,
-            // which is well past any vocabulary a person can keep in their head — and a column that
+            // which is well past any vocabulary a person can keep in their head - and a column that
             // could hold more would be a column somebody keeps a policy document in.
             entity.Property(e => e.Permissions).HasColumnName("permissions").HasMaxLength(1024);
         });
@@ -335,8 +335,8 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             entity.Property(e => e.SecretHash).HasColumnName("secret_hash").HasMaxLength(32);
 
             // 64, matching users.subject, because that is what it points at. No foreign key: the
-            // owner may live in a directory this table's database does not hold — IUserStore is a
-            // seam a deployment can implement against anything — so a constraint here would forbid
+            // owner may live in a directory this table's database does not hold - IUserStore is a
+            // seam a deployment can implement against anything - so a constraint here would forbid
             // a shape the interfaces allow. The grant refuses an owner it cannot resolve, which is
             // the check that works whatever the directory is.
             entity.Property(e => e.Owner).HasColumnName("owner").HasMaxLength(64);
@@ -353,7 +353,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             // Unfiltered, though most rows will have a null owner. A partial index is written in
             // provider-specific SQL and this model is shared by SQLite and PostgreSQL, so the filter
             // would have to be right in two dialects to save an index scan on a table that holds
-            // clients rather than tokens — tens of rows, not millions. The cost of being wrong is
+            // clients rather than tokens - tens of rows, not millions. The cost of being wrong is
             // larger than the thing being bought.
             entity.HasIndex(e => e.Owner).HasDatabaseName("ix_clients_owner");
         });

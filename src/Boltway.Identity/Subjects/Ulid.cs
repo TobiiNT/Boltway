@@ -9,7 +9,7 @@ namespace Boltway.Identity.Subjects;
 /// <para>
 /// A-18 is satisfied by the <i>charset</i>, and this is where that claim is made true rather than
 /// described. The alphabet omits <c>I</c>, <c>L</c>, <c>O</c> and <c>U</c>, and contains no
-/// <c>|</c>, <c>/</c>, <c>.</c>, <c>@</c> or <c>%</c> — so a value from here is safe as a path
+/// <c>|</c>, <c>/</c>, <c>.</c>, <c>@</c> or <c>%</c> - so a value from here is safe as a path
 /// segment, a filename, a cache key and a column name with no sanitiser anywhere. That matters
 /// because a sanitiser is a function that maps several inputs onto one output, and on an identifier
 /// that is a collision waiting for the wrong two users.
@@ -34,7 +34,7 @@ public static class Ulid
     internal const int RandomnessBytes = 10;
 
     /// <summary>
-    /// Crockford base32. Not RFC 4648 base32 — the excluded letters are the point.
+    /// Crockford base32. Not RFC 4648 base32 - the excluded letters are the point.
     /// </summary>
     private const string Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
@@ -97,7 +97,7 @@ public static class Ulid
     /// </summary>
     /// <remarks>
     /// Uppercase only, deliberately. Crockford base32 <i>decoding</i> is case-insensitive, but
-    /// accepting both cases here would mean two distinct strings naming one subject — which is the
+    /// accepting both cases here would mean two distinct strings naming one subject - which is the
     /// many-to-one mapping the charset was chosen to avoid in the first place. We emit uppercase, so
     /// uppercase is what is well-formed.
     /// </remarks>
@@ -135,7 +135,7 @@ public static class Ulid
 /// Monotonicity is not decoration on an identifier a database will index: identifiers that sort by
 /// creation time keep inserts at the right-hand edge of a B-tree instead of scattered through it.
 /// Within a millisecond the ULID specification says to increment the random field rather than draw
-/// again, and that is what happens here — so two subjects minted in the same millisecond still order
+/// again, and that is what happens here - so two subjects minted in the same millisecond still order
 /// correctly, and neither is predictable from the other beyond the increment.
 /// </para>
 /// <para>
@@ -143,7 +143,7 @@ public static class Ulid
 /// 80 bits from <see cref="RandomNumberGenerator"/>. Subsequent ones in that same millisecond are
 /// that value plus a small integer, so an attacker holding one of them can guess its immediate
 /// neighbours. That is inherent to monotonic ULIDs and is acceptable here because a subject
-/// identifier is not a secret — it is an opaque name, and nothing authenticates by presenting one.
+/// identifier is not a secret - it is an opaque name, and nothing authenticates by presenting one.
 /// It would be unacceptable for anything minted by <c>OpaqueSecret</c>, which is why that type draws
 /// fresh entropy every time and does not do this.
 /// </para>
@@ -178,8 +178,8 @@ public sealed class UlidFactory
         lock (_gate)
         {
             // `<=` covers both the same millisecond and a clock that moved backwards. A backwards
-            // step is real — NTP correction, a VM restored from a snapshot, a different instance's
-            // clock — and reusing the last timestamp keeps the sequence monotonic through it. The
+            // step is real - NTP correction, a VM restored from a snapshot, a different instance's
+            // clock - and reusing the last timestamp keeps the sequence monotonic through it. The
             // alternative, trusting the new lower reading, mints an identifier that sorts before one
             // already issued, which is the one property this class exists to provide.
             if (now <= _lastTimestamp)
@@ -202,7 +202,7 @@ public sealed class UlidFactory
     /// <remarks>
     /// Throwing on overflow rather than wrapping. Wrapping would re-issue an identifier already
     /// minted in this millisecond, and a duplicate subject identifier is the one failure this whole
-    /// type exists to prevent — so it must not be the quiet outcome. Reaching it requires 2^80
+    /// type exists to prevent - so it must not be the quiet outcome. Reaching it requires 2^80
     /// registrations inside one millisecond, so the branch is unreachable in practice and is here to
     /// make that statement checkable rather than assumed.
     /// </remarks>

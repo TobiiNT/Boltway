@@ -11,8 +11,8 @@ namespace Boltway.Identity.Passwords;
 /// Whether the stored hash was produced with parameters weaker than the current configuration.
 /// </param>
 /// <remarks>
-/// The two are independent — <see cref="NeedsRehash"/> describes the stored value and is answerable
-/// without the password — but they are returned together because the only moment an upgrade is
+/// The two are independent - <see cref="NeedsRehash"/> describes the stored value and is answerable
+/// without the password - but they are returned together because the only moment an upgrade is
 /// possible is the moment both are known: re-hashing needs the plaintext, and the plaintext may only
 /// be trusted once <see cref="Succeeded"/> is <see langword="true"/>. A caller must check both.
 /// </remarks>
@@ -47,16 +47,16 @@ public interface IPasswordUpgradePolicy
 /// things. A refresh token is 256 bits from a CSPRNG, so there is no dictionary to run and a slow
 /// hash would only add latency. A password is chosen by a person, so an attacker holding the
 /// database runs an offline guessing attack, and the only defence is making each guess expensive.
-/// Argon2id is expensive in <i>memory</i> as well as time, which is what puts a GPU or an ASIC —
-/// where PBKDF2's per-guess cost collapses by orders of magnitude — back on roughly the same footing
+/// Argon2id is expensive in <i>memory</i> as well as time, which is what puts a GPU or an ASIC -
+/// where PBKDF2's per-guess cost collapses by orders of magnitude - back on roughly the same footing
 /// as the defender's server. It is OWASP's first choice and the winner of the Password Hashing
 /// Competition.
 /// </para>
 /// <para>
 /// <b>The dependency.</b> Argon2id is not in the BCL, so this costs one package:
 /// <c>Konscious.Security.Cryptography.Argon2</c>, MIT, a pure-managed implementation by Keef Aragon.
-/// The pin and the licence note predate this file — <c>Directory.Packages.props</c> has carried both
-/// since the package list was written — so taking it is executing a decision this repository already
+/// The pin and the licence note predate this file - <c>Directory.Packages.props</c> has carried both
+/// since the package list was written - so taking it is executing a decision this repository already
 /// recorded rather than making a new one. It brings one transitive package,
 /// <c>Konscious.Security.Cryptography.Blake2</c>, from the same author, and nothing else. The
 /// implementation is checked against RFC 9106 §5.3's Argon2id test vector in
@@ -68,7 +68,7 @@ public interface IPasswordUpgradePolicy
 /// the password, and the final comparison is
 /// <see cref="CryptographicOperations.FixedTimeEquals"/>. This is what makes the login endpoint's
 /// hash-against-a-dummy defence real: the work an unknown username does is the same work a known one
-/// does. It holds only while the dummy and the account share parameters — after a cost increase, an
+/// does. It holds only while the dummy and the account share parameters - after a cost increase, an
 /// account still on the old cost is measurably faster than the freshly computed dummy, until it is
 /// rehashed.
 /// </para>
@@ -180,7 +180,7 @@ public sealed class Argon2idPasswordHasher : IPasswordHasher, IPasswordUpgradePo
     // ── Why an empty password is refused rather than hashed ───────────────────────────────────
     //
     // Found by a test, not by reading. POST /login with an empty password field threw
-    // ArgumentException out of the library — "Argon2 needs a password set" — which the endpoint
+    // ArgumentException out of the library - "Argon2 needs a password set" - which the endpoint
     // does not catch. That was a 500 any unauthenticated request could provoke at will, and one
     // whose shape differed from every ordinary failed login.
     //
@@ -190,7 +190,7 @@ public sealed class Argon2idPasswordHasher : IPasswordHasher, IPasswordUpgradePo
     // RFC 9106 permits a zero-length password; this LIBRARY does not, and the honest response is to
     // keep empty passwords out of storage entirely.
     //
-    // So Hash throws — storing one is a registration-policy failure the caller should never reach —
+    // So Hash throws - storing one is a registration-policy failure the caller should never reach -
     // and Verify answers false without calling the library. That cannot be a false negative BECAUSE
     // Hash throws: no hash this type produced is the hash of an empty password. The one case it gets
     // wrong is such a hash migrated in from another implementation, which would stop verifying.
@@ -219,7 +219,7 @@ public sealed class Argon2idPasswordHasher : IPasswordHasher, IPasswordUpgradePo
     /// <remarks>
     /// <para>
     /// The permissive encoder maps every lone surrogate to U+FFFD, so <c>"\uD800"</c> and
-    /// <c>"�"</c> would hash identically — two distinct passwords with one digest. Throwing
+    /// <c>"�"</c> would hash identically - two distinct passwords with one digest. Throwing
     /// keeps the mapping injective.
     /// </para>
     /// <para>

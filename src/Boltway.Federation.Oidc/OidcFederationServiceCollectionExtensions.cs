@@ -22,7 +22,7 @@ public static class OidcFederationServiceCollectionExtensions
     /// <exception cref="ArgumentException">The options do not validate.</exception>
     /// <remarks>
     /// <para>
-    /// Validation runs <b>here</b>, synchronously, and throws — the same choice
+    /// Validation runs <b>here</b>, synchronously, and throws - the same choice
     /// <c>AddBoltwayAuthorizationServer</c> makes and for the same reason: a deferred check
     /// turns a mistyped issuer into a failure at the moment a user clicks a button, minutes after
     /// the deploy looked successful, and it is attributed to the user.

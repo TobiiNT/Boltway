@@ -3,7 +3,7 @@
   <!--
     The server itself: validation pipelines, the metadata document, the endpoints.
 
-    FrameworkReference rather than PackageReference for ASP.NET Core — the shared framework is
+    FrameworkReference rather than PackageReference for ASP.NET Core - the shared framework is
     versioned with the runtime, so a PackageReference would pin a second copy and the two would
     disagree at the first patch release.
   -->

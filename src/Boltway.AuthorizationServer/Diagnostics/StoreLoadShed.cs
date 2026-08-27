@@ -13,7 +13,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// <b>One place, because four endpoints shed and the sentence they say must not drift.</b> The
 /// first version of X-43 built its rejection inline at <c>/token</c>, which was right while
 /// <c>/token</c> was the only surface that shed. Three more followed a day later, and three more
-/// copies of a description is how two endpoints come to describe the same outage differently — the
+/// copies of a description is how two endpoints come to describe the same outage differently - the
 /// same argument <see cref="RejectionResult"/> makes about logging, one level down.
 /// </para>
 /// <para>
@@ -33,7 +33,7 @@ internal static class StoreLoadShed
     /// <remarks>
     /// A constant rather than an option, and the honest reason is that nothing here knows better.
     /// The right value is a property of how fast the dependency recovers, which is a fact about a
-    /// database and a network rather than about this server — and the client re-reads the header on
+    /// database and a network rather than about this server - and the client re-reads the header on
     /// every attempt, so a value that is too short costs one cheap refused request and self-corrects
     /// while a value that is too long strands a working session. Five seconds is the same figure
     /// <see cref="StoreReadiness"/> uses to decide the store is gone; when there is a measurement
@@ -56,7 +56,7 @@ internal static class StoreLoadShed
     /// <param name="code">
     /// The OAuth code, where the surface has one. <see cref="OAuthErrorCode.None"/> everywhere RFC
     /// 6749 registers nothing that means "come back shortly", which is every surface here except
-    /// <c>/authorize</c> — see <see cref="ReasonCode.StoreUnavailable"/> for why that one is
+    /// <c>/authorize</c> - see <see cref="ReasonCode.StoreUnavailable"/> for why that one is
     /// different rather than inconsistent.
     /// </param>
     internal static Rejection Because(Exception cause, OAuthErrorCode code = OAuthErrorCode.None)
@@ -92,7 +92,7 @@ internal static class StoreLoadShed
     /// <para>
     /// <b>An empty <c>503</c> would be a real improvement over the <c>500</c> and still not the
     /// answer.</b> The status alone reaches a browser as the browser's own error page, which says
-    /// nothing about coming back — and this is the surface where somebody is half way through
+    /// nothing about coming back - and this is the surface where somebody is half way through
     /// signing in. The whole reason X-43 exists is that a temporary fault was being reported as a
     /// permanent one, to a person; answering it with a blank page repeats the shape of the mistake
     /// at a better status code.
@@ -106,7 +106,7 @@ internal static class StoreLoadShed
     /// </para>
     /// <para>
     /// <b><see cref="OAuthErrorCode.None"/>, and that is what selects the row.</b> These pages are
-    /// not an OAuth surface and no specification registers an <c>error</c> for them — see
+    /// not an OAuth surface and no specification registers an <c>error</c> for them - see
     /// <see cref="OAuthSurface.Interaction"/>. Carrying no code is exactly what sends this to the
     /// untabled row rather than to a table that has none for it.
     /// </para>

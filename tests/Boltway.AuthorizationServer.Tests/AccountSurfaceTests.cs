@@ -20,7 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>
-/// <c>/account/*</c> — the surface a person points at their own account. E-33 to E-38.
+/// <c>/account/*</c> - the surface a person points at their own account. E-33 to E-38.
 /// </summary>
 /// <remarks>
 /// The property under test throughout is §1.6: <b>no handler here has a code path that reaches
@@ -52,7 +52,7 @@ public sealed class AccountSurfaceTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles in it is a directory where
-        // nobody can be given one — which is the rule, stated as a fixture.
+        // nobody can be given one - which is the rule, stated as a fixture.
         if (await roles.FindAsync(RealmId.Default, "founder", CancellationToken.None) is null)
         {
             await roles.StoreAsync(new RoleDefinition("founder", "founder", []), CancellationToken.None);
@@ -195,7 +195,7 @@ public sealed class AccountSurfaceTests
     /// <remarks>
     /// A client-credentials token, or one minted by something that dropped the claim. Every handler
     /// here reads its subject from the principal, so without this check they would all run against a
-    /// default <see cref="SubjectId"/> — which is not an account, but is a value that compares equal
+    /// default <see cref="SubjectId"/> - which is not an account, but is a value that compares equal
     /// to any other default and would make "whose row is this" answerable by accident.
     /// </remarks>
     [Fact]
@@ -236,7 +236,7 @@ public sealed class AccountSurfaceTests
     /// <remarks>
     /// The role is changed after the principal is minted and before the request. A handler
     /// projecting the token's claims would return the stale one, which is the defect this asserts
-    /// against — and the reason it matters is <c>disabled_at</c>, which a token cannot carry at all.
+    /// against - and the reason it matters is <c>disabled_at</c>, which a token cannot carry at all.
     /// </remarks>
     [Fact]
     public async Task It_reads_the_account_from_the_directory_rather_than_the_token()
@@ -329,7 +329,7 @@ public sealed class AccountSurfaceTests
     /// <summary>Asking for revocation ends every session, including this one.</summary>
     /// <remarks>
     /// Sparing the caller's own session would mean identifying which grant this request came from,
-    /// from a token this service is not given — and getting that wrong leaves the compromised
+    /// from a token this service is not given - and getting that wrong leaves the compromised
     /// session alive, which is the one case the flag exists for.
     /// </remarks>
     [Fact]
@@ -450,8 +450,8 @@ public sealed class AccountSurfaceTests
 
         Assert.Equal(["grant-2"], body.EnumerateArray().Select(e => e.GetProperty("id").GetString()));
 
-        // Ending it twice is not an error. The row is still there — rows are never deleted on
-        // revocation — so the second call finds it, sees it is not the caller's problem any more,
+        // Ending it twice is not an error. The row is still there - rows are never deleted on
+        // revocation - so the second call finds it, sees it is not the caller's problem any more,
         // and says the honest thing.
         var again = await fixture.Client.DeleteAsync(new Uri("/account/sessions/grant-1", UriKind.Relative));
         Assert.Equal(HttpStatusCode.OK, again.StatusCode);
@@ -464,7 +464,7 @@ public sealed class AccountSurfaceTests
     /// <remarks>
     /// <b>The single most important assertion in this file.</b> <c>IGrantStore.RevokeAsync</c> takes
     /// an id and no subject, so a handler that passed the route value straight through would let
-    /// anyone holding <c>users:self</c> — which is everyone — end any session in the deployment.
+    /// anyone holding <c>users:self</c> - which is everyone - end any session in the deployment.
     /// 404 rather than 403 because a 403 confirms the id exists, which turns this into an oracle for
     /// guessing grant ids.
     /// </remarks>
@@ -551,7 +551,7 @@ public sealed class AccountSurfaceTests
     /// <remarks>
     /// The reason <c>AccountConsent</c> is a catch-all segment. This server supports client ID
     /// metadata documents, so the id an MCP client is known by is
-    /// <c>https://claude.ai/oauth/mcp-oauth-client-metadata</c> — a scheme and several path
+    /// <c>https://claude.ai/oauth/mcp-oauth-client-metadata</c> - a scheme and several path
     /// segments. A <c>{clientId}</c> template matches none of it, and percent-encoding the slashes
     /// makes the answer depend on whether the proxy in front normalises <c>%2F</c>.
     /// </remarks>

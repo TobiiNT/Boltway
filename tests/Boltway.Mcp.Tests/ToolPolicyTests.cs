@@ -22,7 +22,7 @@ namespace Boltway.Mcp.Tests;
 /// still reaches it is a surface that looks gated and is not.
 /// </para>
 /// <para>
-/// The policy here refuses one tool to one actor. What decides that is deliberately arbitrary —
+/// The policy here refuses one tool to one actor. What decides that is deliberately arbitrary -
 /// this library ships no vocabulary, and a test that asserted one would be inventing the default
 /// <see cref="IConnectorToolPolicy"/> exists to avoid.
 /// </para>
@@ -38,7 +38,7 @@ public sealed class ToolPolicyTests : IAsyncLifetime
             tool != "closed" || caller.Actor == "ada";
 
         // One argument names a resource, and reaching it is the caller's own or nobody's. What
-        // "theirs" means is this policy's to know — the library hands over the arguments and takes
+        // "theirs" means is this policy's to know - the library hands over the arguments and takes
         // no view.
         public bool AllowsArguments(
             CallerPrincipal caller, string tool, IReadOnlyDictionary<string, System.Text.Json.JsonElement>? arguments)
@@ -172,7 +172,7 @@ public sealed class ToolPolicyTests : IAsyncLifetime
     /// union of what it is told and what it already had, and does not reliably carry forward what
     /// an earlier step-up granted, so naming only the delta re-authorizes somebody into a narrower
     /// grant than they started with. Asserted on the message because the message is the whole
-    /// channel — see <see cref="ToolRefusalReachTests"/> for why there is no challenge.
+    /// channel - see <see cref="ToolRefusalReachTests"/> for why there is no challenge.
     /// </remarks>
     [Fact]
     public void A_scope_refusal_names_every_scope_the_operation_needs()

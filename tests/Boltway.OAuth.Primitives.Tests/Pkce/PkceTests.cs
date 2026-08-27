@@ -73,17 +73,17 @@ public sealed class PkceTests
     /// <para>
     /// <c>TryParse</c> decodes rather than merely charset-checking, and the comment above that line
     /// says why: the alphabet alone accepts roughly three quarters of malformed challenges. Every
-    /// other negative row in this file fails earlier than that — on length
+    /// other negative row in this file fails earlier than that - on length
     /// (<c>An_S256_challenge_is_exactly_43_characters</c>) or on a character outside the alphabet
-    /// (<c>Challenge_rejects_standard_base64_and_padding</c>) — so this is the only one where the
+    /// (<c>Challenge_rejects_standard_base64_and_padding</c>) - so this is the only one where the
     /// decode is the check that refuses. It came from <c>RedirectReviewRegressionTests</c>, where
     /// it was the single PKCE test in a file about redirect URIs.
     /// </para>
     /// <para>
     /// The three quarters is exact, and measured on .NET 10 rather than reasoned about. A 32-byte
     /// payload in 43 unpadded characters leaves the final sextet's low four bits zero, so only
-    /// <c>A</c>, <c>Q</c>, <c>g</c> and <c>w</c> — 16 of the 64 alphabet characters counting the
-    /// four bits that survive — are legal in the last position. Feeding
+    /// <c>A</c>, <c>Q</c>, <c>g</c> and <c>w</c> - 16 of the 64 alphabet characters counting the
+    /// four bits that survive - are legal in the last position. Feeding
     /// <c>Base64Url.DecodeFromChars</c> all 64 gives 16 <c>Done</c> and 48 refusals: the framework
     /// enforces the canonical trailing bits, and that enforcement is the entire value of decoding
     /// a value whose length and alphabet have already been checked.
@@ -92,7 +92,7 @@ public sealed class PkceTests
     [Theory]
     [InlineData('B')]   // sextet 000001
     [InlineData('P')]   // sextet 001111
-    [InlineData('_')]   // sextet 111111 — the last character of the alphabet, and the last legal one
+    [InlineData('_')]   // sextet 111111 - the last character of the alphabet, and the last legal one
     public void A_challenge_in_the_alphabet_that_is_not_canonical_base64url_is_refused(char last)
     {
         var raw = new string('A', CodeChallenge.S256Length - 1) + last;
@@ -116,7 +116,7 @@ public sealed class PkceTests
     {
         // The positive half of the pair above, and the reason it is a pair: without it, a TryParse
         // that refused every 'A'-heavy value for some unrelated reason would pass the negative rows
-        // while proving nothing. These four are the whole set — a 32-byte payload can end in no
+        // while proving nothing. These four are the whole set - a 32-byte payload can end in no
         // other character.
         Assert.True(CodeChallenge.TryParse(
             new string('A', CodeChallenge.S256Length - 1) + last, CodeChallengeMethod.S256, out _));

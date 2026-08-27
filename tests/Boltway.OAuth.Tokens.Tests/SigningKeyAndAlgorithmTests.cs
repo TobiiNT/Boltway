@@ -42,14 +42,14 @@ public sealed class SigningKeyAndAlgorithmTests
     [InlineData(1024)]
     public void An_rsa_key_below_the_floor_is_refused(int keySizeBits)
     {
-        // The signing key is the entire trust anchor: everything downstream — the resource
-        // server, every relying party — decides "this token is genuine" by checking a signature
+        // The signing key is the entire trust anchor: everything downstream - the resource
+        // server, every relying party - decides "this token is genuine" by checking a signature
         // against the public half published in JWKS. A 1024-bit modulus is factorable, and
         // factoring it does not leak one token, it mints every token, for every subject, with a
         // valid signature and no way for any verifier to tell.
         //
         // A weak key does not arrive by malice. It arrives as an operator's `openssl genrsa 1024`
-        // from a decade-old runbook — and this constructor is the only place in the solution that
+        // from a decade-old runbook - and this constructor is the only place in the solution that
         // ever looks at the size, so nothing downstream would catch it.
         using var weak = RSA.Create(keySizeBits);
 
@@ -100,7 +100,7 @@ public sealed class SigningKeyAndAlgorithmTests
     [Fact]
     public async Task An_access_token_signed_with_an_algorithm_outside_the_list_is_refused()
     {
-        // The behavioural statement, using PS256 — a legitimate JWA that this key can perform and
+        // The behavioural statement, using PS256 - a legitimate JWA that this key can perform and
         // this server never issues. With the allow-list unset the verifier reads `alg` from the
         // header and validates it happily: same key, same issuer, same audience, same `typ`. The
         // token chooses its own algorithm, which is exactly the position the setting exists to
@@ -116,7 +116,7 @@ public sealed class SigningKeyAndAlgorithmTests
         Assert.False(result.IsValid);
 
         // The control, and it is what makes the refusal mean something. The same claims, the same
-        // key and the same construction path, differing only in `alg`, DO validate — so the
+        // key and the same construction path, differing only in `alg`, DO validate - so the
         // rejection above is about the algorithm and not about a token this test built wrong.
         var honest = await Handler.ValidateTokenAsync(
             Sign(key, "RS256", now), Rfc9068ValidationParameters.ForAccessToken(Issuer, Resource, [key.Key]));

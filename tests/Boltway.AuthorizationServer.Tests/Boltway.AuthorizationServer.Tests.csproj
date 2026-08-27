@@ -25,8 +25,8 @@
     the capture the first time the capture is refreshed.
 
     A glob rather than one named file, because naming them was measured failing. The 2026-08-17
-    capture — the one recording the change that made every ChatGPT connection resolve to a client
-    this server cannot authenticate — sat in spec/ for a release copied nowhere and read by nothing,
+    capture - the one recording the change that made every ChatGPT connection resolve to a client
+    this server cannot authenticate - sat in spec/ for a release copied nowhere and read by nothing,
     while the document it recorded was transcribed into a .cs file instead: exactly what the
     paragraph above says not to do, done because adding a capture needed an edit here and the edit
     was missed. Now dropping a cimd-live-*.json into spec/ is the whole ritual, and

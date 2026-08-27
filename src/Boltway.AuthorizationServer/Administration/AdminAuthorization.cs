@@ -9,7 +9,7 @@ namespace Boltway.AuthorizationServer.Administration;
 /// <summary>The scopes the administrative surface authorizes on.</summary>
 /// <remarks>
 /// <para>
-/// Few, and deliberately so — each one is a thing a customer has to reason about. They are also the
+/// Few, and deliberately so - each one is a thing a customer has to reason about. They are also the
 /// only vocabulary this library ships: the <b>role</b> stays an opaque string it never compares to a
 /// constant, and turning a role into an entitlement is <c>IScopeEntitlementPolicy</c>'s job, in the
 /// deployment.
@@ -19,12 +19,12 @@ namespace Boltway.AuthorizationServer.Administration;
 /// <see cref="Read"/> and <see cref="Write"/> satisfy every endpoint here, the role endpoints
 /// included, so nothing that held them loses anything by the narrower pair existing.
 /// <see cref="RolesRead"/> earns its place because reading the role vocabulary is genuinely less
-/// sensitive than reading the account directory — a definitions list holds no person, and a
+/// sensitive than reading the account directory - a definitions list holds no person, and a
 /// credential that only ever needed the vocabulary was being handed every address in the
 /// organisation for it. <see cref="RolesWrite"/> is <i>not</i> a lesser tier of <see cref="Write"/>:
 /// redefining what a role stands for changes what every holder's next token may do, which is
 /// privilege escalation through another door. It is separate so a credential can be scoped to the
-/// role domain, and it is gated exactly as hard — see <see cref="Administrative"/>.
+/// role domain, and it is gated exactly as hard - see <see cref="Administrative"/>.
 /// </para>
 /// </remarks>
 public static class AdminScopes
@@ -41,7 +41,7 @@ public static class AdminScopes
     /// <summary>Read the role definitions, and nothing about any account.</summary>
     public const string RolesRead = "roles:read";
 
-    /// <summary>Define, reword and delete roles — and nothing about any account.</summary>
+    /// <summary>Define, reword and delete roles - and nothing about any account.</summary>
     public const string RolesWrite = "roles:write";
 
     /// <summary>
@@ -50,7 +50,7 @@ public static class AdminScopes
     /// <remarks>
     /// The one list <c>AdminRoleScopePolicy</c> and the host's admin-resource registration both
     /// read, so a scope added here is gated and advertised in the same commit or not at all.
-    /// <see cref="Self"/> is deliberately absent — acting on your own account is not an
+    /// <see cref="Self"/> is deliberately absent - acting on your own account is not an
     /// administrative privilege.
     /// </remarks>
     public static IReadOnlyList<string> Administrative { get; } = [Read, Write, RolesRead, RolesWrite];
@@ -79,7 +79,7 @@ public enum AdminAuthorizationFailure
 /// <para>
 /// <b><c>N-17</c>: a cookie principal is refused, whatever claims it carries.</b> The sign-in pages
 /// live on the same origin, so if the session cookie authenticated this surface, any XSS on the
-/// login page — or any CSRF against it — would be takeover of the entire directory rather than of
+/// login page - or any CSRF against it - would be takeover of the entire directory rather than of
 /// one session. Bearer-only also makes CSRF structurally impossible here: there is no ambient
 /// credential for a browser to attach.
 /// </para>
@@ -87,13 +87,13 @@ public enum AdminAuthorizationFailure
 /// <b>The refusal is by authentication scheme, not by "is there a cookie header".</b> What matters
 /// is what authenticated the principal this handler would act on, and that is
 /// <see cref="ClaimsIdentity.AuthenticationType"/>. A request may carry a session cookie and a
-/// bearer token at once — a browser-based admin UI on the same origin would — and the bearer is the
+/// bearer token at once - a browser-based admin UI on the same origin would - and the bearer is the
 /// one being honoured.
 /// </para>
 /// <para>
 /// <b>This library does not validate the token.</b> The principal arrives from whatever the host
 /// wired, which for an authorization server hosting its own admin API is
-/// <c>Boltway.ResourceServer</c>'s bearer middleware — the same code every other resource
+/// <c>Boltway.ResourceServer</c>'s bearer middleware - the same code every other resource
 /// server runs, so the two cannot come to disagree about <c>typ</c>, <c>alg</c> or <c>aud</c>. This
 /// decides what a validated principal may do.
 /// </para>

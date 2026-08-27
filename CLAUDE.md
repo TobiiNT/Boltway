@@ -306,11 +306,27 @@ The reader is a stranger, often under time pressure, sometimes during an inciden
   `docs/examples/translations.vi.json` is user-facing copy a deployment would edit, and how a
   deployment punctuates its own pages is not this file's business.
 
-  **And one where it does not reach yet.** The 2162 em-dashes across 218 of the 247 files in `src/`
-  are the code's current convention rather than a lapse, so changing them is a decision about
-  `git blame` across a published library rather than a tidy-up. Counted 2026-08-27; the rule above
-  is scoped to the documents until somebody decides otherwise, and saying which is which is cheaper
-  than a rule that is quietly false in most of the tree.
+  **And a fourth boundary, inside the code rather than around it: comments yes, strings no.** Every
+  em-dash in a comment went the same way as the documents - C#, MSBuild, YAML, shell, Python,
+  Dockerfile, CSS, JavaScript, `.editorconfig`, `CODEOWNERS` - because a comment is this repository
+  writing about its own code. **107 remain, and every one is inside a string**, which is the same
+  argument as the translation file one paragraph up: a literal is something the software *says*.
+
+  | 76 | C# string literals |
+  | 14 | workflow `echo` and input descriptions |
+  |  9 | MSBuild attribute and element text |
+  |  4 | Python strings |
+  |  3 | shell `echo` |
+  |  1 | the translation fixture |
+
+  Some are localizable copy a deployment replaces (`AdminText`, `InteractionText`,
+  `NotificationText`); some are operator-facing messages that tests assert on character for
+  character. None is prose about the code, so changing one is a change to output and belongs in a
+  commit that says so. Counted 2026-08-27.
+
+  That split is also why `grep` alone cannot check the code half: it cannot tell a comment from a
+  string. The markdown command above is the checkable part, and 107 is the number to compare a
+  whole-tree count against.
 
 - **State the thing, then the reason.** A claim followed by why it is true reads faster than a
   paragraph that arrives at its point.

@@ -9,7 +9,7 @@ namespace Boltway.AdminBff.Tests;
 /// <remarks>
 /// <para>
 /// Inherit it, return the renderer under test from <see cref="Renderer"/>, and these run against it.
-/// It asserts nothing about wording, markup or layout — a replacement renderer exists to change all
+/// It asserts nothing about wording, markup or layout - a replacement renderer exists to change all
 /// three. What it asserts is the set of properties that stop being true quietly: an unencoded value,
 /// a document that is not a document, a page that lost the one thing it was rendered to show, and a
 /// CSP the browser will enforce whether or not the renderer knows about it.
@@ -25,7 +25,7 @@ namespace Boltway.AdminBff.Tests;
 /// <b>Why it is here rather than in a package.</b> The authorization server ships
 /// <c>Boltway.Interaction.Testing</c> because it is a library and its renderer is implemented
 /// in customer projects. This app is <c>IsPackable=false</c> and ships as a container image, so the
-/// only way to replace this renderer today is to fork — and a fork has this file. Making the app
+/// only way to replace this renderer today is to fork - and a fork has this file. Making the app
 /// packable is what would turn this into a package, and that is a separate decision about a
 /// published API surface rather than a detail of this one.
 /// </para>
@@ -162,7 +162,7 @@ public abstract class AdminRendererContract
     /// The page rendered to show a credential once actually shows it.
     /// </summary>
     /// <remarks>
-    /// The generated password exists nowhere else — the API returns it in the create and reset
+    /// The generated password exists nowhere else - the API returns it in the create and reset
     /// responses and never again. A renderer that dropped it leaves an operator with an account
     /// nobody can sign into and no error anywhere.
     /// </remarks>
@@ -178,7 +178,7 @@ public abstract class AdminRendererContract
     /// A refusal keeps the sentence naming the rule that was broken.
     /// </summary>
     /// <remarks>
-    /// The admin API's refusals are written to say what an operator can act on — "`users:write` is
+    /// The admin API's refusals are written to say what an operator can act on - "`users:write` is
     /// not one of this token's scopes". A renderer replacing it with its own wording loses the only
     /// part of the page that was actionable, and this is the one page where there is nothing else to
     /// try.
@@ -199,7 +199,7 @@ public abstract class AdminRendererContract
     /// </summary>
     /// <remarks>
     /// This app holds an ambient cookie, so without the token any page on the internet could submit
-    /// these forms. <c>Program.cs</c> validates on every POST — a renderer that omits the field
+    /// these forms. <c>Program.cs</c> validates on every POST - a renderer that omits the field
     /// makes its own forms fail closed, which is safe and completely broken.
     /// </remarks>
     [Fact]
@@ -233,7 +233,7 @@ public abstract class AdminRendererContract
     /// <b>This is a shipped defect, and it is the one this contract was written and immediately
     /// found.</b> The shell drew <c>&lt;form method="post" action="/signout"&gt;</c> with a button
     /// and nothing else, while <c>POST /signout</c> validates an antiforgery token like every other
-    /// state change here — so pressing Sign out answered <c>400</c>.
+    /// state change here - so pressing Sign out answered <c>400</c>.
     /// </para>
     /// <para>
     /// Confirmed by request rather than by reading: a mirror of this app's antiforgery setup, a GET
@@ -269,7 +269,7 @@ public abstract class AdminRendererContract
     /// <remarks>
     /// Each is its own verb because none of them is a field somebody could pass to an update by
     /// accident. A renderer that folded them into the patch form would be rebuilding the API's
-    /// shape, and the audit entry — written per operation — is what would drift.
+    /// shape, and the audit entry - written per operation - is what would drift.
     /// </remarks>
     [Fact]
     public void The_account_page_reaches_every_operation()
@@ -295,7 +295,7 @@ public sealed class DefaultAdminRendererContract : AdminRendererContract
 /// </summary>
 /// <remarks>
 /// <c>class Mine : IAdminRenderer { }</c> compiles, because every member has a default. That is the
-/// point of the design — a deployment overrides one page and inherits five — and it is also the
+/// point of the design - a deployment overrides one page and inherits five - and it is also the
 /// footgun, because an override with a typo in its signature lands here without a compile error.
 /// Running the contract against the empty implementation is what proves the fallback is a working
 /// page rather than an exception waiting for the first deployment to try it.

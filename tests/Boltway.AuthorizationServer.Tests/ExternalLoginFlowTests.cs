@@ -29,7 +29,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// <para>
 /// There is no network access to Google here and this file does not want one. The upstream is a real
-/// Kestrel host over TLS on loopback, reached through the shipped <c>UpstreamEndpointClient</c> — so
+/// Kestrel host over TLS on loopback, reached through the shipped <c>UpstreamEndpointClient</c> - so
 /// the address check, the redirect refusal, the byte cap and the timeouts are the production ones.
 /// It is also the only way to produce the cases that matter: a live provider never sends a token
 /// signed with the wrong key, or <c>alg: none</c>, or the wrong <c>iss</c>.
@@ -160,7 +160,7 @@ public sealed partial class ExternalLoginFlowTests
                     services.AddSingleton(defaults);
                 }
 
-                // Registered before AddExternalIdentityProvider, whose registration is TryAdd — so
+                // Registered before AddExternalIdentityProvider, whose registration is TryAdd - so
                 // this one wins and every outbound request in this suite goes to the fake upstream
                 // through an injected resolver rather than to DNS.
                 services.AddSingleton<IUpstreamEndpointClient>(new UpstreamEndpointClient(
@@ -227,7 +227,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <remarks>
     /// It goes through the real login page and posts the real form, rather than calling
     /// <c>/external/google/start</c> directly, because the page offering the method is half of what
-    /// is under test — a start endpoint nobody can reach from the sign-in page is not a feature.
+    /// is under test - a start endpoint nobody can reach from the sign-in page is not a feature.
     /// </remarks>
     /// <summary>
     /// Signing in with a provider works from a sign-in page reached by hand.
@@ -262,7 +262,7 @@ public sealed partial class ExternalLoginFlowTests
     }
 
     /// <summary>
-    /// And nowhere else — the list is the gate, not a suggestion.
+    /// And nowhere else - the list is the gate, not a suggestion.
     /// </summary>
     /// <remarks>
     /// The half that must not move. This endpoint is reached from the page a password is typed on,
@@ -307,7 +307,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <para>
     /// The defect this closes was invisible to every check that existed. The button is a form that
     /// posts same-origin and is answered <c>303</c> to the upstream, and Chrome and Safari apply
-    /// <c>form-action</c> to the redirect a submission follows — so under the shipped
+    /// <c>form-action</c> to the redirect a submission follows - so under the shipped
     /// <c>form-action 'self'</c> the browser refused the navigation and reported nothing. Measured
     /// on a running deployment by pressing "Link Google" and watching the page not move; every
     /// <c>curl</c> check of the same flow passed, because <c>curl</c> does not enforce CSP.
@@ -317,8 +317,8 @@ public sealed partial class ExternalLoginFlowTests
     /// </para>
     /// <para>
     /// <b>The account page is not covered here and calls the same two methods.</b> Asserting on it
-    /// needs a real cookie — this suite registers <c>CookieUserSession</c>, so a seeded session is
-    /// not read — and the plumbing to sign in with a password first is more than the one line it
+    /// needs a real cookie - this suite registers <c>CookieUserSession</c>, so a seeded session is
+    /// not read - and the plumbing to sign in with a password first is more than the one line it
     /// would be checking. Named rather than left as an absence somebody has to notice.
     /// </para>
     /// </remarks>
@@ -341,8 +341,8 @@ public sealed partial class ExternalLoginFlowTests
     /// <remarks>
     /// <para>
     /// The back door into the defect the widening exists to close. Discovery is a network fetch
-    /// behind a cache, so a container's first render — or any render after the cache expires and
-    /// the fetch fails — would answer null and ship the strict policy, and the button would go back
+    /// behind a cache, so a container's first render - or any render after the cache expires and
+    /// the fetch fails - would answer null and ship the strict policy, and the button would go back
     /// to silently doing nothing while every page and redirect stayed correct.
     /// </para>
     /// <para>
@@ -371,14 +371,14 @@ public sealed partial class ExternalLoginFlowTests
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The gate on this <c>returnUrl</c> runs twice — once when the round trip starts and once when
+    /// The gate on this <c>returnUrl</c> runs twice - once when the round trip starts and once when
     /// it comes back, deliberately, because "validated when it was written" is a claim about a
     /// request that is over. Widening the first and leaving the second is what shipped: the user was
     /// allowed to leave, authenticated at Google, came back, <b>was signed in</b>, and then got
     /// "this page was opened without a valid authorization request".
     /// </para>
     /// <para>
-    /// The worst shape a refusal can have — the side effect happened and the page says nothing did,
+    /// The worst shape a refusal can have - the side effect happened and the page says nothing did,
     /// because <c>SignInAsync</c> runs before <c>Resume</c>. Measured on the running deployment; the
     /// cookie was set and the browser was on an error page.
     /// </para>
@@ -411,7 +411,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <summary>And the gate on the way back is still a gate.</summary>
     /// <remarks>
     /// The pending record is written into an authenticated cookie, so no ordinary request reaches
-    /// this with a bad value — which is exactly why the second check has to be proved rather than
+    /// this with a bad value - which is exactly why the second check has to be proved rather than
     /// assumed. <c>ConfigureApp</c> is how the suite plants one.
     /// </remarks>
     [Fact]
@@ -424,7 +424,7 @@ public sealed partial class ExternalLoginFlowTests
 
         var challenge = await BeginWithReturnUrlAsync(server, "/admin/users");
 
-        // Refused at the start, so the round trip never happens — the same list, both ends.
+        // Refused at the start, so the round trip never happens - the same list, both ends.
         Assert.Null(challenge);
     }
 
@@ -461,7 +461,7 @@ public sealed partial class ExternalLoginFlowTests
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Linking adds a credential that signs in forever, and it recorded nothing — while changing a
+    /// Linking adds a credential that signs in forever, and it recorded nothing - while changing a
     /// password, asking for a reset link and verifying an address all did. Noticed when a user
     /// linked Google, the page said nothing, and there was nowhere to look to find out whether it
     /// had happened.
@@ -751,7 +751,7 @@ public sealed partial class ExternalLoginFlowTests
     /// </summary>
     /// <remarks>
     /// One test over a table rather than one test each, so a regression reports the whole list. Each
-    /// row is a mutation of a token that is otherwise valid and would sign the user in — the happy
+    /// row is a mutation of a token that is otherwise valid and would sign the user in - the happy
     /// path above is the control that says so.
     /// </remarks>
     [Theory]
@@ -852,7 +852,7 @@ public sealed partial class ExternalLoginFlowTests
         Assert.Equal(HttpStatusCode.SeeOther, (await CallbackAsync(server, challenge)).StatusCode);
 
         // The same URL again. The cookie was deleted when it was read, so `state` has nothing to be
-        // compared against — which is what makes a captured callback worth exactly one use.
+        // compared against - which is what makes a captured callback worth exactly one use.
         var replay = await CallbackAsync(server, challenge);
 
         Assert.Equal(HttpStatusCode.BadRequest, replay.StatusCode);
@@ -930,7 +930,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <remarks>
     /// The classic federated account takeover, asserted directly: an upstream asserts the victim's
     /// address, and the attacker gets their own new account rather than the victim's. Note that
-    /// <c>email_verified</c> is <see langword="true"/> here — the upstream says so, which is exactly
+    /// <c>email_verified</c> is <see langword="true"/> here - the upstream says so, which is exactly
     /// the claim that is not evidence.
     /// </remarks>
     [Fact]
@@ -943,8 +943,8 @@ public sealed partial class ExternalLoginFlowTests
             s.UnknownIdentity = UnknownExternalIdentityPolicy.Provision;
 
             // The victim's username *is* their email address, which is how most deployments look.
-            // That is deliberate: it means the only lookup this store offers that could reach them —
-            // FindByUsernameAsync — would find them if anything on this path called it with the
+            // That is deliberate: it means the only lookup this store offers that could reach them -
+            // FindByUsernameAsync - would find them if anything on this path called it with the
             // email claim. Nothing does, and this test is what says so.
             s.Seed = async (users, _) => await users.StoreAsync(
                 new UserAccount(
@@ -983,7 +983,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <remarks>
     /// <para>
     /// This test used to assert that <c>IUserStore</c> had <b>no</b> email lookup at all, on the
-    /// reasoning that an absent method cannot be called from anywhere — the structural half of the
+    /// reasoning that an absent method cannot be called from anywhere - the structural half of the
     /// account-linking argument, and the stronger half. It was right for as long as it held.
     /// </para>
     /// <para>
@@ -994,7 +994,7 @@ public sealed partial class ExternalLoginFlowTests
     /// </para>
     /// <para>
     /// <b>So the absence rule became an allowlist of one, and the real guard moved to the call
-    /// site</b> — <c>StructuralRuleTests.Only_the_sign_in_form_resolves_an_account_by_address</c>,
+    /// site</b> - <c>StructuralRuleTests.Only_the_sign_in_form_resolves_an_account_by_address</c>,
     /// which names who may call it and fails if federation ever does. That is the narrower claim and
     /// the one that was always the point: the attack is an attacker registering the victim's address
     /// at an upstream that does not verify it and being handed the account, and what prevents it is
@@ -1046,7 +1046,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <remarks>
     /// It costs nothing today, with one provider registered, and it is the check that stops being
     /// free the moment a second one is. Without it, a pending request minted for provider A could be
-    /// completed at provider B's callback — and B would validate a token from B against a
+    /// completed at provider B's callback - and B would validate a token from B against a
     /// <c>nonce</c> A issued, which succeeds.
     /// </remarks>
     [Fact]
@@ -1084,7 +1084,7 @@ public sealed partial class ExternalLoginFlowTests
         Assert.Equal("new@example.com", account.Email);
         Assert.True(account.EmailVerified);
 
-        // No defaults declared, so nothing was assigned — the pin for the pair of tests below.
+        // No defaults declared, so nothing was assigned - the pin for the pair of tests below.
         Assert.Empty(account.Roles);
     }
 
@@ -1093,7 +1093,7 @@ public sealed partial class ExternalLoginFlowTests
     /// </summary>
     /// <remarks>
     /// The other half of AccountDefaults: `CreateAsync` fills the role its caller did not name, and
-    /// a provisioned account has no caller at all — so without this, turning provisioning on had
+    /// a provisioned account has no caller at all - so without this, turning provisioning on had
     /// every sign-up land on the floor while DEFAULT_ROLES said otherwise.
     /// </remarks>
     [Fact]
@@ -1131,7 +1131,7 @@ public sealed partial class ExternalLoginFlowTests
     /// </summary>
     /// <remarks>
     /// The caller here is a stranger mid-OAuth who can fix nothing, so the failure lands where it
-    /// can be acted on — an error log naming the role — and the account proceeds holding nothing,
+    /// can be acted on - an error log naming the role - and the account proceeds holding nothing,
     /// which is the floor and the direction this tree already fails in.
     /// </remarks>
     [Fact]
@@ -1194,7 +1194,7 @@ public sealed partial class ExternalLoginFlowTests
             new UserAccount(subject, "ada", "ada@example.com", EmailVerified: true, hasher.Hash(Password)),
             CancellationToken.None));
 
-        // Sign in with the password first — that is the whole point of the link flow, and the
+        // Sign in with the password first - that is the whole point of the link flow, and the
         // condition that makes it safe where matching on email is not.
         var start = await server.Client.GetAsync(AuthorizeUrl());
         var page = await server.Client.GetStringAsync(start.Headers.Location!.ToString());
@@ -1482,7 +1482,7 @@ public sealed partial class ExternalLoginFlowTests
         var start = await server.Client.GetAsync(AuthorizeUrl());
         var page = await server.Client.GetStringAsync(start.Headers.Location!.ToString());
 
-        // Present, disabled, and the reason is on the page — never silently absent.
+        // Present, disabled, and the reason is on the page - never silently absent.
         Assert.Contains("action=\"/external/google/start\"", page, StringComparison.Ordinal);
         Assert.Contains("disabled", page, StringComparison.Ordinal);
         Assert.Contains("Google sign-in is off for this workspace.", page, StringComparison.Ordinal);
@@ -1553,7 +1553,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <remarks>
     /// A-09 applies to every federation refusal like any other. Asserted on the <i>last</i> line
     /// rather than on a single one because a flow test makes several requests before the one it is
-    /// about, and some of those legitimately log — a refused start after a login page, for instance.
+    /// about, and some of those legitimately log - a refused start after a login page, for instance.
     /// </remarks>
     private static void AssertRejected(Server server, string reason)
     {

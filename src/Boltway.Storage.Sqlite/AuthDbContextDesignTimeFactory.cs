@@ -16,8 +16,8 @@ namespace Boltway.Storage.Sqlite;
 /// </para>
 /// <para>
 /// <b>The connection string here is never opened.</b> Generating a migration reads the model, not
-/// the database. It is a filename so that a mistake — running <c>database update</c> with this
-/// factory — creates a stray file in the working directory rather than touching a real database.
+/// the database. It is a filename so that a mistake - running <c>database update</c> with this
+/// factory - creates a stray file in the working directory rather than touching a real database.
 /// </para>
 /// </remarks>
 public sealed class AuthDbContextDesignTimeFactory : IDesignTimeDbContextFactory<AuthDbContext>

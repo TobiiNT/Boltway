@@ -10,14 +10,14 @@ public enum InteractionPageKind
     /// <summary>The sign-in page.</summary>
     Login,
 
-    /// <summary>The consent page — the one N-14 governs.</summary>
+    /// <summary>The consent page - the one N-14 governs.</summary>
     Consent,
 
     /// <summary>The sign-out page: the confirmation, and the answer after it.</summary>
     Logout,
 
     /// <summary>
-    /// The authorization-error page — the one that renders when something has already failed.
+    /// The authorization-error page - the one that renders when something has already failed.
     /// </summary>
     /// <remarks>
     /// A layout branching on this should keep it simple. It is reached on a path where something
@@ -77,7 +77,7 @@ public enum InteractionPageKind
 /// <remarks>
 /// <see cref="Body"/> is the server's, and it is handed over as finished markup rather than as
 /// fields precisely so that a layout cannot rebuild it. Everything N-14, A-11 and A-14 require is
-/// already in that string, in the required order — so the only thing a layout can do wrong is fail
+/// already in that string, in the required order - so the only thing a layout can do wrong is fail
 /// to include it, which is a single condition and therefore one the renderer can check.
 /// </remarks>
 public sealed record InteractionPage
@@ -89,7 +89,7 @@ public sealed record InteractionPage
     public required string Title { get; init; }
 
     /// <summary>
-    /// The server-rendered body. <b>Already encoded — write it out verbatim, do not encode again.</b>
+    /// The server-rendered body. <b>Already encoded - write it out verbatim, do not encode again.</b>
     /// </summary>
     /// <remarks>
     /// The one value on any of these models that is markup rather than text, and the exception is
@@ -106,13 +106,13 @@ public sealed record InteractionPage
     /// <para>
     /// The reason a layout is where inline content becomes possible at all. A shell wanting a theme
     /// switcher, a focus trap or a critical-CSS block writes
-    /// <c>&lt;script nonce="@page.Nonce"&gt;</c> and the browser runs it — and writes nothing
+    /// <c>&lt;script nonce="@page.Nonce"&gt;</c> and the browser runs it - and writes nothing
     /// inline when this is <see langword="null"/>, because then the policy has no <c>script-src</c>
     /// and <c>default-src 'self'</c> refuses it.
     /// </para>
     /// <para>
     /// It is the response's, not the page's: the same value is already in the
-    /// <c>Content-Security-Policy</c> header, taken from the same place. Do not generate one here —
+    /// <c>Content-Security-Policy</c> header, taken from the same place. Do not generate one here -
     /// a nonce the header does not name is a nonce the browser has never heard of.
     /// </para>
     /// </remarks>
@@ -127,8 +127,8 @@ public sealed record InteractionPage
 /// The middle of the three ways to change this UI. <see cref="Configuration.InteractionOptions"/>
 /// below it changes the theme and can break nothing; <see cref="IInteractionRenderer"/> above it
 /// replaces the markup and can break everything. This one moves the boundary to where most
-/// deployments actually want it: full control of the document — header, navigation, footer,
-/// structure, classes — with the part of the page that says who is asking and where the code is
+/// deployments actually want it: full control of the document - header, navigation, footer,
+/// structure, classes - with the part of the page that says who is asking and where the code is
 /// going still rendered by the server.
 /// </para>
 /// <para>
@@ -139,7 +139,7 @@ public sealed record InteractionPage
 /// serving a consent page with no consent on it.
 /// </para>
 /// <para>
-/// What a layout must respect is the CSP the server sends with these pages —
+/// What a layout must respect is the CSP the server sends with these pages -
 /// <c>default-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none';
 /// object-src 'none'</c>. No inline <c>&lt;script&gt;</c> or <c>&lt;style&gt;</c>, no <c>style=</c>
 /// or <c>onclick=</c> attribute, no <c>data:</c> URI, and nothing loaded from another origin.

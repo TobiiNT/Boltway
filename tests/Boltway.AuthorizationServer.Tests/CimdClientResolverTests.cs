@@ -92,7 +92,7 @@ internal sealed class CountingClientStore : IClientStore
     }
 
     // Counted like the rest. A-08 is about the client table being untouched by a CIMD connection,
-    // not about which method did the touching — a resolver that "only looked up the owner" would
+    // not about which method did the touching - a resolver that "only looked up the owner" would
     // still be a resolver reaching the table, and this counter is what says so.
     public Task<ClientRecord?> FindByOwnerAsync(SubjectId owner, CancellationToken cancellationToken)
     {
@@ -124,10 +124,10 @@ internal sealed class CountingClientStore : IClientStore
 /// </para>
 /// <para>
 /// Every guard below has been seen to fail. 38 mutations were applied to the resolver one at a
-/// time — each §3 rule, the §4 self-reference check and its ordinality, §4.1's four bans, §4.2,
+/// time - each §3 rule, the §4 self-reference check and its ordinality, §4.1's four bans, §4.2,
 /// U-17's rule and both of its exemptions, C-04's two spellings and its default, S-30's floor and
 /// ceiling, the injected clock, the never-cache-an-error rule, the cache bound, the DI registration
-/// — and in every case the test named beside it went red and went green again on restore.
+/// - and in every case the test named beside it went red and went green again on restore.
 /// </para>
 /// <para>
 /// Two of those 38 first came back green while broken, and the cause is worth recording because it
@@ -282,7 +282,7 @@ public sealed class CimdClientResolverTests
     /// <remarks>
     /// The control for the theory above: a rule set that refuses everything passes every negative
     /// test. §3 states the query rule as SHOULD NOT and the bare-<c>/</c> rule as NOT RECOMMENDED,
-    /// and neither is promoted to a refusal here — refusing would turn a specification's advice into
+    /// and neither is promoted to a refusal here - refusing would turn a specification's advice into
     /// this server's rejection of a client that is legal everywhere else.
     /// </remarks>
     [Theory]
@@ -323,7 +323,7 @@ public sealed class CimdClientResolverTests
     /// <remarks>
     /// The fetcher is what refuses to follow it; this asserts the resolver reports it as its own
     /// condition rather than collapsing it into "could not fetch". §3 explains why it matters
-    /// operationally — a URL shortener as a <c>client_id</c> fails here and nowhere else.
+    /// operationally - a URL shortener as a <c>client_id</c> fails here and nowhere else.
     /// </remarks>
     [Fact]
     public async Task A_redirect_is_reported_and_not_followed()
@@ -377,7 +377,7 @@ public sealed class CimdClientResolverTests
     /// <summary>The cap the resolver asks for is the cap the fetcher is given.</summary>
     /// <remarks>
     /// A separate assertion from the one above, because <see cref="StubFetcher"/> does not enforce
-    /// the cap — it answers whatever it was programmed with. Without this, the resolver could pass
+    /// the cap - it answers whatever it was programmed with. Without this, the resolver could pass
     /// <c>int.MaxValue</c> and the <c>TooLarge</c> test would still be green.
     /// </remarks>
     [Fact]
@@ -505,7 +505,7 @@ public sealed class CimdClientResolverTests
     /// <remarks>
     /// Measured on 2026-08-03: <c>claude.ai</c> serves a bare <c>application/json</c> and
     /// <c>chatgpt.com</c> serves <c>application/json; charset=utf-8</c>. A resolver comparing the
-    /// header by string equality accepts one vendor and refuses the other — and the refusal surfaces
+    /// header by string equality accepts one vendor and refuses the other - and the refusal surfaces
     /// as <c>invalid_client</c>, which reads as the client's fault. The <c>+json</c> row is §4's
     /// "conforms to application/&lt;AS-defined&gt;+json".
     /// </remarks>
@@ -649,7 +649,7 @@ public sealed class CimdClientResolverTests
     /// Both spellings are read, and an absent field means <c>none</c>.
     /// </summary>
     /// <remarks>
-    /// C-04. RFC 7591 §2 makes the default <c>client_secret_basic</c>, which §4.1 forbids — so a
+    /// C-04. RFC 7591 §2 makes the default <c>client_secret_basic</c>, which §4.1 forbids - so a
     /// resolver applying RFC 7591's default literally refuses every document that omits the field,
     /// including two of the four captured on 2026-08-03. The plural spelling is ChatGPT's, and it is
     /// RFC 8414's <i>server</i> field appearing in a client document.
@@ -692,8 +692,8 @@ public sealed class CimdClientResolverTests
     /// <remarks>
     /// <para>
     /// Measured 2026-08-17 from <c>https://chatgpt.com/oauth/mcp/client.json</c>. It carries
-    /// <b>both</b> spellings — the singular naming <c>private_key_jwt</c>, the plural offering
-    /// <c>none</c> beside it — which no document captured on 2026-08-03 did.
+    /// <b>both</b> spellings - the singular naming <c>private_key_jwt</c>, the plural offering
+    /// <c>none</c> beside it - which no document captured on 2026-08-03 did.
     /// </para>
     /// <para>
     /// While <c>TryReadAuthMethod</c> read one member or the other, the singular won and every
@@ -705,8 +705,8 @@ public sealed class CimdClientResolverTests
     /// <para>
     /// Both paths are here because <b>production uses the per-connector one</b>, and it was not the
     /// URL this was first written against. A deployment's authorization-server log named
-    /// <c>https://chatgpt.com/oauth/&lt;callback-id&gt;/client.json</c> — a document minted per
-    /// connector instance, at the path OpenAI's Apps SDK documents — where the reproduction had used
+    /// <c>https://chatgpt.com/oauth/&lt;callback-id&gt;/client.json</c> - a document minted per
+    /// connector instance, at the path OpenAI's Apps SDK documents - where the reproduction had used
     /// the well-known <c>/oauth/mcp/client.json</c>. Both were fetched on 2026-08-17 and carry the
     /// same two members, so the fix covers both; asserting it beats inferring it from "same shape".
     /// The id in the per-connector URL below is a placeholder: the real one identifies somebody's
@@ -747,7 +747,7 @@ public sealed class CimdClientResolverTests
     /// <remarks>
     /// The singular is RFC 7591's field and the plural is RFC 8414's, so a document carrying both is
     /// stating a preference and a set. This server records one method and can complete only
-    /// <c>none</c> of the two §4.1 leaves legal, so the set is what it reads — see
+    /// <c>none</c> of the two §4.1 leaves legal, so the set is what it reads - see
     /// <c>CimdDocument.TryReadAuthMethod</c> for why that is a policy choice rather than a rule.
     /// </remarks>
     [Theory]
@@ -776,7 +776,7 @@ public sealed class CimdClientResolverTests
     /// </summary>
     /// <remarks>
     /// The branch that short-circuited the plural also skipped its §4.1 check, so a document naming
-    /// <c>none</c> in the singular carried <c>client_secret_basic</c> through the plural untouched —
+    /// <c>none</c> in the singular carried <c>client_secret_basic</c> through the plural untouched -
     /// while the identical plural on its own was refused. A rule that holds in one spelling and not
     /// the other is not a rule.
     /// </remarks>
@@ -980,7 +980,7 @@ public sealed class CimdClientResolverTests
     /// </summary>
     /// <remarks>
     /// The unit test above proves the arithmetic. This proves the arithmetic is what the cache uses,
-    /// and that expiry is read from the injected <see cref="TimeProvider"/> — a resolver reading
+    /// and that expiry is read from the injected <see cref="TimeProvider"/> - a resolver reading
     /// <c>DateTimeOffset.UtcNow</c> would ignore the clock this test moves and stay green for the
     /// wrong reason only until the suite ran slowly.
     /// </remarks>
@@ -1106,7 +1106,7 @@ public sealed class CimdClientResolverTests
     /// A hundred <b>distinct</b> identifiers as well as a hundred repeats, because the repeat case
     /// is also satisfied by a resolver that persists once and reads back. The store here answers
     /// nothing and counts everything: the assertion is zero calls of any kind, which is the property
-    /// A-08 states — "CIMD creates no per-connection persistent client record".
+    /// A-08 states - "CIMD creates no per-connection persistent client record".
     /// </remarks>
     [Fact]
     public async Task A_hundred_connections_never_touch_the_client_store()
@@ -1271,7 +1271,7 @@ public sealed class CimdClientResolverTests
     /// <remarks>
     /// <c>ErrorText.Safe</c> drops characters outside OAuth 2.1 §4.1.2.1's set and truncates at 240.
     /// A description written past that limit reaches the reader with the sentence that explains the
-    /// failure cut off — which is the failure mode A-12 exists to prevent, arriving through the
+    /// failure cut off - which is the failure mode A-12 exists to prevent, arriving through the
     /// mechanism meant to make the body safe.
     /// </remarks>
     [Fact]
@@ -1308,7 +1308,7 @@ public sealed class CimdClientResolverTests
     /// <summary>Every <c>cimd-live-*.json</c> capture that ships beside these tests.</summary>
     /// <remarks>
     /// Enumerated from disk rather than listed here, so a capture cannot be added and then read by
-    /// nothing — which is what happened to <c>cimd-live-2026-08-17.json</c> for a release. The
+    /// nothing - which is what happened to <c>cimd-live-2026-08-17.json</c> for a release. The
     /// csproj globs them into the output directory; this finds whatever arrived.
     /// </remarks>
     public static TheoryData<string> Captures
@@ -1364,7 +1364,7 @@ public sealed class CimdClientResolverTests
     /// <para>
     /// Read from the <c>spec/cimd-live-*.json</c> captures rather than transcribed, so
     /// refreshing a capture re-tests this rather than leaving a copy behind. Each file is a
-    /// <c>// url</c> comment line followed by the document body, repeated — a capture log, not one
+    /// <c>// url</c> comment line followed by the document body, repeated - a capture log, not one
     /// JSON document.
     /// </para>
     /// <para>
@@ -1457,8 +1457,8 @@ public sealed class CimdClientResolverTests
     /// <para>
     /// <b>LESSONS #8, read from the capture rather than from a copy of it.</b> On 2026-08-03 every
     /// document carried exactly one spelling of the auth method, so the reader was written
-    /// <c>if (singular) … else if (plural)</c>. On 2026-08-17 ChatGPT's carried both — the singular
-    /// naming <c>private_key_jwt</c>, the plural offering <c>none</c> beside it — the
+    /// <c>if (singular) … else if (plural)</c>. On 2026-08-17 ChatGPT's carried both - the singular
+    /// naming <c>private_key_jwt</c>, the plural offering <c>none</c> beside it - the
     /// <c>else</c> branch stopped being reached, and every ChatGPT connection resolved to a
     /// confidential client this server cannot authenticate.
     /// </para>
@@ -1502,14 +1502,14 @@ public sealed class CimdClientResolverTests
     /// <para>
     /// <b>This test exists to fail.</b> <c>ProtectedResourceMetadata</c> records that setting
     /// <c>dpop_bound_access_tokens_required</c> breaks both Claude and ChatGPT "since neither sends
-    /// DPoP" — a measurement, written as a standing fact, in a comment that cannot notice when it
+    /// DPoP" - a measurement, written as a standing fact, in a comment that cannot notice when it
     /// expires. That is LESSONS #8's shape exactly, and #8 says where a dated observation belongs:
     /// in a fixture that fails when the world moves.
     /// </para>
     /// <para>
     /// RFC 9449 §5.2 registers <c>dpop_bound_access_tokens</c> as client metadata, so a vendor that
     /// starts sender-constraining says so here first. When this goes red, DPoP has stopped being
-    /// deferred and the comments that assert otherwise are the thing to fix — not this assertion.
+    /// deferred and the comments that assert otherwise are the thing to fix - not this assertion.
     /// </para>
     /// <para>
     /// Substring rather than a parse, deliberately: any <c>dpop</c>-prefixed member is interesting,
@@ -1574,7 +1574,7 @@ public sealed class CimdClientResolverTests
     /// <remarks>
     /// Through the real <see cref="AuthorizePipeline"/>, with the CIMD resolver as the only one
     /// registered and nothing seeded anywhere. The resolver has no store, so "never seen before" is
-    /// not a fixture arrangement — there is nowhere it could have been seen.
+    /// not a fixture arrangement - there is nowhere it could have been seen.
     /// </remarks>
     [Fact]
     public async Task A_fresh_client_id_validates_with_zero_admin_steps()
@@ -1610,8 +1610,8 @@ public sealed class CimdClientResolverTests
     /// A-03's acceptance criterion is written as "⇒ <c>/authorize</c> returns 302". This server
     /// answers <b>303</b>, deliberately and everywhere: RFC 9700 §4.12 and OAuth 2.1 §7.5.3 require
     /// 303 so a browser rewrites the request as a GET, and an architecture test refuses 307 and 308
-    /// outright. So the claim proved here is the one A-03 is about — a client nobody registered gets
-    /// a redirect into the flow instead of <c>invalid_client</c> — and not the literal status digit.
+    /// outright. So the claim proved here is the one A-03 is about - a client nobody registered gets
+    /// a redirect into the flow instead of <c>invalid_client</c> - and not the literal status digit.
     /// </para>
     /// <para>
     /// The host is built the way a customer's would be, so this also covers the wiring: that the
@@ -1660,7 +1660,7 @@ public sealed class CimdClientResolverTests
     /// The control for the test above: without the fetched document, the same request is refused.
     /// </summary>
     /// <remarks>
-    /// This is what the endpoint did before this resolver existed, for every client — a 400 whose
+    /// This is what the endpoint did before this resolver existed, for every client - a 400 whose
     /// body says <c>invalid_client</c> while the metadata document advertises
     /// <c>client_id_metadata_document_supported</c>. Without this row, the 303 above is not evidence
     /// that CIMD did anything: an over-permissive pipeline would produce it too.

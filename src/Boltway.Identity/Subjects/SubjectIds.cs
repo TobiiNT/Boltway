@@ -14,7 +14,7 @@ namespace Boltway.Identity.Subjects;
 /// <para>
 /// <b>The scope of the guarantee, exactly.</b> Every subject minted here is a well-formed ULID.
 /// <see cref="SubjectId.FromStorage"/> is unchanged and still accepts any string, because it is the
-/// rehydration path for rows already in a database — including rows written by an earlier
+/// rehydration path for rows already in a database - including rows written by an earlier
 /// deployment, or by a customer's own directory. So the claim is "what this server mints is a ULID",
 /// not "every <see cref="SubjectId"/> in the process is one". <see cref="Ulid.IsWellFormed"/> is
 /// public so a caller that needs the stronger statement can check for itself.

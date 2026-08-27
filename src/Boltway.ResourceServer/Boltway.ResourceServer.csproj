@@ -26,7 +26,7 @@
     What actually blocks it is an API. Boltway.OAuth.Primitives wraps
     System.Buffers.Text.Base64Url, which is .NET 9 and later; compiling that assembly against
     net8.0 fails with CS0234 on all three call sites. Multi-targeting therefore means a
-    hand-written unpadded base64url behind a #if for net8.0 — in the primitive that encodes PKCE
+    hand-written unpadded base64url behind a #if for net8.0 - in the primitive that encodes PKCE
     verifiers, jti values and JWK thumbprints, where the padding rule is byte-exact and getting it
     wrong produces a PKCE mismatch on every request with an error that says nothing about padding.
     (CA1307 is a second, smaller one: string.IndexOf(char, StringComparison) is also .NET 9+, and
@@ -101,7 +101,7 @@
     the well-known suffix into, and 6 forbids Unicode normalization at any point. Every banned
     member below returns a value that has been through at least one normalization, so building
     either the document or the metadata URL out of one produces bytes the client compares and
-    rejects — and the failure surfaces on the client as a generic "couldn't connect", with the
+    rejects - and the failure surfaces on the client as a generic "couldn't connect", with the
     server's own log showing a clean 200.
   -->
   <ItemGroup>

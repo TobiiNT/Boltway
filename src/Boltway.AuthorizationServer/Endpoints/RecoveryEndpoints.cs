@@ -15,13 +15,13 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <summary>The two flows that reach a person by email. E-39 to E-44.</summary>
 /// <remarks>
 /// <para>
-/// <b>Public — no cookie, no bearer, no session.</b> Everything else on this server is reached by
+/// <b>Public - no cookie, no bearer, no session.</b> Everything else on this server is reached by
 /// somebody who can already prove who they are; these are reached by somebody who cannot, which is
 /// the whole point and the source of every rule below.
 /// </para>
 /// <para>
 /// <b>Three endpoints and three pages, shipped together.</b> <c>E-40</c> and <c>E-41</c> on their
-/// own are a design that mails somebody a URL answering 405 — §7.3. The pages are where a link in an
+/// own are a design that mails somebody a URL answering 405 - §7.3. The pages are where a link in an
 /// email actually lands; the endpoints are for a caller driving the flow programmatically. The third
 /// page, <c>/forgot</c>, is the same argument at the other end of the flow: <c>E-39</c> answers JSON,
 /// so without it the sign-in page's "I have forgotten my password" link has nowhere to go and a
@@ -37,7 +37,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <b>§3.1: this is an outbound spam vector and it is bounded.</b> <c>E-39</c> sends mail to an
 /// address the caller chooses, so the cost of an unbounded request lands on somebody who is not
 /// making it. <see cref="RecoveryThrottle"/> counts per submitted identifier and per source, and
-/// like every limit here it is per process — <c>X-31</c>.
+/// like every limit here it is per process - <c>X-31</c>.
 /// </para>
 /// </remarks>
 public static class RecoveryEndpoints
@@ -51,7 +51,7 @@ public static class RecoveryEndpoints
         // **This is the one file that maps both halves, so it declares both.** The three routes
         // under `/account/` are the JSON API a script calls; the five below them are the pages a
         // person is sent to by an email. They share a file because they share the token logic, not
-        // because they answer the same caller — and on a store failure the difference is the whole
+        // because they answer the same caller - and on a store failure the difference is the whole
         // answer: a script can use a status, and somebody who has just clicked a reset link cannot.
         // X-43.
         var api = endpoints.ShedsOnStoreFailure(OAuthSurface.Administration, rendered: false);
@@ -115,7 +115,7 @@ public static class RecoveryEndpoints
         var body = await ReadIdentifierAsync(http, cancellationToken);
 
         // Charged before anything is looked up, so the counter cannot depend on whether the account
-        // exists — the same ordering LoginThrottle uses and for the same reason.
+        // exists - the same ordering LoginThrottle uses and for the same reason.
         var admission = Throttle(http).Admit(body, http);
 
         if (!admission.Allowed)
@@ -166,7 +166,7 @@ public static class RecoveryEndpoints
             RecoveryOutcome.BlankPassword => Problem(
                 StatusCodes.Status400BadRequest, "invalid_request", "The new password is blank."),
 
-            // Expired, used and never-issued are one answer. §7.3 — there is nothing to enumerate,
+            // Expired, used and never-issued are one answer. §7.3 - there is nothing to enumerate,
             // and a person not told their link expired clicks it again rather than asking for a new
             // one.
             _ => Problem(
@@ -216,7 +216,7 @@ public static class RecoveryEndpoints
     /// </summary>
     /// <remarks>
     /// <b>The token is not redeemed here.</b> Drawing the form does not consume it, so a person who
-    /// opens the link, gets distracted and comes back still has a working link — and, more to the
+    /// opens the link, gets distracted and comes back still has a working link - and, more to the
     /// point, an email client that pre-fetches URLs does not silently destroy the reset it was
     /// delivering. Redemption happens on the POST, which is what a scanner does not do.
     /// </remarks>
@@ -278,7 +278,7 @@ public static class RecoveryEndpoints
     /// </summary>
     /// <remarks>
     /// <b>A GET that changes state, deliberately.</b> The alternative is a page with a button, and
-    /// the thing being protected is an address the reader already controls — the worst outcome of a
+    /// the thing being protected is an address the reader already controls - the worst outcome of a
     /// pre-fetching mail client following this is that the address gets marked as theirs, which is
     /// what they were being asked to confirm. Weighed against a confirmation step everybody clicks
     /// through, this is the better trade. <c>/reset</c> makes the opposite call because what it
@@ -314,7 +314,7 @@ public static class RecoveryEndpoints
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>The same service <c>E-39</c> calls, in process</b> — §1.13, the pattern <c>/me/*</c>
+    /// <b>The same service <c>E-39</c> calls, in process</b> - §1.13, the pattern <c>/me/*</c>
     /// already follows. Posting the form to <c>E-39</c> itself would be the smaller diff and would
     /// show a person a line of JSON; content-negotiating that endpoint would put a branch on the one
     /// surface whose whole design is that it answers identically every time.
@@ -323,12 +323,12 @@ public static class RecoveryEndpoints
     /// <b>Every rule <c>E-39</c> holds to, this holds to.</b> <c>S-48</c>: one answer, whether or
     /// not an account matched, because <see cref="AccountRecovery.RequestPasswordResetAsync"/>
     /// returns nothing there is to report. §3.1: the same throttle, charged before any lookup, so
-    /// the counter cannot depend on whether the account exists — and adding a page must not become
+    /// the counter cannot depend on whether the account exists - and adding a page must not become
     /// a way around a limit that exists to stop this server mailing strangers.
     /// </para>
     /// <para>
-    /// <b>Antiforgery, unlike <c>E-39</c>.</b> Not because a forged request here is an escalation —
-    /// it makes somebody's browser ask for a mail to an address the attacker already knows — but
+    /// <b>Antiforgery, unlike <c>E-39</c>.</b> Not because a forged request here is an escalation -
+    /// it makes somebody's browser ask for a mail to an address the attacker already knows - but
     /// because it is a state-changing form on the origin that carries the session cookie, and the
     /// other forms on it are protected. A page that is the exception is the one somebody copies.
     /// </para>
@@ -350,7 +350,7 @@ public static class RecoveryEndpoints
         if (!admission.Allowed)
         {
             // Retry-After on the page too. A person reads the sentence and a client reads the
-            // header, and the endpoint that answers JSON already sets it — a page that dropped it
+            // header, and the endpoint that answers JSON already sets it - a page that dropped it
             // would make the two surfaces disagree about a fact neither of them is guessing at.
             http.Response.Headers.RetryAfter = ((int)Math.Ceiling(admission.RetryAfter.TotalSeconds))
                 .ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -394,7 +394,7 @@ public static class RecoveryEndpoints
         catch (System.Text.Json.JsonException)
         {
             // Unparseable is the same as absent. It still costs a throttle slot and still gets the
-            // 202 — a 400 here would tell a caller their request reached the handler, which is one
+            // 202 - a 400 here would tell a caller their request reached the handler, which is one
             // bit more than the endpoint means to give away.
             return null;
         }
@@ -408,8 +408,8 @@ public static class RecoveryEndpoints
     /// the same answer and two copies of "where does a person go when they are finished" is how the
     /// pages come to disagree. This copy was the original and lived here for a day.
     /// <para>
-    /// <c>/me</c> is an allowed return target and the natural one after a reset — sign in, see the
-    /// account you just recovered — but it exists only when the self-service pages are routed, so
+    /// <c>/me</c> is an allowed return target and the natural one after a reset - sign in, see the
+    /// account you just recovered - but it exists only when the self-service pages are routed, so
     /// when they are not this is null and the pages draw no link rather than one that fails.
     /// </para>
     /// </remarks>
@@ -465,7 +465,7 @@ public static class RecoveryEndpoints
 }
 
 /// <summary>What a reset request carries.</summary>
-/// <param name="Account">A handle or an email address — whichever the person remembers.</param>
+/// <param name="Account">A handle or an email address - whichever the person remembers.</param>
 public sealed record ForgotPasswordRequest(
     [property: JsonPropertyName("account")] string? Account);
 
@@ -488,7 +488,7 @@ public sealed record AcceptedView(
 
 /// <summary>What a successful reset reports.</summary>
 /// <param name="SessionsRevoked">
-/// How many sessions ended. Always every one of them on this route — §1.10, because somebody
+/// How many sessions ended. Always every one of them on this route - §1.10, because somebody
 /// resetting through email is usually doing it because they lost control of something.
 /// </param>
 public sealed record ResetDoneView(

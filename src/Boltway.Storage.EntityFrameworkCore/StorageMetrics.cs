@@ -9,14 +9,14 @@ namespace Boltway.Storage.EntityFrameworkCore;
 /// <remarks>
 /// <para>
 /// <b>A separate meter from the authorization server's, and not by preference.</b> This assembly
-/// cannot reference <c>Boltway.AuthorizationServer</c> — the dependency runs the other way, and
+/// cannot reference <c>Boltway.AuthorizationServer</c> - the dependency runs the other way, and
 /// that direction is what lets a customer replace storage without taking the server with it. So the
 /// instrument lives where the code it measures lives, which is also what OpenTelemetry asks for: one
 /// meter per instrumented library, named after the library.
 /// </para>
 /// <para>
 /// A host that wants these has to name this meter too. That is the cost of the boundary and it is
-/// the honest one — <c>AddMeter</c> takes several names.
+/// the honest one - <c>AddMeter</c> takes several names.
 /// </para>
 /// <para>
 /// The tag is the operation, spelled <c>Store.Method</c>, because the question this answers is
@@ -49,7 +49,7 @@ public sealed class StorageMetrics : IDisposable
     /// </summary>
     /// <remarks>
     /// Returns a struct, and the caller holds it in a <c>using</c>. That means no allocation per
-    /// call — these run on the token endpoint's path, where the budget is ten seconds for the whole
+    /// call - these run on the token endpoint's path, where the budget is ten seconds for the whole
     /// request and a per-call allocation is the kind of cost that is invisible until it is the
     /// profile.
     /// </remarks>

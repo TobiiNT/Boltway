@@ -11,7 +11,7 @@ namespace Boltway.OAuth.Primitives.Ids;
 /// tables, and every deployment stays single-realm without noticing.
 /// </para>
 /// <para>
-/// <b>It goes only where the lookup key is chosen by a person</b> — usernames, emails, upstream
+/// <b>It goes only where the lookup key is chosen by a person</b> - usernames, emails, upstream
 /// subjects. Grants, consents and refresh families are keyed on <see cref="SubjectId"/>, which is a
 /// ULID and therefore already unique across every realm there will ever be; adding a realm column to
 /// those would be a second isolation mechanism for something already isolated, and two mechanisms
@@ -21,7 +21,7 @@ namespace Boltway.OAuth.Primitives.Ids;
 /// <b>Constrained at creation, like <see cref="SubjectId"/> and for the same reason.</b> The value
 /// lands in a composite unique index and is a candidate for a cache key and a URL segment. A
 /// character set of <c>[a-z0-9-]</c> means no caller anywhere downstream has to sanitise it, and
-/// nothing this server writes can produce two realms whose names differ only by case — which would
+/// nothing this server writes can produce two realms whose names differ only by case - which would
 /// be two directories that look like one.
 /// </para>
 /// </remarks>
@@ -53,7 +53,7 @@ public readonly struct RealmId : IEquatable<RealmId>
     /// <remarks>
     /// <c>default(RealmId)</c> has a null <see cref="Value"/>, and a struct cannot prevent that.
     /// Anything reading a realm out of a model should treat this as
-    /// <see cref="Default"/> — <see cref="OrDefault"/> does — rather than writing a null into a
+    /// <see cref="Default"/> - <see cref="OrDefault"/> does - rather than writing a null into a
     /// column and finding out at the database.
     /// </remarks>
     public bool IsUnset => Value is null;
@@ -113,7 +113,7 @@ public readonly struct RealmId : IEquatable<RealmId>
     /// Wrap a realm name already in a database.
     /// </summary>
     /// <remarks>
-    /// The rehydration path, and it validates nothing — the same split
+    /// The rehydration path, and it validates nothing - the same split
     /// <see cref="SubjectId.FromStorage"/> records. A shape is a promise about what gets created, so
     /// the creation site is the only place it can be kept; refusing here would make a row written by
     /// an older version unreadable rather than merely unusual.

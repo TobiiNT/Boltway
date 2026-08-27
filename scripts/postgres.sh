@@ -8,7 +8,7 @@
 #
 # Why this exists
 # ---------------
-# `Boltway.Storage.PostgreSql.Tests` fails — it does not skip — when no server is reachable.
+# `Boltway.Storage.PostgreSql.Tests` fails - it does not skip - when no server is reachable.
 # That is deliberate and documented on `PostgresDatabase`: a storage suite that skips itself when
 # the database is missing reads as green in exactly the situation where it measured nothing. The
 # cost of that choice is that every machine which runs the suite needs a server, and before this

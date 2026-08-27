@@ -10,7 +10,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// <c>ExternalLoginFlowTests</c> drives everything through HTTP, which is the right shape for the
-/// endpoints and the wrong shape for questions about the provider's own configuration — a
+/// endpoints and the wrong shape for questions about the provider's own configuration - a
 /// <c>typ</c> allow-list or a key-set refetch is a property of this class, and reaching it through
 /// three redirects makes the assertion about the plumbing instead.
 /// </remarks>
@@ -72,7 +72,7 @@ public sealed class OidcExternalProviderTests
     /// <remarks>
     /// <c>ValidTypes</c> is unset by default in <c>Microsoft.IdentityModel</c>, which is the defect
     /// N-09 exists for. Pointing the configured set at a value the upstream does not send is the only
-    /// way to show the check is live — the fake signs <c>typ: JWT</c>, like every real provider — so
+    /// way to show the check is live - the fake signs <c>typ: JWT</c>, like every real provider - so
     /// a token refused here is refused on the header alone, and the test above is the control that
     /// the same token is otherwise accepted.
     /// </remarks>
@@ -135,7 +135,7 @@ public sealed class OidcExternalProviderTests
     /// <summary>A matching <c>iss</c> is fine, and an absent one is fine.</summary>
     /// <remarks>
     /// The control for the test above. Many conformant providers do not send <c>iss</c> at all, so
-    /// refusing its absence would break them — and a check that refused every response would satisfy
+    /// refusing its absence would break them - and a check that refused every response would satisfy
     /// the test above just as well.
     /// </remarks>
     [Theory]
@@ -188,7 +188,7 @@ public sealed class OidcExternalProviderTests
             await harness.Provider.CompleteAsync(Callback_(), CancellationToken.None));
         Assert.Equal(1, harness.Upstream.JwksFetches);
 
-        // A `kid` we do not hold does, and it still fails — the refetch is a way to learn about
+        // A `kid` we do not hold does, and it still fails - the refetch is a way to learn about
         // rotation, not a way to accept a stranger.
         harness.Upstream.Behaviour.SignWithWrongKey = false;
         harness.Upstream.Behaviour.SignWithUnknownKid = true;
@@ -201,7 +201,7 @@ public sealed class OidcExternalProviderTests
     /// <summary>The refetch floor holds an unknown <c>kid</c> to one fetch per interval.</summary>
     /// <remarks>
     /// The control for the row above: with the shipped floor rather than a near-zero one, a burst of
-    /// tokens naming random <c>kid</c>s — which anyone who can reach the callback can send — buys no
+    /// tokens naming random <c>kid</c>s - which anyone who can reach the callback can send - buys no
     /// fetches at all inside the interval.
     /// </remarks>
     [Fact]

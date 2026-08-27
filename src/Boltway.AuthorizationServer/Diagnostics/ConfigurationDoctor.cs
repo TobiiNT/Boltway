@@ -22,7 +22,7 @@ public enum DoctorStatus
     /// </summary>
     /// <remarks>
     /// The distinction is the entire reason this enum has four members instead of three. A check
-    /// that could not run — no Docker for the Postgres leg, no network for a live fetch — reported
+    /// that could not run - no Docker for the Postgres leg, no network for a live fetch - reported
     /// as green is a claim nobody made, and it is indistinguishable from a real pass in every
     /// summary it appears in afterwards.
     /// </remarks>
@@ -46,7 +46,7 @@ public sealed record DoctorCheck(string Id, string Title, DoctorStatus Status, s
 /// Separate from <see cref="AuthorizationServerOptions.TryValidate"/> because the two answer
 /// different questions. Validation asks "is this configuration internally consistent" and runs at
 /// startup with a boot failure attached. The doctor asks "does this configuration describe a server
-/// that will actually work for a client", which includes things that are legal but wrong — a key
+/// that will actually work for a client", which includes things that are legal but wrong - a key
 /// ring with nothing published, a metadata document advertising a scope no resource defines.
 /// </remarks>
 public static class ConfigurationDoctor
@@ -80,7 +80,7 @@ public static class ConfigurationDoctor
             // Scope descriptions belong here for a subtler reason than the three above: the list
             // this reads is populated *by* TryValidate, so a run that failed may never have reached
             // the scope parse. An empty list would then mean "not computed" while reading exactly
-            // like "every scope is described" — a check that could not run, rendered green, which
+            // like "every scope is described" - a check that could not run, rendered green, which
             // is the case this enum exists for.
             checks.Add(NotMeasured("scope-descriptions", "Every advertised scope has a description", "The configuration did not validate."));
         }
@@ -102,7 +102,7 @@ public static class ConfigurationDoctor
     {
         // Parsed back rather than trusted, because what matters is the bytes on the wire. A property
         // that serializes to `[]` or to `"true"` instead of `true` is a defect no amount of reading
-        // the builder finds — both vendors gate CIMD selection on the JSON type of one of these.
+        // the builder finds - both vendors gate CIMD selection on the JSON type of one of these.
         using var parsed = JsonDocument.Parse(document.Json.AsSpan().ToArray());
         var root = parsed.RootElement;
 
@@ -179,8 +179,8 @@ public static class ConfigurationDoctor
         var metadata = document.Metadata;
         var issuer = metadata.Issuer;
 
-        // Every URL in the document must sit under the issuer. Not a spec rule — RFC 8414 permits
-        // endpoints on other hosts — but a deployment where they diverge has almost always got its
+        // Every URL in the document must sit under the issuer. Not a spec rule - RFC 8414 permits
+        // endpoints on other hosts - but a deployment where they diverge has almost always got its
         // issuer from the wrong place, and the symptom downstream is an `aud` or `iss` mismatch
         // several hops away from the cause.
         var strays = new List<string>();
@@ -232,7 +232,7 @@ public static class ConfigurationDoctor
                 "The JWKS would be empty, so no client can validate any token this server issues.");
         }
 
-        // The configured algorithm, not RS256 — a deployment that set TokenSigningAlgorithm to
+        // The configured algorithm, not RS256 - a deployment that set TokenSigningAlgorithm to
         // ES256 and holds only an EC key is correct, and asking the ring for RS256 would report it
         // as broken. What must hold is that the ring can sign with what this server advertises,
         // and both come off the same option.
@@ -292,14 +292,14 @@ public static class ConfigurationDoctor
     /// <para>
     /// <c>AuthorizationServerOptions</c> has collected these since validation was written, and the
     /// sample's own comment says an undescribed scope is "collect[ed] into
-    /// <c>ScopesWithoutDescriptions</c> for the doctor to report". Nothing read it — three
+    /// <c>ScopesWithoutDescriptions</c> for the doctor to report". Nothing read it - three
     /// references in the whole repository, being the property, the assignment, and that comment. A
     /// promise with nothing behind it, which is the shape <c>N-06</c> is about.
     /// </para>
     /// <para>
     /// Warn rather than Fail, and that is <c>A-14</c> holding rather than being relaxed: a scope
     /// with no description renders as its bare name plus a note saying so, because inventing text
-    /// by parsing a scope name is the thing A-14 forbids. The page is correct and unhelpful — which
+    /// by parsing a scope name is the thing A-14 forbids. The page is correct and unhelpful - which
     /// is exactly what a doctor is for, since nothing else in the system can tell the difference.
     /// </para>
     /// </remarks>

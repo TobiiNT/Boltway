@@ -12,7 +12,7 @@ namespace Boltway.OAuth.Primitives.Secrets;
 /// <remarks>
 /// <para>
 /// Two properties, both required by N-16. The entropy comes from
-/// <see cref="RandomNumberGenerator"/> and is 256 bits — <c>System.Random</c> is banned project-wide
+/// <see cref="RandomNumberGenerator"/> and is 256 bits - <c>System.Random</c> is banned project-wide
 /// and <c>Guid.NewGuid</c> makes no cryptographic promise about its 122. And the plaintext is never
 /// persisted: only <see cref="Sha256Hash"/> of it reaches a database column, so disclosure of the
 /// database is not account takeover.
@@ -52,7 +52,7 @@ public readonly struct OpaqueSecret
     /// The attributes are the leak defence, and they matter more than the <see cref="ToString"/>
     /// override does. Overriding <c>ToString</c> stops string interpolation; it does nothing about
     /// <c>JsonSerializer.Serialize(secret)</c>, Serilog's <c>{@secret}</c> destructuring, or any
-    /// structured-logging provider that reflects over properties — all of which would have emitted
+    /// structured-logging provider that reflects over properties - all of which would have emitted
     /// <c>{"Purpose":2,"Wire":"bw_rt_…"}</c> with the live token in it.
     /// </remarks>
     [JsonIgnore]
@@ -73,7 +73,7 @@ public readonly struct OpaqueSecret
     /// </summary>
     /// <param name="purpose">Which kind of secret this is.</param>
     /// <param name="material">
-    /// Exactly <see cref="EntropyBytes"/> bytes from a cryptographic KDF or MAC — never from a
+    /// Exactly <see cref="EntropyBytes"/> bytes from a cryptographic KDF or MAC - never from a
     /// non-cryptographic generator, a counter, or a hash of something guessable.
     /// </param>
     /// <remarks>
@@ -87,8 +87,8 @@ public readonly struct OpaqueSecret
     /// <b>And narrow by accessibility, because "deliberately narrow" was not true while it was
     /// public.</b> A review measured it: <c>FromDerivedMaterial(TokenPurpose.RefreshToken,
     /// SHA256("user@example.com"))</c> minted a valid <c>bw_rt_…</c> that <see cref="TryParse"/>
-    /// accepted, and <c>TokenPurpose.RegistrationAccessToken</c> — the sole authenticator for full
-    /// control of a client record — behaved identically. The 32-byte check is the right guard for
+    /// accepted, and <c>TokenPurpose.RegistrationAccessToken</c> - the sole authenticator for full
+    /// control of a client record - behaved identically. The 32-byte check is the right guard for
     /// the stated purpose, wire indistinguishability, and no guard whatsoever for the one the name
     /// suggests. On a shipped package that is an unguessability claim with nothing behind it.
     /// </para>
@@ -120,13 +120,13 @@ public readonly struct OpaqueSecret
     /// Only the refresh grace window needs this, and only because of what it does with the result.
     /// A successor is derived rather than generated so that two racing redemptions compute the same
     /// plaintext, and the grace path then checks the reconstruction against the hash the store
-    /// holds and <b>fails closed</b> if they differ — a check that exists because a wrong
+    /// holds and <b>fails closed</b> if they differ - a check that exists because a wrong
     /// derivation key otherwise hands a client a token belonging to no row.
     /// </para>
     /// <para>
     /// A row written before the rename holds the hash of a <c>ck_rt_</c> string. Reconstructing it
     /// as <c>bw_rt_</c> mismatches, and the refusal would then tell an operator their
-    /// <c>RefreshTokenDerivationKey</c> disagrees with the one that wrote the row — true of every
+    /// <c>RefreshTokenDerivationKey</c> disagrees with the one that wrote the row - true of every
     /// route into that refusal except this one. A rename that makes a diagnostic lie is worse than
     /// the branding it removes, so the reconstruction tries both spellings and the message stays
     /// true.
@@ -202,7 +202,7 @@ public readonly struct OpaqueSecret
 
     /// <summary>The prefix identifying each kind of secret on the wire.</summary>
     /// <remarks>
-    /// No prefix is a prefix of another — <c>bw_rt_</c> and <c>bw_rat_</c> diverge at index 4 —
+    /// No prefix is a prefix of another - <c>bw_rt_</c> and <c>bw_rat_</c> diverge at index 4 -
     /// which is what makes the <c>StartsWith</c> check in <see cref="TryParse"/> unambiguous.
     /// </remarks>
     private static string PrefixFor(TokenPurpose purpose) => purpose switch
@@ -220,7 +220,7 @@ public readonly struct OpaqueSecret
     /// <c>ck</c> is ConnectorKit, a previous name for this project, and it reached the wire: every
     /// authorization code, refresh token, registration access token and client secret ever minted
     /// carries it. A published library whose credentials are branded for a product it is not is a
-    /// rename left half-finished, and the cost of finishing it only goes up — the prefix is in
+    /// rename left half-finished, and the cost of finishing it only goes up - the prefix is in
     /// deployments' databases and in clients' hands, so this is the cheapest it will ever be.
     /// </para>
     /// <para>
@@ -233,7 +233,7 @@ public readonly struct OpaqueSecret
     /// <para>
     /// Removable once no deployment can still hold one: that is one refresh-token lifetime after
     /// the upgrade for tokens, and a re-issue for client secrets. Deleting it early is not a
-    /// tidy-up — it is a forced re-authorization for everyone.
+    /// tidy-up - it is a forced re-authorization for everyone.
     /// </para>
     /// </remarks>
     private static string LegacyPrefixFor(TokenPurpose purpose) => purpose switch
@@ -258,7 +258,7 @@ public readonly struct OpaqueSecret
     /// <exception cref="NotSupportedException">Always.</exception>
     /// <remarks>
     /// <see cref="ValueType.Equals(object)"/> would otherwise compare the plaintext with
-    /// <c>string.Equals</c> — variable-time, and reachable through
+    /// <c>string.Equals</c> - variable-time, and reachable through
     /// <c>HashSet&lt;OpaqueSecret&gt;</c> or <c>List.Contains</c> without anyone writing a
     /// comparison. N-16 says the comparison is <c>FixedTimeEquals</c> on a hash; leaving a second
     /// route open makes that a convention rather than a rule. No timing signal was measurable

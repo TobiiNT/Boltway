@@ -7,7 +7,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Users;
 /// <remarks>
 /// <b>Two purposes in one table, and they must not be interchangeable.</b> A verification token that
 /// could be redeemed at the reset endpoint would let anyone who can receive a "confirm your address"
-/// mail set the password — and that mail is sent to an address the account holder typed, sometimes
+/// mail set the password - and that mail is sent to an address the account holder typed, sometimes
 /// before anyone has proven it is theirs. The purpose is stored and compared on redemption.
 /// </remarks>
 public enum UserTokenPurpose
@@ -21,7 +21,7 @@ public enum UserTokenPurpose
 
 /// <summary>A one-time link, as the store holds it.</summary>
 /// <param name="TokenHash">
-/// SHA-256 of the value in the link. <b>The plaintext is never stored</b> — N-16, the same rule
+/// SHA-256 of the value in the link. <b>The plaintext is never stored</b> - N-16, the same rule
 /// authorization codes and refresh tokens follow. A stolen database backup is then a list of hashes
 /// rather than a set of live links into every account.
 /// </param>
@@ -51,7 +51,7 @@ public sealed record UserTokenRecord(
 /// <para>
 /// <b>There is no "find" that does not consume.</b> A store exposing a read would let a caller
 /// validate a token and then act on it in two statements, and two concurrent redemptions of one
-/// reset link would both succeed — which is a second key, arriving through the mechanism that
+/// reset link would both succeed - which is a second key, arriving through the mechanism that
 /// exists to prevent one. <see cref="RedeemAsync"/> is the only read, and it is a delete that
 /// returns what it deleted.
 /// </para>
@@ -79,7 +79,7 @@ public interface IUserTokenStore
     /// <para>
     /// <b>The delete and the read are one operation, and the answer must come from what the delete
     /// actually removed.</b> A read followed by a delete lets two presentations of one link both
-    /// return a record — a person double-clicking their own mail is enough to produce it, and an
+    /// return a record - a person double-clicking their own mail is enough to produce it, and an
     /// attacker racing a stolen link is the case that matters.
     /// </para>
     /// <para>
@@ -103,8 +103,8 @@ public interface IUserTokenStore
     /// <returns>How many were destroyed.</returns>
     /// <remarks>
     /// <b><c>S-47</c>'s fourth clause, and the one an implementation is most likely to omit.</b>
-    /// Every password change calls this for <see cref="UserTokenPurpose.PasswordReset"/> — the
-    /// self-service change, the reset link itself, and an operator's reset — because a reset link
+    /// Every password change calls this for <see cref="UserTokenPurpose.PasswordReset"/> - the
+    /// self-service change, the reset link itself, and an operator's reset - because a reset link
     /// that still works after the password has changed is a second key to the account, held by
     /// whoever asked for it. Requesting a reset also calls it, so a person who clicks "forgot
     /// password" three times has one live link rather than three.

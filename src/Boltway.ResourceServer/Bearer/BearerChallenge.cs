@@ -22,7 +22,7 @@ namespace Boltway.ResourceServer.Bearer;
 /// <item><description>
 /// <b>It has to be a real <c>401</c>.</b> "Claude does not honor a <c>WWW-Authenticate</c> header
 /// on a <c>200</c> response", and a <c>200</c> carrying <c>isError: true</c> produces no
-/// authentication prompt at all — the text is handed to the model as a tool result and the
+/// authentication prompt at all - the text is handed to the model as a tool result and the
 /// conversation moves on. That is the failure users report as "it told me to sign in instead of
 /// showing a Connect button" (C-25).
 /// </description></item>
@@ -34,25 +34,25 @@ namespace Boltway.ResourceServer.Bearer;
 /// (X-32). A challenge one vendor ignores is worse than a slightly over-specified one.
 /// </description></item>
 /// <item><description>
-/// <b>A <c>403</c> without <c>error="insufficient_scope"</c> is terminal for Claude</b> — no
+/// <b>A <c>403</c> without <c>error="insufficient_scope"</c> is terminal for Claude</b> - no
 /// re-authentication prompt, permanently, for that user and server. So the only <c>403</c> this
 /// type can produce is the scope one, and it always carries the full scope list (X-34).
 /// </description></item>
 /// </list>
 /// <para>
 /// Every <c>error_description</c> written here is a compile-time constant. The header builder in
-/// Primitives strips <c>"</c>, <c>\</c> and control characters — an unescaped quote would terminate
+/// Primitives strips <c>"</c>, <c>\</c> and control characters - an unescaped quote would terminate
 /// the quoted string early and eat the <c>resource_metadata</c> that follows it, which is the
-/// client's only route to discovering the authorization server — but the way to be certain no
+/// client's only route to discovering the authorization server - but the way to be certain no
 /// attacker-chosen byte reaches a response header is never to put a request-derived one there.
 /// </para>
 /// <para>
 /// <b>A-09, and this is where it matters most.</b> Four descriptions leave this type and one of them
 /// covers everything: an unparseable JWT, a signature that does not verify, a <c>kid</c> that names
 /// no key, an <c>alg</c> off the allow-list, a <c>typ</c> that is not <c>at+jwt</c> and an
-/// <c>iss</c> mismatch are all "The access token is not valid." That is correct on the wire — none
+/// <c>iss</c> mismatch are all "The access token is not valid." That is correct on the wire - none
 /// of it is the client's business, and several of them tell an attacker which of their guesses was
-/// closest — and it used to be the whole of what existed. The discriminating
+/// closest - and it used to be the whole of what existed. The discriminating
 /// <c>SecurityTokenException</c> was computed and dropped. A customer who rotates a signing key and
 /// forgets <c>ProtectedResourceOptions.SigningKeys</c> got a wall of identical 401s with
 /// <c>IDX10500: No security keys were provided</c> written nowhere. It now goes in the log, with the
@@ -75,7 +75,7 @@ internal static class BearerChallenge
     /// Says what happened and what fixes it, because unlike every other description here this is a
     /// state the caller can act on and will otherwise misread: their token is not corrupt, their
     /// clock is not wrong, and re-authorizing genuinely works. It reveals nothing they do not
-    /// already know — they are holding the token, and somebody ended its session on purpose.
+    /// already know - they are holding the token, and somebody ended its session on purpose.
     /// </remarks>
     private const string Revoked = "The access token's authorization has been ended. Authorize again.";
     private const string ScopeRequired = "The access token does not carry a scope this operation requires.";
@@ -106,7 +106,7 @@ internal static class BearerChallenge
     /// <remarks>
     /// <c>400</c>, not <c>401</c>, and the requirement is emphatic about the direction: a <c>401</c>
     /// tells a client to refresh its token and try again, and a fresh token presented through the
-    /// same broken header fails identically — "getting this backwards makes clients retry-loop
+    /// same broken header fails identically - "getting this backwards makes clients retry-loop
     /// forever on refresh".
     /// </remarks>
     internal static Task MalformedAsync(HttpContext context, string metadataUrl, string reason) =>
@@ -129,7 +129,7 @@ internal static class BearerChallenge
     /// Including <see cref="AccessTokenFailure.WrongAudience"/>, which is N-01's second leg: a token
     /// minted for resource A and presented at resource B is <b>not</b> a <c>403</c>. It is a token
     /// this resource cannot accept, and the client's correct response is to obtain one that names
-    /// this resource — which is what a <c>401</c> plus a metadata pointer asks it to do. A
+    /// this resource - which is what a <c>401</c> plus a metadata pointer asks it to do. A
     /// <c>403</c> here would be terminal for Claude and would leave the user with no way forward.
     /// </remarks>
     /// <param name="context">The request being refused.</param>
@@ -160,8 +160,8 @@ internal static class BearerChallenge
                 },
 
                 // The half the client never sees. `Diagnosis` is the validation exception's type and
-                // message — "IDX10500: No security keys were provided", or an issuer mismatch naming
-                // both issuers — which is the entire content of the answer to "why is every call
+                // message - "IDX10500: No security keys were provided", or an issuer mismatch naming
+                // both issuers - which is the entire content of the answer to "why is every call
                 // returning 401 since the deploy".
                 $"path={context.Request.Path}; {result.Diagnosis}"),
             metadataUrl,
@@ -174,7 +174,7 @@ internal static class BearerChallenge
     /// <param name="scopes">
     /// <b>Every</b> scope the operation needs, not only the missing ones. Claude requests the union
     /// of the challenge's scopes and its discovery-time scope, and it does not reliably carry
-    /// forward scopes granted by an earlier step-up — so a challenge naming only the delta produces
+    /// forward scopes granted by an earlier step-up - so a challenge naming only the delta produces
     /// a re-authorization that drops the scopes the user already had.
     /// </param>
     internal static Task InsufficientScopeAsync(
@@ -188,7 +188,7 @@ internal static class BearerChallenge
 
                 // Both lists. The challenge names what is required and says nothing about what was
                 // presented, so from the client's side "I asked for that scope" and "the token does
-                // not have it" are the same 403 — and the difference is a consent page that dropped
+                // not have it" are the same 403 - and the difference is a consent page that dropped
                 // a scope versus an endpoint whose RequireScope is wrong.
                 $"path={context.Request.Path}; required={string.Join(' ', scopes)}; granted={string.Join(' ', granted)}"),
             metadataUrl,
@@ -201,7 +201,7 @@ internal static class BearerChallenge
     /// <para>
     /// Private, and every entry point above goes through it, so writing the challenge and emitting
     /// the log are the same act. The status and the <c>error</c> value come from
-    /// <see cref="OAuthErrors"/> rather than from constants here — this is the only
+    /// <see cref="OAuthErrors"/> rather than from constants here - this is the only
     /// <c>OAuthErrors.Resolve</c> call site in the assembly and an architecture rule says so, which
     /// is what makes "a 4xx from this assembly was logged" checkable rather than reviewed.
     /// </para>
@@ -256,7 +256,7 @@ internal static class BearerChallenge
 
         // RFC 6750 §3 puts the protocol signal in the header; this body is the advisory copy from
         // the canonical example, and it is what a human sees in a terminal. It is deliberately the
-        // same two fields as the header carries — nothing here is a second source of truth.
+        // same two fields as the header carries - nothing here is a second source of truth.
         var body = JsonSerializer.SerializeToUtf8Bytes(
             new BearerErrorBody { Error = spec.Wire, ErrorDescription = rejection.Description },
             BearerErrorJsonContext.Default.BearerErrorBody);
@@ -287,7 +287,7 @@ internal static class BearerChallenge
     /// <para>
     /// Conditional on <c>Access-Control-Allow-Origin</c> already being present, which means the
     /// host's own CORS policy has run and admitted this request. This adds nothing to a resource
-    /// that is not cross-origin readable and grants nothing that was not already granted — the
+    /// that is not cross-origin readable and grants nothing that was not already granted - the
     /// endpoint table gives E-24 no CORS at all, and that decision stays the host's to make.
     /// </para>
     /// <para>

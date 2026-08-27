@@ -20,7 +20,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <c>Resume</c> re-gates a value that <c>POST /external/{scheme}/start</c> already gated, and
     /// the source says why: "Validated when it was written is a claim about a request that is over."
     /// The consequence is that <b>no ordinary request can reach the second gate with a bad value</b>
-    /// — which is exactly why both of its mutants survived, and why proving it does anything needs a
+    /// - which is exactly why both of its mutants survived, and why proving it does anything needs a
     /// planted pending request rather than a crafted URL.
     /// <para>
     /// This is not a claim that the cookie is forgeable. It is authenticated and it is not. What is
@@ -116,7 +116,7 @@ public sealed partial class ExternalLoginFlowTests
     /// <remarks>
     /// <c>EmailVerified: email is not null &amp;&amp; email_verified == "true"</c>, mutated to
     /// <c>||</c>, survived. Under the mutant every provisioned account with any email address at all
-    /// is marked verified, whatever the upstream actually said — and `email_verified` is the claim
+    /// is marked verified, whatever the upstream actually said - and `email_verified` is the claim
     /// downstream systems use to decide that an address has been proven. The suite only ever
     /// provisioned from an upstream asserting <c>true</c>, so the second operand was never the one
     /// deciding.

@@ -35,7 +35,7 @@ internal enum AccessTokenFailure
     /// <b>Not produced by <see cref="AccessTokenValidator"/>, and it could not be.</b> Every other
     /// member here is a property of the token, decided offline from the signature and the claims.
     /// This one is a property of the authorization server's store at this instant, so it is decided
-    /// by <c>IAccessTokenRevocationCheck</c> after validation has already succeeded — which is the
+    /// by <c>IAccessTokenRevocationCheck</c> after validation has already succeeded - which is the
     /// entire reason a signed token needs anything asked about it at all.
     /// </remarks>
     Revoked,
@@ -53,7 +53,7 @@ internal enum AccessTokenFailure
 /// <see cref="Diagnosis"/> is the field this record grew for A-09, and its absence was the sharpest
 /// finding of the review that motivated the work. Four <see cref="AccessTokenFailure"/> values
 /// cannot express the difference between a signature that does not verify, a <c>kid</c> naming no
-/// configured key, an <c>iss</c> mismatch and a <c>typ</c> that is not <c>at+jwt</c> — nor should
+/// configured key, an <c>iss</c> mismatch and a <c>typ</c> that is not <c>at+jwt</c> - nor should
 /// they, because the client must be told the same thing for all four. But
 /// <c>Microsoft.IdentityModel</c> computes that difference and hands it over as a
 /// <c>SecurityTokenException</c>, and it used to be discarded on the line that classified it.
@@ -61,8 +61,8 @@ internal enum AccessTokenFailure
 /// <para>
 /// The concrete cost: a customer who rotates a signing key and forgets to add the new one to
 /// <c>ProtectedResourceOptions.SigningKeys</c> gets a wall of identical 401s. The library already
-/// knows the answer — <c>SecurityTokenSignatureKeyNotFoundException: IDX10500: No security keys
-/// were provided</c> — and there was nowhere it was written down.
+/// knows the answer - <c>SecurityTokenSignatureKeyNotFoundException: IDX10500: No security keys
+/// were provided</c> - and there was nowhere it was written down.
 /// </para>
 /// </remarks>
 internal readonly record struct AccessTokenResult(
@@ -75,14 +75,14 @@ internal readonly record struct AccessTokenResult(
 /// <para>
 /// The validation parameters come from <c>Rfc9068ValidationParameters.ForAccessToken</c> and are
 /// not built here. That is not delegation for its own sake: two of the settings that decide whether
-/// this server is safe — <c>ValidTypes</c> and <c>ValidAlgorithms</c> — are <b>unset by default</b>
+/// this server is safe - <c>ValidTypes</c> and <c>ValidAlgorithms</c> - are <b>unset by default</b>
 /// in <c>Microsoft.IdentityModel</c>, so a hand-written <c>TokenValidationParameters</c> is very
 /// likely to be missing them and to look completely ordinary while doing so. An architecture test
 /// asserts that factory is the only construction site in the solution.
 /// </para>
 /// <para>
 /// What those two settings buy, concretely: without <c>ValidTypes</c> an <b>ID token</b> is a valid
-/// access token here — same signature, same issuer, same subject, and only <c>typ</c> tells them
+/// access token here - same signature, same issuer, same subject, and only <c>typ</c> tells them
 /// apart (N-09). Without <c>ValidAlgorithms</c> the token chooses its own algorithm, which is the
 /// RS256→HS256 confusion attack, where the attacker signs a forged token using the published public
 /// key as an HMAC secret.
@@ -124,7 +124,7 @@ internal sealed class AccessTokenValidator
 
         // RFC 9068 §2.2.3: `scope` is a space-delimited STRING, not an array. Reading it as a
         // string is what the specification requires, and it is also what the minter on the other
-        // side of this contract writes — an array here would parse to nothing at all, and the
+        // side of this contract writes - an array here would parse to nothing at all, and the
         // symptom would be every scoped call returning 403 with a token that looks correct.
         _ = ScopeSet.TryParse(identity.FindFirst("scope")?.Value, out var scopes, out _);
 
@@ -138,7 +138,7 @@ internal sealed class AccessTokenValidator
     /// <para>
     /// The kinds exist only to pick one of three <b>constant</b> <c>error_description</c> strings.
     /// They do not change the status code or the <c>error</c> value, both of which are
-    /// <c>401</c> / <c>invalid_token</c> for every RFC 9068 §4 validation failure (X-33) — the
+    /// <c>401</c> / <c>invalid_token</c> for every RFC 9068 §4 validation failure (X-33) - the
     /// audience case included, which is what makes it a <c>401</c> rather than a <c>403</c>.
     /// </para>
     /// <para>
@@ -169,8 +169,8 @@ internal sealed class AccessTokenValidator
     /// <para>
     /// <b>What is deliberately not here: the token.</b> Not the compact serialization, not the
     /// header, not a claim. The message is the library's own and is derived from the token's
-    /// metadata rather than its bytes — <c>IDX10501</c> quotes the <c>kid</c> and the configured
-    /// key ids, which are public — but the value is filtered and capped in <c>Rejection.Of</c>
+    /// metadata rather than its bytes - <c>IDX10501</c> quotes the <c>kid</c> and the configured
+    /// key ids, which are public - but the value is filtered and capped in <c>Rejection.Of</c>
     /// anyway, because "the message can never contain the credential" is a claim about a dependency
     /// rather than about this code.
     /// </para>

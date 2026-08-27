@@ -17,7 +17,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// </para>
 /// <para>
 /// <b>Nothing inline.</b> The server's own CSP is <c>default-src 'self'</c> with no
-/// <c>style-src</c> or <c>script-src</c> override, so both inherit <c>'self'</c> — an inline
+/// <c>style-src</c> or <c>script-src</c> override, so both inherit <c>'self'</c> - an inline
 /// <c>&lt;style&gt;</c> or <c>style="…"</c> attribute is blocked by the browser, not by review.
 /// These pages are readable unstyled, and a deployment that wants otherwise sets
 /// <see cref="InteractionOptions.StylesheetPaths"/> and serves the file itself; <c>'self'</c>
@@ -112,7 +112,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         // host in small print, is a phishing surface this server has endorsed.
         //
         // The class is what lets a stylesheet keep that order. These three paragraphs are
-        // structurally identical — a <p> containing a <strong> — so a sheet trying to enlarge the
+        // structurally identical - a <p> containing a <strong> - so a sheet trying to enlarge the
         // hostname by position enlarges the redirect host and the name claim with it, and the
         // ordering N-14 fixes becomes three things the same size. Named rather than counted, for the
         // reason the device warning below has carried since it was the only class here: position is
@@ -124,7 +124,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         if (model.ClientName is not null)
         {
             // Encoded here, once. The model builder used to encode it too, and "encoded again is
-            // harmless" — what this comment said — was measured false: the double pass rendered
+            // harmless" - what this comment said - was measured false: the double pass rendered
             // `Acme & "Claude"` as the literal text `Acme &amp; &quot;Claude&quot;`, and `Café` as
             // `Caf&#233;`. Every value on the model is now plain text, so this method's uniform
             // Encode is both correct and the only place encoding happens.
@@ -132,13 +132,13 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
             // Inside this paragraph, and after the hostname's, because both facts about where it
             // sits are the whole of what makes it safe to draw. A logo is the same self-assertion
-            // the name is — anyone can publish one at their own URL — but it is far harder to be
+            // the name is - anyone can publish one at their own URL - but it is far harder to be
             // sceptical of, because a familiar mark reads as proof in a way a familiar word does
             // not. So it lives inside the sentence that says nobody verified it, and it never
             // precedes the host, which is the only thing on this page a domain owner had to prove.
             //
             // Empty alt, deliberately. The name is in the very next words, so a screen reader
-            // announcing the image would repeat it — and this code has never seen the picture, so
+            // announcing the image would repeat it - and this code has never seen the picture, so
             // any description it invented would be a claim about a stranger's file. It is also what
             // makes the missing-image case read correctly: the endpoint 404s for a dead host, a
             // non-image body or a type it will not re-serve, and an empty alt renders as nothing at
@@ -167,7 +167,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             // whether they started this.
             // The one class in this markup, and it is here because a stylesheet cannot find this
             // paragraph without it. Structurally it is a <p> containing a <strong>, which is also
-            // true of the two paragraphs naming the hostnames — `:first-child` does not separate
+            // true of the two paragraphs naming the hostnames - `:first-child` does not separate
             // them, because it counts elements and ignores the leading text node. A stylesheet
             // trying anyway highlights all three, which drowns the one warning N-14 asks for in two
             // that are merely informational. Measured, on this page, before this class existed.
@@ -260,7 +260,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             }
 
             // Classed, unlike the provider forms below it, which a stylesheet finds by their action
-            // prefix — `/external/{scheme}/start`, where the scheme is constrained at startup, so
+            // prefix - `/external/{scheme}/start`, where the scheme is constrained at startup, so
             // the prefix cannot shift. This form's action is one path and could have been matched
             // the same way; the class is here because "the password form" is what a sheet means,
             // and a deployment that mounts the server under a prefix moves the path.
@@ -290,7 +290,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             }
         }
 
-        // Every configured provider, enabled or not — A-11. A disabled one renders as a disabled
+        // Every configured provider, enabled or not - A-11. A disabled one renders as a disabled
         // button with its reason beside it rather than being dropped from the page, because a method
         // that vanishes is indistinguishable from one nobody configured.
         //
@@ -366,7 +366,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
                 .Append("<p>").Append(Text(InteractionText.LogoutDoneTokens)).Append("</p>");
 
             // Last, under the sentence about tokens this does not revoke, because signing out and
-            // signing back in is the ordinary reason somebody is here — and until this line the
+            // signing back in is the ordinary reason somebody is here - and until this line the
             // page was a one-way door. See LogoutViewModel.SignInUrl.
             SignIn(body, model.SignInUrl);
 
@@ -403,7 +403,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             .Append("</p>");
 
         // A-12: the OAuth code and a safe description are in the body, so `curl -D-` debugs an
-        // integration without a log in. Labelled rather than left bare — it is English on a page a
+        // integration without a log in. Labelled rather than left bare - it is English on a page a
         // deployment may have translated entirely, and unlabelled it reads as a string somebody
         // forgot. It cannot be translated: it is the `error_description`, which OAuth 2.1 §4.1.2.1
         // restricts to ASCII.
@@ -452,7 +452,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
         // The offer, and only when the endpoint says there is one to make. Saying an address is
         // unverified and giving no way to fix it is the shape this page was in until the endpoint
-        // behind this button existed at all — E-41 had a page to land on and nothing that could send
+        // behind this button existed at all - E-41 had a page to land on and nothing that could send
         // you there.
         if (!string.IsNullOrEmpty(model.VerifyEmailUrl))
         {
@@ -476,7 +476,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
         // Joined for display only. The model carries every role, because a page that showed one of
         // several would be the same "rule on one surface and not the other" the token half was
-        // widened to avoid — it would just fail silently on a page instead of in a token.
+        // widened to avoid - it would just fail silently on a page instead of in a token.
         if (model.Roles.Count > 0)
         {
             body.Append("<dt>").Append(Text(InteractionText.AccountRole)).Append("</dt>")
@@ -485,7 +485,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
         body.Append("</dl><ul>");
 
-        // The link is absent, not disabled, when there is nothing to change — and the sentence
+        // The link is absent, not disabled, when there is nothing to change - and the sentence
         // saying why takes its place. A control that cannot work is a question a person spends time
         // on before finding out the answer is no.
         body.Append("<li>");
@@ -505,8 +505,8 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             .Append(Text(InteractionText.AccountSessions)).Append("</a></li>")
 
             // Listed beside the sessions rather than folded into them, because they are two
-            // different questions — "what can reach my account right now" and "what did I agree to"
-            // — and E-38 is the reason the second one cannot be answered by the first.
+            // different questions - "what can reach my account right now" and "what did I agree to"
+            // - and E-38 is the reason the second one cannot be answered by the first.
             .Append("<li><a href=\"").Append(Encode(AuthorizationServerPaths.MeConsents)).Append("\">")
             .Append(Text(InteractionText.AccountConsents)).Append("</a></li>")
 
@@ -523,7 +523,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         //
         // A form and not a link, and it used to be the other way round. The note here said a link was
         // safe because GET /logout only renders the question, with the sign-out itself behind the
-        // POST that page submits — true, and it made this control a two-step one on the page where
+        // POST that page submits - true, and it made this control a two-step one on the page where
         // people come to end their session. Somebody pressed it, read the question, went elsewhere
         // without answering it, and believed for the next two minutes that they had signed out. A
         // control that leaves a reader more confident and no less signed in is worse than one that
@@ -531,8 +531,8 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         //
         // E-18's requirement is that a sign-out is a POST, not that it is confirmed, and this keeps
         // that: an <img> cannot POST and a cross-site form fails the antiforgery check below. The
-        // question page is untouched for anyone who reaches /logout by its URL — a bookmark, a link
-        // from elsewhere — where there is no page to have pressed a button on and confirming is the
+        // question page is untouched for anyone who reaches /logout by its URL - a bookmark, a link
+        // from elsewhere - where there is no page to have pressed a button on and confirming is the
         // only way to know the request was meant.
         if (!string.IsNullOrEmpty(model.SignOutUrl))
         {
@@ -566,7 +566,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
                 // A form and not a link, because linking changes the account: a GET that does it is
                 // reachable from an <img> tag on any page, which is the same reason /logout asks.
                 //
-                // returnUrl is /me — this page — so somebody who links lands back where the button
+                // returnUrl is /me - this page - so somebody who links lands back where the button
                 // was. The link intent accepts any local path, which is looser than the sign-in
                 // intent's closed list; the value here is a constant rather than anything submitted,
                 // so that looseness is not reachable from this form.
@@ -639,7 +639,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
         // `autocomplete` values are the ones password managers read: without them a manager offers
         // to save the *current* password as the new one, which is a lockout a person discovers at
-        // their next sign-in. Empty every time — see the model's remarks.
+        // their next sign-in. Empty every time - see the model's remarks.
         body.Append("<form method=\"post\" action=\"")
             .Append(Encode(AuthorizationServerPaths.MePassword)).Append("\">")
             .Append(Hidden(model.AntiforgeryFieldName, model.AntiforgeryToken))
@@ -679,7 +679,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
         // Said before the list rather than after it: once everything is ended the list is empty, and
         // a message under an empty list reads as a caption for the emptiness. Zero is worth printing
-        // too — it is the answer for somebody who pressed this twice.
+        // too - it is the answer for somebody who pressed this twice.
         if (model.EndedAll is { } endedAll)
         {
             body.Append("<p>")
@@ -749,7 +749,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
         // Only when a renewal is actually shown above, unlike SessionsTokens below. This one
         // explains a line on the page rather than the page itself, so on a list where no session
-        // has ever renewed it would be a caveat about nothing — and a reader looking for the thing
+        // has ever renewed it would be a caveat about nothing - and a reader looking for the thing
         // it qualifies would not find it.
         if (model.Sessions.Any(s => s.LastRefreshedAt is not null))
         {
@@ -770,7 +770,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
                     // The intent rides on the button rather than on a hidden field, and both steps
                     // are one field with two values. A hidden input would be a second thing on this
-                    // page describing what pressing it means, sitting beside every row's own form —
+                    // page describing what pressing it means, sitting beside every row's own form -
                     // and a form's hidden fields are exactly what something reading the page cannot
                     // tell apart from another form's.
                     .Append("<button type=\"submit\" name=\"all\" value=\"confirm\">")
@@ -795,7 +795,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
         // Said whether or not there are any, because it is the sentence that stops "I ended it"
         // from being read as "it is gone now". Which of those it is depends on whether the
-        // application's own server asks this one, and nothing reachable from here knows that — so
+        // application's own server asks this one, and nothing reachable from here knows that - so
         // the sentence carries both branches and this call site chooses neither.
         body.Append("<p>")
             .Append(Text(InteractionText.SessionsTokens, Minutes(model.AccessTokenLifetime)))
@@ -897,7 +897,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
         if (model.State is ResetPasswordState.Expired)
         {
             // Said plainly, and §7.3 is why that is not an oracle: a token is 256 bits of CSPRNG
-            // output, so there is nothing to enumerate — while a person who is not told their link
+            // output, so there is nothing to enumerate - while a person who is not told their link
             // expired will click it again rather than ask for a new one.
             //
             // No form, because there is nothing a value in it could redeem.
@@ -964,7 +964,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
 
         // One field, taking either a handle or an address, because the person using this page has
         // forgotten something and asking them which of the two they are typing is a question they
-        // may also get wrong. `autocomplete="username"` covers both — a manager offering the stored
+        // may also get wrong. `autocomplete="username"` covers both - a manager offering the stored
         // handle here is offering the right thing.
         body.Append("<p>").Append(Text(InteractionText.ForgotInstruction)).Append("</p>")
             .Append("<form method=\"post\" action=\"")
@@ -1000,7 +1000,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     }
 
     /// <summary>
-    /// One client, and what it may do — the block <c>/me/sessions</c> and <c>/me/consents</c> share.
+    /// One client, and what it may do - the block <c>/me/sessions</c> and <c>/me/consents</c> share.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -1014,8 +1014,8 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// <para>
     /// <b>The host leads and the full id follows it</b>, the order the consent page uses and for the
     /// same <c>N-14</c> reason: the id is chosen by the client, and for a CIMD client it is a URL
-    /// long enough to push everything else off a phone. The host is an A-label — computed by the
-    /// server, not derived here — so a homograph cannot be what a reader sees.
+    /// long enough to push everything else off a phone. The host is an A-label - computed by the
+    /// server, not derived here - so a homograph cannot be what a reader sees.
     /// </para>
     /// </remarks>
     private void Authorization(
@@ -1041,7 +1041,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
             {
                 // A-14, the same as on the consent page. The case this reaches that the consent page
                 // cannot is a scope whose description was removed from configuration after the
-                // approval that used it — inventing words for it here would describe an agreement
+                // approval that used it - inventing words for it here would describe an agreement
                 // in terms the person never saw.
                 body.Append("<code>").Append(Encode(scope.Name)).Append("</code> ")
                     .Append("<em>").Append(Text(InteractionText.ConsentScopeUndescribed)).Append("</em>");
@@ -1078,7 +1078,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// <remarks>
     /// <para>
     /// All three recovery pages used to write <c>href="/login"</c> unconditionally, and
-    /// <c>GET /login</c> with no <c>returnUrl</c> is a <c>400</c> — it has no client, no redirect
+    /// <c>GET /login</c> with no <c>returnUrl</c> is a <c>400</c> - it has no client, no redirect
     /// URI and nowhere to send anybody afterwards. So the last thing a person saw at the end of a
     /// successful password reset was <i>"This page was opened without a valid authorization
     /// request"</i>. Measured on a running deployment, by resetting a password and pressing the
@@ -1086,8 +1086,8 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// </para>
     /// <para>
     /// <b>Omitted rather than pointed somewhere hopeful.</b> When the self-service pages are off
-    /// there is no standalone destination at all — <c>/authorize</c> needs a request in flight and
-    /// nothing else accepts a bare arrival — and a link that lands on an error page is worse than
+    /// there is no standalone destination at all - <c>/authorize</c> needs a request in flight and
+    /// nothing else accepts a bare arrival - and a link that lands on an error page is worse than
     /// no link, because it spends the reader's trust before it fails. The caller decides; this
     /// draws what it is given.
     /// </para>
@@ -1100,7 +1100,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// <see cref="InteractionText.ResetSignIn"/> on all four, and the key keeps its recovery-shaped
     /// name deliberately. Renaming it would not be a rename: the constant's value <i>is</i> the
     /// lookup key, so every deployment's translation file would stop matching and quietly serve the
-    /// English fallback — which is the failure a translated deployment is least able to see.
+    /// English fallback - which is the failure a translated deployment is least able to see.
     /// </para>
     /// </remarks>
     private void SignIn(StringBuilder body, string? url)
@@ -1135,8 +1135,8 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// instants rather than anything the reader's locale should reformat.
     /// </para>
     /// <para>
-    /// Here rather than inline because three timestamps now render this way — when a session
-    /// started, when it last renewed, when an approval was given — and the third copy is where a
+    /// Here rather than inline because three timestamps now render this way - when a session
+    /// started, when it last renewed, when an approval was given - and the third copy is where a
     /// pair of them starts silently disagreeing about the format.
     /// </para>
     /// </remarks>
@@ -1177,7 +1177,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// <para>
     /// <b>The check is what makes the layout seam worth having.</b> Everything N-14, A-11 and A-14
     /// require is inside <paramref name="body"/> already, so a layout has exactly one way to lose
-    /// any of it — leaving the body out — and one condition is a condition that can be verified.
+    /// any of it - leaving the body out - and one condition is a condition that can be verified.
     /// Without this, the middle tier would be the top tier with a smaller interface: a deployment
     /// could still ship a consent page with no client hostname, no scope list and no form, and the
     /// first sign would be a user unable to connect.
@@ -1190,7 +1190,7 @@ public sealed class DefaultInteractionRenderer : IInteractionRenderer
     /// </para>
     /// <para>
     /// An ordinal <c>Contains</c> over a few kilobytes, on a page a user waits on and reads. It is
-    /// not on any hot path — these two pages are rendered a handful of times per sign-in — and the
+    /// not on any hot path - these two pages are rendered a handful of times per sign-in - and the
     /// alternative to paying for it is not knowing.
     /// </para>
     /// </remarks>

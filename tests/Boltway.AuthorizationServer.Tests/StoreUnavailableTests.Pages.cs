@@ -17,7 +17,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// <b>The sign-in page is the one this was worth doing for.</b> Everything else in X-43 was a
 /// machine being told the wrong thing; here it is a person, on the page where the only thing they
-/// can conclude is about themselves. The headline test is the negative one — a directory that
+/// can conclude is about themselves. The headline test is the negative one - a directory that
 /// cannot be reached must not produce "that username and password did not match", which is the
 /// same sentence the outage that started all of this put in front of somebody whose credentials
 /// were fine.
@@ -37,7 +37,7 @@ public sealed partial class StoreUnavailableTests
     /// A server whose directory answers nothing, with the real cookie session and a hasher.
     /// </summary>
     /// <remarks>
-    /// The same shape <c>LoginFlowTests</c> builds, minus the seeded account — there is no point
+    /// The same shape <c>LoginFlowTests</c> builds, minus the seeded account - there is no point
     /// seeding one into a store that cannot be read. The hasher is real rather than a double
     /// because the endpoint verifies against a dummy hash when it has no account, and a fake would
     /// skip the branch under test.
@@ -49,7 +49,7 @@ public sealed partial class StoreUnavailableTests
 
             // So a bare `GET /login` has a returnUrl to default to. `TryUseReturnUrl` sends an
             // absent one to `/me` when the self-service pages are on and refuses at 400 when they
-            // are not, and nothing below reads those pages — this is only about the sign-in form
+            // are not, and nothing below reads those pages - this is only about the sign-in form
             // being reachable without an authorization request in front of it, which is how a
             // person arrives after following a password-reset link.
             seed.ConfigureOptions = o => o.SelfServicePagesEnabled = true;
@@ -72,7 +72,7 @@ public sealed partial class StoreUnavailableTests
     /// </summary>
     /// <remarks>
     /// The GET is not a formality. It is what proves the page still renders while the directory is
-    /// gone — <c>LoginModel</c> reads no accounts, so a store failure has to wait for the POST —
+    /// gone - <c>LoginModel</c> reads no accounts, so a store failure has to wait for the POST -
     /// and it is the only way to obtain the antiforgery token, without which the POST is refused
     /// at 400 and never reaches the code under test.
     /// </remarks>
@@ -105,7 +105,7 @@ public sealed partial class StoreUnavailableTests
     /// <remarks>
     /// <para>
     /// Without the shed this posts through <c>ResolveAccountAsync</c>, which throws, and the
-    /// request ends as an unhandled exception — a bare <c>500</c>, since no
+    /// request ends as an unhandled exception - a bare <c>500</c>, since no
     /// <c>UseExceptionHandler</c> is registered anywhere in this server. That is already wrong. The
     /// failure this asserts against is the worse one a step away: any change that let the lookup
     /// return "no account" instead of throwing would land on the branch below it, which re-renders
@@ -135,7 +135,7 @@ public sealed partial class StoreUnavailableTests
     /// </summary>
     /// <remarks>
     /// The distinction the HTML row exists for. A bare <c>503</c> reaches a browser as the
-    /// browser's own error page, which says nothing about coming back — so on this surface the
+    /// browser's own error page, which says nothing about coming back - so on this surface the
     /// status is necessary and not sufficient. The correlation id is in the body because A-12 wants
     /// <c>curl -D-</c> to be enough, and because it is what a person can quote when they report it.
     /// </remarks>
@@ -161,7 +161,7 @@ public sealed partial class StoreUnavailableTests
     /// <remarks>
     /// <c>Interaction</c> rather than a borrowed protocol surface. An operator reading a burst of
     /// these needs to know people cannot sign in, which is a different page to open from token
-    /// issuance failing — and before this surface existed there was no value that said so.
+    /// issuance failing - and before this surface existed there was no value that said so.
     /// </remarks>
     [Fact]
     public async Task The_sign_in_load_shed_is_logged_against_the_interaction_surface()
@@ -196,7 +196,7 @@ public sealed partial class StoreUnavailableTests
 
             // So a bare `GET /login` has a returnUrl to default to. `TryUseReturnUrl` sends an
             // absent one to `/me` when the self-service pages are on and refuses at 400 when they
-            // are not, and nothing below reads those pages — this is only about the sign-in form
+            // are not, and nothing below reads those pages - this is only about the sign-in form
             // being reachable without an authorization request in front of it, which is how a
             // person arrives after following a password-reset link.
             seed.ConfigureOptions = o => o.SelfServicePagesEnabled = true;
@@ -268,8 +268,8 @@ public sealed partial class StoreUnavailableTests
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <c>RecoveryEndpoints</c> is the one file that maps both halves — three routes under
-    /// <c>/account/</c> that a script calls, five pages a person is sent to by an email — so it is
+    /// <c>RecoveryEndpoints</c> is the one file that maps both halves - three routes under
+    /// <c>/account/</c> that a script calls, five pages a person is sent to by an email - so it is
     /// the one place the split could be got wrong without anything else noticing. This drives the
     /// API half and asserts the shape a script needs: no body, and a surface that says which half
     /// of the server it was.
@@ -284,8 +284,8 @@ public sealed partial class StoreUnavailableTests
     {
         // Both extra registrations are demanded by startup validation rather than by this test:
         // recovery mints links that live in a token store and arrive by mail, and the server
-        // refuses to start with the flow on and either one missing. Neither is reached here — the
-        // directory fails first — but a fixture cannot decline to be valid.
+        // refuses to start with the flow on and either one missing. Neither is reached here - the
+        // directory fails first - but a fixture cannot decline to be valid.
         await using var fixture = await FlowFixture.StartAsync(seed =>
         {
             seed.ConfigureOptions = o => o.PasswordRecoveryEnabled = true;
@@ -301,7 +301,7 @@ public sealed partial class StoreUnavailableTests
         var response = await fixture.Client.PostAsync(
             new Uri("/account/password/forgot", UriKind.Relative),
             new StringContent(
-                // `account`, which is the field this endpoint reads — a handle or an address. An
+                // `account`, which is the field this endpoint reads - a handle or an address. An
                 // unrecognised name parses to null, and null short-circuits the lookup before the
                 // store is touched, so the request would answer 202 having proved nothing.
                 """{"account":"ada"}""", System.Text.Encoding.UTF8, "application/json"));

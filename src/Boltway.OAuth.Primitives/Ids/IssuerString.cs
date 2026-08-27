@@ -33,7 +33,7 @@ public readonly struct IssuerString : IEquatable<IssuerString>
     /// <remarks>
     /// A trailing slash is refused rather than trimmed. Trimming would be a normalization, and the
     /// operator who wrote the slash would then see a different string in the metadata than the one
-    /// they configured — which is exactly the class of surprise this type exists to prevent.
+    /// they configured - which is exactly the class of surprise this type exists to prevent.
     /// </remarks>
     public static bool TryCreate(string? raw, out IssuerString issuer, out string? error)
     {

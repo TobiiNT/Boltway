@@ -17,7 +17,7 @@ namespace Boltway.Storage.InMemory;
 /// Two indexes over one set of accounts, and both are enforced rather than advisory. The username
 /// index is <see cref="StringComparer.OrdinalIgnoreCase"/>, which does two jobs at once: it makes
 /// the lookup case-insensitive, as the interface requires, and it makes registering <c>Alice</c>
-/// after <c>alice</c> fail — because if both rows existed, which one a login reached would depend on
+/// after <c>alice</c> fail - because if both rows existed, which one a login reached would depend on
 /// the store's collation, and two implementations of this interface would answer differently on
 /// identical input.
 /// </para>
@@ -29,7 +29,7 @@ public sealed class InMemoryUserStore : IUserStore
     /// The role store is a constructor dependency rather than something this one owns, because
     /// assignment has to be refused for an id nothing defines and there is no way to answer that
     /// without the definitions. A test that builds this directly gets an empty one, so assigning
-    /// any role fails until it is defined — which is the contract, not an inconvenience.
+    /// any role fails until it is defined - which is the contract, not an inconvenience.
     /// </remarks>
     public InMemoryUserStore() : this(new InMemoryRoleStore()) { }
 
@@ -44,7 +44,7 @@ public sealed class InMemoryUserStore : IUserStore
         // The cascade `user_roles` declares, arriving by the only route available here: the
         // dependency runs from this store to that one so assignment can check, so removal has to
         // come back the other way as a notification. Without it a role deleted here leaves accounts
-        // holding an id nothing defines — which the relational store makes impossible and this one
+        // holding an id nothing defines - which the relational store makes impossible and this one
         // did until a test deleted a role and read the account back.
         _roles.Deleted += Forget;
     }
@@ -54,7 +54,7 @@ public sealed class InMemoryUserStore : IUserStore
     private readonly Dictionary<string, UserAccount> _bySubject = new(StringComparer.Ordinal);
     // Keyed on (realm, username) and (realm, issuer, upstream subject). The realm is part of the
     // key rather than a filter applied after the lookup, which is the same decision the relational
-    // store makes with a composite unique index — so the two cannot disagree about whether two
+    // store makes with a composite unique index - so the two cannot disagree about whether two
     // realms may hold the same username.
     private readonly Dictionary<(string Realm, string Username), UserAccount> _byUsername =
         new(RealmScopedNameComparer.Instance);
@@ -100,7 +100,7 @@ public sealed class InMemoryUserStore : IUserStore
     /// </para>
     /// <para>
     /// Two matches answer null, exactly as the relational store does, and the contract suite runs
-    /// that case against both — otherwise this store would be the one that never reproduces it.
+    /// that case against both - otherwise this store would be the one that never reproduces it.
     /// </para>
     /// </remarks>
     public Task<UserAccount?> FindByVerifiedEmailAsync(
@@ -217,8 +217,8 @@ public sealed class InMemoryUserStore : IUserStore
     /// <inheritdoc />
     /// <remarks>
     /// Add-only, like every other store here. An upsert would let a re-registration silently replace
-    /// an existing account's password hash — which is account takeover by whoever can reach the
-    /// registration path — and a relational store's unique constraints would throw, so tolerating it
+    /// an existing account's password hash - which is account takeover by whoever can reach the
+    /// registration path - and a relational store's unique constraints would throw, so tolerating it
     /// would make two implementations disagree on identical input.
     /// </remarks>
     public Task StoreAsync(UserAccount user, CancellationToken cancellationToken)
@@ -235,7 +235,7 @@ public sealed class InMemoryUserStore : IUserStore
             throw new ArgumentException("An account needs a username.", nameof(user));
         }
 
-        // The same refusal the relational store makes, and for the same reason — see
+        // The same refusal the relational store makes, and for the same reason - see
         // UserAccount.Roles. Creation does not assign.
         if (user.Roles.Count > 0)
         {
@@ -275,8 +275,8 @@ public sealed class InMemoryUserStore : IUserStore
     /// <remarks>
     /// <para>
     /// One upstream identity maps to at most one local account, and re-linking it is refused. If it
-    /// could be moved, whoever controls the upstream subject — or anyone who can replay a link
-    /// request — repoints it at an account of their choosing, and the next federated sign-in lands
+    /// could be moved, whoever controls the upstream subject - or anyone who can replay a link
+    /// request - repoints it at an account of their choosing, and the next federated sign-in lands
     /// inside someone else's data.
     /// </para>
     /// <para>
@@ -358,8 +358,8 @@ public sealed class InMemoryUserStore : IUserStore
             var updated = account with { Roles = [.. wanted.Order(StringComparer.Ordinal)] };
 
             // Both dictionaries, because they hold the record rather than a reference to one shared
-            // mutable object. Updating only `_bySubject` would leave a sign-in — which arrives by
-            // username — reading the role from before the change, and that divergence would show up
+            // mutable object. Updating only `_bySubject` would leave a sign-in - which arrives by
+            // username - reading the role from before the change, and that divergence would show up
             // as "the promotion worked, then it did not".
             _bySubject[value] = updated;
             _byUsername[(account.Realm.OrDefault.Value, account.Username)] = updated;
@@ -381,7 +381,7 @@ public sealed class InMemoryUserStore : IUserStore
 
             var updated = account with { PasswordHash = passwordHash };
 
-            // Both dictionaries, for the reason above — and here the divergence would be worse than
+            // Both dictionaries, for the reason above - and here the divergence would be worse than
             // a stale role. Sign-in arrives by username, so updating only `_bySubject` would leave
             // the old password working and the new one refused, which reads as "the reset did not
             // happen" while the store believes it did.
@@ -468,7 +468,7 @@ public sealed class InMemoryUserStore : IUserStore
             _bySubject[value] = updated;
 
             // The links go, not repoint. A link is the claim that an upstream identity belongs to
-            // this account, and it is the claim being withdrawn — keeping it would leave the
+            // this account, and it is the claim being withdrawn - keeping it would leave the
             // person's Google subject in the store, which is one of the identifiers this removes.
             foreach (var key in _external.Where(pair => pair.Value == subject).Select(pair => pair.Key).ToList())
             {
@@ -485,7 +485,7 @@ public sealed class InMemoryUserStore : IUserStore
     /// <remarks>
     /// Extracted once there were four setters doing it. The two dictionaries hold records rather
     /// than references to one mutable object, so updating one and not the other leaves the two
-    /// lookups answering differently — and since sign-in arrives by username, the half that goes
+    /// lookups answering differently - and since sign-in arrives by username, the half that goes
     /// stale is the half that decides whether somebody gets in.
     /// </remarks>
     private bool Update(SubjectId subject, Func<UserAccount, UserAccount> change)
@@ -508,7 +508,7 @@ public sealed class InMemoryUserStore : IUserStore
 }
 
 /// <summary>
-/// Realm ordinally, username ignoring case — the composite the relational store indexes on.
+/// Realm ordinally, username ignoring case - the composite the relational store indexes on.
 /// </summary>
 /// <remarks>
 /// A comparer rather than a tuple of pre-folded strings, because folding at the call site is

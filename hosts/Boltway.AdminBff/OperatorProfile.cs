@@ -10,21 +10,21 @@ namespace Boltway.AdminBff;
 /// <para>
 /// <b>The rail named people by ULID, and that is what this is for.</b> The shell has always drawn
 /// whoever is signed in above the sign-out control; what it drew was
-/// <c>01KZX253NGXW6MPB13Y4X2GPE7</c>. Not a defect in the shell — this server's ID token carries
+/// <c>01KZX253NGXW6MPB13Y4X2GPE7</c>. Not a defect in the shell - this server's ID token carries
 /// <c>sub iss aud exp iat auth_time nonce at_hash</c> and nothing else, so both name lookups in
 /// <c>Who</c> miss and it falls through to the subject. An operator checking which account they are
 /// signed in as had 26 characters to compare against a table whose first column is the handle.
 /// </para>
 /// <para>
 /// <b><c>/userinfo</c> is the channel, and it is the only one.</b> A client that is not the resource
-/// server has no business parsing the access token — it is not the audience — and
+/// server has no business parsing the access token - it is not the audience - and
 /// <c>UserInfoEndpoint</c>'s own remarks put it plainly: a client that needs to know who signed in
 /// has exactly two channels, the ID token and there. The ID token does not carry a name, so this is
 /// the other one.
 /// </para>
 /// <para>
 /// <b>No new scope, and adding the obvious one would break sign-in.</b> That endpoint releases
-/// <c>preferred_username</c> to any token granted <c>openid</c> — deliberately, with the argument
+/// <c>preferred_username</c> to any token granted <c>openid</c> - deliberately, with the argument
 /// written out beside it, because the access token already carries the same fact ungated. Adding
 /// <c>profile</c> here to look more like OIDC would be refused with <c>invalid_scope</c> before a
 /// page ever rendered: <c>profile</c> is not a scope this server knows, since
@@ -48,7 +48,7 @@ public static class OperatorProfile
     /// <remarks>
     /// Spelled as the wire spells it, and it stays that way because nothing renames it on this path:
     /// the value is read out of a JSON document and added under this exact type. The ID token's
-    /// <c>sub</c> is the counter-example and cost this app a dead lookup for a release — the
+    /// <c>sub</c> is the counter-example and cost this app a dead lookup for a release - the
     /// handler's <c>MapInboundClaims</c> turns it into <c>ClaimTypes.NameIdentifier</c> before the
     /// principal exists, so <c>FindFirst("sub")</c> matched nothing while looking right.
     /// </remarks>
@@ -63,7 +63,7 @@ public static class OperatorProfile
     /// </param>
     /// <param name="userInfoEndpoint">
     /// Where to ask, out of the discovery document. <see langword="null"/> or empty when the server
-    /// advertises none, which is a deployment that turned the endpoint off — an answer, not a
+    /// advertises none, which is a deployment that turned the endpoint off - an answer, not a
     /// failure, and the reason this is read from the document rather than composed from the
     /// authority.
     /// </param>
@@ -93,7 +93,7 @@ public static class OperatorProfile
 
         // Neither is worth a request. An absent endpoint is a server that does not serve one; an
         // absent token would be asking a bearer-only endpoint to answer anonymously, which it
-        // refuses — and both would be a round trip to learn what is already known here.
+        // refuses - and both would be a round trip to learn what is already known here.
         if (userInfoEndpoint is not { Length: > 0 } || accessToken is not { Length: > 0 })
         {
             return null;
@@ -111,7 +111,7 @@ public static class OperatorProfile
 
         // Parsed from the string rather than through ReadFromJsonAsync, and the difference is a
         // failure mode rather than a preference: that helper checks the media type first and throws
-        // NotSupportedException — not JsonException — for a 200 that came back as text/html. A
+        // NotSupportedException - not JsonException - for a 200 that came back as text/html. A
         // proxy's error page is exactly the case this has to survive, so the check that would
         // refuse it before parsing is the one to do without.
         try

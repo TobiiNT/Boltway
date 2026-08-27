@@ -17,7 +17,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// The interesting assertions here are the two asymmetries, because both are decisions rather than
 /// defaults: personal data follows the granted scopes, and the role does not. The second is what
-/// makes this endpoint useful to a client that maps a directory onto its own permissions — behind a
+/// makes this endpoint useful to a client that maps a directory onto its own permissions - behind a
 /// scope, a client that forgot to ask would get a login that succeeds and grants nothing, which
 /// reaches a person as "my account is broken".
 /// </para>
@@ -46,7 +46,7 @@ public sealed class UserInfoSurfaceTests
         var roles = new InMemoryRoleStore();
         foreach (var id in new[] { "founder", "operator", "employee" })
         {
-            // Defined before anything can hold them — creation does not assign, and assignment
+            // Defined before anything can hold them - creation does not assign, and assignment
             // refuses an id the realm does not define.
             if (await roles.FindAsync(RealmId.Default, id, CancellationToken.None) is null)
             {
@@ -155,7 +155,7 @@ public sealed class UserInfoSurfaceTests
         // Both ungated, and both for the reason the access token already applies: the address is
         // data the subject consents to release, while the handle and the role are what a client
         // needs to name and place this person at all. `UserAccountClaims` releases
-        // `preferred_username` into the token with no scope either — this asserts the two surfaces
+        // `preferred_username` into the token with no scope either - this asserts the two surfaces
         // agree, which is the part that would otherwise drift.
         Assert.Equal("ada", bare.GetProperty("preferred_username").GetString());
         Assert.Equal("founder", bare.GetProperty("role")[0].GetString());
@@ -173,7 +173,7 @@ public sealed class UserInfoSurfaceTests
     /// </summary>
     /// <remarks>
     /// The failure this pins: a client mapping roles onto its own permissions on every sign-in
-    /// would keep granting the old ones for as long as an access token lives — up to half an hour
+    /// would keep granting the old ones for as long as an access token lives - up to half an hour
     /// after somebody was deliberately demoted.
     /// </remarks>
     [Fact]
@@ -188,7 +188,7 @@ public sealed class UserInfoSurfaceTests
         var before = await BodyAsync(await fixture.Client.GetAsync(new Uri("/userinfo", UriKind.Relative)));
         Assert.Equal("founder", before.GetProperty("role")[0].GetString());
 
-        // The token in hand is unchanged and still says `founder` — only the directory moved.
+        // The token in hand is unchanged and still says `founder` - only the directory moved.
         // `SetRoleAsync` rather than storing the account again: accounts are add-only in this store,
         // deliberately, because overwriting one would replace its credentials.
         await world.Users.SetRolesAsync(SubjectId.FromStorage(Mine), ["employee"], CancellationToken.None);
@@ -236,7 +236,7 @@ public sealed class UserInfoSurfaceTests
     /// </summary>
     /// <remarks>
     /// Anonymised, or deleted out from under an outstanding token. <c>invalid_token</c> rather than
-    /// a 404, because the subject is not a resource this endpoint locates — it is who the credential
+    /// a 404, because the subject is not a resource this endpoint locates - it is who the credential
     /// says you are, and the honest answer is that the credential no longer identifies anybody.
     /// </remarks>
     [Fact]

@@ -67,7 +67,7 @@ public abstract class AdminAuditStoreContract
     /// Most recent first, with insertion order breaking a tie.
     /// </summary>
     /// <remarks>
-    /// Two actions in the same tick are a real sequence — a script does several in a row — and an
+    /// Two actions in the same tick are a real sequence - a script does several in a row - and an
     /// order that depended on which index the provider walked would make the same page read
     /// differently on two deployments of the same product.
     /// </remarks>
@@ -86,7 +86,7 @@ public abstract class AdminAuditStoreContract
     }
 
     /// <summary>
-    /// Each of the three filters — realm, target subject and <c>Since</c> — narrows on its own.
+    /// Each of the three filters - realm, target subject and <c>Since</c> - narrows on its own.
     /// </summary>
     /// <remarks>
     /// One log in which a different entry answers each filter, so a store that ignores one of the
@@ -166,7 +166,7 @@ public abstract class AdminAuditStoreContract
     /// The interface offers no way to change or remove an entry.
     /// </summary>
     /// <remarks>
-    /// Append-only is the whole property, and the way to keep it is that the methods do not exist —
+    /// Append-only is the whole property, and the way to keep it is that the methods do not exist -
     /// not a guard somebody can relax, and not a convention a reviewer has to notice. A log an
     /// administrator can edit proves nothing about administrators.
     /// </remarks>

@@ -12,12 +12,12 @@ namespace Boltway.AdminBff;
 /// <para>
 /// <b>No JavaScript, and no templating engine.</b> §7.1 chose the BFF partly because a
 /// server-rendered form keeps <c>auth/</c>'s zero-JavaScript property and needs neither CORS nor a
-/// CSP exception — so these pages send <c>default-src 'self'</c> and mean it.
+/// CSP exception - so these pages send <c>default-src 'self'</c> and mean it.
 /// </para>
 /// <para>
 /// <b>Nothing inline.</b> No <c>&lt;style&gt;</c>, no <c>style=</c>, no <c>onclick=</c>. The policy
 /// has no <c>style-src</c> or <c>script-src</c> override, so both inherit <c>'self'</c> and the
-/// browser refuses inline content — by policy rather than by review. A deployment that wants a
+/// browser refuses inline content - by policy rather than by review. A deployment that wants a
 /// different look sets <see cref="AdminBffOptions.StylesheetPaths"/> and serves the file itself.
 /// </para>
 /// </remarks>
@@ -29,7 +29,7 @@ public sealed class DefaultAdminLayout : IAdminLayout
     /// <remarks>
     /// Also <see cref="AdminBffOptions.StylesheetPaths"/>'s default, so a deployment that configures
     /// nothing gets the pages styled rather than bare. That differs from the authorization server,
-    /// whose unthemed pages link no stylesheet at all — it is a library and ships no
+    /// whose unthemed pages link no stylesheet at all - it is a library and ships no
     /// <c>wwwroot</c>, and this is an application that does.
     /// </remarks>
     public const string ShippedStylesheet = "/css/admin.css";
@@ -49,7 +49,7 @@ public sealed class DefaultAdminLayout : IAdminLayout
     /// language comes from. <see cref="AdminText.Default"/> for the built-in English.
     /// </param>
     /// <param name="stylesheets">
-    /// What to link, in order. <b>Validated before it reaches here</b> — see
+    /// What to link, in order. <b>Validated before it reaches here</b> - see
     /// <see cref="AdminBffOptions.TryValidate"/>. Order is preserved, since for stylesheets order is
     /// meaning.
     /// </param>
@@ -85,15 +85,15 @@ public sealed class DefaultAdminLayout : IAdminLayout
     /// <summary><c> dir="rtl"</c> when the page's language reads right to left, or nothing.</summary>
     /// <remarks>
     /// <para>
-    /// The stylesheet was converted to logical properties — <c>padding-inline-start</c> and its
-    /// siblings — which do nothing at all until the document says which way it reads. Without this
+    /// The stylesheet was converted to logical properties - <c>padding-inline-start</c> and its
+    /// siblings - which do nothing at all until the document says which way it reads. Without this
     /// the admin pages render an Arabic translation left to right with every gutter on the wrong
     /// edge, and the sheet looks like it was never converted.
     /// </para>
     /// <para>
     /// <b>A copy of the list in <c>DefaultInteractionLayout</c> rather than a shared type, on
-    /// purpose.</b> This app has no project reference to anything — it is an OAuth client of the
-    /// authorization server and talks to it over HTTP, which is what keeps <c>N-17</c> true — so
+    /// purpose.</b> This app has no project reference to anything - it is an OAuth client of the
+    /// authorization server and talks to it over HTTP, which is what keeps <c>N-17</c> true - so
     /// sharing nine strings would mean taking a dependency on the server to render a page. Same
     /// trade as <c>CloudLoggingFormatter</c>. The two lists can drift; what that costs is one
     /// language mirroring on one of the two surfaces, which is visible the moment anybody looks at
@@ -128,7 +128,7 @@ public sealed class DefaultAdminLayout : IAdminLayout
     /// button used to sit inside the <c>OperatorName is { Length: &gt; 0 }</c> branch, which reads as
     /// tidy and is not: this server's ID token carries no name claim of any kind, so the condition
     /// was false on every request and the admin UI had no way out of itself. Measured on a running
-    /// stack, not read — <c>form[action="/signout"]</c> matched zero elements on every page. Every
+    /// stack, not read - <c>form[action="/signout"]</c> matched zero elements on every page. Every
     /// page here is behind <c>RequireAuthorization()</c>, so there is always a session to end.
     /// </para>
     /// <para>
@@ -143,7 +143,7 @@ public sealed class DefaultAdminLayout : IAdminLayout
     /// literal <c>·</c>, and that character is the shape of the shell rather than anything the page
     /// says: a sheet laying the rail out vertically had a stray dot between every pair of rows and
     /// no way to remove it, because a text node between two elements is not selectable. The two
-    /// groups are also what a sheet needs to push one to the top and one to the bottom — with one
+    /// groups are also what a sheet needs to push one to the top and one to the bottom - with one
     /// flat list, "the last two children" was the only way to say it, and adding a fourth
     /// destination would have moved the operator into the navigation.
     /// </para>
@@ -184,7 +184,7 @@ public sealed class DefaultAdminLayout : IAdminLayout
     /// <remarks>
     /// <para>
     /// Derived from the kind rather than passed alongside it, because two facts that must agree are
-    /// how a page ends up highlighting the wrong link — the same shape of defect as a Vietnamese
+    /// how a page ends up highlighting the wrong link - the same shape of defect as a Vietnamese
     /// page declaring <c>lang="en"</c>, which is why <see cref="AdminText.Language"/> travels with
     /// the words instead of being its own setting.
     /// </para>
@@ -212,7 +212,7 @@ public sealed class DefaultAdminLayout : IAdminLayout
     /// and something would then have to remember to add the aria attribute beside it.
     /// </para>
     /// <para>
-    /// It exists because a rail with no current-item state answers "where am I" with nothing — and
+    /// It exists because a rail with no current-item state answers "where am I" with nothing - and
     /// unlike everything else in the shell, no stylesheet can supply it: the header was
     /// byte-identical on every page, and CSS cannot read the URL. It is the clearest example of what
     /// this seam is for, and of what configuring a stylesheet could never have reached.

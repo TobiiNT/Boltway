@@ -6,7 +6,7 @@ namespace Boltway.AuthorizationServer.Requests;
 /// <remarks>
 /// <para>
 /// Transport-neutral by design: a flat dictionary of name to values, produced before any stage
-/// looks at a parameter. That is the PAR seam — adding pushed authorization requests later means
+/// looks at a parameter. That is the PAR seam - adding pushed authorization requests later means
 /// another implementation of the source, and none of the stages change, because none of them know
 /// where their parameters came from. The same type serves <c>/authorize</c>'s query string and
 /// <c>/token</c>'s form body, so the repeated-parameter rule below is enforced identically at both.
@@ -14,7 +14,7 @@ namespace Boltway.AuthorizationServer.Requests;
 /// <para>
 /// Values are a <b>list</b>, not a string, because the difference matters twice. A repeated
 /// parameter is a protocol violation for everything except <c>resource</c> (RFC 8707 §2 explicitly
-/// permits repetition), and binding to a single string would silently take one of them — which one
+/// permits repetition), and binding to a single string would silently take one of them - which one
 /// depends on the framework, and an attacker who can add a second <c>redirect_uri</c> would like to
 /// know which.
 /// </para>
@@ -60,8 +60,8 @@ public sealed class OAuthParameters
     /// </summary>
     /// <remarks>
     /// The "with a value" clause is why this is not a bare <c>ContainsKey</c>. A key mapped to an
-    /// empty list is absent as far as <see cref="TrySingle"/> is concerned — it hands back
-    /// <see langword="null"/> — and a <c>Contains</c> that answered <see langword="true"/> for the
+    /// empty list is absent as far as <see cref="TrySingle"/> is concerned - it hands back
+    /// <see langword="null"/> - and a <c>Contains</c> that answered <see langword="true"/> for the
     /// same input would make the two disagree about what "present" means. Nothing that ASP.NET
     /// query binding produces has that shape, but this type is deliberately transport-neutral and
     /// is the seam a pushed authorization request would arrive through.

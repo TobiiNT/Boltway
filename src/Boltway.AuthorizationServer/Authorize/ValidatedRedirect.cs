@@ -17,7 +17,7 @@ namespace Boltway.AuthorizationServer.Authorize;
 /// </para>
 /// <para>
 /// <b>A class, not a struct, and that is the whole difference between a guarantee and a comment.</b>
-/// This was a <c>readonly struct</c>, and every struct has a public parameterless constructor — so
+/// This was a <c>readonly struct</c>, and every struct has a public parameterless constructor - so
 /// <c>default</c> was a forged capability that any assembly could mint without
 /// <c>InternalsVisibleTo</c>, and <c>AuthorizeRedirectError.Create(default, …)</c> compiled and ran.
 /// As a class, <c>default</c> is <see langword="null"/>, the factory is the only source, and the
@@ -25,7 +25,7 @@ namespace Boltway.AuthorizationServer.Authorize;
 /// </para>
 /// <para>
 /// Because <see cref="AuthorizeRedirectError"/> <i>requires</i> one, an error cannot be delivered
-/// by redirect before the redirect URI has been validated — and because the pipeline stages that
+/// by redirect before the redirect URI has been validated - and because the pipeline stages that
 /// redirect take one as a <b>parameter</b> rather than reading it back off the context, a stage
 /// moved ahead of the redirect check does not compile.
 /// </para>
@@ -118,7 +118,7 @@ public sealed record AuthorizeRedirectError
     /// <remarks>
     /// RFC 9207's <c>iss</c> is required on <b>every</b> authorization response including error
     /// redirects, because the mix-up attack it defends against works precisely by sending a
-    /// response from the wrong authorization server — and an error response is as useful to that
+    /// response from the wrong authorization server - and an error response is as useful to that
     /// attack as a successful one. The metadata advertises
     /// <c>authorization_response_iss_parameter_supported</c>, and a client that sees that flag and
     /// then a response without <c>iss</c> is required to reject it.
@@ -148,14 +148,14 @@ public sealed record AuthorizeRedirectError
 /// </summary>
 /// <remarks>
 /// Rendered on the authorization server's own origin, at 400. Used when the client is unknown or
-/// the redirect URI does not validate — there is no address it is safe to send the user to, and
+/// the redirect URI does not validate - there is no address it is safe to send the user to, and
 /// redirecting anyway makes the authorization endpoint an open redirector that also leaks
 /// <c>state</c>.
 /// </remarks>
 public sealed record AuthorizeHtmlError
 {
     /// <summary>Build one, filtering the description.</summary>
-    /// <param name="rejection">Why the request was refused. Required — see A-09.</param>
+    /// <param name="rejection">Why the request was refused. Required - see A-09.</param>
     /// <param name="correlationId">The id that joins the response to its log line.</param>
     public AuthorizeHtmlError(Rejection rejection, string correlationId)
     {
@@ -189,7 +189,7 @@ public sealed record AuthorizeHtmlError
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Settable only through <see cref="Throttled"/> and <see cref="StoreUnavailable"/> — the two
+    /// Settable only through <see cref="Throttled"/> and <see cref="StoreUnavailable"/> - the two
     /// refusals on this surface that tell the caller when to come back. That it is not a public
     /// setter is the guard: the thing to keep out is a <c>Retry-After</c> beside a code that
     /// contradicts it, such as a 429 also carrying <c>invalid_client</c>, which would tell the
@@ -200,7 +200,7 @@ public sealed record AuthorizeHtmlError
     /// was the only refusal here with a wait, and it read as "a wait means no code". X-11 has one and
     /// a code, and they agree: <c>temporarily_unavailable</c> and "try again in five seconds" are the
     /// same statement twice. What the writer keys on is therefore the reason, not the presence of
-    /// this value — see <c>RejectionHtmlResult.UntabledSpec</c>.
+    /// this value - see <c>RejectionHtmlResult.UntabledSpec</c>.
     /// </para>
     /// </remarks>
     public TimeSpan? RetryAfter { get; private init; }
@@ -211,7 +211,7 @@ public sealed record AuthorizeHtmlError
     /// <remarks>
     /// <para>
     /// <see cref="OAuthErrorCode.None"/> is not an omission and not a placeholder. X-31's row in the
-    /// requirements is the only one whose <c>error</c> column is literally <i>(none)</i> — being
+    /// requirements is the only one whose <c>error</c> column is literally <i>(none)</i> - being
     /// over a limit is a transport condition, and RFC 6749 §4.1.2.1 registers no code that means it.
     /// <c>OAuthErrors</c> therefore has no row for this and cannot be given one:
     /// <c>The_none_code_is_not_in_the_table</c> asserts precisely that, on the reasoning that
@@ -219,7 +219,7 @@ public sealed record AuthorizeHtmlError
     /// and the <c>Retry-After</c> are the machine-readable part; the description is the human one.
     /// </para>
     /// <para>
-    /// The alternative — borrowing <c>temporarily_unavailable</c> — was rejected because it says the
+    /// The alternative - borrowing <c>temporarily_unavailable</c> - was rejected because it says the
     /// server is at fault, while 429 says the caller is, and the two surfaces this is emitted from
     /// have an existing test asserting that a <c>temporarily_unavailable</c> before redirect
     /// validation is a 5xx.
@@ -246,14 +246,14 @@ public sealed record AuthorizeHtmlError
     /// <b>Unlike <see cref="Throttled"/> this one has a code, and the asymmetry is not an
     /// inconsistency.</b> RFC 6749 registers no error meaning "you are over a limit" anywhere, so
     /// X-31 has none to carry. It registers <c>temporarily_unavailable</c> for this endpoint
-    /// specifically, in §4.1.2.1, and it means exactly what happened — so the honest answer here is
+    /// specifically, in §4.1.2.1, and it means exactly what happened - so the honest answer here is
     /// to use the code that exists rather than to imitate X-31's silence. That the same condition at
     /// <c>/token</c> carries no code is a fact about §5.2's closed set, not about the condition.
     /// </para>
     /// <para>
     /// <b>This is the pre-redirect half, which is the one a store outage actually reaches.</b>
     /// Validating a redirect URI means reading the client, so a store that is down usually fails
-    /// before there is an address to send anyone to — and redirecting to an unvalidated one is the
+    /// before there is an address to send anyone to - and redirecting to an unvalidated one is the
     /// open redirector §4.1.2.1 forbids. The redirect half exists for a failure later in the flow and
     /// is built by the endpoint's boundary from <c>context.Redirect</c>, which is only set once that
     /// validation has succeeded.
@@ -293,7 +293,7 @@ public sealed record AuthorizeHtmlError
 /// <para>
 /// OAuth 2.1 §4.1.2.1: "Values for the <c>error_description</c> parameter MUST NOT include
 /// characters outside the set %x20-21 / %x23-5B / %x5D-7E." The set excludes CR and LF, and that is
-/// not a formatting preference — a description is echoed into an HTML body on our own origin and
+/// not a formatting preference - a description is echoed into an HTML body on our own origin and
 /// into a <c>Location</c> query string, and several of them interpolate a request parameter the
 /// caller chose.
 /// </para>

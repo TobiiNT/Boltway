@@ -9,8 +9,8 @@ namespace Boltway.Storage.EntityFrameworkCore;
 /// <remarks>
 /// <para>
 /// <b>There is no default implementation, deliberately.</b> A default would have to guess, and the
-/// plausible guess — <c>BeginTransactionAsync()</c> with the provider's default isolation, plus "any
-/// <see cref="DbUpdateException"/> is a unique violation" — is wrong in a way that compiles, passes
+/// plausible guess - <c>BeginTransactionAsync()</c> with the provider's default isolation, plus "any
+/// <see cref="DbUpdateException"/> is a unique violation" - is wrong in a way that compiles, passes
 /// a single-threaded test, and forks a refresh-token family under load. Requiring the provider
 /// package to supply one makes "nobody wired the provider up" a startup failure rather than a race.
 /// </para>
@@ -30,7 +30,7 @@ public interface IRelationalStoreBehavior
     /// <para>
     /// <b>The requirement: between this call and the commit, no other writer may change the rows
     /// this one reads.</b> <c>IRefreshTokenStore.RedeemAsync</c> is why. It reads the presented row,
-    /// checks family revocation and expiry, reads a <i>second</i> row — the successor — checks that
+    /// checks family revocation and expiry, reads a <i>second</i> row - the successor - checks that
     /// row's own consumption and expiry, and only then inserts and updates. No conditional
     /// <c>UPDATE … WHERE hash = @h AND consumed_at IS NULL</c> expresses that, so the atomicity has
     /// to come from here.
@@ -44,7 +44,7 @@ public interface IRelationalStoreBehavior
     /// with the tightest budget. <b>Take the lock instead of gambling on one:</b> SQLite's
     /// implementation opens <c>BEGIN IMMEDIATE</c>, which excludes every other writer for the whole
     /// transaction and turns contention into bounded waiting rather than a retryable error.
-    /// PostgreSQL's is the same idea — <c>LOCK TABLE … IN SHARE ROW EXCLUSIVE MODE</c> naming every
+    /// PostgreSQL's is the same idea - <c>LOCK TABLE … IN SHARE ROW EXCLUSIVE MODE</c> naming every
     /// table in the model, one statement at the top of the transaction so the acquisition order is
     /// total and no cycle can form.
     /// </para>
@@ -69,7 +69,7 @@ public interface IRelationalStoreBehavior
     /// <remarks>
     /// The store contract makes every insert add-only and specifies
     /// <see cref="InvalidOperationException"/> for a duplicate, so each provider has to recognise its
-    /// own code — 19 on SQLite, with extended codes 1555 and 2067; 23505 on PostgreSQL. Answering
+    /// own code - 19 on SQLite, with extended codes 1555 and 2067; 23505 on PostgreSQL. Answering
     /// <see langword="true"/> for any <see cref="DbUpdateException"/> would report a connection
     /// failure as a duplicate key, which is a wrong answer a caller acts on.
     /// </remarks>

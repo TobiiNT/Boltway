@@ -10,7 +10,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// <para>
 /// <b>Every name is prefixed <c>boltway.</c>, and that is a measurement rather than a
 /// convention.</b> The specification these come from named them <c>oauth.request.duration</c> and
-/// so on, on the reasoning that the meter — <c>Boltway.Auth</c> — supplies the namespace. It
+/// so on, on the reasoning that the meter - <c>Boltway.Auth</c> - supplies the namespace. It
 /// does not. Exported through the SDK and read back:
 /// </para>
 /// <code>
@@ -21,7 +21,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// <para>
 /// The meter is a separate attribute of the stream, not part of the metric's identity. Backends key
 /// the series on the name and reduce the scope to a label nobody filters on, so a bare
-/// <c>oauth.rejection</c> collides with any other OAuth library in the same process — and with any
+/// <c>oauth.rejection</c> collides with any other OAuth library in the same process - and with any
 /// future <c>oauth.*</c> semantic convention, which is exactly the namespace an OAuth server should
 /// expect someone to standardise.
 /// </para>
@@ -35,7 +35,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// <c>RejectionResult.Record</c>, the one place every refusal passes through, so its total equals
 /// the number of <c>Rejected</c> log lines by construction.</description></item>
 /// <item><term><c>refresh.rotation</c></term><description><b>Recording.</b> All three arms of
-/// <c>RefreshTokenGrant</c>'s redemption switch — <c>rotated</c>, <c>grace_replay</c>,
+/// <c>RefreshTokenGrant</c>'s redemption switch - <c>rotated</c>, <c>grace_replay</c>,
 /// <c>reuse</c>. The last is the only signal that a refresh token leaked.</description></item>
 /// <item><term><c>key.active_count</c></term><description><b>Recording.</b> Observed from the
 /// ring.</description></item>
@@ -44,7 +44,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// wait. Outcomes <c>hit</c>, <c>fetched</c>, <c>stale</c>, <c>error</c>.</description></item>
 /// <item><term><c>store.duration</c></term><description><b>Recording, from a different meter.</b>
 /// It lives in <c>Boltway.Storage.EntityFrameworkCore</c>, which cannot reference this
-/// assembly — the dependency runs the other way, and that direction is what lets a customer
+/// assembly - the dependency runs the other way, and that direction is what lets a customer
 /// replace storage without taking the server with it. See <c>StorageMetrics</c>; a host must name
 /// both meters.</description></item>
 /// <item><term><c>request.duration</c></term><description>Declared, and deliberately not wired:
@@ -59,7 +59,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// </list>
 /// <para>
 /// The names came from one of three competing architecture proposals, none of which was ever
-/// recorded as adopted — the proposals have since been deleted (they described projects and
+/// recorded as adopted - the proposals have since been deleted (they described projects and
 /// namespaces that were not built; <c>docs/DESIGN.md</c> §1 is the surviving decision record, and
 /// git history has the files). So these are built because they measure things that exist, and the
 /// naming is an inheritance rather than an instruction.

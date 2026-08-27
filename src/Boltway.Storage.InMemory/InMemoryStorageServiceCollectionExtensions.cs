@@ -16,8 +16,8 @@ public static class InMemoryStorageServiceCollectionExtensions
     /// <remarks>
     /// <para>
     /// One call rather than five, because five is where a deployment forgets one. Forgetting one is
-    /// a startup failure now — <c>MapBoltwayAuthorizationServer</c> names every missing seam
-    /// before the host serves anything — but it was not when this was written: it was a
+    /// a startup failure now - <c>MapBoltwayAuthorizationServer</c> names every missing seam
+    /// before the host serves anything - but it was not when this was written: it was a
     /// <c>server_error</c> on the first client, after the user had already typed a password. Three
     /// separate reviewers built a host for this server and all three discovered the store list by
     /// triggering that failure, one service at a time.
@@ -26,13 +26,13 @@ public static class InMemoryStorageServiceCollectionExtensions
     /// <b>Deliberately not registered by <c>AddBoltwayAuthorizationServer</c>.</b> Everything
     /// here loses its contents when the process restarts: every refresh token dies, every consent is
     /// asked again, and any authorization mid-flight fails. That is fine for a single instance, a
-    /// test, or a first run, and wrong for anything else — so it has to be a line a deployment
+    /// test, or a first run, and wrong for anything else - so it has to be a line a deployment
     /// wrote, not a default it inherited. A server that silently ran on in-memory storage in
     /// production would be behaving exactly as configured and nobody would have chosen it.
     /// </para>
     /// <para>
     /// <c>TryAdd</c> throughout, so a host that already registered a durable store for one of these
-    /// keeps it and gets the rest — which is the shape of a migration, one store at a time.
+    /// keeps it and gets the rest - which is the shape of a migration, one store at a time.
     /// </para>
     /// </remarks>
     public static IServiceCollection AddBoltwayInMemoryStores(this IServiceCollection services)
@@ -53,7 +53,7 @@ public static class InMemoryStorageServiceCollectionExtensions
         services.TryAddSingleton<IClientAssertionReplayStore, InMemoryClientAssertionReplayStore>();
 
         // Local accounts too. This method said "the four stores" and left InMemoryUserStore out,
-        // even though it lives in this package — so a host that called it still had IUserStore in
+        // even though it lives in this package - so a host that called it still had IUserStore in
         // its missing-services list, with the obvious one-line fix already apparently applied. The
         // only reason it was noticed is that the startup check reports every seam at once.
         //

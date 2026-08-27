@@ -22,14 +22,14 @@ public sealed class StructuralRuleTests
     /// raw bytes, and <see cref="Uri"/> is a normalizing type: it lowercases hosts, elides default
     /// ports, resolves dot segments, percent-decodes unreserved characters, and trims control
     /// characters including CR and LF. Every one of those maps several distinct strings onto one,
-    /// which <i>widens</i> the set of URIs that match — an open redirector that leaks <c>code</c>
+    /// which <i>widens</i> the set of URIs that match - an open redirector that leaks <c>code</c>
     /// and <c>state</c>.
     /// </para>
     /// <para>
     /// <b>Rooted at the pipeline stage, not at the matcher, and that is a correction.</b> Rooting it
     /// at <c>RedirectUriMatcher.Match</c> looked stronger and proved almost nothing: parsing happens
     /// <i>before</i> Match, in <c>RequestedRedirectUri.TryParse</c>, which is not reachable from it
-    /// at all. Measured — introducing the exact documented bug, taking the host from
+    /// at all. Measured - introducing the exact documented bug, taking the host from
     /// <c>Uri.Host</c> instead of the raw string, left this file 7/7 green. The rule scoped to the
     /// one sliver of the decision that structurally could not contain the violation.
     /// </para>
@@ -50,7 +50,7 @@ public sealed class StructuralRuleTests
         Assert.Equal(0, Il.UnresolvedCallTargets);
 
         // Only our own methods. The walk descends into System.Uri's internals, where every call is
-        // by definition a member of System.Uri calling another — a fact about the BCL, not about
+        // by definition a member of System.Uri calling another - a fact about the BCL, not about
         // this codebase. The rule is about what Boltway code asks Uri for.
         var violations = reached
             .Where(m => m.DeclaringType.FullName.StartsWith("Boltway.", StringComparison.Ordinal))
@@ -77,7 +77,7 @@ public sealed class StructuralRuleTests
     /// <remarks>
     /// <c>TryCreate</c> answers "is this even a URI"; <c>Fragment</c>, <c>UserInfo</c> and
     /// <c>Port</c> are each read to refuse a value RFC 8252 or RFC 6749 forbids. None of them
-    /// returns a string that a matching decision later compares — that is the whole distinction
+    /// returns a string that a matching decision later compares - that is the whole distinction
     /// between this list and the banned members, which all return normalized values.
     /// </remarks>
     private static readonly string[] PermittedUriMembers =
@@ -94,7 +94,7 @@ public sealed class StructuralRuleTests
     /// <remarks>
     /// The sibling of the <c>RedirectMatch</c> rule below, and it was missing. <c>ValidatedRedirect</c>
     /// is now a class with a private constructor, so a forged capability is <see langword="null"/>
-    /// and <c>Create</c> throws — but "only the pipeline delivers an error by redirect" is a claim
+    /// and <c>Create</c> throws - but "only the pipeline delivers an error by redirect" is a claim
     /// about call sites, and only a call-site rule keeps it.
     /// </remarks>
     [Fact]
@@ -135,7 +135,7 @@ public sealed class StructuralRuleTests
         "Boltway.AuthorizationServer.Endpoints.AuthorizeEndpoint",
 
         // The third entry, added when /consent landed. The consent POST must answer `access_denied`,
-        // and it does so through AuthorizeResumption — which also owns stages 11 and 12 — so both
+        // and it does so through AuthorizeResumption - which also owns stages 11 and 12 - so both
         // routes to finishing an authorization run the same code. The alternative was letting
         // InteractionEndpoints build the error itself, which is the same capability spread over one
         // more type. This rule failing on that change is the mechanism working: widening the list is
@@ -152,7 +152,7 @@ public sealed class StructuralRuleTests
     /// <see langword="internal"/> keyword. <c>InternalsVisibleTo</c> is granted per assembly, not
     /// per member: a grant added so one assembly could mint a <c>ResourceIdentifier</c> also handed
     /// it <c>RedirectMatch.Exact</c>, and with that it could construct a <c>ValidatedRedirect</c>
-    /// pointing anywhere — which is precisely the capability the authorize pipeline's ordering
+    /// pointing anywhere - which is precisely the capability the authorize pipeline's ordering
     /// exists to withhold from its early stages.
     /// </para>
     /// <para>
@@ -189,7 +189,7 @@ public sealed class StructuralRuleTests
     /// Two distinct failures share this cause. Behind a reverse proxy <c>Request.Scheme</c> is
     /// <c>http</c>, so every token is issued under an issuer no client accepts. And with host-header
     /// injection the attacker picks <c>Request.Host</c>, so tokens are minted under a name they
-    /// control — which is a signing oracle, not a configuration mistake.
+    /// control - which is a signing oracle, not a configuration mistake.
     /// </remarks>
     [Fact]
     public void The_server_never_reads_the_request_host_or_scheme()
@@ -288,13 +288,13 @@ public sealed class StructuralRuleTests
     /// <para>
     /// RFC 9700 §4.12 and OAuth 2.1 §7.5.3: a redirect after a request that carried credentials or a
     /// consent decision must be <c>303 See Other</c>, so the browser re-issues it as a GET. A 307 or
-    /// 308 preserves the method <b>and the body</b> — so the username, the password or the consent
+    /// 308 preserves the method <b>and the body</b> - so the username, the password or the consent
     /// form is re-sent to wherever the <c>Location</c> points, which on the error path is a URL the
     /// client chose.
     /// </para>
     /// <para>
     /// A rule over IL rather than over the one place that redirects today. Measured before this
-    /// existed: emitting 307 from <c>AuthorizeResults</c> left the architecture suite 8/8 green — the
+    /// existed: emitting 307 from <c>AuthorizeResults</c> left the architecture suite 8/8 green - the
     /// flow tests went red, but only because every redirect happened to funnel through a single
     /// helper. The moment a second redirect site appears, for a consent page or a logout, the rule
     /// that was supposed to cover it is the one that does not exist.
@@ -358,7 +358,7 @@ public sealed class StructuralRuleTests
     /// N-01 says the server must never invent an audience. The chokepoint used to be the
     /// <see langword="internal"/> keyword on <c>ResourceIdentifier.TryRegister</c>, and that failed
     /// in both directions at once. It leaked, because <c>InternalsVisibleTo</c> is granted per
-    /// assembly and the grant added for this method also exposed <c>RedirectMatch.Exact</c> — see
+    /// assembly and the grant added for this method also exposed <c>RedirectMatch.Exact</c> - see
     /// <see cref="Only_the_matcher_constructs_a_successful_redirect_match"/>. And it over-tightened,
     /// because the server assembly was never on the grant list, so no assembly a customer could own
     /// could implement the public <c>IResourceRegistry</c> at all. Measured symptom:
@@ -366,7 +366,7 @@ public sealed class StructuralRuleTests
     /// </para>
     /// <para>
     /// So the method is public and this rule is what constrains it: a call may only come from a type
-    /// that implements <c>IResourceRegistry</c>. That is the honest shape of the guarantee — a build
+    /// that implements <c>IResourceRegistry</c>. That is the honest shape of the guarantee - a build
     /// gate over this solution's own code, not a property of the type system. It stops the failure
     /// N-01 is actually about, which is <i>this library</i> stamping a house default audience on the
     /// customer's behalf where no client could ever detect it. It does not, and should not, constrain
@@ -384,7 +384,7 @@ public sealed class StructuralRuleTests
         //
         // N-01 is about the *minting* path: an authorization server deciding, on a user's behalf and
         // undetectably, which resources a token it signs will be accepted at. A resource server
-        // declaring which resource it *is* is the opposite direction — it is the assertion that
+        // declaring which resource it *is* is the opposite direction - it is the assertion that
         // defines the role, it is read from that deployment's own configuration, and an RS-only
         // deployment holds no signing key and has no mint path to reach. Refusing it would mean a
         // resource server could not name itself.
@@ -415,7 +415,7 @@ public sealed class StructuralRuleTests
             }
 
             // The call is emitted into a closure or state machine for anything async or lambda-bound,
-            // so the question "which type is this" has to be asked of the outermost declaring type —
+            // so the question "which type is this" has to be asked of the outermost declaring type -
             // and the interface check has to be asked of the definition that carries the interface.
             var owner = type;
 
@@ -445,7 +445,7 @@ public sealed class StructuralRuleTests
             + string.Join(Environment.NewLine, strangers.Select(s => "  " + s)));
 
         // The control. If TryRegister is renamed, or the shipped registry stops calling it, the
-        // search above runs over nothing and reports success — which is the exact failure mode the
+        // search above runs over nothing and reports success - which is the exact failure mode the
         // N-03 rule was caught in when it was rooted at the matcher instead of at the pipeline stage.
         Assert.NotEmpty(callers);
     }
@@ -457,12 +457,12 @@ public sealed class StructuralRuleTests
     /// <para>
     /// <c>FetchOutcome.cs</c> has always said: <i>"An architecture test asserts that no assembly
     /// other than Boltway.OAuth.Net references System.Net.Http at all, and the exception list
-    /// for that rule is empty — which is what makes 'every outbound fetch is guarded' checkable
+    /// for that rule is empty - which is what makes 'every outbound fetch is guarded' checkable
     /// rather than a claim."</i> <c>DESIGN.md</c> says the same. The test did not exist, which made
     /// the guarantee exactly the claim it said it was not.
     /// </para>
     /// <para>
-    /// It passes on the first run, so there is no live violation — the point is the next one. A
+    /// It passes on the first run, so there is no live violation - the point is the next one. A
     /// review demonstrated it concretely: a <c>JwksFetcher</c> with a bare <c>new HttpClient()</c>,
     /// dereferencing the <c>jwks_uri</c> that the CIMD document parser already stores, was added to
     /// <c>Boltway.AuthorizationServer</c>. The full solution built green, every test passed,
@@ -495,7 +495,7 @@ public sealed class StructuralRuleTests
             + string.Join(Environment.NewLine, violations.Select(v => "  " + v)));
 
         // The control. This rule is a search for absence, and an absence is also what a scan that
-        // stopped looking reports — so assert the scanner can still see the one assembly that is
+        // stopped looking reports - so assert the scanner can still see the one assembly that is
         // supposed to be full of these calls.
         var guarded = Il.CallersOf(m =>
                 m.DeclaringType?.FullName?.StartsWith("System.Net.Http.", StringComparison.Ordinal) is true)
@@ -513,8 +513,8 @@ public sealed class StructuralRuleTests
     /// <remarks>
     /// <para>
     /// <b>This list was empty, and that was most of the rule's value, so widening it costs this
-    /// comment.</b> The rule protects fetches of an <i>attacker-supplied</i> URL — a CIMD document,
-    /// somebody else's JWKS — where redirect refusal, the special-use address check and the byte cap
+    /// comment.</b> The rule protects fetches of an <i>attacker-supplied</i> URL - a CIMD document,
+    /// somebody else's JWKS - where redirect refusal, the special-use address check and the byte cap
     /// are what stand between a URL a stranger chose and a request to something internal.
     /// </para>
     /// <para>
@@ -546,7 +546,7 @@ public sealed class StructuralRuleTests
     /// the never-cut list. Neither the type nor the property existed. A review with a capturing
     /// <c>ILoggerProvider</c> at Trace level measured what was actually there: two
     /// <c>[LoggerMessage]</c> declarations in the whole of <c>src/</c>, both for abandoned or
-    /// crashed requests, and <b>twenty-five rejection classes emitting nothing at all</b> — sixteen
+    /// crashed requests, and <b>twenty-five rejection classes emitting nothing at all</b> - sixteen
     /// on the authorization server, nine on the resource server, with no correlation id anywhere in
     /// a resource-server response.
     /// </para>
@@ -563,8 +563,8 @@ public sealed class StructuralRuleTests
     /// <item><description>
     /// <b>Around the table.</b> A hand-written <c>Response.StatusCode = 400</c> would not call
     /// <c>Resolve</c> at all, so the first search cannot see it. Status codes reach IL as
-    /// <c>ldc.i4</c> operands — <c>StatusCodes.Status400BadRequest</c> is a <c>const</c> and
-    /// compiles to the same instruction as the literal — so a scan of the constant pool catches
+    /// <c>ldc.i4</c> operands - <c>StatusCodes.Status400BadRequest</c> is a <c>const</c> and
+    /// compiles to the same instruction as the literal - so a scan of the constant pool catches
     /// what a source grep would not. Same mechanism as the 307/308 rule above, which has its own
     /// control.
     /// </description></item>
@@ -594,7 +594,7 @@ public sealed class StructuralRuleTests
             + string.Join(Environment.NewLine, strangers.Select(s => "  " + s)));
 
         // The control for the first search. If Resolve is renamed or the writers stop calling it,
-        // the scan above runs over nothing and reports success — the exact failure the N-03 rule was
+        // the scan above runs over nothing and reports success - the exact failure the N-03 rule was
         // caught in when it was rooted at the matcher instead of at the pipeline stage.
         Assert.Equal(
             PermittedRejectionWriters.Length,
@@ -655,7 +655,7 @@ public sealed class StructuralRuleTests
     /// </summary>
     /// <remarks>
     /// One per server, because the two are separate deployables that share only a BCL-only assembly
-    /// — see the note in <c>Boltway.ResourceServer/Diagnostics/RejectionLog.cs</c> for why the
+    /// - see the note in <c>Boltway.ResourceServer/Diagnostics/RejectionLog.cs</c> for why the
     /// log declaration is duplicated rather than shared. Both emit the same event id, the same
     /// template and the same property names.
     /// </remarks>
@@ -673,7 +673,7 @@ public sealed class StructuralRuleTests
     /// The first two are the same answer on the two servers: "this server publishes no document at
     /// this path". RFC 9728 §3.1 and RFC 8414 §3.1 make a client probe several well-known URLs in
     /// order, and a 404 is what tells it to try the next one. They carry no <c>error</c> member, no
-    /// description and nothing derived from the request — there is no diagnostic content for a
+    /// description and nothing derived from the request - there is no diagnostic content for a
     /// rejection to hold, and routing them through the writer would mean inventing error-table rows
     /// for a response that has no error code.
     /// </para>
@@ -690,25 +690,25 @@ public sealed class StructuralRuleTests
 
         // Added when rate limiting landed, and the distinction is real rather than a concession.
         // The rule looks for a status constant because writing one is how a response escapes the
-        // rejection writer — but this type never writes a status. It *reads* one: a remote origin
+        // rejection writer - but this type never writes a status. It *reads* one: a remote origin
         // answering 500 or 429 to a CIMD fetch is a transient failure worth serving a stale document
         // through, while a 404 is the origin saying the client is gone. Those two numbers describe
         // somebody else's response, not ours.
         //
-        // The rule cannot tell the difference — an `ldc.i4` is an `ldc.i4` — so this is exactly the
+        // The rule cannot tell the difference - an `ldc.i4` is an `ldc.i4` - so this is exactly the
         // kind of entry that has to carry its reasoning. If a future change makes this type write a
         // response, the allowlist will hide it, and that is the cost being accepted here.
         "Boltway.AuthorizationServer.Clients.CimdClientResolver",
 
         // The readiness probe's 503, and it meets the criterion in the first paragraph rather than
-        // asking for an exception to it: no `error` member, no description, and — the part that
-        // matters — nothing derived from the request. Every caller gets the same answer, because it
+        // asking for an exception to it: no `error` member, no description, and - the part that
+        // matters - nothing derived from the request. Every caller gets the same answer, because it
         // describes the server's store and not anything they sent.
         //
         // Routing it through the rejection writer would mean minting an OAuth error-table row for a
         // response that is not a protocol error, and it would log once per poll: a monitor at one
         // request a minute would write 1,440 correlation ids a day to say nothing changed. The line
-        // worth having is the one StoreReadiness already writes — once per cache window, carrying
+        // worth having is the one StoreReadiness already writes - once per cache window, carrying
         // the exception the response deliberately does not.
         //
         // The status has to be the signal. 200 with `ok:false` is an uptime check that stays green
@@ -723,7 +723,7 @@ public sealed class StructuralRuleTests
         // an unlogged 401 on an admin API is precisely the shape A-09 exists to prevent.
         //
         // So it is not unlogged. `AdminEndpoints.Refuse` writes a warning carrying the failure kind,
-        // the required scope, the path and the correlation id, for every refusal — the obligation is
+        // the required scope, the path and the correlation id, for every refusal - the obligation is
         // met directly rather than by the shared writer. That matters most for the refusals that
         // never reach the service and therefore never reach the audit log: a cookie principal, or a
         // token minted for another resource, is somebody probing the directory, and the audit table
@@ -742,10 +742,10 @@ public sealed class StructuralRuleTests
         // The self-service surface, on the same terms and with one difference worth naming rather
         // than inheriting.
         //
-        // `AccountEndpoints.Refuse` writes the same warning for every refusal — failure kind, path,
-        // correlation id — so the A-09 obligation is met directly here too. The difference is which
+        // `AccountEndpoints.Refuse` writes the same warning for every refusal - failure kind, path,
+        // correlation id - so the A-09 obligation is met directly here too. The difference is which
         // refusals matter: on `/admin` an unlogged 401 is somebody probing the directory, and here
-        // it is somebody probing one account. Smaller, and not nothing — the one that has to be
+        // it is somebody probing one account. Smaller, and not nothing - the one that has to be
         // visible is a run of `wrong_password` against a subject, which is a stolen token being
         // converted into a permanent credential. That one is not merely logged, it is audited:
         // `UserAdministration.ChangePasswordAsync` records it as a refusal, because no sign-in
@@ -765,7 +765,7 @@ public sealed class StructuralRuleTests
         //
         // The refusal worth seeing here is narrower than either of theirs and worth naming. This
         // endpoint is reached with an access token the caller already holds, so a refusal is rarely
-        // somebody probing — it is far more often a client configured against the wrong scopes, and
+        // somebody probing - it is far more often a client configured against the wrong scopes, and
         // a run of `InsufficientScope` from one client_id is a misconfiguration that presents to a
         // person as "signing in works and I have no permissions". Without the line, the only
         // evidence is on the client's side, which is the side that does not know what it asked for.
@@ -784,7 +784,7 @@ public sealed class StructuralRuleTests
         //
         // A-09's obligation is that a refusal is visible and joinable. Here it is met by the audit
         // log rather than by a log line: `AccountRecovery` records every request and every
-        // redemption, found or not — `user.password.forgot` with "no such account" is the entry that
+        // redemption, found or not - `user.password.forgot` with "no such account" is the entry that
         // makes a run of probes visible, and it exists precisely because the response deliberately
         // does not distinguish them.
         //
@@ -808,7 +808,7 @@ public sealed class StructuralRuleTests
     /// <remarks>
     /// <para>
     /// <c>Il.AssemblyNames</c> discovers what is beside the test binary, which is only what this test
-    /// project references — so an unreferenced project is silently unscanned, and every rule in this
+    /// project references - so an unreferenced project is silently unscanned, and every rule in this
     /// file reports green over it. Measured before this test existed: an unguarded
     /// <c>new HttpClient()</c> planted in <c>Boltway.Storage.InMemory</c> broke nothing, because
     /// that assembly was not there to look at.
@@ -816,7 +816,7 @@ public sealed class StructuralRuleTests
     /// <para>
     /// Discovery replaced a hand-written list to stop it going stale; this is the other half, because
     /// discovery over an incomplete directory has exactly the same failure mode and is harder to see.
-    /// The fix when this fails is a <c>ProjectReference</c> in this project's csproj — and that is
+    /// The fix when this fails is a <c>ProjectReference</c> in this project's csproj - and that is
     /// deliberately a diff someone writes rather than something that happens quietly.
     /// </para>
     /// <para>
@@ -840,7 +840,7 @@ public sealed class StructuralRuleTests
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToList();
 
-        // The control: if the walk found no projects at all — a moved directory, a changed layout —
+        // The control: if the walk found no projects at all - a moved directory, a changed layout -
         // the assertion below is vacuously true and this rule has stopped meaning anything.
         Assert.True(withCode.Count >= 5, $"Only {withCode.Count} src projects with code were found under {src}.");
 
@@ -857,7 +857,7 @@ public sealed class StructuralRuleTests
     /// <summary>Walk up from the test binary to the repository root.</summary>
     /// <remarks>
     /// By shape rather than by a relative path with a fixed number of <c>..</c> segments, because
-    /// that count changes with the target framework and the configuration in the output path — and a
+    /// that count changes with the target framework and the configuration in the output path - and a
     /// path that silently resolves to nothing turns the test above into a pass.
     /// </remarks>
     /// <summary>
@@ -876,7 +876,7 @@ public sealed class StructuralRuleTests
     /// <b>This existed as a code sample in a class summary and was copied out of it.</b> The
     /// connector that copied it advertised a second scope in both RFC 9728 documents, showed it on
     /// its consent screen and enforced it in its tools; no token its authorization server minted
-    /// ever carried it, and it surfaced only when the tools began enforcing — every write stopping
+    /// ever carried it, and it surfaced only when the tools began enforcing - every write stopping
     /// at once, six and a half hours after the change that armed it.
     /// </para>
     /// <para>
@@ -884,7 +884,7 @@ public sealed class StructuralRuleTests
     /// <c>ScopesSupported</c> are internal to <c>Boltway.ResourceServer</c>, so nothing in
     /// <c>Boltway.Mcp</c> can see the advertised set at all. What it can do is never teach it
     /// again, which is this rule. A consumer's own guard is a host-level test asserting that every
-    /// scope it advertises is named in the challenge — assert the property, not the line.
+    /// scope it advertises is named in the challenge - assert the property, not the line.
     /// </para>
     /// </remarks>
     [Fact]
@@ -963,7 +963,7 @@ public sealed class StructuralRuleTests
     /// <b>This rule exists because a number was counted off these files and came out wrong.</b> The
     /// version comment in <c>Directory.Build.props</c> said sixteen packages moved together from the
     /// day it was written; <c>dotnet pack</c> produces seventeen. Sixteen is exactly how many
-    /// projects declared <c>IsPackable</c>, and the seventeenth — <c>Boltway.OAuth.Net</c> —
+    /// projects declared <c>IsPackable</c>, and the seventeenth - <c>Boltway.OAuth.Net</c> -
     /// packed by saying nothing at all, because packing is what the SDK does with a library unless
     /// told otherwise.
     /// </para>
@@ -1023,7 +1023,7 @@ public sealed class StructuralRuleTests
     /// </para>
     /// <para>
     /// So the set is written down. Adding a package is an edit here, made by somebody who had to
-    /// read this paragraph — which is the same default-deny shape as
+    /// read this paragraph - which is the same default-deny shape as
     /// <see cref="TestAssembliesAllowedToSeeInternals"/>, and for the same reason: the failure is
     /// silent on the publishing side and permanent on the consuming side.
     /// </para>
@@ -1052,7 +1052,7 @@ public sealed class StructuralRuleTests
     };
 
     /// <summary>
-    /// What packs is exactly <see cref="PackableProjects"/> — nothing joined the feed unnoticed.
+    /// What packs is exactly <see cref="PackableProjects"/> - nothing joined the feed unnoticed.
     /// </summary>
     /// <remarks>
     /// Read off the project files rather than off a pack, because the point is to fail before a
@@ -1097,7 +1097,7 @@ public sealed class StructuralRuleTests
     /// </summary>
     /// <remarks>
     /// The control for this whole file. Every rule above is a search for violations, and a search
-    /// over nothing finds nothing — so a build change that stopped copying an assembly beside the
+    /// over nothing finds nothing - so a build change that stopped copying an assembly beside the
     /// tests would turn all of them green at once.
     /// </remarks>
     [Fact]
@@ -1121,17 +1121,17 @@ public sealed class StructuralRuleTests
     /// deliberately so.</b> That one was hand-maintained and a missing entry silently removed
     /// coverage; this one fails when an entry is missing, because the rule bans every
     /// <c>*.Tests</c> grant that is not named here. A new test project is therefore protected on
-    /// the day it builds, without anyone remembering — and adding a grant to one is an edit to this
+    /// the day it builds, without anyone remembering - and adding a grant to one is an edit to this
     /// list, made by someone who has to read the paragraph below first.
     /// </para>
     /// <para>
     /// Every name here is a test assembly that legitimately reaches inside the thing it tests. What
     /// must never join them is an assembly whose job is to prove a seam is reachable from outside:
     /// <c>Boltway.PublicApi.Tests</c>, which exists solely to compile against the public
-    /// surface, and the two contract packages under <c>testing/</c> —
-    /// <c>Boltway.Interaction.Testing</c> and <c>Boltway.Storage.Testing</c> — which ship to
+    /// surface, and the two contract packages under <c>testing/</c> -
+    /// <c>Boltway.Interaction.Testing</c> and <c>Boltway.Storage.Testing</c> - which ship to
     /// customers and must compile against exactly what a customer has. A grant to any of those
-    /// three would not fail a test — it would make their compilation stop meaning anything, which
+    /// three would not fail a test - it would make their compilation stop meaning anything, which
     /// is the failure mode the whole arrangement exists to prevent.
     /// </para>
     /// <para>
@@ -1227,8 +1227,8 @@ public sealed class StructuralRuleTests
     /// <remarks>
     /// <para>
     /// <b>The federation takeover this exists to keep impossible:</b> an attacker registers the
-    /// victim's address at an upstream that does not verify addresses, signs in there, and — if the
-    /// callback resolved the upstream identity to a local account by email — is handed the victim's
+    /// victim's address at an upstream that does not verify addresses, signs in there, and - if the
+    /// callback resolved the upstream identity to a local account by email - is handed the victim's
     /// account. <c>email_verified</c> in someone else's token is a claim about their own users, not
     /// a proof about ours.
     /// </para>
@@ -1237,11 +1237,11 @@ public sealed class StructuralRuleTests
     /// <c>ExternalLoginFlowTests</c> used to assert that <c>IUserStore</c> had no email lookup at
     /// all, on the reasoning that an absent method cannot be called from anywhere. That was the
     /// right guard while it held, and it stopped holding when signing in with a verified address
-    /// became a feature — the sign-in form needs exactly the lookup federation must not have.
+    /// became a feature - the sign-in form needs exactly the lookup federation must not have.
     /// </para>
     /// <para>
     /// So the guard moved from the interface's shape to the property that was always the point:
-    /// <i>who calls it</i>. That is a narrower statement to make and a stronger one to keep — the
+    /// <i>who calls it</i>. That is a narrower statement to make and a stronger one to keep - the
     /// old rule would have passed a federation callback that resolved by username, and this one
     /// names the callers. The allowlist is one type; anything else is a diff a reviewer sees, which
     /// is what the original rule said it was for.
@@ -1266,7 +1266,7 @@ public sealed class StructuralRuleTests
             + string.Join(Environment.NewLine, strangers.Select(s => "  " + s)));
 
         // The control. A renamed method would empty the list and report a pass, which is the one
-        // way an absence assertion fails silently — the same control the rule it replaces carried.
+        // way an absence assertion fails silently - the same control the rule it replaces carried.
         Assert.NotEmpty(callers);
     }
 
@@ -1288,7 +1288,7 @@ public sealed class StructuralRuleTests
     /// <para>
     /// <b>These files have two comment vocabularies and only one of them renders.</b> A backtick is
     /// how the Markdown in this repository writes a code span, and every one of these projects sets
-    /// <c>GenerateDocumentationFile</c> — so a <c>///</c> line goes into the shipped
+    /// <c>GenerateDocumentationFile</c> - so a <c>///</c> line goes into the shipped
     /// <c>.xml</c> beside the package and reaches a consumer through IntelliSense, where a backtick
     /// is a backtick. <c>&lt;c&gt;</c> is the tag that means there what the backtick means in the
     /// prose. Nothing warns: the comment is well-formed XML either way, and the author of the line
@@ -1297,7 +1297,7 @@ public sealed class StructuralRuleTests
     /// <para>
     /// Measured on 2026-08-23, the day this rule was written: twelve spans across six files under
     /// <c>src/</c> and <c>hosts/</c> had drifted this way, including one in
-    /// <c>IRoleStore</c> — a public seam whose whole doc comment exists to show a consumer what
+    /// <c>IRoleStore</c> - a public seam whose whole doc comment exists to show a consumer what
     /// kind of value a role name may hold.
     /// </para>
     /// <para>
@@ -1374,7 +1374,7 @@ public sealed class StructuralRuleTests
     /// <c>CHANGELOG.md</c> states this as one of its three conventions, and until this test it was
     /// stated only there. It is load-bearing twice over: a consumer restoring a version looks it up
     /// by that heading, and the rule below reads the <i>second</i> heading to learn what the
-    /// previous release was — which is only the previous release if the first one is this one.
+    /// previous release was - which is only the previous release if the first one is this one.
     /// </para>
     /// <para>
     /// The version moves in the commit that moved the surface, so by the time there is anything to
@@ -1417,22 +1417,22 @@ public sealed class StructuralRuleTests
     /// </para>
     /// <para>
     /// Measured on 2026-08-24, with the baseline still at 0.1.0 the release after it: making
-    /// <c>AuthorizationServerMetadata.ScopesSupported</c> internal — a member 0.1.0 shipped — packed
-    /// red with two CP0002 errors, and making <c>PromptValuesSupported</c> internal — a member 0.2.0
-    /// added — packed green. Same break, same gate, and the only difference was which release first
+    /// <c>AuthorizationServerMetadata.ScopesSupported</c> internal - a member 0.1.0 shipped - packed
+    /// red with two CP0002 errors, and making <c>PromptValuesSupported</c> internal - a member 0.2.0
+    /// added - packed green. Same break, same gate, and the only difference was which release first
     /// carried the member. Pointing the baseline at 0.2.0 turned the second one red.
     /// </para>
     /// <para>
     /// <b>The previous release rather than the newest thing on the feed, and not because they
     /// differ.</b> They do not: this repository publishes every release, so the section under the
     /// top one is the version on nuget.org. Reading it here keeps this test offline and
-    /// deterministic — a rule that reaches the network is a rule that goes red for a reason that has
+    /// deterministic - a rule that reaches the network is a rule that goes red for a reason that has
     /// nothing to do with what it watches, which is the argument <c>pinned-drafts.yml</c> makes at
     /// length. The feed stays the authority where it has to be, in the publish workflow.
     /// </para>
     /// <para>
     /// A project that opts out with <c>EnablePackageValidation</c> false is not covered by this and
-    /// does not need to be — see the comment on whichever project does it, which carries the
+    /// does not need to be - see the comment on whichever project does it, which carries the
     /// condition for opting back in.
     /// </para>
     /// </remarks>

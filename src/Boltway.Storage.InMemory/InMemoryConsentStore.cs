@@ -13,7 +13,7 @@ namespace Boltway.Storage.InMemory;
 /// <para>
 /// Ships because <see cref="IConsentStore"/> is required, had no implementation anywhere in
 /// <c>src/</c>, and the only one in the repository was a test double that got the contract's central
-/// rule backwards. That double did <c>_records[key] = record</c> — replace, not widen — which is
+/// rule backwards. That double did <c>_records[key] = record</c> - replace, not widen - which is
 /// precisely what <see cref="IConsentStore.GrantAsync"/>'s remarks warn against, so the most likely
 /// shape of a customer's first draft was the one the repository itself had written down.
 /// </para>
@@ -24,7 +24,7 @@ namespace Boltway.Storage.InMemory;
 /// </para>
 /// <para>
 /// In memory, so consent does not survive a restart and every user is asked again after a deploy.
-/// That is a real cost and it is why this is opt-in rather than a default — see
+/// That is a real cost and it is why this is opt-in rather than a default - see
 /// <c>AddBoltwayInMemoryStores</c>, which registers it alongside the other in-memory stores so
 /// a deployment says "in memory" once, deliberately, rather than inheriting it.
 /// </para>
@@ -50,7 +50,7 @@ public sealed class InMemoryConsentStore : IConsentStore
         ArgumentNullException.ThrowIfNull(resources);
 
         // AddOrUpdate rather than read-then-write: two authorizations for the same user and client
-        // can be in flight at once — a browser tab and a native app, or a user who double-submits —
+        // can be in flight at once - a browser tab and a native app, or a user who double-submits -
         // and a lost update here silently drops a scope the user approved.
         var record = _records.AddOrUpdate(
             (subject.Value, clientId.Value),
@@ -94,7 +94,7 @@ public sealed class InMemoryConsentStore : IConsentStore
     /// <remarks>
     /// Through <see cref="ScopeSet.FromStorage"/> rather than by constructing a set directly,
     /// because that is the one entry point that re-applies the name rules to a value coming back
-    /// from a store — and a widened record is exactly a value that came back from a store.
+    /// from a store - and a widened record is exactly a value that came back from a store.
     /// Ordinal throughout: scope names are case-sensitive (OAuth 2.1 §1.4.1), so <c>Read</c> and
     /// <c>read</c> are two scopes and merging them would grant one the user never approved.
     /// </remarks>

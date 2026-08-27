@@ -5,7 +5,7 @@
 
     This project holds ONE property, and it holds it at compile time rather than at run time: every
     seam a deployment must implement can be implemented using the public API alone. If that stops
-    being true, this project does not fail a test — it fails to build, which is a louder and earlier
+    being true, this project does not fail a test - it fails to build, which is a louder and earlier
     signal than any assertion.
 
     Why it has to be a separate project: every other test assembly in this solution appears on an

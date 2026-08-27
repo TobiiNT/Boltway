@@ -8,7 +8,7 @@ namespace Boltway.OAuth.Primitives.Ids;
 /// Stored on the client record, never re-derived from the shape of the identifier. Deciding "is
 /// this CIMD?" by testing for an <c>https://</c> prefix would let a dynamically registered client
 /// that chose a URL-shaped id be treated as a CIMD client, which is a different trust model
-/// entirely — the CIMD draft warns about exactly this.
+/// entirely - the CIMD draft warns about exactly this.
 /// </remarks>
 public enum ClientIdKind
 {
@@ -30,9 +30,9 @@ public enum ClientIdKind
 /// </summary>
 /// <remarks>
 /// <para>
-/// A <see cref="string"/>, not a GUID. Both vendors identify themselves with a URL —
+/// A <see cref="string"/>, not a GUID. Both vendors identify themselves with a URL -
 /// <c>https://claude.ai/oauth/mcp-oauth-client-metadata</c> and
-/// <c>https://chatgpt.com/oauth/client.json</c> — so a schema that assumed a GUID would not be able
+/// <c>https://chatgpt.com/oauth/client.json</c> - so a schema that assumed a GUID would not be able
 /// to store either of the two clients this server exists to serve.
 /// </para>
 /// <para>
@@ -133,12 +133,12 @@ public readonly struct ClientIdentifier : IEquatable<ClientIdentifier>
 /// The end user's identifier: the <c>sub</c> claim.
 /// </summary>
 /// <remarks>
-/// A ULID, rendered as 26 characters of Crockford base32 — charset <c>[0-9A-HJKMNP-TV-Z]</c>. That
+/// A ULID, rendered as 26 characters of Crockford base32 - charset <c>[0-9A-HJKMNP-TV-Z]</c>. That
 /// choice does A-18's work by construction: no <c>|</c>, <c>/</c>, <c>.</c> or <c>@</c>, so the
 /// value is safe as a path segment, a filename, a cache key and a column name with no sanitiser
 /// anywhere. It is a deliberate improvement on the <c>auth0|&lt;hex&gt;</c> shape, which forced the
 /// connector this project came out of to write both a sanitiser and a collision-disambiguation
-/// path — and a sanitiser that maps several inputs onto one identifier is a collision waiting for
+/// path - and a sanitiser that maps several inputs onto one identifier is a collision waiting for
 /// the wrong two users.
 /// </remarks>
 public readonly struct SubjectId : IEquatable<SubjectId>

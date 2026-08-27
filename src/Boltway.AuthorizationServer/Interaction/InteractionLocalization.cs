@@ -14,7 +14,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// <remarks>
 /// <para>
 /// <b>.NET has no first-class way for an application to override a library's resources</b>, because
-/// satellite assemblies belong to the assembly that owns the <c>.resx</c> — a customer cannot add a
+/// satellite assemblies belong to the assembly that owns the <c>.resx</c> - a customer cannot add a
 /// language to ours. So the text comes from a dictionary a deployment supplies, and this is an
 /// implementation of the framework's <see cref="IStringLocalizer"/> over it.
 /// </para>
@@ -28,7 +28,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// This paragraph said the seam was a replaced <see cref="IStringLocalizerFactory"/>, the way
 /// OrchardCore and ABP do it. Nothing here has ever resolved a factory: the three consumption sites
 /// resolve the bare non-generic <see cref="IStringLocalizer"/>, which <c>AddLocalization()</c> does
-/// not register at all. A consumer following that sentence got English pages and no error — a
+/// not register at all. A consumer following that sentence got English pages and no error - a
 /// documented extension point with nothing behind it, which is the shape of defect <c>N-06</c> is
 /// about, on the customization surface rather than the protocol one.
 /// </para>
@@ -49,7 +49,7 @@ public sealed class DictionaryStringLocalizer : IStringLocalizer
     /// <b>Do not rely on a parent-culture walk.</b> This said <c>vi-VN</c> would find a <c>vi</c>
     /// dictionary without a deployment listing both. Measured 2026-08-23 on .NET SDK 10.0.111:
     /// under this build's <c>InvariantGlobalization</c>, <c>GetCultureInfo("vi-VN").Parent.Name</c>
-    /// is the empty string, so the walk ends immediately — and the framework's middleware does not
+    /// is the empty string, so the walk ends immediately - and the framework's middleware does not
     /// fall back either, with or without ICU, so a request for <c>vi-VN</c> resolves to the default
     /// culture before it ever reaches this dictionary. List the region-specific tag too, or list
     /// the neutral one and let clients ask for it.
@@ -82,7 +82,7 @@ public sealed class DictionaryStringLocalizer : IStringLocalizer
             return new LocalizedString(name, text);
         }
 
-        // The name as the value and resourceNotFound: true. The flag is the contract — the caller
+        // The name as the value and resourceNotFound: true. The flag is the contract - the caller
         // reads it rather than the value, which is what stops a key reaching a page.
         return new LocalizedString(name, name, resourceNotFound: true);
     }
@@ -118,7 +118,7 @@ public sealed class DictionaryStringLocalizer : IStringLocalizer
 /// <b>The value is never turned into a <see cref="CultureInfo"/> here.</b> It is a query parameter,
 /// and building culture objects from one is unbounded allocation from user input. This returns the
 /// requested names and <c>RequestLocalizationMiddleware</c> matches them against
-/// <c>SupportedUICultures</c> — that matching is the framework's, not a rule this file adds, and it
+/// <c>SupportedUICultures</c> - that matching is the framework's, not a rule this file adds, and it
 /// is what makes the resolved culture something the server chose rather than something the caller
 /// sent.
 /// </para>
@@ -128,7 +128,7 @@ public sealed class UiLocalesRequestCultureProvider : RequestCultureProvider
     /// <summary>How many tags are read before the rest are ignored.</summary>
     /// <remarks>
     /// The middleware tries them in order and stops at the first supported one, so a long list is
-    /// only ever wasted work — but it is attacker-controlled wasted work, and this is the bound.
+    /// only ever wasted work - but it is attacker-controlled wasted work, and this is the bound.
     /// </remarks>
     public const int MaxLocales = 8;
 
@@ -168,7 +168,7 @@ public static class InteractionLocalization
     /// <para>
     /// Public because a host needs the same answer twice: once to configure the middleware and once
     /// to fill <c>UiLocalesSupported</c>, and those are separate calls. Deriving both from this
-    /// makes them impossible to set differently — the map-time check that compares them stays as the
+    /// makes them impossible to set differently - the map-time check that compares them stays as the
     /// backstop for a host that computes one of them some other way.
     /// </para>
     /// <para>
@@ -176,7 +176,7 @@ public static class InteractionLocalization
     /// back to English, so <c>{"en": {}}</c> means "offer English as well", and
     /// <c>{"fr": {"LoginTitle": "Connexion"}}</c> means "offer French, one sentence of it
     /// translated". Those are the same rule, and the empty table is its zero case rather than a
-    /// special form — which matters because English is otherwise unreachable on a deployment whose
+    /// special form - which matters because English is otherwise unreachable on a deployment whose
     /// default is something else: it is the per-string fallback, and being a fallback is not being a
     /// registered culture.
     /// </para>
@@ -212,14 +212,14 @@ public static class InteractionLocalization
     /// <param name="translations">
     /// Culture name to key-to-text, using <see cref="InteractionText"/>'s constants as keys. A
     /// culture may translate some keys and not others; the rest fall back to English. A culture may
-    /// translate none of them — see <see cref="SupportedCultures"/> for why that is the way to offer
+    /// translate none of them - see <see cref="SupportedCultures"/> for why that is the way to offer
     /// English from a deployment whose default is not English.
     /// </param>
     /// <remarks>
     /// <para>
     /// This registers the services. <b>The host still calls
     /// <see cref="ApplicationBuilderExtensions.UseRequestLocalization(IApplicationBuilder)"/></b>,
-    /// because middleware order belongs to the host — the pages need the culture resolved before the
+    /// because middleware order belongs to the host - the pages need the culture resolved before the
     /// endpoint runs, and only the host knows what else is in its pipeline.
     /// </para>
     /// <para>
@@ -237,8 +237,8 @@ public static class InteractionLocalization
         ArgumentNullException.ThrowIfNull(translations);
 
         // Refused here rather than reported to a host that may not ask. A translation that drops a
-        // placeholder deletes the value it was carrying — on the consent page that is the host of
-        // the client_id URL, which N-14 makes a MUST — and the page still renders, so there is no
+        // placeholder deletes the value it was carrying - on the consent page that is the host of
+        // the client_id URL, which N-14 makes a MUST - and the page still renders, so there is no
         // later moment at which anybody finds out. InteractionText.Problems explains the check;
         // this is the line that makes it a refusal to start.
         //
@@ -264,7 +264,7 @@ public static class InteractionLocalization
             options.SupportedCultures = supported;
             options.SupportedUICultures = supported;
 
-            // ui_locales first — the client said it about this request. The framework's own
+            // ui_locales first - the client said it about this request. The framework's own
             // providers keep the order it gave them: query string, then cookie, then
             // Accept-Language.
             //
@@ -272,8 +272,8 @@ public static class InteractionLocalization
             // credit the cookie provider instead. /authorize, /login and /consent are three
             // requests and `ui_locales` arrives only on the first, so something has to carry the
             // choice; the claim was that the cookie did. Nothing in this repository ever wrote that
-            // cookie, so nothing carried it, and the consent page — the one N-14 requires to be
-            // read carefully — rendered in the default language for every real client while
+            // cookie, so nothing carried it, and the consent page - the one N-14 requires to be
+            // read carefully - rendered in the default language for every real client while
             // `ui_locales_supported` advertised otherwise.
             //
             // What carries it is `AuthorizeEndpoint.LocalReturn`, which appends the culture this

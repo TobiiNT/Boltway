@@ -15,13 +15,13 @@ namespace Boltway.OAuth.Net.Tests;
 /// <para>
 /// The defect this type exists to remove is not a crash. It is a resource server that has been
 /// correct for months, rejecting every token from the minute the authorization server rotated,
-/// with a diagnosis — <c>IDX10500</c> — that reads like a missing key rather than a stale one. So
+/// with a diagnosis - <c>IDX10500</c> - that reads like a missing key rather than a stale one. So
 /// the assertions worth making are about the <i>states</i> around a fetch, not about the fetch: an
 /// empty snapshot, a stale one, a failed refresh, and a document that parses to nothing.
 /// </para>
 /// <para>
 /// <b>Three of these use a scripted client rather than a socket, and one does not.</b> The scripted
-/// ones drive time and failure — a real listener cannot be made to fail in eight specific ways
+/// ones drive time and failure - a real listener cannot be made to fail in eight specific ways
 /// without becoming the thing under test. The last one goes through the real
 /// <see cref="GuardedTransport"/> against real TLS, because "the wire path works" is not something
 /// a double can establish, and this file would otherwise prove only that a state machine agrees
@@ -128,7 +128,7 @@ public sealed class JwksKeySourceTests : IDisposable
         _disposables.Add(source);
 
         // Status first, and the order is the assertion rather than style. CurrentKeys() starts a
-        // background refresh on a stale snapshot — that is its documented job — so a status read
+        // background refresh on a stale snapshot - that is its documented job - so a status read
         // after it races that refresh instead of describing the cold state. Against a scripted
         // client the refresh wins often enough that this failed on a loaded machine while passing
         // everywhere else, which is the worst version of a broken test.
@@ -230,8 +230,8 @@ public sealed class JwksKeySourceTests : IDisposable
     /// A key set that parses to no signing keys is a failure, not an empty snapshot.
     /// </summary>
     /// <remarks>
-    /// At this layer a document carrying only encryption keys — or one served by something that is
-    /// not the authorization server at all — is indistinguishable from a rotation that removed
+    /// At this layer a document carrying only encryption keys - or one served by something that is
+    /// not the authorization server at all - is indistinguishable from a rotation that removed
     /// every key, and only one of those readings is safe to act on.
     /// </remarks>
     [Fact]
@@ -270,7 +270,7 @@ public sealed class JwksKeySourceTests : IDisposable
     }
 
     /// <summary>
-    /// Past the lifetime, the new key set replaces the old one — which is the rotation this exists for.
+    /// Past the lifetime, the new key set replaces the old one - which is the rotation this exists for.
     /// </summary>
     [Fact]
     public async Task Past_the_lifetime_a_rotated_key_set_is_picked_up()
@@ -330,7 +330,7 @@ public sealed class JwksKeySourceTests : IDisposable
     /// </summary>
     /// <remarks>
     /// The assertion is deliberately two-part: the call returns the stale snapshot <i>immediately</i>
-    /// — the request that noticed is not the one that pays — and the new keys are in place shortly
+    /// - the request that noticed is not the one that pays - and the new keys are in place shortly
     /// afterwards for the requests that follow.
     /// </remarks>
     [Fact]
@@ -348,7 +348,7 @@ public sealed class JwksKeySourceTests : IDisposable
         Assert.Equal("k1", source.CurrentKeys()[0].KeyId);
 
         // Thirty seconds to observe work that takes microseconds, because the refresh runs on the
-        // thread pool and this suite is one of fourteen assemblies the solution runs at once — under
+        // thread pool and this suite is one of fourteen assemblies the solution runs at once - under
         // that contention a queued work item can wait far longer than the operation itself. The
         // ceiling is not a guess at how long the fetch takes; it is a bound on how long a starved
         // pool may take to get to it. A source that never starts the refresh still fails, just
@@ -369,7 +369,7 @@ public sealed class JwksKeySourceTests : IDisposable
     /// <remarks>
     /// Refuse-at-startup, on the precedent every other misconfiguration here follows: the
     /// alternative is a resource server that binds, serves its metadata document, and rejects every
-    /// token — which presents as an authentication problem rather than as the configuration error it
+    /// token - which presents as an authentication problem rather than as the configuration error it
     /// is.
     /// </remarks>
     [Fact]
@@ -391,7 +391,7 @@ public sealed class JwksKeySourceTests : IDisposable
     /// <remarks>
     /// Everything above is a state machine agreeing with itself. This is the one that would catch a
     /// wrong <c>FetchPurpose</c> cap, a transport that refuses the address, or a response this code
-    /// cannot actually read — none of which a scripted client can fail on.
+    /// cannot actually read - none of which a scripted client can fail on.
     /// </remarks>
     [Fact]
     public async Task The_whole_path_works_over_a_real_connection()
@@ -401,7 +401,7 @@ public sealed class JwksKeySourceTests : IDisposable
         using var listener = new PathListener();
 
         // The discovery document has to name the port, and the port is only known once the socket is
-        // bound — so the responder is set after construction rather than passed into it.
+        // bound - so the responder is set after construction rather than passed into it.
         var origin = $"https://localhost:{listener.Port}";
 
         listener.Respond = request => request.Contains("openid-configuration", StringComparison.Ordinal)

@@ -10,7 +10,7 @@ namespace Boltway.OAuth.Tokens;
 /// <para>
 /// Three phases rather than two, and the middle one is the whole point. A key that starts signing
 /// the moment it is created signs tokens that every verifier rejects, because their cached JWKS
-/// does not contain it yet — the outage lasts exactly as long as the caches do, and it looks like a
+/// does not contain it yet - the outage lasts exactly as long as the caches do, and it looks like a
 /// signature problem rather than a timing one.
 /// </para>
 /// <para>
@@ -136,8 +136,8 @@ public sealed class SigningKeyRing
     {
         ArgumentNullException.ThrowIfNull(keys);
 
-        // Copied, not aliased. IReadOnlyList<T> is not immutable — a caller passing a List<T>
-        // keeps a live handle — and this ring is captured once for the process lifetime while
+        // Copied, not aliased. IReadOnlyList<T> is not immutable - a caller passing a List<T>
+        // keeps a live handle - and this ring is captured once for the process lifetime while
         // PublishedKeys() runs on every JWKS request. Measured against the aliasing version:
         // clearing the caller's list emptied the JWKS, and mutating it during a poll threw
         // "Collection was modified". The obvious rotation implementation is the unsafe one.
@@ -150,7 +150,7 @@ public sealed class SigningKeyRing
     /// How many keys are in <see cref="SigningKeyState.Active"/>, and therefore able to sign.
     /// </summary>
     /// <remarks>
-    /// Exists for a gauge. <see cref="PublishedKeys"/> answers a different question — it includes
+    /// Exists for a gauge. <see cref="PublishedKeys"/> answers a different question - it includes
     /// <c>Pending</c> and <c>Retiring</c>, which is right for JWKS and wrong for "can this server
     /// still mint a token". <b>Zero here means it cannot</b>, and that is the number worth an alert:
     /// every other symptom of it arrives as a user being told to sign in again.
@@ -184,7 +184,7 @@ public sealed class SigningKeyRing
     /// Every key that belongs in JWKS: pending, active and retiring.
     /// </summary>
     /// <remarks>
-    /// Pending keys are published — that is what makes them pending rather than unknown. Retiring
+    /// Pending keys are published - that is what makes them pending rather than unknown. Retiring
     /// keys are published because tokens they signed are still in flight. Only retired keys drop
     /// out.
     /// </remarks>
@@ -209,7 +209,7 @@ public sealed class SigningKeyRing
     /// <remarks>
     /// <para>
     /// <b>Public halves, not the handles.</b> A <see cref="SigningKeyHandle"/> holds the signing
-    /// key — the private one — because minting is what it is for. Handing those to a bearer
+    /// key - the private one - because minting is what it is for. Handing those to a bearer
     /// validator would work, since verification only touches the public half, but it would put the
     /// private key on the request path of a middleware that has no business holding it. This is the
     /// same discipline as the test asserting the JWKS body contains none of <c>d</c>, <c>p</c>,

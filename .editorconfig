@@ -28,7 +28,7 @@ indent_size = 2
 # CA1307/CA1310: an overload of Equals/StartsWith/IndexOf without an explicit
 # StringComparison uses the current culture. Every comparison in this codebase
 # that touches a redirect_uri, client_id, issuer, iss or resource identifier is
-# required by RFC 3986 6.2.1 to be Simple String Comparison — ordinal, on the
+# required by RFC 3986 6.2.1 to be Simple String Comparison - ordinal, on the
 # raw string. Culture-sensitive comparison is not that, and the difference is
 # invisible until it is a widened redirect match.
 dotnet_diagnostic.CA1307.severity = error
@@ -69,7 +69,7 @@ dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
 
 [tests/**.cs]
 # Test names describe the requirement being proven, which makes them long. CA1707 itself is
-# switched off for test projects in tests/Directory.Build.props — by project rather than by
+# switched off for test projects in tests/Directory.Build.props - by project rather than by
 # filename, because a filename pattern misses shared contract and fixture files.
 max_line_length = 160
 

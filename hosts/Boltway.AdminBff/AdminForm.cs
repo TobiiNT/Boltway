@@ -7,7 +7,7 @@ namespace Boltway.AdminBff;
 /// </summary>
 /// <remarks>
 /// Small enough to have lived inside the endpoint, and it did. It is here because the endpoints have
-/// no tests — every test in this app renders a page — so a field read the wrong way is invisible
+/// no tests - every test in this app renders a page - so a field read the wrong way is invisible
 /// until an operator presses the button. Both defects this section has shipped were of that kind:
 /// the code was right and the value never reached it.
 /// </remarks>
@@ -26,7 +26,7 @@ public static class AdminForm
     /// <para>
     /// <b>Why this is not <c>posted.ToString()</c>.</b> <see cref="StringValues"/> joins several
     /// values with <em>commas</em>, so three ticked scopes read as one scope named
-    /// <c>a,b,c</c> — a single name, containing a character no scope may contain, which the
+    /// <c>a,b,c</c> - a single name, containing a character no scope may contain, which the
     /// authorization server then refuses. The failure is a refusal on a form that looked correct,
     /// which is the same shape as the roles field sending an array to a handler still reading one
     /// value.
@@ -54,7 +54,7 @@ public static class AdminForm
     /// </para>
     /// <para>
     /// This field is a box today and could become a list of checkboxes the moment anything publishes
-    /// the vocabulary — at which point it would start posting several values, and reading it as one
+    /// the vocabulary - at which point it would start posting several values, and reading it as one
     /// string would break exactly the way the roles field did. It is written for both now, so that
     /// change stays a renderer change.
     /// </para>

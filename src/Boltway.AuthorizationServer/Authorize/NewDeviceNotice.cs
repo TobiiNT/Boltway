@@ -24,7 +24,7 @@ namespace Boltway.AuthorizationServer.Authorize;
 /// <para>
 /// <b>Two methods because the ordering is the correctness.</b> <see cref="PrepareAsync"/> runs
 /// before the grant is written and <see cref="SendAsync"/> after. Read afterwards and the grant
-/// just written is in its own history, so every device is familiar and no message is ever sent —
+/// just written is in its own history, so every device is familiar and no message is ever sent -
 /// a feature that is green, silent and useless, which is the failure this codebase keeps finding.
 /// Sending before the write would announce an authorization that may not land.
 /// </para>
@@ -32,7 +32,7 @@ namespace Boltway.AuthorizationServer.Authorize;
 /// <b>Nothing here may fail an authorization.</b> A person is mid-flow at a consent screen; a
 /// directory that is slow or a mail server that is down must not turn that into an error page. The
 /// send is wrapped for the same reason <c>AccountRecovery</c> wraps its own, and the read is
-/// wrapped too, which that one has no need to do — it runs before the operation rather than after,
+/// wrapped too, which that one has no need to do - it runs before the operation rather than after,
 /// so a throw would reach the caller instead of a log line.
 /// </para>
 /// </remarks>
@@ -50,7 +50,7 @@ public sealed class NewDeviceNotice(
 
     // Optional, unlike the grant store. A server issuing only client credentials registers no
     // directory, and resolving one that is not there would fail the authorization path for a
-    // notification — the tail wagging the request.
+    // notification - the tail wagging the request.
     private readonly IUserStore? _users = users;
 
     /// <summary>
@@ -91,7 +91,7 @@ public sealed class NewDeviceNotice(
         }
 
         // Described before anything is compared, because the description is what is compared. A
-        // header that describes to nothing — absent, blank, or control characters only — cannot be
+        // header that describes to nothing - absent, blank, or control characters only - cannot be
         // told apart from any other such header, so it can never be evidence of a new device.
         if (ApprovingDevice.DescribeOnOneLine(userAgent) is not { } device)
         {
@@ -119,7 +119,7 @@ public sealed class NewDeviceNotice(
                 return null;
             }
 
-            // Compared as descriptions on both sides — see ListApprovedUserAgentsAsync for why the
+            // Compared as descriptions on both sides - see ListApprovedUserAgentsAsync for why the
             // store holds headers and this holds the comparison. Ordinal: these are two renderings
             // of the same parser's output, so anything but an exact match is a different device.
             var familiar = known
@@ -188,7 +188,7 @@ public sealed class NewDeviceNotice(
     /// </remarks>
     /// <summary>The absolute address of the sessions page.</summary>
     /// <remarks>
-    /// Built the way <c>AccountRecovery</c> builds its links — issuer plus path — because a route
+    /// Built the way <c>AccountRecovery</c> builds its links - issuer plus path - because a route
     /// this server serves is this server's to name. It carries no token: see
     /// <see cref="NewDeviceAuthorized"/>.
     /// </remarks>

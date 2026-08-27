@@ -14,7 +14,7 @@ public sealed class JwksKeySourceOptions
     /// <remarks>
     /// <para>
     /// <b>Five minutes, and the number is derived rather than chosen.</b> A signing key ring
-    /// publishes a key for at least <c>PublishLeadTime</c> before it signs anything — 24 hours by
+    /// publishes a key for at least <c>PublishLeadTime</c> before it signs anything - 24 hours by
     /// default, with a floor of ten minutes. So the question this interval answers is not "how fast
     /// can we notice a new key" but "can we notice it inside the shortest lead time a deployment is
     /// allowed to configure". Five is inside ten with the margin a failed fetch needs.
@@ -42,7 +42,7 @@ public sealed class JwksKeySourceOptions
     /// </summary>
     /// <remarks>
     /// Deliberately shorter than <see cref="CacheLifetime"/>. A failure is the state where the keys
-    /// held are ageing toward useless, so the interesting case is recovering quickly — bounded by
+    /// held are ageing toward useless, so the interesting case is recovering quickly - bounded by
     /// <see cref="MinimumRefreshInterval"/>, which is what keeps "quickly" from meaning "per
     /// request" while the authorization server is down.
     /// </remarks>
@@ -52,7 +52,7 @@ public sealed class JwksKeySourceOptions
     /// The JWKS URL, when a deployment would rather not have this make a discovery request.
     /// </summary>
     /// <remarks>
-    /// Set it and no discovery document is ever fetched — the same escape
+    /// Set it and no discovery document is ever fetched - the same escape
     /// <c>Boltway.Federation.Oidc</c> offers, and for the same deployments: air-gapped, or
     /// tightly egressed, or simply unwilling to have one more URL in the startup path. Unset (the
     /// default) means <c>{issuer}/.well-known/openid-configuration</c>, whose <c>issuer</c> member
@@ -74,7 +74,7 @@ public enum JwksRefreshOutcome
     BackingOff,
 
     /// <summary>
-    /// The fetch failed. Any previously fetched keys are still in use — see
+    /// The fetch failed. Any previously fetched keys are still in use - see
     /// <see cref="JwksKeySource.Status"/> for how old they are.
     /// </summary>
     Failed,
@@ -104,14 +104,14 @@ public readonly record struct JwksKeySourceStatus(
 /// <remarks>
 /// <para>
 /// <b>What it removes.</b> <c>ProtectedResourceOptions.SigningKeys</c> is a list the host fills, and
-/// before this type nothing refreshed it — so a resource server stopped accepting tokens the moment
+/// before this type nothing refreshed it - so a resource server stopped accepting tokens the moment
 /// the authorization server rotated a key. That is not a hypothetical: <c>SigningKeyRing</c> models
 /// Pending → Active → Retiring and a deployment that follows the production checklist <i>will</i>
 /// rotate. The outage was scheduled; only its date was unknown.
 /// </para>
 /// <para>
 /// <b><see cref="CurrentKeys"/> never blocks and never throws</b>, because it is called on the
-/// request path — <c>AccessTokenValidator</c> reads the key set per validation. It returns the last
+/// request path - <c>AccessTokenValidator</c> reads the key set per validation. It returns the last
 /// good snapshot and, if that snapshot is stale, starts <i>one</i> refresh in the background. So a
 /// rotation is picked up by the request after the fetch completes rather than by the request that
 /// noticed, and no request ever waits on the authorization server to answer.
@@ -150,7 +150,7 @@ public sealed class JwksKeySource : IDisposable
 
     // Written under _gate, read without it. A reference assignment of an already-populated array is
     // atomic, so a reader sees either the previous snapshot or the next one and never a half-built
-    // list — which is the whole reason SigningKeySource exists rather than a mutable IList.
+    // list - which is the whole reason SigningKeySource exists rather than a mutable IList.
     private volatile IReadOnlyList<SecurityKey> _keys = [];
 
     private DateTimeOffset _fetchedAt = DateTimeOffset.MinValue;
@@ -211,7 +211,7 @@ public sealed class JwksKeySource : IDisposable
         {
             // OIDC Discovery §4.1's append spelling. This server's own issuer is path-less by
             // validation, so the append and RFC 8414's insert spelling produce the same URL and
-            // there is nothing to choose between — see AuthorizationServerOptions.ValidateIssuer for
+            // there is nothing to choose between - see AuthorizationServerOptions.ValidateIssuer for
             // why that is required rather than merely usual.
             _discoveryUri = AbsoluteHttpsUrl.TryCreate(
                 _issuer.Value.TrimEnd('/') + "/.well-known/openid-configuration", out var discovery)
@@ -289,7 +289,7 @@ public sealed class JwksKeySource : IDisposable
         _keys.Count == 0 || now - _fetchedAt >= _options.CacheLifetime;
 
     /// <summary>
-    /// Whether enough time has passed since the last attempt — successful or not — to make another.
+    /// Whether enough time has passed since the last attempt - successful or not - to make another.
     /// </summary>
     /// <remarks>
     /// This floor applies to every trigger. Without it an empty snapshot makes every request due,
@@ -305,7 +305,7 @@ public sealed class JwksKeySource : IDisposable
     /// test caught.</b> This was written as <c>_lastFailureAt &gt; _lastSuccessAt</c>, which is a
     /// lifted comparison: with no success ever recorded the right operand is null and the whole
     /// expression is <see langword="false"/>, not true. So the backoff applied in every state except
-    /// the one it was written for — a cold start against an authorization server that is down, where
+    /// the one it was written for - a cold start against an authorization server that is down, where
     /// there is no success to be newer than.
     /// </remarks>
     private bool InFailureBackoff(DateTimeOffset now) =>

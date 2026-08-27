@@ -27,7 +27,7 @@ namespace Boltway.AuthorizationServer.Clients;
 /// <para>
 /// So a <c>client_id</c> carrying a dot segment is fetched from a URL that is not the
 /// <c>client_id</c>, and the document found there is some other client's. §4's self-reference check
-/// would then refuse it — the failure is closed either way — but it would be refused with
+/// would then refuse it - the failure is closed either way - but it would be refused with
 /// "your <c>client_id</c> does not match", which sends the reader looking at the wrong file.
 /// Refusing here names the actual rule.
 /// </para>
@@ -64,12 +64,12 @@ public readonly struct CimdClientIdUrl : IEquatable<CimdClientIdUrl>
     /// §3's list, and what each maps to below:
     /// </para>
     /// <list type="bullet">
-    /// <item><description>MUST use the https scheme — the ordinal prefix test.</description></item>
-    /// <item><description>MUST NOT contain a userinfo component — the <c>@</c> scan of the authority.</description></item>
-    /// <item><description>MAY contain a port — no check; <see cref="AbsoluteHttpsUrl"/> keeps it.</description></item>
-    /// <item><description>MUST contain a path component — the delimiter test.</description></item>
-    /// <item><description>MUST NOT contain single- or double-dot path components — <c>HasDotSegment</c>.</description></item>
-    /// <item><description>MUST NOT contain a fragment — the <c>#</c> scan.</description></item>
+    /// <item><description>MUST use the https scheme - the ordinal prefix test.</description></item>
+    /// <item><description>MUST NOT contain a userinfo component - the <c>@</c> scan of the authority.</description></item>
+    /// <item><description>MAY contain a port - no check; <see cref="AbsoluteHttpsUrl"/> keeps it.</description></item>
+    /// <item><description>MUST contain a path component - the delimiter test.</description></item>
+    /// <item><description>MUST NOT contain single- or double-dot path components - <c>HasDotSegment</c>.</description></item>
+    /// <item><description>MUST NOT contain a fragment - the <c>#</c> scan.</description></item>
     /// </list>
     /// <para>
     /// §3 also says a Client Identifier URL <b>SHOULD NOT</b> contain a query component. That is a
@@ -135,7 +135,7 @@ public readonly struct CimdClientIdUrl : IEquatable<CimdClientIdUrl>
         }
 
         // Last, because it is the one check that cannot say which rule it enforced. Everything it
-        // would catch on its own — control characters, an over-long host, a malformed authority —
+        // would catch on its own - control characters, an over-long host, a malformed authority -
         // has no more specific §3 sentence to quote.
         if (!AbsoluteHttpsUrl.TryCreate(raw, out var url))
         {
@@ -176,7 +176,7 @@ public readonly struct CimdClientIdUrl : IEquatable<CimdClientIdUrl>
     /// </summary>
     /// <remarks>
     /// <c>%2e</c> counts as a dot. RFC 3986's dot-segment production is the literal characters, so
-    /// this is stricter than the grammar — but <c>.</c> is unreserved, and .NET percent-decodes
+    /// this is stricter than the grammar - but <c>.</c> is unreserved, and .NET percent-decodes
     /// unreserved characters and then resolves the result: measured,
     /// <c>https://example.com/a/%2e%2e/b</c> is fetched as <c>https://example.com/b</c>, exactly as
     /// the unencoded spelling is. Accepting the encoded form would be accepting the same redirection

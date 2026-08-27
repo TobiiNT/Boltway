@@ -17,7 +17,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// The half worth measuring is the second test. The shell is the deployment's and the consent
 /// controls are still the server's, and a shell arriving without them would be a page that looks
-/// finished — which is the whole reason the renderer verifies rather than trusts.
+/// finished - which is the whole reason the renderer verifies rather than trusts.
 /// </para>
 /// </remarks>
 public sealed class InteractionLayoutSeamTests
@@ -61,7 +61,7 @@ public sealed class InteractionLayoutSeamTests
     /// </summary>
     /// <remarks>
     /// A custom shell that also silently replaced the sign-in form would be the seam failing at the
-    /// only thing it promises. The username and password fields are the endpoint's wire contract —
+    /// only thing it promises. The username and password fields are the endpoint's wire contract -
     /// <c>PostLoginAsync</c> reads exactly those two names.
     /// </remarks>
     [Fact]
@@ -87,7 +87,7 @@ public sealed class InteractionLayoutSeamTests
     /// <remarks>
     /// <para>
     /// The production half of the render-time check. What must not happen is a <c>200</c> carrying a
-    /// branded page with no sign-in form on it — a user staring at a header and a footer, and a
+    /// branded page with no sign-in form on it - a user staring at a header and a footer, and a
     /// server reporting success.
     /// </para>
     /// <para>

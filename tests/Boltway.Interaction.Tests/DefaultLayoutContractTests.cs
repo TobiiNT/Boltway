@@ -7,8 +7,8 @@ using Boltway.Interaction.Testing;
 namespace Boltway.Interaction.Tests;
 
 // This repository's own derivations of the layout contract. They travelled with the contract when
-// it moved into the shipped package and stopped running there — the Testing project has no test
-// runner, deliberately — which is the same defect the move was fixing, one directory along. Two
+// it moved into the shipped package and stopped running there - the Testing project has no test
+// runner, deliberately - which is the same defect the move was fixing, one directory along. Two
 // suites vanished from the run and the only sign was the total dropping by twenty.
 
 /// <summary>The contract, against the shell that ships.</summary>
@@ -45,9 +45,9 @@ public sealed class ThemedDefaultInteractionLayoutTests : InteractionLayoutContr
 /// The shell says which way its own text runs.
 /// </summary>
 /// <remarks>
-/// The stylesheet this host ships states its edges in inline terms — <c>border-inline-start</c> on
+/// The stylesheet this host ships states its edges in inline terms - <c>border-inline-start</c> on
 /// the warning, <c>padding-inline-start</c> on every list, and the two corners the accent bar
-/// squares off — and each of those mirrors off the document's direction. With no <c>dir</c> they
+/// squares off - and each of those mirrors off the document's direction. With no <c>dir</c> they
 /// all resolve left-to-right, so an Arabic page comes back with its accent bars on the edge the
 /// text ends at. These are what stop that half and the markup half from being shipped apart.
 /// </remarks>
@@ -75,7 +75,7 @@ public sealed class ShellDirectionTests
         Assert.Contains(" dir=\"rtl\"", document, StringComparison.Ordinal);
 
         // Both attributes, in one assertion, because the defect worth catching is not a missing
-        // `dir` — it is a `dir` that stopped tracking the `lang` beside it.
+        // `dir` - it is a `dir` that stopped tracking the `lang` beside it.
         Assert.Contains($"lang=\"{tag}\"", document, StringComparison.Ordinal);
     }
 
@@ -85,7 +85,7 @@ public sealed class ShellDirectionTests
     /// <remarks>
     /// The control the case above is worth nothing without: an implementation answering
     /// <see langword="true"/> for everything passes every row of it. <c>arn</c> (Mapudungun) and
-    /// <c>fat</c> (Fanti) are the two rows that earn their place — both are written left to right,
+    /// <c>fat</c> (Fanti) are the two rows that earn their place - both are written left to right,
     /// and both open with the letters of a tag that is on the list, so a match written as
     /// <c>StartsWith</c> instead of on the primary subtag mirrors a page it should not touch.
     /// </remarks>

@@ -27,7 +27,7 @@ namespace Boltway.Mcp.Tests;
 ///
 /// <para>
 /// What this pins is that moving off <c>BearerAuthenticator</c> changes nothing above the
-/// seam — and that there is exactly <strong>one</strong> 401 in the process. Two challenge
+/// seam - and that there is exactly <strong>one</strong> 401 in the process. Two challenge
 /// shapes from one server is the duplication this package spends its documentation warning
 /// about, so a test asserting the resource server's shape arrives is asserting mine did not.
 /// </para>
@@ -79,7 +79,7 @@ public sealed class ResourceServerHandshakeTests : IAsyncLifetime
                     {
                         // Called through its declaring type on purpose. Both packages export a
                         // `MapProtectedResourceMetadata` extension, and which one an unqualified
-                        // call binds to depends on namespace resolution — this file sits in
+                        // call binds to depends on namespace resolution - this file sits in
                         // Boltway.Mcp.Tests, so Boltway.Mcp's won silently and the host
                         // failed at startup asking for options this arrangement does not have.
                         // A collision that resolves by proximity is the concrete cost of two
@@ -168,7 +168,7 @@ public sealed class ResourceServerHandshakeTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         var challenge = response.Headers.WwwAuthenticate.ToString();
 
-        // RFC 9728 §3.1 path insertion — the resource has a path, so the metadata URL is
+        // RFC 9728 §3.1 path insertion - the resource has a path, so the metadata URL is
         // /.well-known/oauth-protected-resource/mcp and not the root form. This library's own
         // challenge does not do that, so seeing it here is how we know whose 401 answered.
         Assert.Contains(
@@ -208,7 +208,7 @@ public sealed class ResourceServerHandshakeTests : IAsyncLifetime
         Assert.Contains("ada@example.com", withEmail, StringComparison.Ordinal);
 
         // An access token is not obliged to carry one, and most do not unless the
-        // authorization server is configured to add it. Null rather than invented — a
+        // authorization server is configured to add it. Null rather than invented - a
         // connector then leaves the downstream author field unset and says so, which is
         // weaker evidence and visibly weaker.
         var without = await (await _client.SendAsync(Call("email", Token(email: null)))).Content.ReadAsStringAsync();
@@ -231,7 +231,7 @@ public sealed class ResourceServerHandshakeTests : IAsyncLifetime
     /// The caller middleware gates on a path prefix, so it saw every request under <c>/mcp</c>
     /// including the ones routing had already matched to nothing. It asked the authenticator for a
     /// caller, the resource server had deliberately set no token for an unrouted request, and the
-    /// resulting <c>InvalidOperationException</c> reached the client as an empty 500 — with a
+    /// resulting <c>InvalidOperationException</c> reached the client as an empty 500 - with a
     /// message naming a wiring mistake in a pipeline that is wired the way this test wires it.
     /// Measured live before the fix: <c>GET /mcp/zzq7x4v-nope</c> returned <c>HTTP/2 500</c> with
     /// <c>content-length: 0</c>.

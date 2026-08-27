@@ -10,14 +10,14 @@
 #
 #   docker build -f hosts/Boltway.AdminBff/Dockerfile -t boltway-adminbff .
 
-# A floating tag against a `global.json` written to accept whatever it moves to — see the note on
+# A floating tag against a `global.json` written to accept whatever it moves to - see the note on
 # the authorization server's Dockerfile, where a `latestPatch` pin met this tag moving a feature
 # band and reddened `main` on a commit whose `test` job was green.
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 
 WORKDIR /src
 
-# `.editorconfig` is a build input rather than an editor preference — see the note on the
+# `.editorconfig` is a build input rather than an editor preference - see the note on the
 # authorization server's Dockerfile, where leaving it out enforced a different analyser contract
 # in the image than `dotnet test` enforced on the same commit.
 #
@@ -46,7 +46,7 @@ RUN apk add --no-cache curl
 #
 # The authorization server mounts one because its cookie is a person's session with the deployment's
 # identity provider, and signing everyone out on each deploy would be felt. This app's cookie is a
-# key into an in-memory ticket store that a restart empties anyway — README's "the shipped store is
+# key into an in-memory ticket store that a restart empties anyway - README's "the shipped store is
 # in memory, which is the honest limit of it". Persisting the keys would preserve cookies whose
 # tickets are gone, which is a worse failure than the redirect an operator gets today: they are
 # bounced to the authorization server, are already signed in there, and come back.
@@ -56,7 +56,7 @@ RUN apk add --no-cache curl
 #
 # The directory is still created and owned, though nothing mounts over it. Without it ASP.NET Core
 # cannot write a key ring at all, falls back to keys held in memory, and says so at Warning on every
-# boot — which is the correct behaviour arrived at by an error message, and this image would then
+# boot - which is the correct behaviour arrived at by an error message, and this image would then
 # log a line that reads like a defect on a deployment where nothing is wrong.
 RUN mkdir -p /home/app/.aspnet/DataProtection-Keys \
     && chown -R $APP_UID:$APP_UID /home/app
@@ -75,7 +75,7 @@ ENV BUILD_NUMBER=$BUILD_NUMBER
 
 # Liveness only, and it deliberately does not reach the authorization server. A probe that failed
 # while `AUTHORITY` was briefly unreachable would take this app out of rotation for a dependency it
-# recovers from on its own — and during an incident on the authorization server, the admin UI is
+# recovers from on its own - and during an incident on the authorization server, the admin UI is
 # the thing an operator is trying to open.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s \
   CMD curl -fsS http://127.0.0.1:8080/health || exit 1

@@ -4,7 +4,7 @@
 // and two actions in the same tick against the same account are a real sequence rather than a
 // collision. An append-only table is the one place a duplicate has to be storable.
 //
-// No foreign key to users. An entry must outlive the account it describes — that is most of the
+// No foreign key to users. An entry must outlive the account it describes - that is most of the
 // point of anonymisation keeping the subject row, and all of the point of recording an action
 // against a handle that resolved to nobody.
 //

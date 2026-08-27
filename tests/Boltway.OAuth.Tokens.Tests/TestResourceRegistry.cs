@@ -7,7 +7,7 @@ namespace Boltway.OAuth.Tokens.Tests;
 /// <see cref="ResourceIdentifier"/>.
 /// </summary>
 /// <remarks>
-/// It exists as a shim because <c>TryRegister</c> is <c>internal</c> — deliberately, since a public
+/// It exists as a shim because <c>TryRegister</c> is <c>internal</c> - deliberately, since a public
 /// factory would make N-01's "there is no other way to obtain one" false. That the test project
 /// needs <c>InternalsVisibleTo</c> to construct one is the guarantee working as intended.
 /// </remarks>

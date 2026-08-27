@@ -5,7 +5,7 @@
 
     Separate from Boltway.AuthorizationServer because it is the one assembly that carries a
     third-party crypto dependency. Keeping it out of the protocol assembly means a customer who
-    points the server at their own directory — an existing IUserStore, or upstream federation only —
+    points the server at their own directory - an existing IUserStore, or upstream federation only -
     does not take Konscious along with it, and the dependency audit for that deployment is shorter
     by one package.
 
@@ -47,7 +47,7 @@
     <!--
       The ban list is per-project (see Boltway.OAuth.Primitives.csproj). This project mints
       identifiers and derives keys, so `System.Random` and local-time clocks are exactly the APIs it
-      must never reach for — which makes it one of the two projects where the list earns its keep.
+      must never reach for - which makes it one of the two projects where the list earns its keep.
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers">
       <PrivateAssets>all</PrivateAssets>

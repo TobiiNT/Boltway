@@ -24,7 +24,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// "routed or absent" is <c>N-06</c> besides.
 /// </para>
 /// <para>
-/// <b>Bearer only — <c>N-17</c>.</b> Every route here refuses a cookie principal, and an
+/// <b>Bearer only - <c>N-17</c>.</b> Every route here refuses a cookie principal, and an
 /// architecture test asserts over the routing table that none of them carries a cookie scheme. The
 /// reasoning is on <see cref="AdminAuthorization"/>; the short version is that the sign-in pages
 /// share this origin, so a cookie-authenticated admin API turns any XSS on the login page into
@@ -32,7 +32,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// </para>
 /// <para>
 /// <b>What revoking sessions reaches, since two endpoints here claim to do it.</b> Revoking a
-/// grant kills every refresh chain descended from it — the refresh handler loads the grant and
+/// grant kills every refresh chain descended from it - the refresh handler loads the grant and
 /// refuses when it is not active. It does <b>not</b> reach an access token already issued: those are
 /// signed rather than looked up, and <c>IGrantStore.IsRevokedAsync</c>, which exists for a resource
 /// server to consult, is called by nothing in this repository. The responses say counts and never
@@ -119,7 +119,7 @@ public static class AdminEndpoints
     /// <remarks>
     /// <b>Keyset, and the cursor is the last subject on the page.</b> <c>?after=<![CDATA[<subject>]]></c>
     /// rather than <c>?page=3</c>: subjects are ULIDs so ordering by subject is ordering by creation, and
-    /// an offset would make the last page read every page before it — on the one table that grows
+    /// an offset would make the last page read every page before it - on the one table that grows
     /// for the life of the deployment, paged through exactly when somebody is trying to find
     /// something out.
     /// </remarks>
@@ -189,7 +189,7 @@ public static class AdminEndpoints
                 actor, Realm(http), body.Handle, body.Email, body.Role, cancellationToken);
 
             // 201 with the password in the body, once. It is never stored in this form and there is
-            // no endpoint that can show it again — the caller hands it to a person or loses it.
+            // no endpoint that can show it again - the caller hands it to a person or loses it.
             return Results.Json(
                 new CreatedUserView(
                     created.Subject.Value, created.Handle, created.Email, created.Role, created.Password),
@@ -367,7 +367,7 @@ public static class AdminEndpoints
     /// </summary>
     /// <remarks>
     /// <b>200 with a count, not 204.</b> How many were live is the thing the caller wants and cannot
-    /// get any other way, and zero — "there was nothing to revoke" — is a different answer from "3
+    /// get any other way, and zero - "there was nothing to revoke" - is a different answer from "3
     /// sessions ended" that a no-content response would collapse. It is also what makes running this
     /// twice legible: the second call says zero.
     /// </remarks>
@@ -400,7 +400,7 @@ public static class AdminEndpoints
     /// </summary>
     /// <remarks>
     /// <b>No confirmation field, deliberately.</b> A <c>{"confirm": true}</c> in the body is a
-    /// speed bump for a program and no protection at all — the thing that makes this hard to do by
+    /// speed bump for a program and no protection at all - the thing that makes this hard to do by
     /// accident is that it is a distinct verb on a distinct path requiring <c>users:write</c>, not a
     /// flag somebody could pass to an update. What it does provide is a response that says what
     /// happened, so an accidental call is visible immediately rather than at the next sign-in.
@@ -439,7 +439,7 @@ public static class AdminEndpoints
 
         if (http.RequestServices.GetService<IAdminAuditStore>() is not { } audit)
         {
-            // A deployment can run without an audit store — the service skips the entry rather than
+            // A deployment can run without an audit store - the service skips the entry rather than
             // refusing the operation. Saying so is better than an empty list, which reads as "nothing
             // has ever happened".
             return Problem(
@@ -466,7 +466,7 @@ public static class AdminEndpoints
     /// <summary>The refusal, or <see langword="null"/> when the caller may proceed.</summary>
     /// <remarks>
     /// <b>The three refusals are three different answers, and collapsing them would be wrong in both
-    /// directions.</b> No principal is 401 with a challenge — the caller can fix it by
+    /// directions.</b> No principal is 401 with a challenge - the caller can fix it by
     /// authenticating. A cookie principal is 401 <i>without</i> inviting a retry with the same
     /// cookie, because no cookie will ever work here. Insufficient scope is 403: the caller is who
     /// they say and may not do this, and telling them to authenticate again would send them round a
@@ -476,7 +476,7 @@ public static class AdminEndpoints
         Refuse(http, [scope], out actor);
 
     /// <summary>
-    /// The same gate for an endpoint that several scopes each allow — the role surface, where the
+    /// The same gate for an endpoint that several scopes each allow - the role surface, where the
     /// narrow <c>roles:*</c> scope and the directory-wide <c>users:*</c> one are both enough.
     /// </summary>
     private static IResult? Refuse(HttpContext http, IReadOnlyList<string> anyOf, out Actor actor)
@@ -489,14 +489,14 @@ public static class AdminEndpoints
         {
             // Logged here, with the correlation id, rather than through the rejection writer.
             //
-            // A-09's requirement is that a refusal is visible and joinable — not that it travels
-            // through one particular type — and this one is not an OAuth protocol error: it has no
+            // A-09's requirement is that a refusal is visible and joinable - not that it travels
+            // through one particular type - and this one is not an OAuth protocol error: it has no
             // row in the error table, no `error` code a client branches on, and no redirect. Minting
             // a table row for it would put an admin-API concern in the shared OAuth error surface.
             //
             // What matters is that it is not silent. A 401 on this endpoint is somebody probing the
             // directory with a cookie, or with a token minted for something else, and it never
-            // reaches the audit log because it never reaches the service — so if it is not written
+            // reaches the audit log because it never reaches the service - so if it is not written
             // here it is written nowhere.
             http.RequestServices
                 .GetService<Microsoft.Extensions.Logging.ILoggerFactory>()
@@ -551,7 +551,7 @@ public static class AdminEndpoints
     /// </summary>
     /// <remarks>
     /// The caller already holds <c>users:read</c> or <c>users:write</c>, so "does this account exist"
-    /// is not a secret from them — this is 404 because it is a 404, not to hide anything.
+    /// is not a secret from them - this is 404 because it is a 404, not to hide anything.
     /// </remarks>
     private static IResult NotFound() =>
         Problem(StatusCodes.Status404NotFound, "no_such_account", "No account with that handle.");
@@ -573,9 +573,9 @@ public static class AdminEndpoints
 
     /// <summary>Every role this realm defines.</summary>
     /// <remarks>
-    /// Behind <c>roles:read</c> — or <c>users:read</c>, which covers everything here — rather than
+    /// Behind <c>roles:read</c> - or <c>users:read</c>, which covers everything here - rather than
     /// open. A role list is the directory's own vocabulary and says what the deployment can grant,
-    /// which is not something an unauthenticated caller has any business enumerating — and it is
+    /// which is not something an unauthenticated caller has any business enumerating - and it is
     /// the list an admin page renders as choices, so the page is already holding a scope for it.
     /// The narrow one exists so a credential can read the vocabulary without being able to read a
     /// single account.
@@ -611,7 +611,7 @@ public static class AdminEndpoints
     /// <summary>Create the service account, or rotate its secret.</summary>
     /// <remarks>
     /// <b>The response carries the plaintext secret and is the only time it exists.</b> It is not
-    /// stored, so it cannot be fetched again — a caller that does not show it has destroyed it, and
+    /// stored, so it cannot be fetched again - a caller that does not show it has destroyed it, and
     /// the recovery is to POST again, which rotates rather than refusing.
     /// </remarks>
     private static async Task<IResult> PostServiceAccountAsync(
@@ -671,7 +671,7 @@ public static class AdminEndpoints
     private static async Task<IResult> PostRoleAsync(
         HttpContext http, CreateRoleRequest? body, CancellationToken cancellationToken)
     {
-        // roles:write or users:write — the narrow scope is a narrower domain, not a lesser danger;
+        // roles:write or users:write - the narrow scope is a narrower domain, not a lesser danger;
         // AdminScopes has the argument. The same pair gates the two mutations below.
         if (Refuse(http, [AdminScopes.RolesWrite, AdminScopes.Write], out var actor) is { } refusal)
         {
@@ -692,7 +692,7 @@ public static class AdminEndpoints
         }
         catch (ArgumentException malformed)
         {
-            // RoleDefinition's own rules — blank, too long, or carrying whitespace. 400 rather than
+            // RoleDefinition's own rules - blank, too long, or carrying whitespace. 400 rather than
             // 409: the request is wrong, not the directory's state.
             return Problem(StatusCodes.Status400BadRequest, "invalid_request", malformed.Message);
         }
@@ -830,7 +830,7 @@ public sealed record PatchServiceAccountRequest(
 /// <param name="Scopes">Exactly what its tokens carry.</param>
 /// <param name="Enabled">Whether it may obtain tokens.</param>
 /// <remarks>
-/// <b>No secret, ever.</b> Only the digest is stored and even that stays here — an API returning a
+/// <b>No secret, ever.</b> Only the digest is stored and even that stays here - an API returning a
 /// credential's shadow makes every reader of its logs a candidate for an offline attack, the same
 /// rule <see cref="AdminUserView"/> follows for password hashes.
 /// </remarks>
@@ -873,7 +873,7 @@ public sealed record CreateRoleRequest(
 /// <param name="Name">The new name, or null to leave it alone.</param>
 /// <param name="Permissions">
 /// The new permissions, replacing all of them, or null to leave them alone. An empty list is a role
-/// that stands for nothing, which is a thing a directory may legitimately hold — so there is no
+/// that stands for nothing, which is a thing a directory may legitimately hold - so there is no
 /// clearing sentinel here, unlike an address.
 /// </param>
 public sealed record PatchRoleRequest(
@@ -930,7 +930,7 @@ public sealed record PatchUserRequest(
 /// <param name="EmailVerified">Whether it has been proven.</param>
 /// <param name="Roles">What its tokens claim. Every one the account holds, in id order.</param>
 /// <param name="DisabledAt">When it was disabled, if it is.</param>
-/// <param name="HasPassword">Whether a local password exists at all — not what it is.</param>
+/// <param name="HasPassword">Whether a local password exists at all - not what it is.</param>
 public sealed record AdminUserView(
     [property: JsonPropertyName("subject")] string Subject,
     [property: JsonPropertyName("handle")] string Handle,
@@ -1032,7 +1032,7 @@ public sealed record SessionsRevokedView(
     [property: JsonPropertyName("revoked")] int Revoked);
 
 /// <summary>What anonymising an account did.</summary>
-/// <param name="Subject">Which account — it still exists, which is the point.</param>
+/// <param name="Subject">Which account - it still exists, which is the point.</param>
 /// <param name="Handle">The tombstone the username became.</param>
 /// <param name="Revoked">How many grants were revoked on the way.</param>
 public sealed record AnonymisedView(

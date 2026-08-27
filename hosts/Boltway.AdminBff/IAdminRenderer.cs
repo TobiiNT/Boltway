@@ -4,9 +4,9 @@ namespace Boltway.AdminBff;
 
 /// <summary>The account list. <c>E-25</c>.</summary>
 /// <param name="Page">The page of accounts, as the admin API returned it.</param>
-/// <param name="Antiforgery">This request's tokens. Every page needs them — see <see cref="AntiforgeryTokens"/>.</param>
+/// <param name="Antiforgery">This request's tokens. Every page needs them - see <see cref="AntiforgeryTokens"/>.</param>
 /// <param name="Notice">
-/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> — not a sentence. See
+/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> - not a sentence. See
 /// <see cref="NoticeValue"/>.
 /// </param>
 /// <param name="OperatorName">Who is signed in, for the shell. See <see cref="AdminPage.OperatorName"/>.</param>
@@ -14,7 +14,7 @@ public sealed record AccountsViewModel(
     JsonElement Page, AntiforgeryTokens Antiforgery, string? Notice, string? OperatorName)
 {
     /// <summary>
-    /// The <c>{0}</c> of a notice that has one — here, the handle an account used to have.
+    /// The <c>{0}</c> of a notice that has one - here, the handle an account used to have.
     /// </summary>
     /// <remarks>
     /// <b>A key and a value rather than the finished sentence, and the split is the point.</b> Both
@@ -22,7 +22,7 @@ public sealed record AccountsViewModel(
     /// link; the key is checked against a closed set and the value is escaped into a slot in a
     /// sentence this app chose. What was here before was the whole sentence, which made this app's
     /// own banner a surface for anything a link wanted it to say. It is also what makes the banner
-    /// translatable at all — a sentence composed in an endpoint is the one string on these pages an
+    /// translatable at all - a sentence composed in an endpoint is the one string on these pages an
     /// <c>ADMIN_TEXT_FILE</c> cannot reach.
     /// </remarks>
     public string? NoticeValue { get; init; }
@@ -32,7 +32,7 @@ public sealed record AccountsViewModel(
 /// <param name="Account">The account, as the admin API returned it.</param>
 /// <param name="Antiforgery">This request's tokens, for the five forms this page draws.</param>
 /// <param name="Notice">
-/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> — not a sentence. See
+/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> - not a sentence. See
 /// <see cref="NoticeValue"/>.
 /// </param>
 /// <param name="OperatorName">Who is signed in, for the shell.</param>
@@ -40,7 +40,7 @@ public sealed record AccountViewModel(
     JsonElement Account, AntiforgeryTokens Antiforgery, string? Notice, string? OperatorName)
 {
     /// <summary>
-    /// The <c>{0}</c> of a notice that has one — here, how many grants were revoked.
+    /// The <c>{0}</c> of a notice that has one - here, how many grants were revoked.
     /// </summary>
     /// <inheritdoc cref="AccountsViewModel.NoticeValue" path="/remarks"/>
     public string? NoticeValue { get; init; }
@@ -49,8 +49,8 @@ public sealed record AccountViewModel(
     /// This account's service account, or a JSON null when it holds none.
     /// </summary>
     /// <remarks>
-    /// Optional so that every existing construction site — and the renderer contract's own fixtures
-    /// — keep compiling and keep rendering a page without the section. A deployment whose
+    /// Optional so that every existing construction site - and the renderer contract's own fixtures
+    /// - keep compiling and keep rendering a page without the section. A deployment whose
     /// authorization server predates the endpoint returns nothing here, and the page is simply the
     /// page it was before rather than an error.
     /// </remarks>
@@ -61,7 +61,7 @@ public sealed record AccountViewModel(
     /// </summary>
     /// <remarks>
     /// <b>It exists in this one render and nowhere else.</b> The server stores a digest, so this
-    /// string cannot be fetched again by anybody — the page is the only copy, and a reader who
+    /// string cannot be fetched again by anybody - the page is the only copy, and a reader who
     /// navigates away without taking it has to rotate to get another.
     /// </remarks>
     public string? NewSecret { get; init; }
@@ -115,7 +115,7 @@ public sealed record AuditViewModel(
 /// <param name="Roles">The roles, as the admin API returned them.</param>
 /// <param name="Antiforgery">This request's tokens.</param>
 /// <param name="Notice">
-/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> — not a sentence. There is no
+/// What just happened, as one of <see cref="AdminText.NoticeKeys"/> - not a sentence. There is no
 /// value beside it as there is on the two account pages, because no notice a role write produces
 /// has a <c>{0}</c>: defined, applied and deleted each say only that they happened.
 /// </param>
@@ -133,7 +133,7 @@ public sealed record RolesViewModel(
     /// </summary>
     /// <remarks>
     /// Undefined when the accounts could not be fetched, and then the page says nothing about
-    /// holders — not "nobody", which is a claim, and a dangerous one next to a delete button.
+    /// holders - not "nobody", which is a claim, and a dangerous one next to a delete button.
     /// The grouping happens in the renderer with the same <c>Texts(user, "role")</c> read the
     /// accounts list uses, so the two pages cannot disagree about what an account holds.
     /// </remarks>
@@ -156,7 +156,7 @@ public sealed record RolesViewModel(
 /// </summary>
 /// <param name="Handle">Whose password this is.</param>
 /// <param name="Password">
-/// The password itself — <b>the only page here carrying a live credential</b>.
+/// The password itself - <b>the only page here carrying a live credential</b>.
 /// </param>
 /// <param name="Antiforgery">This request's tokens.</param>
 /// <param name="OperatorName">Who is signed in, for the shell.</param>
@@ -182,7 +182,7 @@ public sealed record RefusalViewModel(
 /// <para>
 /// <b>The highest of the three ways to change this UI, and the last one to reach for.</b>
 /// <see cref="AdminBffOptions.StylesheetPaths"/> changes the theme and needs no code;
-/// <see cref="IAdminLayout"/> replaces the document around the page. This one replaces the markup —
+/// <see cref="IAdminLayout"/> replaces the document around the page. This one replaces the markup -
 /// and with it takes on the obligation every page here carries, which is that handles, email
 /// addresses, roles and audit details are strings an operator typed and this app never validated.
 /// <see cref="AdminMarkup.Encode"/> is public so that obligation comes with a tool.
@@ -195,7 +195,7 @@ public sealed record RefusalViewModel(
 /// </para>
 /// <para>
 /// <b>The cost of that, stated plainly:</b> <c>class Mine : IAdminRenderer { }</c> compiles, and so
-/// does one whose override has a typo in its signature — it silently becomes a new method and the
+/// does one whose override has a typo in its signature - it silently becomes a new method and the
 /// page falls back to the shipped one. Nothing in the compiler can catch that. What can is
 /// <c>AdminRendererContract</c> in <c>Boltway.AdminBff.Tests</c>: inherit it, point it at the
 /// renderer, and a page that is not actually being overridden shows up as a failure rather than as a
@@ -204,7 +204,7 @@ public sealed record RefusalViewModel(
 /// <para>
 /// <b>Why the defaults render in the shipped shell rather than the deployment's.</b> A default
 /// interface member has no dependency injection, so it cannot reach the <see cref="IAdminLayout"/>
-/// this deployment registered — the only thing it can honestly produce is the shipped page in the
+/// this deployment registered - the only thing it can honestly produce is the shipped page in the
 /// shipped shell. That difference is visible on purpose: a page that does not match the others is
 /// the signal to write it. A deployment that replaced only the layout never lands here, because it
 /// is still using <see cref="DefaultAdminRenderer"/> and that one wraps with the registered layout.

@@ -2,8 +2,8 @@
 //
 // N-17 says no admin endpoint may be reached with a cookie principal, so the admin UI cannot be a
 // page on the authorization server: it has to be an OAuth client. Of the two shapes for one, the
-// SPA keeps the token in the browser — one XSS from exfiltration, and it needs CORS on the admin
-// API plus a connect-src widening here — and the BFF keeps it server side at the cost of one more
+// SPA keeps the token in the browser - one XSS from exfiltration, and it needs CORS on the admin
+// API plus a connect-src widening here - and the BFF keeps it server side at the cost of one more
 // small deployable. What is behind this API is the directory rather than a document, so this is the
 // BFF.
 //
@@ -32,7 +32,7 @@ var config = builder.Configuration;
 var authority = Required("AUTHORITY", "the authorization server's issuer URL");
 
 // The roles the authorization server grants users:read and users:write to. Read here only to say
-// what a role means on the page — this app decides nothing, and AdminRoleScopePolicy on the server
+// what a role means on the page - this app decides nothing, and AdminRoleScopePolicy on the server
 // remains the only thing that enforces it.
 //
 // Optional, and unset is not an error: a deployment that has not told this app simply gets pages
@@ -50,7 +50,7 @@ var adminRoles = (config["ADMIN_ROLES"] ?? string.Empty)
 //
 // Optional, and a partial file is a partial translation rather than a broken page: every key falls
 // back to English on its own. That is the property the authorization server's translation file has,
-// and this now has the other half of it too — see the sweep below.
+// and this now has the other half of it too - see the sweep below.
 var adminText = AdminText.Default;
 
 if (config["ADMIN_TEXT_FILE"] is { Length: > 0 } textPath)
@@ -64,7 +64,7 @@ if (config["ADMIN_TEXT_FILE"] is { Length: > 0 } textPath)
     // asymmetry as a fact of life: "a typo'd key is silently the English sentence". That is the
     // worst way for this to fail. Per-string fallback means a mistyped key produces a page that is
     // correct English rather than a page that is broken, so the one signal a translator gets is a
-    // sentence that did not change — and the natural conclusion is that the file is not being read
+    // sentence that did not change - and the natural conclusion is that the file is not being read
     // at all. AdminText.Keys is public for exactly this check.
     //
     // Reported, not fatal, for the reason the server gives: a key this version does not have is a
@@ -72,7 +72,7 @@ if (config["ADMIN_TEXT_FILE"] is { Length: > 0 } textPath)
     // app a coordinated change with whoever holds the strings.
     //
     // LanguageKey is excluded rather than reported. It is a legal entry and deliberately not in
-    // Keys — it names the language rather than saying anything — so warning about it would train a
+    // Keys - it names the language rather than saying anything - so warning about it would train a
     // reader to ignore this line, which costs more than the line is worth.
     var known = AdminText.Keys.ToHashSet(StringComparer.Ordinal);
 
@@ -93,7 +93,7 @@ if (config["ADMIN_TEXT_FILE"] is { Length: > 0 } textPath)
 // The permission vocabulary the deployment's resource server understands, for the roles page to
 // offer as checkboxes. The same contract as ADMIN_ROLES, including the honest part: this is a
 // hand-written copy of a list that lives in the resource server, kept in step by hand, and this
-// app has no way to check it. Drift costs a checkbox too many or too few — never enforcement,
+// app has no way to check it. Drift costs a checkbox too many or too few - never enforcement,
 // which stays wherever the resource server put it. Unset keeps the free-text box.
 var adminPermissions = (config["ADMIN_PERMISSIONS"] ?? string.Empty)
     .Split([',', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -109,7 +109,7 @@ var options = new AdminBffOptions
 
     // Derived, and it has to be derived the same way the authorization server derives it: issuer
     // plus `/admin`. That server computes the audience of the tokens it mints from its own issuer,
-    // so a value typed separately here is a value that can disagree with it — and the symptom is
+    // so a value typed separately here is a value that can disagree with it - and the symptom is
     // an `invalid_target` at /authorize, or worse a token with the wrong `aud` that the resource
     // server refuses much later.
     //
@@ -123,7 +123,7 @@ var options = new AdminBffOptions
     // it, which is why a deployment layering an override names both.
     //
     // It exists because the shell used to write `href="/css/admin.css"` as a literal, so the only
-    // way to restyle this app was to land a file at that exact path — one deployment mounts a
+    // way to restyle this app was to land a file at that exact path - one deployment mounts a
     // whole directory over wwwroot/css to do it, and carries a paragraph of compose comment
     // explaining why it must be that name.
     StylesheetPaths = config["ADMIN_STYLESHEETS"] is { Length: > 0 } sheets
@@ -132,7 +132,7 @@ var options = new AdminBffOptions
 };
 
 // At startup, naming the setting. These pages send default-src 'self', so a stylesheet on another
-// origin is refused by the browser — and the only trace of that is a line in a console nobody has
+// origin is refused by the browser - and the only trace of that is a line in a console nobody has
 // open, on a page that renders unstyled in production.
 if (!options.TryValidate(out var problems))
 {
@@ -152,7 +152,7 @@ builder.Services.AddSingleton<AdminApi>();
 builder.Services.AddAntiforgery(o => o.Cookie.SecurePolicy = CookieSecurePolicy.Always);
 
 // The whole reason this is a BFF. Without it the cookie handler serialises the tokens into the
-// cookie — encrypted, but handed to the browser on every response — and "the token never reaches
+// cookie - encrypted, but handed to the browser on every response - and "the token never reaches
 // the browser" would be approximately true rather than true.
 builder.Services.AddSingleton<ITicketStore, InMemoryTicketStore>();
 builder.Services.AddSingleton<IPostConfigureOptions<CookieAuthenticationOptions>, UseTicketStore>();
@@ -182,14 +182,14 @@ builder.Services
         o.ClientSecret = options.ClientSecret;
 
         // The code flow with PKCE and a secret. Confidential, so the handler authenticates at
-        // /token with client_secret_basic — which is what a CIMD client cannot do, and the reason
+        // /token with client_secret_basic - which is what a CIMD client cannot do, and the reason
         // CLIENTS exists on the server side.
         o.ResponseType = OpenIdConnectResponseType.Code;
         o.UsePkce = true;
 
         // `query`, because that is what the server advertises. The handler's default for the code
         // flow is `form_post`, and asking for a response mode a server's metadata does not list is
-        // the client half of N-06 — the request looks fine and the answer comes back in a shape
+        // the client half of N-06 - the request looks fine and the answer comes back in a shape
         // nobody agreed on. Measured: the discovery document says response_modes_supported: ["query"].
         o.ResponseMode = OpenIdConnectResponseMode.Query;
 
@@ -201,7 +201,7 @@ builder.Services
         // Tokens are kept, and kept in the ticket store above rather than in the cookie.
         o.SaveTokens = true;
 
-        // **False, and this app fetches the same document itself — see OnTokenValidated below.**
+        // **False, and this app fetches the same document itself - see OnTokenValidated below.**
         // Not an oversight and not a default left alone: this switch fails the whole sign-in when
         // /userinfo cannot be reached or is not served, and the only thing this app wants from
         // there is the label in the header. `UserInfoEnabled` is a deployment's to turn off, so
@@ -209,7 +209,7 @@ builder.Services
         o.GetClaimsFromUserInfoEndpoint = false;
 
         // RFC 8707. The access token's `aud` is bound to the admin API, so a token minted here
-        // cannot be replayed against the customer's connector — which is the whole point of the
+        // cannot be replayed against the customer's connector - which is the whole point of the
         // admin API being its own resource.
         o.Events.OnRedirectToIdentityProvider = context =>
         {
@@ -221,7 +221,7 @@ builder.Services
         // Redeeming the code by hand, for one reason: to authenticate with `client_secret_basic`.
         //
         // §7.1 says this client "uses the client store and client_secret_basic that already exist",
-        // and RFC 6749 §2.3.1 says a client with a password SHOULD use Basic — the form-encoded
+        // and RFC 6749 §2.3.1 says a client with a password SHOULD use Basic - the form-encoded
         // alternative is for clients that cannot. The handler's built-in redemption puts the secret
         // in the body and this package version exposes no switch, so the choice is between doing
         // this or quietly using the method the RFC treats as the fallback. Measured before writing
@@ -229,7 +229,7 @@ builder.Services
         // secret", because the record declares Basic and the body carried the secret instead.
         //
         // It is thirty lines and it is the whole of the hand-rolled OAuth in this app. Everything
-        // else — PKCE, state, nonce, the cookie, the refresh — is still the handler's.
+        // else - PKCE, state, nonce, the cookie, the refresh - is still the handler's.
         o.Events.OnAuthorizationCodeReceived = async context =>
         {
             var request = context.TokenEndpointRequest!;
@@ -287,14 +287,14 @@ builder.Services
         // The rail names whoever is signed in, and until this it named them by subject: this
         // server's ID token carries no name of any kind, so `Who` fell through to `sub` and an
         // operator got 26 characters to compare against a table keyed by handle. `/userinfo` is the
-        // only channel a client has for it — see OperatorProfile, which also has why this is not
+        // only channel a client has for it - see OperatorProfile, which also has why this is not
         // `GetClaimsFromUserInfoEndpoint` and why no scope is added to reach it.
         //
         // Out of the discovery document rather than composed from AUTHORITY, for the reason every
         // other endpoint in this app is: a server that does not serve /userinfo names none, and that
         // absence is the answer rather than a 404 to interpret. It is a dictionary lookup by this
-        // point — the handler resolved the same document to redeem the code and to find the signing
-        // keys — so this costs one request, not two.
+        // point - the handler resolved the same document to redeem the code and to find the signing
+        // keys - so this costs one request, not two.
         o.Events.OnTokenValidated = async context =>
         {
             if (context.Principal?.Identity is not ClaimsIdentity identity)
@@ -323,7 +323,7 @@ builder.Services
                 // Swallowed, and this is the second place in this app where that is right. The
                 // tokens are valid and the session is about to be established; the only thing lost
                 // is a label. Letting this throw would turn a completed sign-in into an error page
-                // — which is the shape of the defect this whole event exists to fix, arriving by a
+                // - which is the shape of the defect this whole event exists to fix, arriving by a
                 // different route.
                 context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
                     .CreateLogger("Boltway.AdminBff.SignIn")
@@ -369,7 +369,7 @@ app.Use(async (http, next) =>
     // pages hold the directory, one of them holds a generated password that exists nowhere else, and
     // since antiforgery moved into the shell every page carries a token as well.
     //
-    // Documents only, and deciding that needs the content type, which is not known yet — hence
+    // Documents only, and deciding that needs the content type, which is not known yet - hence
     // OnStarting rather than a line beside the others. UseStaticFiles is downstream of this
     // middleware, so an unconditional header would also land on the stylesheet, the four icons and
     // the six woff2 subsets: bytes that are identical for every operator, hold nothing, and would be
@@ -411,7 +411,7 @@ app.MapGet("/", async (
             result.Body, Tokens(http, antiforgery), http.Request.Query["notice"], Who(http))
         {
             // The key names the sentence and this fills its {0}; neither is the sentence itself.
-            // Both arrive from a link, so the renderer treats them that way — see its Notice.
+            // Both arrive from a link, so the renderer treats them that way - see its Notice.
             NoticeValue = http.Request.Query["notice_value"],
         }))
         : Refused(http, result);
@@ -451,12 +451,12 @@ app.MapPost("/users/new", async (
     // to give up on, and it carries the server's own sentence saying which field is the problem.
     //
     // **Only when there is one.** The `?? "Refused."` this replaces was the last sentence in this
-    // file that no ADMIN_TEXT_FILE could reach — an English word on a translated form, and one that
+    // file that no ADMIN_TEXT_FILE could reach - an English word on a translated form, and one that
     // named nothing an operator could act on. A conflict the server declined to explain is an
     // unexplained refusal like any other, and the refusal page already has a translated sentence for
     // exactly that. So what this app puts here is the API's words or nothing.
     //
-    // Unlike the notice banner, this parameter is still whatever a link says it is — an error on the
+    // Unlike the notice banner, this parameter is still whatever a link says it is - an error on the
     // create form is the server's sentence rather than one of a closed set, so there is nothing to
     // match it against, and the renderer encodes it for that reason. What changed is only that this
     // app has stopped adding a sentence of its own to a channel it cannot translate.
@@ -500,19 +500,19 @@ app.MapGet("/users/{handle}", async (
 
         // Normalised rather than passed through. The API answers 200 with a JSON `null` for an
         // account that holds none, and whether ReadFromJsonAsync turns that into ValueKind.Null or
-        // leaves the struct at Undefined is a framework detail this page must not depend on — the
+        // leaves the struct at Undefined is a framework detail this page must not depend on - the
         // renderer shows the section for Null and hides it for Undefined, so getting it wrong hides
         // the create button on exactly the accounts that need one.
         //
         // So: an object is the service account, anything else the server answered is "none", and a
-        // failed call is "the server did not say" — which is the one case that hides the section,
+        // failed call is "the server did not say" - which is the one case that hides the section,
         // for the older-image reason the renderer documents.
         ServiceAccount = service.Ok
             ? service.Body.ValueKind is JsonValueKind.Object ? service.Body : NoServiceAccount()
             : default,
 
         // Carried through the redirect rather than held anywhere. It is in this one response and
-        // then gone — the server keeps a digest, so nothing can produce it again.
+        // then gone - the server keeps a digest, so nothing can produce it again.
         NewSecret = http.Request.Query["secret"],
 
         // What the create form offers to tick. Null when discovery could not be read, and then the
@@ -533,7 +533,7 @@ app.MapPost("/users/{handle}/service-account", async (
         handle,
         new
         {
-            // Both shapes, because the form sends either — see AdminForm.Scopes for which and why
+            // Both shapes, because the form sends either - see AdminForm.Scopes for which and why
             // reading it as one string is the bug it looks like it is not.
             scopes = AdminForm.Scopes(form["scopes"]),
         },
@@ -541,7 +541,7 @@ app.MapPost("/users/{handle}/service-account", async (
 
     // The refusal page rather than a banner, which is what every other write in this app has always
     // done and what these four should have been doing. The banner carried `error_description` back
-    // through the query string — the one sentence on the page that names the rule that was broken,
+    // through the query string - the one sentence on the page that names the rule that was broken,
     // travelling by the one route a link can write. It is the API's sentence, so it comes out of the
     // API's response: RenderRefusal prints it from the body, where nobody else can reach it.
     if (!result.Ok)
@@ -561,8 +561,8 @@ app.MapPost("/users/{handle}/service-account", async (
         $"/users/{Uri.EscapeDataString(handle)}?secret={Uri.EscapeDataString(secret)}");
 }).RequireAuthorization();
 
-// Rotate. The admin API has no separate verb for it — POSTing to /service-account a second time
-// rotates — but the scopes it stores are the ones in the request body, so a form that sent none
+// Rotate. The admin API has no separate verb for it - POSTing to /service-account a second time
+// rotates - but the scopes it stores are the ones in the request body, so a form that sent none
 // would empty the grant and one that sent hidden fields would let a tampered post silently widen
 // it. Both are the same defect: a button labelled "new secret" changing something that is not the
 // secret. So the current scopes are read back here, server-side, and sent unchanged.
@@ -585,8 +585,8 @@ app.MapPost("/users/{handle}/service-account/rotate", async (
         return Refused(http, existing);
     }
 
-    // The account holds no service account. Rotating something that is not there would create it —
-    // with no scopes, which the server refuses — so this stops rather than turning a stale page into
+    // The account holds no service account. Rotating something that is not there would create it -
+    // with no scopes, which the server refuses - so this stops rather than turning a stale page into
     // a confusing error, and it is the one refusal in this app that is allowed to say nothing was
     // changed: the read ran ahead of the write, so the absence is known rather than assumed.
     if (existing.Body.ValueKind is not JsonValueKind.Object)
@@ -649,7 +649,7 @@ app.MapPost("/users/{handle}/patch", async (
     var form = await http.Request.ReadFormAsync(ct);
 
     // A checkbox that is unchecked sends nothing, so "enabled" is read as presence rather than as a
-    // value — and both are sent every time, because the API's PATCH treats absent as unchanged and
+    // value - and both are sent every time, because the API's PATCH treats absent as unchanged and
     // this form is showing the whole state.
     var result = await api.PatchUserAsync(
         http,
@@ -657,14 +657,14 @@ app.MapPost("/users/{handle}/patch", async (
         new
         {
             // `roles`, plural, and an array. The field used to post `role` as a scalar, which
-            // combined with an empty box — the roles rendered blank, because the API returns an
-            // array under that key — to send "-" and clear every role the account held. Saving an
+            // combined with an empty box - the roles rendered blank, because the API returns an
+            // array under that key - to send "-" and clear every role the account held. Saving an
             // unrelated change wiped the account's permissions, silently and in the safe-looking
             // direction: fewer roles, no error, an almost-empty knowledge base at the next sign-in.
             //
             // Split on whitespace so two roles can be typed in one box. Empty stays an empty array,
-            // which is still "clear them" — that is what the placeholder says and it has to remain
-            // possible — but it now takes deleting the text rather than opening the page.
+            // which is still "clear them" - that is what the placeholder says and it has to remain
+            // possible - but it now takes deleting the text rather than opening the page.
             roles = form["roles"].ToString()
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             email = form["email"].ToString() is { Length: > 0 } e ? e : "-",
@@ -732,7 +732,7 @@ app.MapPost("/users/{handle}/anonymise", async (
     var result = await api.AnonymiseAsync(http, handle, ct);
 
     // To the account list, because the account page this came from no longer names anybody. The
-    // handle is the {0} of the sentence there and is escaped as query-string data — it is a string
+    // handle is the {0} of the sentence there and is escaped as query-string data - it is a string
     // an operator typed and this app never validated, like every other value on these pages.
     return result.Ok
         ? Results.Redirect(
@@ -772,7 +772,7 @@ app.MapGet("/roles", async (
     // Who holds what, walked from the same paged listing the accounts page reads. Capped, because
     // this is a decoration on a page about definitions: ten pages of fifty covers any directory
     // this console is for, and a bigger one gets the truncation sentence rather than an unbounded
-    // walk per view. A failed page is the sharper case — the walk stops and the page says nothing
+    // walk per view. A failed page is the sharper case - the walk stops and the page says nothing
     // about holders at all, because a partial list rendered as the whole one claims "nobody holds
     // this" for every role whose holders were in the pages that never loaded, next to a delete
     // button.
@@ -889,7 +889,7 @@ app.MapPost("/roles/{id}/delete", async (
 // **This used to clear the local cookie and redirect to `/`, and that was not a sign-out.** Reported
 // from production: pressing it appeared to do nothing, and reloading came back to the consent page.
 // Both halves follow from the same cause. The cookie went, `/` demanded authentication, the handler
-// went to /authorize, the authorization server still held its own session — so the operator was
+// went to /authorize, the authorization server still held its own session - so the operator was
 // signed straight back in, pausing only at the consent screen this deployment's IConsentPolicy shows
 // every time. The one thing the button is for is the one thing it did not do.
 //
@@ -914,7 +914,7 @@ app.MapPost("/signout", async (HttpContext http, IAntiforgery antiforgery) =>
     var endSession = await EndSessionAsync(http);
 
     // No `post_logout_redirect_uri`, and not because it was forgotten. That server refuses one on
-    // purpose — an unregistered redirect target on the issuer's own hostname is an open redirector,
+    // purpose - an unregistered redirect target on the issuer's own hostname is an open redirector,
     // and OIDC says MUST NOT redirect to a URI that has not been validated. So the operator lands on
     // its sign-out page and stays there, which is a page that says the session ended rather than a
     // bounce that leaves them wondering.
@@ -935,14 +935,14 @@ static string? Blank(string? value) => value is { Length: > 0 } ? value : null;
 //
 // **The order is the fallback, and the fallback is load-bearing rather than tidy.** A deployment
 // with UserInfoEnabled off, an account with no username, or a /userinfo that was unreachable during
-// this sign-in all land on the ULID — which is what the header drew for every operator before that
+// this sign-in all land on the ULID - which is what the header drew for every operator before that
 // event existed. Degrading to a worse label is the whole point; null is still an ordinary answer,
 // and what the header must not do is hang the sign-out button off it, which is the defect
 // DefaultAdminLayout's remarks describe.
 //
 // `sub` is last and is spelled as ASP.NET Core stores it. The handler's MapInboundClaims defaults
 // to true and renames `sub` to ClaimTypes.NameIdentifier before the principal is built, so the
-// obvious `FindFirst("sub")` matches nothing — it was here, it looked right, and it was dead.
+// obvious `FindFirst("sub")` matches nothing - it was here, it looked right, and it was dead.
 static string? Who(HttpContext http) =>
     http.User.FindFirst("preferred_username")?.Value
     ?? http.User.FindFirst(ClaimTypes.Name)?.Value
@@ -980,7 +980,7 @@ static IResult Refused(HttpContext http, AdminResult result) =>
 // Failures are swallowed to null on purpose, and this is the one place in this app where that is
 // right: the local cookie is already gone by the time this runs, so the operator is signed out of
 // this app whatever happens next. Letting a discovery timeout throw here would turn a completed
-// sign-out into a 500 and leave them believing it did not work — which is the defect this whole
+// sign-out into a 500 and leave them believing it did not work - which is the defect this whole
 // endpoint exists to fix, arriving by a different route.
 static async Task<string?> EndSessionAsync(HttpContext http)
 {
@@ -1010,14 +1010,14 @@ static async Task<string?> EndSessionAsync(HttpContext http)
 // Every scope the authorization server publishes, for the service-account form to offer.
 //
 // Through the configuration manager, which is the same object the sign-in handler uses and holds
-// the document it already fetched — so this is a dictionary lookup on all but the first call and
+// the document it already fetched - so this is a dictionary lookup on all but the first call and
 // after each refresh, not a request per page view. It is also what makes a server that starts
 // publishing a new scope offer it here without this app being restarted.
 //
 // **Tolerated when it fails, like the service-account call itself.** The alternative is an account
 // page that 500s because a metadata document was briefly unreachable, which would take the whole
 // directory down over one form's suggestions. Null means "not known" and the form falls back to a
-// box an operator types into — narrower than before, never broken.
+// box an operator types into - narrower than before, never broken.
 //
 // Empty is folded into null on purpose: `scopes_supported` is optional in the document, and an
 // absent list means the server did not say rather than that it will issue nothing. Rendering zero
@@ -1051,7 +1051,7 @@ static async Task<IReadOnlyList<string>?> ScopesSupportedAsync(HttpContext http)
 //
 // Called on every page rather than on the two that draw a form an operator fills in, because the
 // shell draws one too: sign-out. That form went out without a field for as long as it existed, and
-// `POST /signout` validates one — so the button answered 400. GetAndStoreTokens is what writes the
+// `POST /signout` validates one - so the button answered 400. GetAndStoreTokens is what writes the
 // cookie half, so a page that never calls it cannot have a working form of any kind.
 static AntiforgeryTokens Tokens(HttpContext http, IAntiforgery antiforgery)
 {

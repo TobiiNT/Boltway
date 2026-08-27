@@ -16,7 +16,7 @@ namespace Boltway.ResourceServer.Authorization;
 /// <para>
 /// <b>"A minimal grant" is the intended reading while an endpoint's scopes are its own. It stops
 /// being one when a single endpoint is the whole surface.</b> An MCP server carries every tool
-/// behind one route, so a scope declared there is not that endpoint's requirement — it is an
+/// behind one route, so a scope declared there is not that endpoint's requirement - it is an
 /// instruction to every client about what to request from the entire server, and any other scope
 /// the resource advertises becomes unaskable. Declaring none is what leaves the challenge naming
 /// the whole advertised set. See the remarks on <c>Boltway.Mcp.ResourceServerAuthenticator</c> for
@@ -42,8 +42,8 @@ public sealed class RequiredScopeMetadata
 /// </summary>
 /// <remarks>
 /// Redundant when <c>ProtectedResourceOptions.RequireBearerByDefault</c> is left on, which it is by
-/// default. It exists for the host that turns the default off — a resource server mostly serving
-/// public content with a few protected endpoints — so that "protected" is something an endpoint can
+/// default. It exists for the host that turns the default off - a resource server mostly serving
+/// public content with a few protected endpoints - so that "protected" is something an endpoint can
 /// say for itself rather than a property of a configuration flag elsewhere.
 /// </remarks>
 public sealed class RequireBearerMetadata
@@ -64,7 +64,7 @@ public static class ResourceServerEndpointConventions
     /// </summary>
     /// <remarks>
     /// A token short of any of them is answered <c>403</c> with
-    /// <c>error="insufficient_scope"</c> and the <b>whole</b> list in <c>scope</c> — not the missing
+    /// <c>error="insufficient_scope"</c> and the <b>whole</b> list in <c>scope</c> - not the missing
     /// subset. Claude asks for the union of the challenge's scopes and its discovery-time scope, and
     /// does not reliably carry forward what an earlier step-up granted, so a challenge naming only
     /// the delta re-authorizes the user into a narrower grant than they had.
@@ -77,7 +77,7 @@ public static class ResourceServerEndpointConventions
     ///
     /// <para>
     /// <b>Do not call this on a route that carries more than one operation's worth of authority</b>
-    /// — an MCP endpoint is always one. What it declares here also becomes the <c>scope</c> in the
+    /// - an MCP endpoint is always one. What it declares here also becomes the <c>scope</c> in the
     /// <c>401</c>, and that is what a client asks for, so anything else the resource advertises is
     /// advertised and unreachable. <see cref="RequiredScopeMetadata"/> has the long version.
     /// </para>

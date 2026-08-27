@@ -23,14 +23,14 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <para>
 /// <b>The success answer is an empty 200, and so is almost every failure.</b> RFC 7009 §2.2 makes
 /// that a MUST: a token that is unknown, malformed, already revoked or not this client's has, from
-/// the caller's point of view, exactly the property they asked for — it does not work. X-39 adds the
+/// the caller's point of view, exactly the property they asked for - it does not work. X-39 adds the
 /// case the RFC leaves implicit and this server has to decide: a token belonging to a <i>different
 /// client</i> is also a 200, and nothing is revoked. Saying "that is not yours" would turn this
 /// endpoint into an oracle that confirms a stolen token is real and tells the holder whose it is.
 /// </para>
 /// <para>
 /// <b>Revoking any token here revokes the grant behind it, which is broader than the letter.</b>
-/// RFC 7009 §2.1 permits it — an access token's revocation MAY take the refresh token with it — and
+/// RFC 7009 §2.1 permits it - an access token's revocation MAY take the refresh token with it - and
 /// the structure of this server makes it the only coherent reading: the denylist a resource server
 /// consults is <c>IGrantStore.IsRevokedAsync</c>, keyed on the grant, and access tokens are signed
 /// rather than stored, so there is no per-token row to mark. "Revoke this access token and leave the
@@ -40,7 +40,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <para>
 /// <b>A store failure is a 503, not a 200.</b> X-41. This is the one place the empty-200 rule stops:
 /// every other negative answer here means the token does not work, and a failed write means nobody
-/// knows whether it does. A 200 there is the confidence rule broken on a security operation — the
+/// knows whether it does. A 200 there is the confidence rule broken on a security operation - the
 /// client is told the credential is dead and stops trying, which is the worst available outcome. The
 /// caller must assume the token still exists, and <c>Retry-After</c> says when to ask again.
 /// </para>
@@ -48,7 +48,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <b>Confidential clients only</b>, the same as introspection: <c>MetadataBuilder</c> advertises
 /// <c>revocation_endpoint_auth_methods_supported</c> from the confidential set, so <c>none</c> is
 /// never offered. RFC 7009 §2.1 requires client authentication for a confidential client and this
-/// server has no public-client revocation path — a public client that wants its grant gone signs in
+/// server has no public-client revocation path - a public client that wants its grant gone signs in
 /// and withdraws consent at <c>/me/consents</c>.
 /// </para>
 /// </remarks>
@@ -56,7 +56,7 @@ public static class RevocationEndpoint
 {
     /// <summary>Map <c>POST /revoke</c>.</summary>
     /// <remarks>
-    /// <c>MapPost</c> alone, so routing answers 405 to every other method by itself — and for the
+    /// <c>MapPost</c> alone, so routing answers 405 to every other method by itself - and for the
     /// reason introspection has: RFC 7009 §2.1 specifies POST, and a GET would put a live credential
     /// in access logs and browser history.
     /// </remarks>
@@ -173,14 +173,14 @@ public static class RevocationEndpoint
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Returns whether the token was recognised, not whether anything was revoked — a token that is
+    /// Returns whether the token was recognised, not whether anything was revoked - a token that is
     /// this server's but another client's is recognised and left alone, which stops the search
     /// rather than letting it fall through to a refresh-token lookup that cannot match it either.
     /// </para>
     /// <para>
     /// <b>An expired access token is not recognised here</b>, because validation refuses it, and it
-    /// therefore revokes nothing. That is the RFC's own reading — an expired token already has the
-    /// property the caller asked for — but it is worth stating, because "revoke this and end the
+    /// therefore revokes nothing. That is the RFC's own reading - an expired token already has the
+    /// property the caller asked for - but it is worth stating, because "revoke this and end the
     /// session" is what a caller may have meant, and the refresh token is the parameter that does
     /// that.
     /// </para>
@@ -211,7 +211,7 @@ public static class RevocationEndpoint
         if (grantId is not { Length: > 0 })
         {
             // A token from a build before `gid` existed. There is nothing to key the revocation on,
-            // and inventing one from `sub` would revoke every grant that subject holds — including
+            // and inventing one from `sub` would revoke every grant that subject holds - including
             // the ones belonging to other clients. Recognised, so the search stops; nothing revoked.
             return true;
         }
@@ -230,7 +230,7 @@ public static class RevocationEndpoint
     /// with a live family would let a rotation mint tokens against a grant that is gone.
     /// </para>
     /// <para>
-    /// <b>A consumed token — one already rotated away — still revokes its family, and that is not
+    /// <b>A consumed token - one already rotated away - still revokes its family, and that is not
     /// the same answer <c>/introspect</c> gives about it.</b> Introspection reports it inactive,
     /// because the question there is "would this token work"; here the question is "make this stop",
     /// and the thing the caller is pointing at is a session whose current token is the successor.
@@ -284,7 +284,7 @@ public static class RevocationEndpoint
     /// <remarks>
     /// <para>
     /// <c>RevokeAsync</c> on a grant already revoked answers false and changes nothing, so an
-    /// already-revoked token needs no branch of its own — which is what makes §2.2's "already
+    /// already-revoked token needs no branch of its own - which is what makes §2.2's "already
     /// revoked is a success" true here by construction rather than by a check somebody has to
     /// remember to write.
     /// </para>
@@ -293,7 +293,7 @@ public static class RevocationEndpoint
     /// <c>gid</c> and no family id, and <c>IRefreshTokenStore</c> exposes no read from one to the
     /// other. It is covered rather than missed: the refresh grant checks the grant is active, so a
     /// revoked grant refuses the rotation the family would have served. A second way to reach
-    /// <c>RevokeFamilyAsync</c> that did not also revoke the grant would break that — the same
+    /// <c>RevokeFamilyAsync</c> that did not also revoke the grant would break that - the same
     /// coupling <c>IntrospectionEndpoint</c> records from the other side.
     /// </para>
     /// </remarks>

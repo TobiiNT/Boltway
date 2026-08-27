@@ -19,15 +19,15 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Driven through the real flow — authorize, then exchange the code with an assertion instead of a
-/// secret — because what is under test is whether this server accepts a client signing with its own
+/// Driven through the real flow - authorize, then exchange the code with an assertion instead of a
+/// secret - because what is under test is whether this server accepts a client signing with its own
 /// key, and an assertion validated in isolation would prove only that the validator agrees with the
 /// test's signer.
 /// </para>
 /// <para>
 /// <b>The refusals are where the value is.</b> A verifier that accepts a correct assertion and also
 /// accepts one whose audience names a different server, or whose signature is somebody else's, is
-/// worse than no verifier at all — it reports a client as authenticated to every downstream check.
+/// worse than no verifier at all - it reports a client as authenticated to every downstream check.
 /// So each negative below is paired with the positive it differs from by one field.
 /// </para>
 /// </remarks>
@@ -213,7 +213,7 @@ public sealed class ClientAssertionAuthenticationTests
     /// </summary>
     /// <remarks>
     /// RFC 7523 §3 point 2. <c>TokenValidationParameters</c> has no place to express it, so it is
-    /// checked in the authenticator — and this test is what says the check is there, since every
+    /// checked in the authenticator - and this test is what says the check is there, since every
     /// other assertion in this file happens to set both fields the same way.
     /// </remarks>
     [Fact]
@@ -243,8 +243,8 @@ public sealed class ClientAssertionAuthenticationTests
     /// </summary>
     /// <remarks>
     /// RFC 7523 requires an <c>exp</c> and says nothing about how far out. A year-long assertion is
-    /// a bearer credential in everything but name — anyone who captures it authenticates as that
-    /// client until it expires — and it is also the client choosing how long this server's replay
+    /// a bearer credential in everything but name - anyone who captures it authenticates as that
+    /// client until it expires - and it is also the client choosing how long this server's replay
     /// table must remember it.
     /// </remarks>
     [Fact]
@@ -278,7 +278,7 @@ public sealed class ClientAssertionAuthenticationTests
     /// <summary>An assertion with no <c>jti</c> is refused, which is stricter than the RFC.</summary>
     /// <remarks>
     /// §3 makes <c>jti</c> optional and the replay check a MAY. Accepting one without it means
-    /// accepting a credential whose reuse cannot be detected — and doing so silently, which is the
+    /// accepting a credential whose reuse cannot be detected - and doing so silently, which is the
     /// part that makes the stricter reading right.
     /// </remarks>
     [Fact]
@@ -304,7 +304,7 @@ public sealed class ClientAssertionAuthenticationTests
         Assert.Equal("invalid_client", response.Body.GetProperty("error").GetString());
 
         // Named, unlike every other refusal here, and the difference is whether the client can act
-        // on it. "Wrong audience" and "bad signature" are an oracle — a map of this server's
+        // on it. "Wrong audience" and "bad signature" are an oracle - a map of this server's
         // validation, one message at a time, to anyone willing to send assertions. "Carry a jti" is
         // a statement about the shape of the request the client just made, which it already knows,
         // and which it can fix.
@@ -349,7 +349,7 @@ public sealed class ClientAssertionAuthenticationTests
     /// <remarks>
     /// <b>The defect this closes.</b> The key set is cached for at least five minutes, so a client
     /// that publishes a new key and signs with it would otherwise fail every authentication until
-    /// the entry expired — punished for rotating correctly. An unknown <c>kid</c> is the signal, and
+    /// the entry expired - punished for rotating correctly. An unknown <c>kid</c> is the signal, and
     /// it is the only validation failure that provokes a refetch: every other one is about the
     /// assertion rather than the key set, and refetching for those would turn a made-up <c>kid</c>
     /// into an outbound request per inbound request.
@@ -365,13 +365,13 @@ public sealed class ClientAssertionAuthenticationTests
         // Warm the cache with the original set.
         Assert.Equal(HttpStatusCode.OK, (await ExchangeAsync(fixture, Assertion(fixture))).Status);
 
-        // The client publishes a new key and signs with it. Nothing has expired — the entry is good
-        // for another five minutes — so the unknown `kid` is the only thing that can provoke a
+        // The client publishes a new key and signs with it. Nothing has expired - the entry is good
+        // for another five minutes - so the unknown `kid` is the only thing that can provoke a
         // refetch.
         fetcher!.Serve(JwksUri, JwksFor(rotated, "client-2"));
 
         // Past the refetch floor. The assertion's own lifetime is judged by the system clock, which
-        // this does not move — the same split IntrospectionEndpointTests documents.
+        // this does not move - the same split IntrospectionEndpointTests documents.
         fixture.Clock.Advance(TimeSpan.FromSeconds(31));
 
         var response = await ExchangeAsync(fixture, Assertion(fixture, key: rotated, kid: "client-2"));
@@ -446,7 +446,7 @@ public sealed class ClientAssertionAuthenticationTests
 
         // C-02, and the reason this assertion sits beside the one above rather than in its own
         // test: Claude selects CIMD only when the document offers `none`, and falls back to dynamic
-        // registration when it does not — at a /register this server answers 404 to, on purpose. So
+        // registration when it does not - at a /register this server answers 404 to, on purpose. So
         // adding an auth method is one edit away from making every Claude connection fail at a
         // stage that looks nothing like the change that caused it.
         Assert.Contains("none", methods, StringComparer.Ordinal);
@@ -533,8 +533,8 @@ public sealed class ClientAssertionAuthenticationTests
     /// Refused as <c>invalid_client</c>, with a description that names no check.
     /// </summary>
     /// <remarks>
-    /// The second assertion is the one worth having. Which check failed — audience, signature,
-    /// expiry, replay — goes to the log, and telling the client would hand anyone willing to send
+    /// The second assertion is the one worth having. Which check failed - audience, signature,
+    /// expiry, replay - goes to the log, and telling the client would hand anyone willing to send
     /// assertions a map of this server's validation, one message at a time.
     /// </remarks>
     private static async Task AssertRefusedAsync((HttpStatusCode Status, JsonElement Body) response)

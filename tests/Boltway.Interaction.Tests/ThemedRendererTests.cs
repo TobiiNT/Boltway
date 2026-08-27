@@ -60,7 +60,7 @@ public sealed class ThemeRenderingTests
         return new DefaultInteractionRenderer(options);
     }
 
-    /// <summary>Stylesheets are linked in the order they were configured — for CSS, order is meaning.</summary>
+    /// <summary>Stylesheets are linked in the order they were configured - for CSS, order is meaning.</summary>
     [Fact]
     public void Stylesheets_are_linked_in_configuration_order()
     {
@@ -102,7 +102,7 @@ public sealed class ThemeRenderingTests
     /// <remarks>
     /// The reason it is a title and not a heading. The most prominent text on the consent page is
     /// the client hostname, by N-14, and a deployment name competing with it for that position would
-    /// be this option quietly undoing the requirement — with the operator who set it having been
+    /// be this option quietly undoing the requirement - with the operator who set it having been
     /// given no reason to think it might.
     /// </remarks>
     [Fact]
@@ -149,7 +149,7 @@ public sealed class ThemeRenderingTests
     /// The class exists because CSS cannot find these paragraphs without it. `p:has(> strong:first-child)`
     /// was tried and measured wrong on the first render: `:first-child` counts elements and ignores
     /// the leading text node, so the paragraphs naming the client host and the redirect host matched
-    /// too and the page came back with three warning boxes — which is the same as none, because the
+    /// too and the page came back with three warning boxes - which is the same as none, because the
     /// one N-14 asks for no longer stood out.
     /// </para>
     /// </remarks>

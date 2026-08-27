@@ -2,15 +2,15 @@
 #
 # **The schedule is not redundant with the pull-request run, and that is the reason this file has
 # one.** A pull-request scan answers "does this diff introduce something"; the weekly scan answers
-# "has anybody learned something new about code that has not changed" — CodeQL's query packs move
+# "has anybody learned something new about code that has not changed" - CodeQL's query packs move
 # without this repository moving, and the class of finding that matters most here is the one
 # published after the code was written. A repository whose only scan is diff-triggered goes quiet
 # the moment development slows, which is exactly when nobody is looking.
 #
 # **What this does not do, stated because the alternative is a reader assuming otherwise.** Code
 # scanning writes alerts to the Security tab; it does not fail this workflow on a finding and it
-# does not block a merge. Making it block is a branch-protection setting — require the
-# `CodeQL` check — and that is a repository setting rather than a line in this file. Until somebody
+# does not block a merge. Making it block is a branch-protection setting - require the
+# `CodeQL` check - and that is a repository setting rather than a line in this file. Until somebody
 # turns that on, this is a report somebody has to read, and `N-06` applies to the badge as much as
 # to a metadata document: it detects, it does not enforce.
 
@@ -21,7 +21,7 @@ on:
   push:
     branches: [main]
   schedule:
-    # Mondays, an hour after `pinned-drafts` rather than alongside it — two jobs racing for a runner
+    # Mondays, an hour after `pinned-drafts` rather than alongside it - two jobs racing for a runner
     # on the same minute is how one of them becomes the one that always looks slow. The day matches
     # Dependabot's, so a week's supply-chain news arrives together.
     - cron: '0 7 * * 1'
@@ -39,7 +39,7 @@ jobs:
     name: analyze
     runs-on: ubuntu-latest
 
-    # A ceiling for the reason every job in `ci.yml` carries one — the default 360 minutes is not a
+    # A ceiling for the reason every job in `ci.yml` carries one - the default 360 minutes is not a
     # number anybody chose. Sized for the C# leg, which is the only one that compiles anything;
     # the three `build-mode: none` legs finish in a fraction of it and share the ceiling rather
     # than getting a tighter one that would have to be maintained per language.
@@ -59,7 +59,7 @@ jobs:
           # The reason this file exists. `build-mode: manual` rather than `none`: for a compiled
           # language the analysis without the compilation is a weaker analysis, and the queries
           # worth having here are the ones that follow an attacker-supplied URL from `/authorize`
-          # into the guarded fetcher — a path that crosses generics, extension methods and DI
+          # into the guarded fetcher - a path that crosses generics, extension methods and DI
           # seams, which is exactly what resolved symbols are for. The SDK step was already needed,
           # so the cost is one build.
           - language: csharp
@@ -69,7 +69,7 @@ jobs:
           # third-party action here is pinned to a commit sha, one job holds `packages: write` with
           # a registry password, and another receives the OIDC token that mints a nuget.org
           # publishing key. The `actions` pack looks for the mistakes that surface in exactly that
-          # material — an untrusted context interpolated into a `run:` block, an over-broad
+          # material - an untrusted context interpolated into a `run:` block, an over-broad
           # permission, a mutable reference. This repository already argues at length that an
           # action is a dependency appearing in no lockfile; this is the scan that treats it as one.
           - language: actions
@@ -102,7 +102,7 @@ jobs:
           # `security-extended` rather than the default `security`, and rather than
           # `security-and-quality`. The default pack is tuned to keep false positives near zero for
           # a general audience; this is code that mints credentials, so a finding worth a look is
-          # worth more here than a clean tab. `security-and-quality` is the step too far — it adds
+          # worth more here than a clean tab. `security-and-quality` is the step too far - it adds
           # maintainability queries, and this repository already has an architecture suite and
           # warnings-as-errors doing that job with rules somebody chose.
           queries: security-extended
@@ -114,7 +114,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # Build, do not test. CodeQL wants the compilation, and the tests are `ci.yml`'s job — running
+      # Build, do not test. CodeQL wants the compilation, and the tests are `ci.yml`'s job - running
       # them here would double the slowest thing in the repository to produce a signal that already
       # exists, and would drag a PostgreSQL service into a job that has no use for one.
       #

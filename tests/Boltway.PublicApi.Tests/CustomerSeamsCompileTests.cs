@@ -14,7 +14,7 @@ namespace Boltway.PublicApi.Tests;
 /// A resource registry written the way a customer would have to write one.
 /// </summary>
 /// <remarks>
-/// The existence of this type is most of the point — it is in an assembly with no
+/// The existence of this type is most of the point - it is in an assembly with no
 /// <c>InternalsVisibleTo</c> grant, so it compiles only while every member it touches is genuinely
 /// public. The assertions below are secondary; the build is the test.
 /// </remarks>
@@ -120,7 +120,7 @@ public class CustomerSeamsCompileTests
     /// The shipped registry is reachable and usable without writing an interface at all.
     /// </summary>
     /// <remarks>
-    /// Opening the mint point made a custom registry possible. This is the other half — that the
+    /// Opening the mint point made a custom registry possible. This is the other half - that the
     /// ordinary deployment shape, a fixed list of MCP servers known at startup, needs configuration
     /// rather than an implementation.
     /// </remarks>
@@ -182,7 +182,7 @@ public class CustomerSeamsCompileTests
     /// </summary>
     /// <remarks>
     /// The control for the test above it. Without this, a registry whose <c>DefaultForAsync</c>
-    /// simply returned <see langword="null"/> unconditionally would satisfy the A-02 test — and
+    /// simply returned <see langword="null"/> unconditionally would satisfy the A-02 test - and
     /// would be a different, silently worse behaviour.
     /// </remarks>
     [Fact]
@@ -267,7 +267,7 @@ public class CustomerSeamsCompileTests
     /// </summary>
     /// <remarks>
     /// Dropping it silently would turn one typo back into the <c>invalid_target</c> the nomination
-    /// exists to remove — the same symptom, now with a configuration that looks correct. The
+    /// exists to remove - the same symptom, now with a configuration that looks correct. The
     /// message lists what <i>is</i> registered because the cause is nearly always a trailing slash
     /// or a wrong scheme, and the two strings side by side is the whole diagnosis.
     /// </remarks>
@@ -288,7 +288,7 @@ public class CustomerSeamsCompileTests
     /// </summary>
     /// <remarks>
     /// Ordering, and it is deliberate. Both are wrong here, and an operator told "you nominated an
-    /// unregistered resource" would go and fix the nomination — when the real fault is that the
+    /// unregistered resource" would go and fix the nomination - when the real fault is that the
     /// resource it names is <c>http</c> and never registered at all. The list comes first because
     /// fixing it makes the second error disappear on its own.
     /// </remarks>

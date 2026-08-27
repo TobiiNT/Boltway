@@ -9,7 +9,7 @@ namespace Boltway.AuthorizationServer.Metadata;
 /// </summary>
 /// <remarks>
 /// A pure function of <see cref="AuthorizationServerOptions"/>, and that is the whole design. The
-/// alternative — a document template with holes punched in it — is how a disabled feature keeps its
+/// alternative - a document template with holes punched in it - is how a disabled feature keeps its
 /// advertisement: nobody remembers that turning off introspection also has to delete two keys. Here
 /// a disabled feature has no value to write, so the key cannot survive it.
 /// </remarks>
@@ -20,7 +20,7 @@ public static class MetadataBuilder
     /// <para>
     /// OIDC Discovery §3 calls this list RECOMMENDED and notes it need not be exhaustive. It is
     /// held here rather than in configuration because it is a fact about what the token minter
-    /// writes, not a preference — a claim listed here that no code emits is a promise to an RP that
+    /// writes, not a preference - a claim listed here that no code emits is a promise to an RP that
     /// nothing keeps.
     /// </para>
     /// <para>
@@ -33,7 +33,7 @@ public static class MetadataBuilder
     /// to decide it need not call a directory would get nulls forever.
     /// </para>
     /// <para>
-    /// The first eight are what a maximal ID token carries — <c>openid</c> with a <c>nonce</c>, a
+    /// The first eight are what a maximal ID token carries - <c>openid</c> with a <c>nonce</c>, a
     /// <c>max_age</c> so <c>auth_time</c> applies, and an access token alongside so <c>at_hash</c>
     /// does. The rest are what <c>/userinfo</c> answers for a fully populated account asked with
     /// <c>email</c> granted.
@@ -41,7 +41,7 @@ public static class MetadataBuilder
     /// <para>
     /// <b>Both surfaces, because the field is about the provider and not about one endpoint.</b>
     /// OIDC Discovery §3 defines this as the claims the OP MAY supply values for, and after
-    /// <c>/userinfo</c> shipped the list stayed ID-token-only — so an RP reading it found no
+    /// <c>/userinfo</c> shipped the list stayed ID-token-only - so an RP reading it found no
     /// <c>email</c> and concluded this server could not supply one, while <c>/userinfo</c> sat there
     /// ready to answer. That is the same defect the paragraph above describes, in the direction that
     /// is harder to notice: the earlier one produced nulls an RP could see, this one produces a call
@@ -49,7 +49,7 @@ public static class MetadataBuilder
     /// </para>
     /// <para>
     /// <c>role</c> is not a claim any specification registers, and it belongs here for exactly that
-    /// reason — advertising a claim the OP can supply is what the field is for, and an RP that maps
+    /// reason - advertising a claim the OP can supply is what the field is for, and an RP that maps
     /// a directory onto its own permissions has no other way to discover it.
     /// <c>The_advertised_claims_are_exactly_what_the_two_token_surfaces_emit</c> measures both and
     /// compares the union in both directions, so this list cannot drift from either. Restore a name
@@ -84,7 +84,7 @@ public static class MetadataBuilder
 
         // Every endpoint URL is the issuer plus a constant. Concatenation rather than `new Uri(base,
         // relative)`: the Uri constructor resolves the relative reference, which would silently
-        // change "/token" against an issuer that ever grew a path — and it re-serializes the
+        // change "/token" against an issuer that ever grew a path - and it re-serializes the
         // authority, which is the normalization N-13 exists to keep away from the issuer string.
         string Url(string path) => issuer + path;
 
@@ -149,7 +149,7 @@ public static class MetadataBuilder
             SubjectTypesSupported = ["public"],
             // What this server issues, not what it accepts, and read off the same option TokenIssuer
             // mints with so the two cannot disagree. Filling this from the verifier allow-list
-            // advertised ES256 that TokenIssuer never mints — N-06 through a category error rather
+            // advertised ES256 that TokenIssuer never mints - N-06 through a category error rather
             // than through a stale list; a hand-maintained second list would be the same defect
             // waiting for somebody to make the issuing algorithm configurable, which it now is.
             IdTokenSigningAlgValuesSupported = [options.TokenSigningAlgorithm.ToJwaName()],

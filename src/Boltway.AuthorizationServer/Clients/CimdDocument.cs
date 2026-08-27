@@ -22,8 +22,8 @@ namespace Boltway.AuthorizationServer.Clients;
 /// </para>
 /// <para>
 /// <b>Shape is strict, content is not.</b> A member that is present with the wrong JSON type is a
-/// malformed document and is refused. A member whose <i>value</i> this server does not use — an
-/// unfamiliar entry in <c>grant_types</c>, say — is carried through untouched, because C-14: a
+/// malformed document and is refused. A member whose <i>value</i> this server does not use - an
+/// unfamiliar entry in <c>grant_types</c>, say - is carried through untouched, because C-14: a
 /// client declaring a grant this server has not enabled is not an error, it is a client that also
 /// works elsewhere. The request is where that gets checked, against this record.
 /// </para>
@@ -79,7 +79,7 @@ internal static class CimdDocument
 
         // §4: "the response is JSON and conforms to application/<AS-defined>+json". Parsed through
         // MediaType rather than compared as a string, because the two vendors do not agree on the
-        // spelling — claude.ai serves `application/json` and chatgpt.com serves
+        // spelling - claude.ai serves `application/json` and chatgpt.com serves
         // `application/json; charset=utf-8`, and an equality test accepts one and refuses the other.
         //
         // The cost of enforcing this at all is that a document served as text/plain is refused, and
@@ -129,12 +129,12 @@ internal static class CimdDocument
         // Without this check, anyone who can host a JSON file can publish a document claiming any
         // client_id, and the URL in the authorization request stops meaning anything. §4 requires
         // the match against "the URL that the authorization server used to fetch the document", and
-        // requires simple string comparison — so this is ordinal on the raw strings, and
+        // requires simple string comparison - so this is ordinal on the raw strings, and
         // https://example.com/c does not match https://example.com:443/c.
         //
         // It is also what closes the percent-encoding gap the §3 checks do not cover. Measured:
         // https://example.com/%63allback is fetched as https://example.com/callback, so the document
-        // that answers declares client_id `https://example.com/callback` — which is not the string
+        // that answers declares client_id `https://example.com/callback` - which is not the string
         // that was requested, and this comparison refuses it.
         if (!root.TryGetProperty("client_id", out var declared) || declared.ValueKind is not JsonValueKind.String)
         {
@@ -204,7 +204,7 @@ internal static class CimdDocument
         // §8.2: a client declaring private_key_jwt MUST be authenticated with the key discovered
         // from its metadata document. ClientRecord carries a jwks_uri and has nowhere to put an
         // inline key set, so a document that declares the method and publishes its keys inline
-        // cannot be authenticated by this server — and saying so is better than registering a
+        // cannot be authenticated by this server - and saying so is better than registering a
         // confidential client whose first token request fails for a reason nothing explains.
         if (method is ClientAuthMethod.PrivateKeyJwt && jwksUri is null)
         {
@@ -235,7 +235,7 @@ internal static class CimdDocument
             ClientId = ClientIdentifier.ForCimd(clientId.Value),
 
             // §8.2: publishing a public key and declaring private_key_jwt "establishes this client
-            // as a confidential client". Everything else here is public — there is no third option,
+            // as a confidential client". Everything else here is public - there is no third option,
             // because §4.1 has removed every way to share a symmetric secret.
             ClientType = method is ClientAuthMethod.PrivateKeyJwt ? ClientType.Confidential : ClientType.Public,
 
@@ -265,25 +265,25 @@ internal static class CimdDocument
     /// <remarks>
     /// <para>
     /// C-04. RFC 7591 defines <c>token_endpoint_auth_method</c>, a string. ChatGPT's live documents
-    /// also publish <c>token_endpoint_auth_methods_supported</c> — the plural array from RFC 8414,
+    /// also publish <c>token_endpoint_auth_methods_supported</c> - the plural array from RFC 8414,
     /// which is a <i>server</i> metadata field. Reading only the correct spelling means every
     /// ChatGPT document falls through to the default.
     /// </para>
     /// <para>
     /// And the default is the other half of C-04. RFC 7591 §2 says an absent
-    /// <c>token_endpoint_auth_method</c> means <c>client_secret_basic</c> — which §4.1 forbids
+    /// <c>token_endpoint_auth_method</c> means <c>client_secret_basic</c> - which §4.1 forbids
     /// outright, so an authorization server that applies RFC 7591's default literally refuses every
     /// document that omits the field. The default here is <c>none</c>.
     /// </para>
     /// <para>
     /// <b>Both members are read, and the document's offer is their union.</b> This was an
-    /// <c>if</c>/<c>else if</c> — the singular short-circuited the plural — which was correct for
+    /// <c>if</c>/<c>else if</c> - the singular short-circuited the plural - which was correct for
     /// every document captured on 2026-08-03, because no document carried both. On 2026-08-17
     /// <c>https://chatgpt.com/oauth/client.json</c> and <c>https://chatgpt.com/oauth/mcp/client.json</c>
     /// were measured carrying <i>both</i>: <c>"token_endpoint_auth_method":"private_key_jwt"</c>
     /// beside <c>"token_endpoint_auth_methods_supported":["none","private_key_jwt"]</c>. The
-    /// singular won, the plural — the half of the document offering the method this server actually
-    /// implements — was never read, and every ChatGPT connection resolved to a confidential client
+    /// singular won, the plural - the half of the document offering the method this server actually
+    /// implements - was never read, and every ChatGPT connection resolved to a confidential client
     /// whose token request this server then refused with <c>invalid_client</c>. Reading one member
     /// and skipping the other is how a document that offers two methods gets treated as offering
     /// the one we cannot complete.
@@ -293,14 +293,14 @@ internal static class CimdDocument
     /// not a rule from any specification: <see cref="ClientRecord"/> records one method, the token
     /// endpoint requires the client to use the method it registered, and <c>none</c> is the entry
     /// both vendors offer. Choosing <c>private_key_jwt</c> for a client that also offered
-    /// <c>none</c> would require an assertion it may not send — and, today, one this server has no
+    /// <c>none</c> would require an assertion it may not send - and, today, one this server has no
     /// implementation to verify. The client learns which was chosen the same way it always does:
     /// from <c>token_endpoint_auth_methods_supported</c> in this server's own metadata, which
     /// advertises <c>none</c> and does not advertise <c>private_key_jwt</c>.
     /// </para>
     /// <para>
     /// <b>Measured, where this used to say unverified.</b> The open question was whether ChatGPT
-    /// then presents a client assertion anyway — its document declares a preference this choice
+    /// then presents a client assertion anyway - its document declares a preference this choice
     /// overrides, and a client that sends one is refused by <c>ClientAuthentication.Public</c>,
     /// deliberately, since accepting an unverified credential is worse than refusing it. On
     /// 2026-08-17 a live ChatGPT connector linked to a deployment running this code: <c>/token</c>
@@ -347,7 +347,7 @@ internal static class CimdDocument
             }
         }
 
-        // §4.1 says the property "MUST NOT include" the symmetric methods. Include, not equal — so
+        // §4.1 says the property "MUST NOT include" the symmetric methods. Include, not equal - so
         // one symmetric entry invalidates the document even when a usable entry sits beside it, and
         // it does so wherever it appears. Running this over the union rather than over whichever
         // member was read first is the second half of the same bug: with the branches, a document
@@ -362,7 +362,7 @@ internal static class CimdDocument
             }
         }
 
-        // Neither member present. RFC 7591's own default is unusable here — see above.
+        // Neither member present. RFC 7591's own default is unusable here - see above.
         if (offered.Count is 0)
         {
             failure = null;
@@ -384,7 +384,7 @@ internal static class CimdDocument
         }
 
         // Nothing in the offer is a method this server knows. The first entry is named because it
-        // is the document's own first choice — the singular when there is one, and the head of the
+        // is the document's own first choice - the singular when there is one, and the head of the
         // array otherwise.
         failure = $"'{Echo(offered[0])}' is not a token endpoint authentication method this server supports.";
         return false;
@@ -447,7 +447,7 @@ internal static class CimdDocument
     /// §4.2: "This method of client information discovery establishes registered redirect URL(s)
     /// when the authorization server fetches the contents of the Client ID Metadata Document." So
     /// this is a registration, and it goes through <see cref="RegisteredRedirectUri.TryRegister"/>
-    /// like every other one — the same normalization, the same scheme rules, the same refusal of a
+    /// like every other one - the same normalization, the same scheme rules, the same refusal of a
     /// URI carrying a control character. There is deliberately no CIMD-specific redirect parser.
     /// </remarks>
     private static bool TryReadRedirectUris(
@@ -519,7 +519,7 @@ internal static class CimdDocument
     /// §8.1 leaves this to the authorization server and names what it is for: "the client attempts
     /// to impersonate a more well-known client". Without it, anyone can publish a document at their
     /// own URL declaring <c>client_name: "Claude"</c> and a redirect URI pointing at themselves, and
-    /// the consent page's only honest defence — showing the <c>client_id</c> host — is undermined
+    /// the consent page's only honest defence - showing the <c>client_id</c> host - is undermined
     /// the moment the code goes somewhere else.
     /// </para>
     /// <para>
@@ -532,7 +532,7 @@ internal static class CimdDocument
     /// </para>
     /// <para>
     /// Both sides of the comparison go through <see cref="AbsoluteHttpsUrl"/>, so the host is
-    /// punycode on both and the port is defaulted on both — which makes
+    /// punycode on both and the port is defaulted on both - which makes
     /// <c>https://claude.ai:443/cb</c> same-origin with <c>https://claude.ai/x</c>. That is correct
     /// for an <i>origin</i> test and is not the identity comparison: §3's simple string comparison
     /// still keeps those two <c>client_id</c> values apart.
@@ -627,7 +627,7 @@ internal static class CimdDocument
     /// <summary>Read a member that must be an absolute https URL when it is present at all.</summary>
     /// <remarks>
     /// §8.6 names <c>javascript:</c> in a metadata property as the hazard. The alternative to
-    /// refusing was to drop the member and continue, which for <c>logo_uri</c> would be defensible —
+    /// refusing was to drop the member and continue, which for <c>logo_uri</c> would be defensible -
     /// a logo is cosmetic. It is refused instead so that every member this class reads follows one
     /// rule, and so that an operator whose document is wrong is told rather than shown a consent page
     /// with a missing image and no explanation. The cost is real: a client whose logo is served over

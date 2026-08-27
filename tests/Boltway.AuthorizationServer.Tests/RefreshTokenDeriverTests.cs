@@ -10,7 +10,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// A mutation pass removed the derivation label's separators and the key-length floor and the whole
 /// suite stayed green, because nothing anywhere constructed one of these directly. The class is
 /// reached only through the token endpoint, where every input is a well-formed <c>Guid.ToString("N")</c>
-/// and every key comes from validated options — so the paths these tests take are exactly the ones
+/// and every key comes from validated options - so the paths these tests take are exactly the ones
 /// integration coverage cannot reach.
 /// </remarks>
 public sealed class RefreshTokenDeriverTests
@@ -23,7 +23,7 @@ public sealed class RefreshTokenDeriverTests
     {
         // The two NUL separators ARE the injectivity argument. Without them the label is one
         // unbroken run, so family "a1" generation 2 and family "a" generation 12 both build
-        // "boltway/refresha12" — one HMAC, one token, handed to two different families. That
+        // "boltway/refresha12" - one HMAC, one token, handed to two different families. That
         // is a live refresh token shared across accounts, not a hashing curiosity.
         //
         // And the collision needs no hostile input to be reachable: RefreshTokenRecord.FamilyId is
@@ -52,7 +52,7 @@ public sealed class RefreshTokenDeriverTests
     public void A_different_key_derives_a_different_token()
     {
         // The server key is the only thing stopping a CLIENT deriving its own successor and
-        // walking the chain without ever rotating — which is the property rotation exists to
+        // walking the chain without ever rotating - which is the property rotation exists to
         // create.
         var wire = new RefreshTokenDeriver(Key()).Derive("family-1", 1).Wire;
         var other = new RefreshTokenDeriver([.. Enumerable.Repeat((byte)0x2B, RefreshTokenDeriver.MinimumKeyBytes)])
@@ -68,7 +68,7 @@ public sealed class RefreshTokenDeriverTests
     public void A_key_below_the_hmac_block_security_level_is_refused(int keyBytes)
     {
         // A short key is a brute-force target that yields every refresh token this server will
-        // ever issue, for every tenant, past and future — the derivation is deterministic, so
+        // ever issue, for every tenant, past and future - the derivation is deterministic, so
         // recovering the key recovers the whole corpus rather than one credential. Options
         // validation checks the same floor, but that check runs only for a key that arrived
         // through options; this one is the type's own.
@@ -92,8 +92,8 @@ public sealed class RefreshTokenDeriverTests
         // The property the refresh grace window depends on across the rename. A row written before
         // the `ck_` prefix was retired holds the hash of the old spelling, and the grace path
         // reconstructs a successor and fails closed when the hashes disagree. That check is only
-        // safe to keep if the two spellings really are one credential — same key, same label, same
-        // material — with the prefix outside the MAC. If the material differed, accepting the
+        // safe to keep if the two spellings really are one credential - same key, same label, same
+        // material - with the prefix outside the MAC. If the material differed, accepting the
         // legacy form would be accepting a second, independently-derivable token.
         var deriver = new RefreshTokenDeriver(Key());
 

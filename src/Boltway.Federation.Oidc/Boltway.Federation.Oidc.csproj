@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <!--
-    For Microsoft.Extensions.DependencyInjection.Abstractions and nothing else — the registration
+    For Microsoft.Extensions.DependencyInjection.Abstractions and nothing else - the registration
     extension needs IServiceCollection. FrameworkReference rather than a PackageReference so the
     shared framework's own copy is used and there is no second one to disagree at a patch release.
     Nothing here touches ASP.NET Core itself; the architecture rule over System.Net.Http is what

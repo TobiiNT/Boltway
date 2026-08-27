@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Boltway.OAuth.Tokens.Tests;
 
 /// <summary>
-/// <see cref="SigningKeyRing.PublicVerificationKeys"/> — the halves a verifier needs and no more.
+/// <see cref="SigningKeyRing.PublicVerificationKeys"/> - the halves a verifier needs and no more.
 /// </summary>
 public sealed class PublicVerificationKeyTests
 {
@@ -15,7 +15,7 @@ public sealed class PublicVerificationKeyTests
     /// <remarks>
     /// Verification only touches the public half, so handing over the signing key would work and
     /// would put the private key on the request path of a bearer middleware. This is the object-graph
-    /// form of the assertion the JWKS body already gets — that it contains none of <c>d</c>,
+    /// form of the assertion the JWKS body already gets - that it contains none of <c>d</c>,
     /// <c>p</c>, <c>q</c>.
     /// </remarks>
     [Fact]
@@ -41,7 +41,7 @@ public sealed class PublicVerificationKeyTests
     /// </summary>
     /// <remarks>
     /// The verifier runs with <c>TryAllIssuerSigningKeys = false</c> and matches on the token's
-    /// <c>kid</c> header, so a copy that lost its identifier matches nothing — and the failure reads
+    /// <c>kid</c> header, so a copy that lost its identifier matches nothing - and the failure reads
     /// as "no security keys were provided", which sounds like a missing key rather than an unlabelled
     /// one.
     /// </remarks>
@@ -67,7 +67,7 @@ public sealed class PublicVerificationKeyTests
         Assert.NotSame(ring.PublicVerificationKeys(), ring.PublicVerificationKeys());
     }
 
-    /// <summary>A published pair: one active, one retiring — both belong in JWKS and both verify.</summary>
+    /// <summary>A published pair: one active, one retiring - both belong in JWKS and both verify.</summary>
     private static SigningKeyRing RingOfTwo()
     {
         var now = new DateTimeOffset(2026, 8, 10, 0, 0, 0, TimeSpan.Zero);
