@@ -16,7 +16,7 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
-## [0.4.0]
+## [0.4.0] — 2026-08-27
 
 ### Added
 
