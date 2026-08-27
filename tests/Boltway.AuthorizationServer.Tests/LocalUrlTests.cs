@@ -7,7 +7,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// The <c>returnUrl</c> gate, pinned before anything depends on it.
 /// </summary>
 /// <remarks>
-/// N-11 names <c>Url.IsLocalUrl</c>, which cannot be called from a minimal-API project — its
+/// N-11 names <c>Url.IsLocalUrl</c>, which cannot be called from a minimal-API project - its
 /// implementation is <c>internal</c> and the only public entry is MVC's <c>IUrlHelper</c>. So this
 /// is a re-implementation, and a re-implemented security predicate with no test matrix is worse
 /// than the dependency it avoided.
@@ -20,7 +20,7 @@ public sealed class LocalUrlTests
     /// scheme-relative URL; <c>/\host</c> is the same thing to every browser, all of which normalise
     /// a backslash to a slash; the control-character rows exploit the WHATWG URL parser stripping
     /// TAB, CR and LF <i>before</i> resolving, so the browser sees <c>//evil.example</c> where a
-    /// naive check saw a path. <c>~/</c> is the one the framework's own version accepts — it is MVC
+    /// naive check saw a path. <c>~/</c> is the one the framework's own version accepts - it is MVC
     /// content-root syntax, not a URL, and a browser resolves it relative to the current path.
     /// </remarks>
     [Theory]

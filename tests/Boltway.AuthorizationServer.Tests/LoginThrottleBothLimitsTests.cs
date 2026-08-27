@@ -20,7 +20,7 @@ public sealed partial class ThrottleResponseTests
     ///     : account.RetryAfter &gt; source.RetryAfter ? account.RetryAfter : source.RetryAfter;
     /// </code>
     /// <para>
-    /// Mutation testing marked the third line <c>NoCoverage</c> — every mutant of it, including
+    /// Mutation testing marked the third line <c>NoCoverage</c> - every mutant of it, including
     /// flipping <c>&gt;</c> to <c>&lt;</c>. No test had ever blocked both limiters at the same time.
     /// The existing pair covers one each: <c>Too_many_attempts_on_one_username</c> stays under the
     /// source budget, and <c>Too_many_attempts_from_one_source</c> spreads across usernames so no
@@ -28,7 +28,7 @@ public sealed partial class ThrottleResponseTests
     /// </para>
     /// <para>
     /// The comment on that line states the consequence: "a caller told to wait for the shorter one
-    /// comes back and is refused again by the other — which reads as a limiter that ignores its own
+    /// comes back and is refused again by the other - which reads as a limiter that ignores its own
     /// Retry-After". Picking the smaller is not a security hole; it is a client that retries into a
     /// wall it was told had come down.
     /// </para>
@@ -70,7 +70,7 @@ public sealed partial class ThrottleResponseTests
 
         // Retry-After is whole seconds and the header is written from a remaining duration, so the
         // value can be a tick under the configured backoff. The assertion is the choice between the
-        // two, which is what the mutants change — not the arithmetic of the countdown.
+        // two, which is what the mutants change - not the arithmetic of the countdown.
         var longer = Math.Max(accountSeconds, sourceSeconds);
         var shorter = Math.Min(accountSeconds, sourceSeconds);
 

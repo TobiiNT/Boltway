@@ -11,7 +11,7 @@ namespace Boltway.AuthorizationServer.Token;
 /// <para>
 /// This exists to make the grace window observable to the client it was built for. N-08's
 /// acceptance criterion is "two concurrent redemptions ⇒ one successor, <b>both callers get it</b>",
-/// and the store honours that — <c>ReplayedWithinGrace</c> hands back the successor record rather
+/// and the store honours that - <c>ReplayedWithinGrace</c> hands back the successor record rather
 /// than minting a second one. But only the successor's <i>hash</i> is stored, so a handler that
 /// generated the plaintext itself had nothing to return to the loser and answered
 /// <c>invalid_grant</c>.
@@ -26,7 +26,7 @@ namespace Boltway.AuthorizationServer.Token;
 /// <para>
 /// Deriving the plaintext deterministically from <c>(familyId, generation)</c> fixes it with no
 /// extra storage and no plaintext at rest: both racers compute the same value from the same record.
-/// The server key is what stops a <b>client</b> doing the same — a client that could derive its own
+/// The server key is what stops a <b>client</b> doing the same - a client that could derive its own
 /// successor could walk the chain without ever rotating, which is the property rotation exists to
 /// create.
 /// </para>
@@ -42,7 +42,7 @@ public sealed class RefreshTokenDeriver
     /// Create a deriver over a key.
     /// </summary>
     /// <param name="key">
-    /// The secret. Must be stable across restarts <b>and across instances</b> — a per-process key
+    /// The secret. Must be stable across restarts <b>and across instances</b> - a per-process key
     /// makes the grace window work only when both racers land on the same node, which is the subtle
     /// half-failure this class exists to remove. It belongs in a key manager alongside the signing
     /// keys, and it is equivalent in value to the whole refresh-token corpus.
@@ -67,7 +67,7 @@ public sealed class RefreshTokenDeriver
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <see cref="Encoding.UTF8"/> — the static property — replaces every ill-formed sequence with
+    /// <see cref="Encoding.UTF8"/> - the static property - replaces every ill-formed sequence with
     /// U+FFFD instead of failing. An adversarial review measured what that means here:
     /// <c>Derive("\uD800", 1)</c>, <c>Derive("\uDC00", 1)</c> and <c>Derive("�", 1)</c> all
     /// produced the <b>same token</b>, because all three encode to the same bytes. A collision in
@@ -81,7 +81,7 @@ public sealed class RefreshTokenDeriver
     /// </para>
     /// <para>
     /// Throwing is correct rather than harsh. A lone surrogate in a family id means the id did not
-    /// come from where this server thinks it comes from — <c>Guid.ToString("N")</c> — so it is a
+    /// come from where this server thinks it comes from - <c>Guid.ToString("N")</c> - so it is a
     /// corrupted or hostile store row, and a token minted from it is worth less than an exception.
     /// </para>
     /// </remarks>
@@ -99,12 +99,12 @@ public sealed class RefreshTokenDeriver
     /// <c>("a", …)</c> cannot collide by concatenation.
     /// </para>
     /// <para>
-    /// An earlier version of this remark credited that to the alphabets — "family ids are hex and
+    /// An earlier version of this remark credited that to the alphabets - "family ids are hex and
     /// generations are decimal, so a NUL is outside both". That reasoning is weaker than the
     /// property it defends, and a review that checked found the stronger one: the <i>generation</i>
     /// is NUL-free, so the last NUL always splits the two fields and the parse back is unambiguous
     /// no matter what the family id contains. Injectivity therefore does not depend on a caller
-    /// honouring the hex convention — which matters, because <c>RefreshTokenRecord.FamilyId</c> is
+    /// honouring the hex convention - which matters, because <c>RefreshTokenRecord.FamilyId</c> is
     /// an unconstrained <see langword="string"/> hydrated from a customer's database column.
     /// </para>
     /// </remarks>
@@ -120,7 +120,7 @@ public sealed class RefreshTokenDeriver
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The material is identical — the prefix sits outside the MAC — so this is the same token
+    /// The material is identical - the prefix sits outside the MAC - so this is the same token
     /// under its old name rather than a second credential. It exists for one branch: the grace
     /// window checks a reconstructed successor against the hash the store holds and fails closed
     /// when they differ, and a row written before the rename holds the hash of the old spelling.

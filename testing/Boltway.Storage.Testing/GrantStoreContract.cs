@@ -13,7 +13,7 @@ namespace Boltway.Storage.Testing;
 /// <remarks>
 /// <para>
 /// One suite, several fixtures. It is published as a package so a customer writing their own store
-/// runs the same tests — which is what makes "implement <c>IRefreshTokenStore</c>" a tractable
+/// runs the same tests - which is what makes "implement <c>IRefreshTokenStore</c>" a tractable
 /// request rather than an invitation to get a race subtly wrong.
 /// </para>
 /// <para>
@@ -56,7 +56,7 @@ public abstract class GrantStoreContract
     /// <remarks>
     /// Dedicated threads rather than <c>Task.Run</c>. A <see cref="Barrier"/> blocks the thread it
     /// runs on, so sixteen of them on the thread pool wait for the pool's slow injection heuristic
-    /// to grow — measured at thirteen seconds for one test, and a deadlock rather than a delay on a
+    /// to grow - measured at thirteen seconds for one test, and a deadlock rather than a delay on a
     /// machine with fewer cores. The property under test is the store's atomicity, so the threads
     /// have to genuinely collide; anything that quietly serialises them would pass against a store
     /// with no atomicity at all.
@@ -95,13 +95,13 @@ public abstract class GrantStoreContract
         }
 
         // Rethrow on the joining thread. An unhandled exception on a raw Thread TERMINATES the
-        // process — measured, exit code 134 — so a store that throws (which is now the correct
+        // process - measured, exit code 134 - so a store that throws (which is now the correct
         // response to a duplicate insert) would crash the test host instead of failing a test.
         //
         // ALL of them, not the first. This loop used to throw on the first non-null entry, and that
         // cost a diagnosis: an intermittent SQLite failure reported one worker's exception and
         // silently dropped whatever the other fifteen said, so "did one thread fail or did all of
-        // them" — the question that separates a poisoned connection from a lock everybody lost —
+        // them" - the question that separates a poisoned connection from a lock everybody lost -
         // was not answerable from the output. The count is in the message for the same reason.
         var thrown = failures.Where(f => f is not null).Select(f => f!).ToList();
 
@@ -131,7 +131,7 @@ public abstract class GrantStoreContract
     public async Task A_redeemed_code_is_retained_not_deleted()
     {
         // The row has to survive redemption, or a replay cannot be validated in full before
-        // anything is revoked — and "revoke on the second presentation" is a denial of service an
+        // anything is revoked - and "revoke on the second presentation" is a denial of service an
         // attacker with a sniffed code and no verifier can trigger at will.
         var now = DateTimeOffset.UtcNow;
         var store = NewCodeStore();
@@ -159,7 +159,7 @@ public abstract class GrantStoreContract
         var now = DateTimeOffset.UtcNow;
 
         // Repeated, because a race is a probabilistic detector. Measured against a deliberately
-        // non-atomic store, a single two-thread attempt caught the defect only sometimes — two of
+        // non-atomic store, a single two-thread attempt caught the defect only sometimes - two of
         // the three concurrency tests here passed against it on the first run. Fifty attempts turn
         // "might collide" into "does collide", and the cost is milliseconds.
         for (var attempt = 0; attempt < 50; attempt++)
@@ -183,7 +183,7 @@ public abstract class GrantStoreContract
     /// where the interesting failure is: a store that answers <see
     /// cref="CodeRedemption.ReplayedOutsideGrace"/> to every double-submit satisfies
     /// <c>Assert.Single</c> perfectly. That answer is the one the caller revokes the grant on, so
-    /// such a store kills a grant on every unforced double-submit — which is precisely the bug the
+    /// such a store kills a grant on every unforced double-submit - which is precisely the bug the
     /// four-case <see cref="CodeRedemption"/> was introduced to replace, passing the suite that was
     /// meant to catch it.
     /// </remarks>
@@ -241,7 +241,7 @@ public abstract class GrantStoreContract
         // Nothing in this suite asserted that ReplayedWithinGrace is EVER returned. The
         // consequence is not a coverage number: a store that answers ReplayedOutsideGrace to
         // every second presentation passed all of it, and that store revokes the grant on every
-        // double-submit — a lost response, a proxy retry, a double-click. Measured before the
+        // double-submit - a lost response, a proxy retry, a double-click. Measured before the
         // four-case result existed, when redemption answered a bare bool: fifty unforced
         // double-submits revoked the winner's grant fifty times, and the client saw an
         // authorization that succeeded and was dead on its next call.
@@ -277,8 +277,8 @@ public abstract class GrantStoreContract
     {
         // The window is measured from the redemption, not from the most recent presentation. If a
         // replay re-stamped RedeemedAt, anyone presenting the code more often than the window is
-        // wide would hold it open indefinitely, and ReplayedOutsideGrace — the answer that
-        // revokes — would never be reached at all. It is the same shape as walking a refresh
+        // wide would hold it open indefinitely, and ReplayedOutsideGrace - the answer that
+        // revokes - would never be reached at all. It is the same shape as walking a refresh
         // chain: every hop lands inside a window the previous hop just refreshed.
         var now = DateTimeOffset.UtcNow;
         var store = NewCodeStore();
@@ -309,7 +309,7 @@ public abstract class GrantStoreContract
         // caller's and this server runs as several instances, so an instance with a fast clock
         // stamps RedeemedAt ahead of everyone else's present. Every subsequent presentation then
         // has a NEGATIVE elapsed, and without a lower bound a negative of any size is "inside the
-        // window" — so a genuine replay reads as a transport retry for as long as the clocks
+        // window" - so a genuine replay reads as a transport retry for as long as the clocks
         // disagree, and the one case §4.1.3 asks to be revoked never is.
         var now = DateTimeOffset.UtcNow;
         var store = NewCodeStore();
@@ -354,8 +354,8 @@ public abstract class GrantStoreContract
     [Fact]
     public async Task Two_concurrent_redemptions_produce_one_successor_and_both_callers_get_it()
     {
-        // The CVE class this contract exists for. Claude refreshes both proactively — up to five
-        // minutes before expiry — and reactively on a 401, so these genuinely race in normal
+        // The CVE class this contract exists for. Claude refreshes both proactively - up to five
+        // minutes before expiry - and reactively on a 401, so these genuinely race in normal
         // operation. If both mint a successor the family FORKS, and after a fork there is no single
         // chain against which a replay is anomalous: reuse detection is dead from that point on,
         // silently.
@@ -472,7 +472,7 @@ public abstract class GrantStoreContract
     /// <summary>The browser a grant was approved from survives a round trip.</summary>
     /// <remarks>
     /// A column a store forgets to map is invisible until somebody opens the sessions page and every
-    /// row says nothing — which reads as "no device was recorded" rather than as a mapping bug.
+    /// row says nothing - which reads as "no device was recorded" rather than as a mapping bug.
     /// </remarks>
     [Fact]
     public async Task A_grant_remembers_the_browser_it_was_approved_from()
@@ -490,7 +490,7 @@ public abstract class GrantStoreContract
     /// <summary>A grant with no device comes back with none, not with an empty string.</summary>
     /// <remarks>
     /// Every grant created before the column existed is in this state, and no store may invent a
-    /// value for them — the page distinguishes "nothing recorded" from "recorded as blank", and only
+    /// value for them - the page distinguishes "nothing recorded" from "recorded as blank", and only
     /// one of those renders as nothing.
     /// </remarks>
     [Fact]
@@ -564,8 +564,8 @@ public abstract class GrantStoreContract
     /// A consumed token still counts, because in a live family every token but one is consumed.
     /// </summary>
     /// <remarks>
-    /// The regression this pins: filtering to unconsumed rows looks obviously right — those are the
-    /// tokens that still work — and reports the wrong moment for every session that has ever
+    /// The regression this pins: filtering to unconsumed rows looks obviously right - those are the
+    /// tokens that still work - and reports the wrong moment for every session that has ever
     /// rotated, which is every session older than one access-token lifetime.
     /// </remarks>
     [Fact]
@@ -582,7 +582,7 @@ public abstract class GrantStoreContract
 
         var latest = await store.LastIssuedForGrantsAsync(["grant-1"], CancellationToken.None);
 
-        // The successor's moment, which is when the grant last minted — not the consumed parent's.
+        // The successor's moment, which is when the grant last minted - not the consumed parent's.
         Assert.Equal(now.AddMinutes(25), Assert.Contains("grant-1", latest));
     }
 
@@ -688,7 +688,7 @@ public abstract class GrantStoreContract
         // The highest-severity defect found in this layer. Checking only that the successor EXISTS
         // let an attacker walk the whole chain: a stolen rt0 replayed after a legitimate burst
         // returned rt1, whose own consumption was more recent, so the next hop was also inside the
-        // window — and so on to the live head, with ReuseDetected never raised. Measured over 200
+        // window - and so on to the live head, with ReuseDetected never raised. Measured over 200
         // rounds of a client refreshing every 30s against an attacker polling 20s behind: zero
         // detections, both parties holding the same token.
         var now = DateTimeOffset.UtcNow;
@@ -751,7 +751,7 @@ public abstract class GrantStoreContract
     {
         // The test that kills a store which DELETES rows on revocation. Such a store passed all
         // eight refresh assertions here before this was added, while having destroyed reuse
-        // detection permanently — and this suite is shipped as the thing that makes "write your own
+        // detection permanently - and this suite is shipped as the thing that makes "write your own
         // store" tractable, so its blind spots become customers' blind spots.
         var now = DateTimeOffset.UtcNow;
         var store = NewRefreshStore();
@@ -781,7 +781,7 @@ public abstract class GrantStoreContract
     public async Task A_consumption_stamped_in_the_future_does_not_widen_the_window()
     {
         // `now` is caller-supplied and the server runs several instances, so a fast clock on one of
-        // them stamped a ConsumedAt in the future — measured, a 45-second window became sixty
+        // them stamped a ConsumedAt in the future - measured, a 45-second window became sixty
         // minutes. A negative age of any size used to pass.
         var now = DateTimeOffset.UtcNow;
         var store = NewRefreshStore();
@@ -836,13 +836,13 @@ public abstract class GrantStoreContract
     }
 
     /// <summary>
-    /// N-07: an expired but unredeemed code still redeems — expiry is the caller's check, after <c>FindAsync</c>.
+    /// N-07: an expired but unredeemed code still redeems - expiry is the caller's check, after <c>FindAsync</c>.
     /// </summary>
     [Fact]
     public async Task An_expired_but_unredeemed_code_still_redeems_and_that_is_deliberate()
     {
         // Pinned so nobody "fixes" it. TryRedeemAsync returning false means "a fully valid replay",
-        // which is the one case that revokes the grant — so folding expiry in here would send an
+        // which is the one case that revokes the grant - so folding expiry in here would send an
         // expired code down the revocation path, which is precisely the denial of service N-07
         // exists to prevent. Expiry is the caller's check, after FindAsync.
         var now = DateTimeOffset.UtcNow;
@@ -853,10 +853,10 @@ public abstract class GrantStoreContract
         Assert.IsType<CodeRedemption.Redeemed>(await store.RedeemAsync(code.CodeHash, now, CodeGrace, CancellationToken.None));
     }
 
-    /// <summary>N-08: the last second of the grace window is inside it — 45 is a retry, 46 is reuse.</summary>
+    /// <summary>N-08: the last second of the grace window is inside it - 45 is a retry, 46 is reuse.</summary>
     [Theory]
     [InlineData(44, true)]   // inside
-    [InlineData(45, true)]   // exactly at the boundary — inclusive
+    [InlineData(45, true)]   // exactly at the boundary - inclusive
     [InlineData(46, false)]  // outside
     public async Task The_grace_boundary_is_inclusive(int elapsedSeconds, bool expectGrace)
     {
@@ -889,9 +889,9 @@ public abstract class GrantStoreContract
     [Fact]
     public async Task Revoking_a_family_counts_only_the_tokens_it_actually_killed()
     {
-        // RevokeFamilyAsync's return value is documented — "how many tokens THIS call transitioned
+        // RevokeFamilyAsync's return value is documented - "how many tokens THIS call transitioned
         // … counting every row in the family, consumed and expired ones included, gives a number no
-        // caller can act on" — and nothing asserted it. A store that returned the family's whole row
+        // caller can act on" - and nothing asserted it. A store that returned the family's whole row
         // count passed every test in this file, and that number is one an operator alerts on: after
         // ten rotations, revoking a family on reuse detection would report eleven tokens killed when
         // exactly one was live.
@@ -926,8 +926,8 @@ public abstract class GrantStoreContract
         // Where the two plausible relational schemas disagree, so it is pinned rather than left to
         // whichever one an implementer reaches for.
         //
-        // Revocation as a property of the FAMILY — one row in a families table, which is the shape
-        // the in-memory store's separate _revokedFamilies dictionary already has — covers a token
+        // Revocation as a property of the FAMILY - one row in a families table, which is the shape
+        // the in-memory store's separate _revokedFamilies dictionary already has - covers a token
         // that arrives afterwards. Revocation as a `revoked_at` stamped on each token row by an
         // UPDATE does not: that UPDATE ran before this row existed, so the row is live and the
         // family the server believed it had killed can still mint tokens.
@@ -1014,16 +1014,16 @@ public abstract class GrantStoreContract
 
             Assert.False(deleted && stillThere, "the sweeper reported a deletion that did not stick");
 
-            // The converse, which was missing — and it was the half that failed. The assertion
+            // The converse, which was missing - and it was the half that failed. The assertion
             // above is satisfied by the interleaving where the redemption reports Redeemed and the
             // sweeper then removes the row it just wrote: deleted=true, stillThere=false, and
             // nothing complains. Measured against the sweeper as it stood before this branch, over
-            // three runs of 200 attempts: 189, 197 and 183. Not an unlucky interleaving — the
+            // three runs of 200 attempts: 189, 197 and 183. Not an unlucky interleaving - the
             // common one.
             //
             // It is N-07 undone one call later. A redemption that reported success and left no row
             // is a code the store has no memory of, and RedeemAsync's answer for a hash it has
-            // never seen is ReplayedOutsideGrace — the one answer a caller revokes the grant on.
+            // never seen is ReplayedOutsideGrace - the one answer a caller revokes the grant on.
             Assert.False(redeemed && !stillThere, "a redemption reported success on a row that is now gone");
         }
     }
@@ -1036,7 +1036,7 @@ public abstract class GrantStoreContract
     {
         // The defect above stated without the race, because it does not need one. A code lives
         // about a minute and is redeemed whenever the user finishes consenting, so redemption in
-        // the last seconds of that minute is ordinary — and the retry window starts at redemption,
+        // the last seconds of that minute is ordinary - and the retry window starts at redemption,
         // not at issue, so it routinely outlives the code. A sweeper that deletes on expiry alone
         // removes the row while the window it exists for is still open.
         var now = DateTimeOffset.UtcNow;
@@ -1059,7 +1059,7 @@ public abstract class GrantStoreContract
     // ------------------------------------------------------------------ grants
 
     /// <summary>
-    /// Revoking a grant puts it on the denylist once — a second revoke is not a second event — and the record
+    /// Revoking a grant puts it on the denylist once - a second revoke is not a second event - and the record
     /// stays findable and inactive.
     /// </summary>
     [Fact]
@@ -1092,8 +1092,8 @@ public abstract class GrantStoreContract
     [Fact]
     public async Task Revoking_by_subject_takes_that_subject_and_leaves_everyone_else()
     {
-        // E-30's whole mechanism. The link from a person to their sessions runs through the grant —
-        // refresh rows carry a grant id and grants carry the subject — so revoking by subject is
+        // E-30's whole mechanism. The link from a person to their sessions runs through the grant -
+        // refresh rows carry a grant id and grants carry the subject - so revoking by subject is
         // what "sign this person out of everything" is made of.
         var now = DateTimeOffset.UtcNow;
         var store = NewGrantStore();
@@ -1133,7 +1133,7 @@ public abstract class GrantStoreContract
     public async Task Revoking_by_subject_twice_reports_nothing_the_second_time()
     {
         // An operator runs this twice to be sure. The second answer has to be zero, or the log
-        // says four sessions ended when two did — and the count is the only thing distinguishing
+        // says four sessions ended when two did - and the count is the only thing distinguishing
         // "there was nothing live" from "it worked".
         var now = DateTimeOffset.UtcNow;
         var store = NewGrantStore();
@@ -1154,7 +1154,7 @@ public abstract class GrantStoreContract
     public async Task Revoking_by_a_subject_with_no_grants_is_zero_rather_than_an_error()
     {
         // Anonymising an account that never authorized anything is an ordinary case, and it must
-        // not be a failure — the operation would then be refused for the accounts it is safest on.
+        // not be a failure - the operation would then be refused for the accounts it is safest on.
         var store = NewGrantStore();
 
         Assert.Equal(
@@ -1166,7 +1166,7 @@ public abstract class GrantStoreContract
     }
 
     /// <summary>
-    /// E-35: the listing carries one subject's live grants — a revoked one is gone from it, another subject's
+    /// E-35: the listing carries one subject's live grants - a revoked one is gone from it, another subject's
     /// never in it.
     /// </summary>
     [Fact]
@@ -1174,7 +1174,7 @@ public abstract class GrantStoreContract
     {
         // E-35. The read half of RevokeAllForSubjectAsync, and the two properties that make it
         // usable as a session list: it is scoped to one subject, and a revoked grant is gone from
-        // it. Rows are never deleted on revocation — that is the refresh-replay rule — so without
+        // it. Rows are never deleted on revocation - that is the refresh-replay rule - so without
         // the second property this list grows for the life of the account with entries whose only
         // honest rendering is "ended".
         var now = DateTimeOffset.UtcNow;
@@ -1202,7 +1202,7 @@ public abstract class GrantStoreContract
             ["alice-1", "alice-2"],
             listed.Select(g => g.GrantId).OrderBy(id => id, StringComparer.Ordinal));
 
-        // Bob's is untouched and unlisted. The whole surface this feeds — /account/sessions — is
+        // Bob's is untouched and unlisted. The whole surface this feeds - /account/sessions - is
         // one where returning a stranger's row is the defect.
         Assert.Equal(
             ["bob-1"],
@@ -1214,7 +1214,7 @@ public abstract class GrantStoreContract
     /// </summary>
     /// <remarks>
     /// <b>Every clause here is one an implementation can plausibly get wrong.</b> Filtering revoked
-    /// rows out is the natural thing to write, because every other read of this table does it — and
+    /// rows out is the natural thing to write, because every other read of this table does it - and
     /// it is the one that turns somebody's own laptop into a security alert the first time they sign
     /// out of everything. Distinctness, the empty-header exclusion and the subject boundary are the
     /// rest of the contract; a backend passing three of the four sends mail nobody can act on.

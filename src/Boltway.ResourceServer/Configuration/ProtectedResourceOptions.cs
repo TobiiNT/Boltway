@@ -22,7 +22,7 @@ namespace Boltway.ResourceServer.Configuration;
 public sealed class ProtectedResourceOptions
 {
     /// <summary>
-    /// This resource's identifier — the value that appears in an access token's <c>aud</c>.
+    /// This resource's identifier - the value that appears in an access token's <c>aud</c>.
     /// </summary>
     /// <remarks>
     /// An <c>https</c> URL, path included (A-22). No proprietary namespace and no separate
@@ -47,7 +47,7 @@ public sealed class ProtectedResourceOptions
     /// <para>
     /// There is deliberately no way to list a second authorization server. RFC 9728 permits an
     /// array and Claude reads only the first entry (C-27), so a second entry would be advertised
-    /// to clients while <c>ForAccessToken</c> — which pins exactly one <c>ValidIssuer</c> — went on
+    /// to clients while <c>ForAccessToken</c> - which pins exactly one <c>ValidIssuer</c> - went on
     /// rejecting its tokens. Advertising an authorization server whose tokens this server refuses
     /// is a worse failure than not supporting multiple issuers, because it presents as a
     /// successful sign-in followed by a permanent 401.
@@ -62,7 +62,7 @@ public sealed class ProtectedResourceOptions
     /// Read when a <c>401</c> challenge carries no <c>scope</c> parameter: the MCP scope-selection
     /// strategy says to use the <c>scope</c> from the challenge if present, and otherwise every
     /// scope in <c>scopes_supported</c>. Empty means the list is omitted from the document
-    /// entirely, and a client then requests no scope at all — which is the correct behaviour for a
+    /// entirely, and a client then requests no scope at all - which is the correct behaviour for a
     /// resource with no scopes and a silent under-authorization for one that has them but did not
     /// say so.
     /// <para>
@@ -105,7 +105,7 @@ public sealed class ProtectedResourceOptions
     /// <para>
     /// A request that matched <b>no</b> endpoint is never challenged, whatever this is set to. A
     /// 401 on an unrouted path would turn every stray probe into an authentication prompt, and it
-    /// would do so on exactly the paths a client probes during discovery — so the fail-closed
+    /// would do so on exactly the paths a client probes during discovery - so the fail-closed
     /// posture would be paid for in the one place where a clean 404 is what lets a client move on
     /// to its next probe.
     /// </para>
@@ -119,7 +119,7 @@ public sealed class ProtectedResourceOptions
     /// <para>
     /// Supplied by the host rather than fetched here. Fetching them means an outbound HTTP client
     /// with SSRF hardening, a clamped-TTL cache and a circuit breaker, all of which live in
-    /// <c>Boltway.OAuth.Net</c> — so a JWKS-backed source belongs there, and
+    /// <c>Boltway.OAuth.Net</c> - so a JWKS-backed source belongs there, and
     /// <c>Boltway.OAuth.Net.JwksKeySource</c> is it. Assign its <c>CurrentKeys</c> to
     /// <see cref="SigningKeySource"/> below rather than filling this list, unless the keys are
     /// already in this process (an authorization server hosting its own protected resource points
@@ -140,11 +140,11 @@ public sealed class ProtectedResourceOptions
     /// <remarks>
     /// <para>
     /// <b><see cref="SigningKeys"/> is a mutable list that requests read while something else
-    /// writes it, and this is the way out.</b> Anything keeping it current — a JWKS refresher, a key
-    /// ring in the same process — has to call <c>Add</c> and <c>Remove</c> on the very instance the
+    /// writes it, and this is the way out.</b> Anything keeping it current - a JWKS refresher, a key
+    /// ring in the same process - has to call <c>Add</c> and <c>Remove</c> on the very instance the
     /// validator hands to <c>Rfc9068ValidationParameters</c>. Measured: nothing synchronises the two.
     /// A rotation is therefore a structural modification of a <c>List&lt;T&gt;</c> during
-    /// enumeration, and the failure it produces is a rejected token that was perfectly good — on the
+    /// enumeration, and the failure it produces is a rejected token that was perfectly good - on the
     /// day a key rotates, which is the day nobody is looking at the resource server.
     /// </para>
     /// <para>
@@ -154,7 +154,7 @@ public sealed class ProtectedResourceOptions
     /// </para>
     /// <para>
     /// <b>An authorization server hosting its own protected resource points this at its key ring</b>
-    /// — the public halves, <c>SigningKeyRing.PublicVerificationKeys()</c> — rather than fetching
+    /// - the public halves, <c>SigningKeyRing.PublicVerificationKeys()</c> - rather than fetching
     /// its own JWKS over its own edge, which would make startup depend on the component most likely
     /// to be broken when it matters.
     /// </para>

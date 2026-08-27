@@ -21,21 +21,21 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// "the connector does not work" with nothing in a log to say why. Three are worth naming.
 /// </para>
 /// <para>
-/// A global authorization fallback policy returns <c>401</c> from the discovery documents — a
+/// A global authorization fallback policy returns <c>401</c> from the discovery documents - a
 /// documented and repeatedly observed real-world connector failure, hence <c>AllowAnonymous</c> on
 /// every route below rather than a note in a readme.
 /// </para>
 /// <para>
 /// A SPA fallback turns an unmatched <c>/.well-known/*</c> into <c>200 text/html</c>. MCP clients
 /// probe several URLs in sequence and move on at a <c>404</c>, so an HTML 200 does not degrade
-/// gracefully — it ends discovery with a parse error. Two catch-alls below claim both shapes of
+/// gracefully - it ends discovery with a parse error. Two catch-alls below claim both shapes of
 /// well-known path so no later fallback can.
 /// </para>
 /// <para>
 /// CORS headers are written by the results rather than by <c>RequireCors</c>, and that is a fix
 /// rather than a style. <c>RequireCors</c> attaches metadata that the CORS <i>middleware</i> acts
 /// on, and a host that never calls <c>UseCors()</c> gets
-/// <c>"contains CORS metadata, but a middleware was not found"</c> — a <b>500 on every discovery
+/// <c>"contains CORS metadata, but a middleware was not found"</c> - a <b>500 on every discovery
 /// document</b>, while the 404 catch-all keeps working. Measured, and invisible to a test fixture
 /// that happens to call <c>UseCors()</c>. Writing the one header the documents need removes the
 /// dependency: these are simple cross-origin GETs, so no preflight is involved.
@@ -71,14 +71,14 @@ public static class DiscoveryEndpoints
         // RFC 8414 §3.1 *inserts* the well-known segment before an issuer path
         // (/.well-known/oauth-authorization-server/tenant1), while OIDC Discovery §4.1 *appends* it
         // after (/tenant1/.well-known/openid-configuration). The two need two routes, and only the
-        // insertion form was covered at first — so the appending form fell through to whatever the
+        // insertion form was covered at first - so the appending form fell through to whatever the
         // host had, which in a SPA is 200 text/html. Measured against a realistic fixture before
         // this second route existed.
         //
         // Both answer 404 because this server requires a path-less issuer, so no issuer exists for
-        // which either URL is correct. Serving the document there would break RFC 8414 §3.3 — "the
+        // which either URL is correct. Serving the document there would break RFC 8414 §3.3 - "the
         // issuer value returned MUST be identical to the [issuer] into which the well-known URI
-        // string was inserted" — and a conforming client is then required to reject what it just
+        // string was inserted" - and a conforming client is then required to reject what it just
         // fetched. A 404 lets it try the next probe instead of failing on a document it must not
         // trust.
         foreach (var (template, name) in NotFoundRoutes)
@@ -99,7 +99,7 @@ public static class DiscoveryEndpoints
     /// </summary>
     /// <remarks>
     /// The appended forms are enumerated by depth because a route template cannot hold a catch-all
-    /// anywhere but the end — <c>{**prefix}/.well-known/{**rest}</c> is not expressible. One and two
+    /// anywhere but the end - <c>{**prefix}/.well-known/{**rest}</c> is not expressible. One and two
     /// segments is the whole reachable set: this server refuses a path-bearing issuer at startup, so
     /// its own metadata can never point a client at a deeper one, and the shapes covered here are
     /// the ones a customer or a gateway constructs by hand. A three-segment prefix would fall
@@ -120,7 +120,7 @@ public static class DiscoveryEndpoints
     /// <para>
     /// <c>HEAD</c> is declared explicitly rather than left to the framework's fallback, and the
     /// reason is measured. ASP.NET Core routes a HEAD request to a GET endpoint only when
-    /// <i>nothing</i> handles HEAD — and the <c>/.well-known/{**rest}</c> catch-all does, so it won
+    /// <i>nothing</i> handles HEAD - and the <c>/.well-known/{**rest}</c> catch-all does, so it won
     /// every HEAD probe and answered 404. The guard against one discovery failure had created
     /// another, and only a HEAD request against a running server could show it.
     /// </para>
@@ -129,7 +129,7 @@ public static class DiscoveryEndpoints
     /// belt and braces and is in fact a bug: a route template treats a trailing slash as
     /// insignificant, so <c>".../openid-configuration"</c> and <c>".../openid-configuration/"</c>
     /// are the same template, and mapping both makes every request to either an
-    /// <c>AmbiguousMatchException</c> — a 500 on the first request any client makes. Measured, and
+    /// <c>AmbiguousMatchException</c> - a 500 on the first request any client makes. Measured, and
     /// one test asserts the slash variant still resolves.
     /// </para>
     /// </remarks>
@@ -164,7 +164,7 @@ public static class DiscoveryEndpoints
     /// Claude caches discovery globally by URL with roughly a five-minute staleness window, so this
     /// matches the behaviour rather than fighting it. The consequence worth knowing: a metadata
     /// change takes about five minutes to propagate, and a transient discovery failure inside that
-    /// window does not break live connections — so a failure observed there is usually not the one
+    /// window does not break live connections - so a failure observed there is usually not the one
     /// being chased.
     /// </remarks>
     private const int MaxAgeSeconds = 300;
@@ -177,7 +177,7 @@ internal static class DiscoveryHeaders
     /// Allow any origin to read the response.
     /// </summary>
     /// <remarks>
-    /// Written directly rather than through the CORS middleware — see the remarks on
+    /// Written directly rather than through the CORS middleware - see the remarks on
     /// <see cref="DiscoveryEndpoints"/>. Skipped when something already set it: a host running a
     /// global CORS policy would otherwise produce the header twice, and two
     /// <c>Access-Control-Allow-Origin</c> values is a CORS failure in every browser, so "helpfully"
@@ -233,7 +233,7 @@ internal sealed class CachedJsonResult(ImmutableArray<byte> json, string etag, i
     /// <remarks>
     /// The header is a comma-separated <i>list</i>, and it may arrive either as several header
     /// lines or as one line carrying several tags. Comparing each whole header value against the
-    /// tag handles the first and silently fails the second — a client sending
+    /// tag handles the first and silently fails the second - a client sending
     /// <c>If-None-Match: "a", "b"</c> would be answered 200 with a full body every time.
     /// Splitting covers both spellings.
     /// </remarks>

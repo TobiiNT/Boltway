@@ -7,12 +7,12 @@
 # only the second is worth anything. Every step prints the status line and the headers that carry
 # the protocol, so the transcript shows the handshake rather than a summary of it.
 #
-# Start both hosts first — see samples/README.md.
+# Start both hosts first - see samples/README.md.
 #
 #   ./samples/drive-flow.sh
 #
-# Needs `curl` and `python3`, and nothing else. Every piece of parsing here is a python3 one-liner —
-# URL encoding, query strings, the antiforgery field, the JWT halves, the JSON summaries — because
+# Needs `curl` and `python3`, and nothing else. Every piece of parsing here is a python3 one-liner -
+# URL encoding, query strings, the antiforgery field, the JWT halves, the JSON summaries - because
 # `jq` is not installed everywhere and python3 is the one thing already present on every machine
 # that can build this repository.
 #
@@ -28,7 +28,7 @@ set -euo pipefail
 # server bakes its into the issuer and the demo client's `client_id`, and the resource server bakes
 # its into the resource that every token's `aud` is compared against. Neither project's
 # launchSettings.json carries an `applicationUrl` to move either. So `AS=… ./drive-flow.sh` moved
-# only where this script *looked*, and the failure was a connection refused at step 1 — or, worse,
+# only where this script *looked*, and the failure was a connection refused at step 1 - or, worse,
 # nothing at all until step 12 rejected a token whose audience no longer matched.
 #
 # Moving them for real is an edit to samples/Boltway.Sample.AuthorizationServer/Program.cs and
@@ -56,7 +56,7 @@ for k, v in json.load(sys.stdin).items():
     print(f"{k}: {v[:34] + chr(8230) if isinstance(v, str) and len(v) > 34 else v}")'; }
 
 # The antiforgery field the interaction pages render. Its name is ASP.NET Core's to choose, so it
-# is read out of the form rather than assumed — the first hidden input that is not returnUrl.
+# is read out of the form rather than assumed - the first hidden input that is not returnUrl.
 antiforgery() { python3 -c '
 import re,sys
 for m in re.finditer(r"<input type=\"hidden\" name=\"([^\"]+)\" value=\"([^\"]*)\"", sys.stdin.read()):

@@ -4,7 +4,7 @@ namespace Boltway.AdminBff;
 /// <remarks>
 /// On the page rather than inferred from its title, because the title is prose a deployment
 /// translates and this is a thing a layout branches on. It is also what the navigation is derived
-/// from — see <see cref="IAdminLayout"/>.
+/// from - see <see cref="IAdminLayout"/>.
 /// </remarks>
 public enum AdminPageKind
 {
@@ -28,7 +28,7 @@ public enum AdminPageKind
     /// </summary>
     /// <remarks>
     /// The one page here that renders a live credential. A layout that adds anything which leaves
-    /// the origin — an analytics beacon, a font from a CDN, a form posting elsewhere — must not add
+    /// the origin - an analytics beacon, a font from a CDN, a form posting elsewhere - must not add
     /// it to this page, and the CSP is what stops it rather than this remark.
     /// </remarks>
     Password,
@@ -44,7 +44,7 @@ public enum AdminPageKind
 /// <para>
 /// <b>On every page, because sign-out is on every page.</b> It used to be a parameter on the two
 /// pages that draw a form an operator fills in, and the shell's own sign-out form was left without
-/// one — so pressing it posted to an endpoint that validates a token the form never carried.
+/// one - so pressing it posted to an endpoint that validates a token the form never carried.
 /// Measured against a mirror of this app's antiforgery setup rather than reasoned about: the cookie
 /// half is set, the request half is absent, and <c>POST /signout</c> answers <c>400</c>.
 /// </para>
@@ -62,7 +62,7 @@ public sealed record AntiforgeryTokens(string FieldName, string Token);
 /// </summary>
 /// <remarks>
 /// <see cref="Body"/> is the renderer's, and it is handed over as finished markup rather than as
-/// fields precisely so that a layout cannot rebuild it — which is what keeps a layout free of the
+/// fields precisely so that a layout cannot rebuild it - which is what keeps a layout free of the
 /// encoding obligation every value on these pages carries.
 /// </remarks>
 public sealed record AdminPage
@@ -77,13 +77,13 @@ public sealed record AdminPage
     /// The asymmetry with <see cref="Body"/> is deliberate and was a shipped defect in the other
     /// direction: titles were passed already-encoded, the shell encoded them again, and a Vietnamese
     /// deployment's browser tab read <c>T&amp;#224;i khoản</c>. One of the things that reaches here
-    /// is a handle an operator typed, and <c>&lt;/title&gt;</c> ends RCDATA — so the encoding cannot
+    /// is a handle an operator typed, and <c>&lt;/title&gt;</c> ends RCDATA - so the encoding cannot
     /// simply be dropped either. Plain text in, layout encodes, exactly once.
     /// </remarks>
     public required string Title { get; init; }
 
     /// <summary>
-    /// The rendered body. <b>Already encoded — write it out verbatim, do not encode again.</b>
+    /// The rendered body. <b>Already encoded - write it out verbatim, do not encode again.</b>
     /// </summary>
     /// <remarks>
     /// The one value here that is markup rather than text, and that exception is what the seam is
@@ -122,7 +122,7 @@ public sealed record AdminPage
     /// <remarks>
     /// A layout drawing any form of its own must include this as a hidden input, and the shipped
     /// layout does it for sign-out. Every POST this app serves is a state change on the directory
-    /// against an ambient cookie, so <c>Program.cs</c> validates all of them — a form without the
+    /// against an ambient cookie, so <c>Program.cs</c> validates all of them - a form without the
     /// field is a button that answers <c>400</c>.
     /// </remarks>
     public required AntiforgeryTokens Antiforgery { get; init; }
@@ -136,8 +136,8 @@ public sealed record AdminPage
 /// The middle of the three ways to change this UI. <see cref="AdminBffOptions.StylesheetPaths"/>
 /// below it changes the theme and needs no code at all; <see cref="IAdminRenderer"/> above it
 /// replaces the markup and takes on the encoding obligation with it. This one is where most of the
-/// demand actually is: full control of the document — header, navigation, footer, structure, classes
-/// — with the page's own content still rendered here.
+/// demand actually is: full control of the document - header, navigation, footer, structure, classes
+/// - with the page's own content still rendered here.
 /// </para>
 /// <para>
 /// <b>Measured demand, not a guess.</b> Restyling this app for one deployment needed three
@@ -153,7 +153,7 @@ public sealed record AdminPage
 /// than serving an empty document. A renderer has one way per value, and no check can find them.
 /// </para>
 /// <para>
-/// What a layout must respect is the CSP this app sends — <c>default-src 'self'; frame-ancestors
+/// What a layout must respect is the CSP this app sends - <c>default-src 'self'; frame-ancestors
 /// 'none'; form-action 'self'; base-uri 'none'</c>. No inline <c>&lt;script&gt;</c> or
 /// <c>&lt;style&gt;</c>, no <c>style=</c> or <c>onclick=</c> attribute, no <c>data:</c> URI, and
 /// nothing loaded from another origin. There is no nonce here and deliberately so: these pages have

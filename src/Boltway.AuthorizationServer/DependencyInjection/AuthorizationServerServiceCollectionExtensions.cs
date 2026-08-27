@@ -56,7 +56,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Validation runs <b>here</b>, synchronously, and throws — not in an
+    /// Validation runs <b>here</b>, synchronously, and throws - not in an
     /// <c>IValidateOptions&lt;T&gt;</c> that fires on first resolution. The difference matters
     /// operationally: a deferred validation turns a misconfigured issuer into a 500 on the first
     /// client request, which is minutes after the deploy looked successful and is attributed to the
@@ -88,8 +88,8 @@ public static class AuthorizationServerServiceCollectionExtensions
 
         // Frozen after the bytes exist. From here the served document is fixed, so a host that adds
         // a scope would create a divergence nothing detects: the options singleton would report a
-        // scope the published metadata does not advertise, and the authorize pipeline — built from
-        // the same options — would accept one no client can discover. Mutating now throws at the
+        // scope the published metadata does not advertise, and the authorize pipeline - built from
+        // the same options - would accept one no client can discover. Mutating now throws at the
         // mutation instead of going quiet.
         options.Freeze();
 
@@ -99,7 +99,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         // The advertised capability has to be a real one (N-06). The metadata document says
         // client_id_metadata_document_supported in this profile, so the resolver that honours it is
         // registered by the same switch. Last in the chain, because the host's own resolvers were
-        // registered before this call — see AddCimdClientResolver.
+        // registered before this call - see AddCimdClientResolver.
         if (options.RegistrationProfile is ClientRegistrationProfile.ClientIdMetadataDocument)
         {
             services.AddCimdClientResolver();
@@ -140,7 +140,7 @@ public static class AuthorizationServerServiceCollectionExtensions
             sp.GetRequiredService<NewDeviceNotice>()));
 
         // private_key_jwt only. A deployment that never lists it pays for none of this: no key
-        // cache, no assertion verifier, and no dependency on the replay store — which is why the
+        // cache, no assertion verifier, and no dependency on the replay store - which is why the
         // resolution below is GetService rather than GetRequiredService.
         if (options.TokenEndpointAuthMethods.Contains(ClientAuthMethod.PrivateKeyJwt))
         {
@@ -189,11 +189,11 @@ public static class AuthorizationServerServiceCollectionExtensions
         services.AddSingleton(new RefreshTokenDeriver(options.RefreshTokenDerivationKey));
 
         // The consent and login pages. TryAdd so a customer registering their own renderer before
-        // this call keeps it — the view models stay ours either way, which is what makes N-14's
+        // this call keeps it - the view models stay ours either way, which is what makes N-14's
         // fields something a template can only fail to display rather than compute wrongly.
         // Both built from the options rather than by the container's constructor selection, so the
         // theme a deployment configured is the theme it gets. Resolving either type directly would
-        // pick its parameterless constructor and silently produce unthemed pages — the setting
+        // pick its parameterless constructor and silently produce unthemed pages - the setting
         // accepted, validated, and then ignored.
         //
         // Two registrations because they are two tiers. Replacing IInteractionLayout changes the
@@ -204,7 +204,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         // The layout takes the localizer for the same reason the renderer does: the two sentences in
         // its brand panel are text on the page, so they come from the file the rest of the page's
         // text comes from. GetService, so a deployment with no translations gets the empty defaults
-        // — which the panel omits — rather than a container failure.
+        // - which the panel omits - rather than a container failure.
         services.TryAddSingleton<IInteractionLayout>(sp =>
             new DefaultInteractionLayout(
                 options.Interaction,
@@ -221,10 +221,10 @@ public static class AuthorizationServerServiceCollectionExtensions
                 // Threaded explicitly, for the reason the comment above gives about constructor
                 // selection: this one is a plain bool, so a constructor picked by the container
                 // would default it to false and the setting would be accepted, validated and
-                // silently ignored — the exact failure that comment already exists to prevent.
+                // silently ignored - the exact failure that comment already exists to prevent.
                 options.Interaction.ProvidersFirst));
         // Scoped, because it writes through stores that are. Registered here rather than left to
-        // each host so that the CLI verbs and any admin endpoint resolve the same object graph —
+        // each host so that the CLI verbs and any admin endpoint resolve the same object graph -
         // two registrations would be two implementations again, arrived at from the container.
         //
         // It resolves IPasswordHasher and ISubjectIdFactory on construction, so a federation-only
@@ -242,7 +242,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         services.TryAddSingleton<IUserSignIn>(_ => new CookieUserSignIn());
 
         // X-31 for POST /login. TryAdd for both, so a host that registered its own limits before
-        // this call keeps them — the seam SafeHttpFetcherOptions already uses. Registered here
+        // this call keeps them - the seam SafeHttpFetcherOptions already uses. Registered here
         // rather than left to the host because the shipped default has to be the safe one: an
         // unbounded /login is what was measured, and "you should have added a limiter" is not a
         // defence a deployment can be expected to discover.
@@ -310,7 +310,7 @@ public static class AuthorizationServerServiceCollectionExtensions
 
         // Registered unconditionally, and that costs nothing until something listens: an instrument
         // with no listener is a branch on a cached flag. What it does buy is that a host which
-        // forgot AddMeter still has the instruments — so turning metrics on is a line in the
+        // forgot AddMeter still has the instruments - so turning metrics on is a line in the
         // exporter's configuration rather than a rebuild.
         //
         // TryAdd, so a host that wants to own the lifetime keeps its own.
@@ -319,7 +319,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         // Registered here, mapped nowhere. A host that never calls MapStoreReadiness pays for one
         // uninitialised singleton; a host that does gets the endpoint without a second registration
         // call to forget. The route is opt-in because it is public and a library has no business
-        // adding public routes to somebody else's server — see StoreReadiness.
+        // adding public routes to somebody else's server - see StoreReadiness.
         //
         // An explicit factory rather than the open generic: the constructor's last two parameters
         // are optional, and leaving the container to work out which constructor it can satisfy is
@@ -348,7 +348,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         // defaults rather than conveniences: AlwaysAskConsentPolicy can only cause an extra prompt,
         // and NoClientSecretsStore can only cause a client presenting a secret to be refused.
         //
-        // Storage is deliberately NOT defaulted the same way — see AddBoltwayInMemoryStores.
+        // Storage is deliberately NOT defaulted the same way - see AddBoltwayInMemoryStores.
         // "Nobody chose in-memory and it went to production" is a worse outcome than a startup
         // error naming the store that is missing.
         services.TryAddSingleton<Abstractions.Consent.IConsentPolicy, AlwaysAskConsentPolicy>();
@@ -358,7 +358,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Put the signed-in account's handle — and its email, when the grant covers it — into every
+    /// Put the signed-in account's handle - and its email, when the grant covers it - into every
     /// access token.
     /// </summary>
     /// <remarks>
@@ -372,7 +372,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// <para>
     /// The reason to call it is an audit trail. A resource server recording <i>who did this</i> from
     /// a bare <c>sub</c> writes a ULID into its history, or keeps a second table mapping subjects to
-    /// people — and the first is unreadable, while the second is a copy of this server's account
+    /// people - and the first is unreadable, while the second is a copy of this server's account
     /// list in a system that has no way to know when it went stale. Measured on the connector this
     /// was written for: every commit it made was attributed to
     /// <c>01KZAWCB5XY91G8N9XG84WR1EN</c>.
@@ -408,15 +408,15 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// <para>
     /// <c>IUserStore</c> stays unconditional, because both paths reach it. A federated sign-in
     /// resolves <c>(upstream issuer, upstream subject)</c> through
-    /// <c>FindByExternalLoginAsync</c> — there is no deployment that authenticates a user and never
+    /// <c>FindByExternalLoginAsync</c> - there is no deployment that authenticates a user and never
     /// touches the account store.
     /// </para>
     /// </remarks>
     private static readonly (Type Service, string Why)[] RequiredAtMapTime =
     [
         // First, because it is the one a host hits first and the one with the least discoverable
-        // construction. It used to fail on its own two lines above this check — outside the
-        // collected list — so a host learned about it, fixed it, and only then learned about the
+        // construction. It used to fail on its own two lines above this check - outside the
+        // collected list - so a host learned about it, fixed it, and only then learned about the
         // other eight. Reporting nine at once is the whole point of collecting them.
         (typeof(SigningKeyRing),
             "the keys tokens are signed with. Construct: new SigningKeyRing([new ManagedSigningKey(new SigningKeyHandle(kid, SigningAlgorithm.RS256, key), SigningKeyState.Active, publishedAt, expiresAt)])."),
@@ -439,7 +439,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// <para>
     /// The signing key ring is resolved here rather than taken as a parameter. It used to be a
     /// parameter, on the reasoning that a missing ring should stop the mapping call rather than
-    /// surface at the first token request — but the token endpoint resolves it from the container,
+    /// surface at the first token request - but the token endpoint resolves it from the container,
     /// so one thing had two sources and a host could satisfy the parameter while leaving the
     /// container empty. That is what happened, and it presented as "no service for type
     /// SigningKeyRing" from inside a request.
@@ -457,7 +457,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         // The seam check runs first, before anything is resolved with GetRequiredService. The key
         // ring used to be fetched on the line above it, which meant a host missing everything was
         // told about the key ring alone, fixed that, restarted, and only then learned about the
-        // other eight — one restart per service, which is the experience collecting them was
+        // other eight - one restart per service, which is the experience collecting them was
         // supposed to end. It is in the collected list now.
         RequireEveryServiceARequestWillReach(endpoints.ServiceProvider);
         RequireAdvertisedLocalesAreServed(endpoints.ServiceProvider);
@@ -469,8 +469,8 @@ public static class AuthorizationServerServiceCollectionExtensions
 
         // Forces the fetcher to be built now rather than on the first /authorize, which is what
         // makes AddCimdClientResolver's AllowPrivateAddresses guard a startup failure. It was
-        // written as a check inside the factory lambda — the exact lazy-resolution shape this whole
-        // method exists to close — so a Production host with the flag set still bound, logged
+        // written as a check inside the factory lambda - the exact lazy-resolution shape this whole
+        // method exists to close - so a Production host with the flag set still bound, logged
         // "Now listening on", served both discovery documents, and only refused at the first
         // authorization request. Measured by the reviewer who built the sample.
         //
@@ -503,7 +503,7 @@ public static class AuthorizationServerServiceCollectionExtensions
 
         // The last of the four flags that advertised a path nothing routed. It is the same pairing
         // again, and the reason it is spelled out three times rather than folded into a loop is that
-        // each flag decides its own default — see AuthorizationServerOptions.UserInfoEnabled for
+        // each flag decides its own default - see AuthorizationServerOptions.UserInfoEnabled for
         // what the four measured 404s cost.
         if (endpoints.ServiceProvider.GetRequiredService<AuthorizationServerOptions>().RevocationEnabled)
         {
@@ -546,13 +546,13 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// </para>
     /// <para>
     /// The check is here rather than in <c>TryValidate</c> because it is about the container rather
-    /// than about the options — <c>AddBoltwayAuthorizationServer</c> runs before the host has
+    /// than about the options - <c>AddBoltwayAuthorizationServer</c> runs before the host has
     /// finished registering services, so asking then would refuse a deployment that registers its
     /// sender afterwards.
     /// </para>
     /// <para>
     /// <c>IUserTokenStore</c> is checked with it, because a flow that cannot persist a link cannot
-    /// redeem one either — and both storage packages register it, so a deployment hits this only by
+    /// redeem one either - and both storage packages register it, so a deployment hits this only by
     /// wiring stores by hand.
     /// </para>
     /// </remarks>
@@ -563,7 +563,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// <para>
     /// The same shape as the email-flow check below, and the same reason: a flag turned on without
     /// the seam behind it produces a server that starts, serves discovery advertising the method,
-    /// and then fails on the first client that uses it — after that client has been told, by the
+    /// and then fails on the first client that uses it - after that client has been told, by the
     /// document, that it would work.
     /// </para>
     /// <para>
@@ -649,7 +649,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// <remarks>
     /// <para>
     /// <c>ui_locales_supported</c> was a free list copied into both documents, with a comment citing
-    /// <c>N-06</c> and permitting exactly what it forbade — a deployment could advertise <c>vi</c>
+    /// <c>N-06</c> and permitting exactly what it forbade - a deployment could advertise <c>vi</c>
     /// and serve English to everyone who asked. This is the generated-from-what-exists half, done as
     /// a comparison rather than an assignment because the two are configured in separate calls and
     /// a comparison does not care which ran first.
@@ -669,7 +669,7 @@ public static class AuthorizationServerServiceCollectionExtensions
             .GetService<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>>();
 
         // No localization configured is the ordinary shape: the pages are in one language, and a
-        // deployment naming it — or naming nothing — is telling the truth either way. Only the
+        // deployment naming it - or naming nothing - is telling the truth either way. Only the
         // multi-locale claim needs a mechanism behind it.
         if (localization is null)
         {
@@ -716,7 +716,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// <para>
     /// The condition the old comment on <see cref="RequiredAtMapTime"/> asked for. Demanding
     /// <c>IPasswordHasher</c> unconditionally would refuse a federation-only deployment, which is a
-    /// legitimate shape — an organisation that has an identity provider and does not want a second
+    /// legitimate shape - an organisation that has an identity provider and does not want a second
     /// password database. Dropping the demand entirely would let a host start with no way for a user
     /// to sign in at all, which fails at <c>/login</c> after a client has already been redirected
     /// there: exactly the "starts cleanly, breaks on the first client" failure this whole method
@@ -728,7 +728,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// </para>
     /// <para>
     /// Provider schemes are checked in the same pass, because a scheme that is not usable as a path
-    /// segment produces a route nobody can reach and a URL on the login page that does not work —
+    /// segment produces a route nobody can reach and a URL on the login page that does not work -
     /// and it is a configuration mistake, which belongs at startup with the others.
     /// </para>
     /// <para>
@@ -755,7 +755,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         }
 
         // Duplicate schemes route the same path twice and make which provider answers depend on
-        // registration order — which is the kind of thing that differs between a developer's machine
+        // registration order - which is the kind of thing that differs between a developer's machine
         // and production.
         foreach (var duplicate in providers
             .GroupBy(p => p.Scheme, StringComparer.Ordinal)
@@ -813,7 +813,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// <remarks>
     /// <para>
     /// Options validation is eager; the service graph was not. Every seam below is behind an
-    /// <c>AddScoped(sp =&gt; …)</c> factory lambda, so it is first resolved inside a request — and
+    /// <c>AddScoped(sp =&gt; …)</c> factory lambda, so it is first resolved inside a request - and
     /// <c>ValidateOnBuild</c> cannot see through a factory lambda either, which was measured with it
     /// switched on. So a host with nine of these missing started cleanly, printed
     /// <c>Now listening on…</c>, served both discovery documents with HTTP 200, and then failed on
@@ -829,7 +829,7 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// </para>
     /// <para>
     /// This runs at <c>Map</c> time rather than at <c>Add</c> time because that is the first moment
-    /// the container exists and the host has finished registering — checking earlier would refuse a
+    /// the container exists and the host has finished registering - checking earlier would refuse a
     /// host that registers its stores after calling <c>AddBoltwayAuthorizationServer</c>, which
     /// is a perfectly ordinary way to write a <c>Program.cs</c>.
     /// </para>
@@ -861,7 +861,7 @@ public static class AuthorizationServerServiceCollectionExtensions
             catch (InvalidOperationException resolution)
             {
                 // Registered, but not constructible: one of its own constructor arguments is
-                // missing. The shipped case is CookieUserSession, which takes IHttpContextAccessor —
+                // missing. The shipped case is CookieUserSession, which takes IHttpContextAccessor -
                 // and without it the host fails with the framework's generic "unable to resolve
                 // service while attempting to activate" several layers from the cause. Naming the
                 // seam being built and quoting the inner reason turns that into a sentence, and it

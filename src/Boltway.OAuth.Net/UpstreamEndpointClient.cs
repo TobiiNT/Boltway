@@ -11,8 +11,8 @@ namespace Boltway.OAuth.Net;
 /// <remarks>
 /// <para>
 /// A type rather than a <see cref="string"/>, because the difference between the two is where the
-/// value is allowed to go. <see cref="UpstreamEndpointClient"/> is the only code that can read it —
-/// <see cref="Reveal"/> is <see langword="internal"/> to this assembly — so "the secret is only ever
+/// value is allowed to go. <see cref="UpstreamEndpointClient"/> is the only code that can read it -
+/// <see cref="Reveal"/> is <see langword="internal"/> to this assembly - so "the secret is only ever
 /// written to the upstream token endpoint" is a property of the type system rather than of every
 /// call site's discipline.
 /// </para>
@@ -20,8 +20,8 @@ namespace Boltway.OAuth.Net;
 /// <c>OpaqueSecret</c> records why a <see cref="ToString"/> override is not on its own a defence:
 /// it stops string interpolation and does nothing about <c>JsonSerializer.Serialize</c>, Serilog's
 /// <c>{@value}</c> destructuring, or any structured-logging provider that reflects over properties.
-/// The answer taken here is that <b>this type has no public members carrying the value at all</b> —
-/// no property, no field, no getter — so a reflecting serializer finds nothing to write and emits
+/// The answer taken here is that <b>this type has no public members carrying the value at all</b> -
+/// no property, no field, no getter - so a reflecting serializer finds nothing to write and emits
 /// <c>{}</c>. There is a test that measures exactly that rather than assuming it.
 /// </para>
 /// <para>
@@ -96,7 +96,7 @@ public sealed class UpstreamEndpointClientOptions
     /// budget is small because the CIMD fetch happens inside <c>/authorize</c>, where the client
     /// abandons the whole authorization after about ten seconds. These fetches happen on the
     /// federation callback, where the only party waiting is a browser that has just come back from
-    /// the upstream — so a slower answer is worth having, and failing at three seconds against a
+    /// the upstream - so a slower answer is worth having, and failing at three seconds against a
     /// provider having a bad minute would strand a user who did nothing wrong.
     /// </remarks>
     public TimeSpan TotalTimeout { get; set; } = TimeSpan.FromSeconds(10);
@@ -112,7 +112,7 @@ public sealed class UpstreamEndpointClientOptions
     /// justifies the check over there does not exist.
     /// </para>
     /// <para>
-    /// What does exist is that the operator configures <i>one</i> URL — the issuer — and everything
+    /// What does exist is that the operator configures <i>one</i> URL - the issuer - and everything
     /// else this client dereferences comes out of a document fetched from it. An OIDC discovery
     /// document names <c>token_endpoint</c> and <c>jwks_uri</c>, and those are not required to be
     /// same-origin with the issuer: Google's are on three different hosts, so an origin check is not
@@ -134,8 +134,8 @@ public sealed class UpstreamEndpointClientOptions
     /// <remarks>
     /// <para>
     /// A separate counter from <see cref="SafeHttpFetcherOptions.MaxFetchesPerHostPerWindow"/>, and
-    /// deliberately so. Sharing one would let anonymous CIMD traffic — which anyone can generate by
-    /// sending a <c>client_id</c> — exhaust the budget that federated sign-in needs, so a flood
+    /// deliberately so. Sharing one would let anonymous CIMD traffic - which anyone can generate by
+    /// sending a <c>client_id</c> - exhaust the budget that federated sign-in needs, so a flood
     /// aimed at the authorization endpoint would take down sign-in for everyone. Two counters means
     /// each bounds its own outbound volume and neither can spend the other's.
     /// </para>
@@ -226,8 +226,8 @@ public sealed class UpstreamFormRequest
     /// The secret, or <see langword="null"/> for a public client at the upstream.
     /// </summary>
     /// <remarks>
-    /// Nullable because a public upstream client is a real configuration — an upstream that supports
-    /// PKCE and issues no secret — and because a deployment that has not configured one should send
+    /// Nullable because a public upstream client is a real configuration - an upstream that supports
+    /// PKCE and issues no secret - and because a deployment that has not configured one should send
     /// no credential rather than an empty one, which some providers accept as authentication.
     /// </remarks>
     public UpstreamClientSecret? ClientSecret { get; init; }
@@ -270,7 +270,7 @@ public sealed class UpstreamFormRequest
 /// to follow. There is no legitimate redirect on this path.
 /// </description></item>
 /// <item><description>
-/// <b>The byte cap and the timeout</b> stay, sized differently — see the options.
+/// <b>The byte cap and the timeout</b> stay, sized differently - see the options.
 /// </description></item>
 /// <item><description>
 /// <b>The connection is pinned to the validated address</b>, unchanged, so there is no second DNS
@@ -287,7 +287,7 @@ public sealed class UpstreamFormRequest
 /// <see cref="UpstreamClientSecret"/>, whose value only this assembly can read; it is written into
 /// a form field or an <c>Authorization</c> header inside <see cref="PostFormAsync"/>; and no
 /// <see cref="FetchOutcome"/> this method returns contains anything derived from it. This class
-/// logs nothing — it takes no logger — so there is no line for it to appear in.
+/// logs nothing - it takes no logger - so there is no line for it to appear in.
 /// </para>
 /// </remarks>
 public sealed class UpstreamEndpointClient : IUpstreamEndpointClient, IDisposable
@@ -295,7 +295,7 @@ public sealed class UpstreamEndpointClient : IUpstreamEndpointClient, IDisposabl
     /// <summary>Byte cap for a discovery or JWKS document.</summary>
     /// <remarks>
     /// Generous next to the 5 KB CIMD default because a JWKS legitimately carries several keys
-    /// through a rotation, and because the document is not attacker-supplied — the cost being
+    /// through a rotation, and because the document is not attacker-supplied - the cost being
     /// bounded here is a misbehaving or compromised upstream sending an unbounded body, not a
     /// stranger choosing the URL.
     /// </remarks>
@@ -431,7 +431,7 @@ public sealed class UpstreamEndpointClient : IUpstreamEndpointClient, IDisposabl
 /// Talks to an upstream identity provider.
 /// </summary>
 /// <remarks>
-/// A seam so a deployment can substitute the transport — and, more importantly, so a test can drive
+/// A seam so a deployment can substitute the transport - and, more importantly, so a test can drive
 /// a federation flow without a network. The implementation shipped in the box is
 /// <see cref="UpstreamEndpointClient"/> and it is the only one that may exist outside a test:
 /// <c>StructuralRuleTests.Only_the_guarded_fetcher_touches_system_net_http</c> means any other

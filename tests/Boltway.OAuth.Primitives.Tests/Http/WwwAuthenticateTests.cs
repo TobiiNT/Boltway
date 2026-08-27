@@ -17,7 +17,7 @@ public sealed class WwwAuthenticateTests
     public void Resource_metadata_is_carried_and_quoted()
     {
         // The whole point of the header. A URL contains ':' and '/', neither of which is tchar, so
-        // an unquoted value here is not merely untidy — it is unparseable.
+        // an unquoted value here is not merely untidy - it is unparseable.
         var header = WwwAuthenticate.Bearer(error: "invalid_token", resourceMetadataUrl: MetadataUrl);
 
         Assert.Contains($"resource_metadata=\"{MetadataUrl}\"", header, StringComparison.Ordinal);
@@ -54,7 +54,7 @@ public sealed class WwwAuthenticateTests
     public void A_quote_in_the_description_cannot_terminate_the_header_early()
     {
         // This is the bug the sanitiser exists for. An unescaped quote closes the quoted-string,
-        // and everything after it — including resource_metadata — is lost or mis-parsed. Losing
+        // and everything after it - including resource_metadata - is lost or mis-parsed. Losing
         // resource_metadata does not degrade diagnostics; it removes the client's only pointer to
         // the authorization server, so the user cannot authenticate at all.
         var header = WwwAuthenticate.Bearer(
@@ -106,7 +106,7 @@ public sealed class WwwAuthenticateTests
 
     [Theory]
     // A scope is validated before the join, never sanitised after it. Sanitising afterwards turns a
-    // space inside one scope into a separator, so two scopes become three — and this header is the
+    // space inside one scope into a separator, so two scopes become three - and this header is the
     // only thing telling the client what to re-authorise for.
     [InlineData(new[] { "read", "", "write" }, "read write")]
     [InlineData(new[] { "a\"b", "c" }, "c")]
@@ -130,7 +130,7 @@ public sealed class WwwAuthenticateTests
     public void An_oversized_challenge_keeps_the_parameters_the_client_cannot_act_without()
     {
         // Capping only error_description left realm, resource_metadata and the scope list
-        // unbounded, so a header could exceed a reverse proxy's buffer — nginx defaults to 4 KB —
+        // unbounded, so a header could exceed a reverse proxy's buffer - nginx defaults to 4 KB -
         // and become a 502, leaving the client with no discovery pointer at all.
         var manyScopes = Enumerable.Range(0, 2000).Select(i => $"scope:{i}").ToArray();
 
@@ -145,7 +145,7 @@ public sealed class WwwAuthenticateTests
     [Fact]
     public void A_description_of_only_forbidden_characters_is_omitted_entirely()
     {
-        // Rather than emitting error_description="" — an empty value is not more informative than
+        // Rather than emitting error_description="" - an empty value is not more informative than
         // no value, and it costs bytes in a header some proxies cap.
         var header = WwwAuthenticate.Bearer(
             error: "invalid_token",

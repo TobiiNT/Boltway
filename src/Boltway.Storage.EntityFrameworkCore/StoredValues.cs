@@ -15,7 +15,7 @@ internal static class StoredValues
 {
     /// <summary>The separator inside a resource-list column.</summary>
     /// <remarks>
-    /// A newline. Resources are absolute HTTPS URLs, in which a raw newline cannot appear — and
+    /// A newline. Resources are absolute HTTPS URLs, in which a raw newline cannot appear - and
     /// <see cref="EncodeResources"/> refuses one rather than writing a value it would read back
     /// differently, so "cannot appear" is checked at the boundary instead of assumed.
     /// </remarks>
@@ -68,7 +68,7 @@ internal static class StoredValues
     /// Rebuild a client identifier from its value and its kind.
     /// </summary>
     /// <remarks>
-    /// Both columns, because <c>ClientIdKind</c> is not recoverable from the value — that is the
+    /// Both columns, because <c>ClientIdKind</c> is not recoverable from the value - that is the
     /// whole reason <see cref="ClientIdentifier"/> stores it rather than testing for an
     /// <c>https://</c> prefix, and a store that dropped the column would silently turn a
     /// pre-registered client whose id happens to be a URL into a CIMD one.
@@ -117,7 +117,7 @@ internal static class StoredValues
     /// <remarks>
     /// The uppercase invariant form. <see cref="StringComparer.OrdinalIgnoreCase"/>, which the
     /// in-memory store keys its username index with, is documented as an ordinal comparison of the
-    /// uppercase invariant forms — so folding here and comparing ordinally is the same question
+    /// uppercase invariant forms - so folding here and comparing ordinally is the same question
     /// asked in SQL, without depending on the database's collation to agree.
     /// </remarks>
     internal static string NormalizeUsername(string username) => username.ToUpperInvariant();
@@ -129,8 +129,8 @@ internal static class StoredValues
     /// <para>
     /// The same fold as a username, for the same reason: the comparison happens on a stored column
     /// so the answer does not depend on the provider's collation. It is a separate method because
-    /// the two are separate decisions — a username is a name this server assigns meaning to, an
-    /// address belongs to a mail system — and one of them changing should not silently change the
+    /// the two are separate decisions - a username is a name this server assigns meaning to, an
+    /// address belongs to a mail system - and one of them changing should not silently change the
     /// other's index.
     /// </para>
     /// <para>

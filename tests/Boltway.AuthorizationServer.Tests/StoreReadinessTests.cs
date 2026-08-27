@@ -19,7 +19,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// This lives in the library and therefore in a test project, which is the entire reason the type
 /// is not three lines in the host. The host is referenced by nothing that compiles in CI except the
-/// Docker build, and a Docker build cannot tell a working probe from one that always answers yes —
+/// Docker build, and a Docker build cannot tell a working probe from one that always answers yes -
 /// the lesson <c>ProxyHeadersTests</c> is named after.
 /// </remarks>
 public sealed class StoreReadinessTests
@@ -177,7 +177,7 @@ public sealed class StoreReadinessTests
     /// <summary>A caller giving up is not the store failing.</summary>
     /// <remarks>
     /// Without the <c>when</c> filter on the catch, a disconnected client would be recorded as an
-    /// unreachable database — and then cached as one, so one cancelled request would make the next
+    /// unreachable database - and then cached as one, so one cancelled request would make the next
     /// five seconds of monitoring lie.
     /// </remarks>
     [Fact]
@@ -201,7 +201,7 @@ public sealed class StoreReadinessTests
     /// line that clears <c>_probing</c>, so the flag stayed set for the life of the process; every
     /// later call then took the "somebody is already refreshing" branch and returned the cached
     /// answer forever. <b>One client disconnecting froze readiness</b>, and if it was frozen at
-    /// "reachable" the monitor reported healthy through every outage after it — the failure this
+    /// "reachable" the monitor reported healthy through every outage after it - the failure this
     /// whole endpoint exists to remove, reintroduced by the endpoint.
     /// </para>
     /// <para>
@@ -236,7 +236,7 @@ public sealed class StoreReadinessTests
         store.Delay = TimeSpan.Zero;
         store.Throw = new InvalidOperationException("connection refused");
 
-        // 4. Without the fix this answers `true` — the cached success from step 1, served forever,
+        // 4. Without the fix this answers `true` - the cached success from step 1, served forever,
         //    while the database is on fire. Asserting the harm rather than a call count, because
         //    the harm is the thing: a monitor reporting healthy through an outage is worse than no
         //    monitor, and one disconnected client was enough to cause it.

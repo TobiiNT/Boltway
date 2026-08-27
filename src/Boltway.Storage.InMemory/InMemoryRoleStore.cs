@@ -22,7 +22,7 @@ public sealed class InMemoryRoleStore : IRoleStore
     /// </summary>
     /// <remarks>
     /// The relational store gets this from <c>ON DELETE CASCADE</c> on <c>user_roles</c>. Here the
-    /// assignments live in the user store, which this one must not depend on — the dependency runs
+    /// assignments live in the user store, which this one must not depend on - the dependency runs
     /// the other way so that assignment can ask whether a role exists. A notification is the shape
     /// that leaves the arrow pointing one way and still makes both implementations answer the same
     /// thing: a test deleted a role and found an account still holding it on one of them.
@@ -152,7 +152,7 @@ public sealed class InMemoryRoleStore : IRoleStore
 
     /// <inheritdoc />
     /// <remarks>
-    /// The assignments are held by the user store, which reads <see cref="Defines"/> — so a role
+    /// The assignments are held by the user store, which reads <see cref="Defines"/> - so a role
     /// removed here stops resolving everywhere, and an account holding only it holds nothing. That
     /// is the cascade the relational store declares, arriving by the other route.
     /// </remarks>
@@ -172,7 +172,7 @@ public sealed class InMemoryRoleStore : IRoleStore
         return Task.FromResult(removed);
     }
 
-    /// <summary>Ordinal on both halves — a role id is not folded anywhere else either.</summary>
+    /// <summary>Ordinal on both halves - a role id is not folded anywhere else either.</summary>
     private sealed class RealmScopedIdComparer : IEqualityComparer<(string Realm, string Id)>
     {
         internal static RealmScopedIdComparer Instance { get; } = new();

@@ -10,8 +10,8 @@
 #
 # THE TRAP THIS WORKFLOW IS SHAPED AROUND
 # ---------------------------------------
-# A tag pushed with `GITHUB_TOKEN` does not start another workflow. GitHub blocks that on purpose —
-# it is what stops a workflow from triggering itself forever — and the consequence here is specific
+# A tag pushed with `GITHUB_TOKEN` does not start another workflow. GitHub blocks that on purpose -
+# it is what stops a workflow from triggering itself forever - and the consequence here is specific
 # and silent: the obvious design, "create the tag and let `publish packages` notice", produces a
 # green run, a tag in the repository, and **no packages**. Nothing reports it. Somebody finds out
 # when a consumer cannot restore.
@@ -25,7 +25,7 @@
 # -----------------------------
 # `publish packages` now takes a ref, so the packages are built from the **tagged tree**. A
 # `workflow_dispatch` publishes the branch's head, which is the same thing right up until somebody
-# merges while a release is running — and then the tag names one tree and the feed holds another,
+# merges while a release is running - and then the tag names one tree and the feed holds another,
 # with nothing anywhere saying so.
 
 name: release
@@ -104,7 +104,7 @@ jobs:
           # The tag names a version, and until now nothing checked that it named *this* one.
           # `Directory.Build.props` is the single literal every package publishes at and
           # CONTRIBUTING requires bumping it in the commit that changed the surface, so the tag is
-          # purely derivative — which makes this an equality check rather than a judgement.
+          # purely derivative - which makes this an equality check rather than a judgement.
           #
           # Without it, dispatching `v0.3.0` against a tree still reading 0.2.0 cuts the tag,
           # publishes every package at 0.2.0, and reports success. The header at the top of this
@@ -126,7 +126,7 @@ jobs:
           # cut. Until now nothing checked it, and the two ways it goes wrong are different.
           #
           # **Undated is the loud one.** A section still headed `unreleased` is a lie the moment
-          # somebody restores the version, and CHANGELOG.md is not packed into the packages — so
+          # somebody restores the version, and CHANGELOG.md is not packed into the packages - so
           # after the tag exists, correcting it leaves main saying one thing and the tagged tree
           # another. Here is the last moment it is free.
           #
@@ -135,7 +135,7 @@ jobs:
           # UTC and under the local clock alike, caught by re-reading rather than by anything here.
           #
           # The window is today or tomorrow in UTC, and the asymmetry is deliberate. A maintainer
-          # ahead of UTC dates it by their own day, which is UTC's day or the one after — never the
+          # ahead of UTC dates it by their own day, which is UTC's day or the one after - never the
           # one before. Widening it to yesterday would admit exactly the case above.
           HEADING="$(grep -m1 "^## \[$VERSION\]" CHANGELOG.md || true)"
           if [ -z "$HEADING" ]; then
@@ -177,7 +177,7 @@ jobs:
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "Cut $TAG at $SHA" >> "$GITHUB_STEP_SUMMARY"
 
-  # Called rather than triggered — see the note at the top about GITHUB_TOKEN and tag pushes. The
+  # Called rather than triggered - see the note at the top about GITHUB_TOKEN and tag pushes. The
   # tests run inside this, before anything is packed, which is the last moment any of it is
   # reversible.
   publish:
@@ -188,7 +188,7 @@ jobs:
     # rather than a ceiling. The ceiling for this work lives on the `publish` job inside
     # publish-packages.yml, which is the job that actually runs.
     #
-    # A called workflow's own `permissions:` block can only narrow what this job grants — it cannot
+    # A called workflow's own `permissions:` block can only narrow what this job grants - it cannot
     # widen it. `publish-packages.yml` declares `id-token: write` for nuget.org Trusted Publishing,
     # and that declaration is ignored on this path, so omitting it here left `NuGet/login` with no
     # OIDC token: the tag-push path published to nuget.org and the documented release path could
@@ -222,13 +222,13 @@ jobs:
   # went to git to answer.
   #
   # Re-tagged by digest rather than rebuilt. `imagetools create` adds a name to a manifest already in
-  # the registry, so the versioned tag is the *same bytes* CI tested — a rebuild would be a second
+  # the registry, so the versioned tag is the *same bytes* CI tested - a rebuild would be a second
   # image built from the same tree, which is not the same claim and is one `docker build` away from
   # not being the same image.
   #
   # **No provenance attestation here, and its absence is the design rather than an omission.** The
   # `image` job in `ci.yml` attests what it pushed, and it binds that statement to the digest rather
-  # than to any tag — precisely so that adding a name later cannot invalidate it. This job adds a
+  # than to any tag - precisely so that adding a name later cannot invalidate it. This job adds a
   # name and changes no bytes, so `ghcr.io/<owner>/<name>:v0.3.0` and the `:<sha>` it was created
   # from resolve to one manifest with one attestation covering both. A second attestation minted here
   # would describe the same digest twice and would need `id-token: write` in a job that currently has
@@ -243,7 +243,7 @@ jobs:
     needs: [tag, publish]
     runs-on: ubuntu-latest
 
-    # Two registry writes against manifests that already exist — no build, no push of bytes. A
+    # Two registry writes against manifests that already exist - no build, no push of bytes. A
     # ceiling for the reason ci.yml's `test` job writes out; this one is low because there is
     # nothing here that legitimately takes long.
     timeout-minutes: 15
@@ -253,7 +253,7 @@ jobs:
       packages: write
 
     steps:
-      # Pinned to commits rather than tags — see publish-packages.yml for the argument. The login
+      # Pinned to commits rather than tags - see publish-packages.yml for the argument. The login
       # below is the sharpest case in this repository: a third-party action, `packages: write`, and
       # a registry password on its input.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -275,7 +275,7 @@ jobs:
           set -euo pipefail
 
           # The names come from ci.yml rather than from a copy of its list. That file's own comment
-          # says a second hand-written copy is where two things stop being identical — and the drift
+          # says a second hand-written copy is where two things stop being identical - and the drift
           # here would be silent in the worst way: a new image would build, push and test on every
           # commit, and simply never receive a version tag.
           #
@@ -283,7 +283,7 @@ jobs:
           # whose first line was `import yaml`. PyYAML is not in the standard library and nothing
           # here installed it: the step worked only because the runner image happens to ship it. An
           # undeclared dependency is a step that breaks when somebody else changes an image, and
-          # this is the last step of a release — the tag is pushed, both feeds are written, and none
+          # this is the last step of a release - the tag is pushed, both feeds are written, and none
           # of that can be taken back. `pinned-drafts.yml` states the rule out loud for a much
           # cheaper job: a check whose own dependencies can break goes red for reasons that have
           # nothing to do with what it watches.
@@ -315,7 +315,7 @@ jobs:
             # Uppercase is allowed here even though a registry will not take it: the line below
             # lowercases the whole reference, exactly as ci.yml does, so a capital in the matrix is
             # legal today. Narrowing this to what a registry accepts would reject a configuration
-            # that currently works — a check that invents a rule is a check that fails a release
+            # that currently works - a check that invents a rule is a check that fails a release
             # for no defect.
             case "$NAME" in
               ''|*[!a-zA-Z0-9._-]*)
@@ -354,7 +354,7 @@ jobs:
     needs: [tag, publish, images]
 
     # `contents: write` for the release itself. As on `publish`, a called workflow's own
-    # `permissions:` block can only narrow what this grants, never widen it — so what is written
+    # `permissions:` block can only narrow what this grants, never widen it - so what is written
     # here is what the job actually gets, and omitting it would leave `gh release create` with a
     # read-only token after the tag was pushed and both feeds were written.
     permissions:

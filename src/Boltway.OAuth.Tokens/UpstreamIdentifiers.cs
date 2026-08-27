@@ -9,7 +9,7 @@ namespace Boltway.OAuth.Tokens;
 /// "an https URL naming an OAuth issuer" and they are never interchangeable: one is the value this
 /// server stamps into every token it signs (N-13), the other is a value it compares tokens
 /// <i>from somebody else</i> against. A single type would let a call site validate an upstream's ID
-/// token against our own issuer, which accepts nothing, or — worse in the other direction — mint a
+/// token against our own issuer, which accepts nothing, or - worse in the other direction - mint a
 /// token under an upstream's name.
 /// </para>
 /// <para>
@@ -36,7 +36,7 @@ public readonly struct UpstreamIssuer : IEquatable<UpstreamIssuer>
     /// </summary>
     /// <remarks>
     /// RFC 8414 §2 and OIDC Discovery §3: an issuer identifier is an <c>https</c> URL with no query
-    /// and no fragment. A path is permitted — several enterprise products put the tenant there, and
+    /// and no fragment. A path is permitted - several enterprise products put the tenant there, and
     /// refusing one would make this unusable against them.
     /// </remarks>
     public static bool TryParse(string? raw, out UpstreamIssuer issuer)
@@ -92,14 +92,14 @@ public readonly struct UpstreamIssuer : IEquatable<UpstreamIssuer>
 }
 
 /// <summary>
-/// This server's client identifier at an upstream identity provider — the <c>aud</c> of an ID token
+/// This server's client identifier at an upstream identity provider - the <c>aud</c> of an ID token
 /// it issued to us.
 /// </summary>
 /// <remarks>
 /// A third audience type beside <c>ResourceIdentifier</c> and <c>ClientIdentifier</c>, and the
 /// reason is the same one recorded on <c>Rfc9068ValidationParameters.ForIdToken</c>: the compiler
 /// refusing to swap two audiences at a call site is worth more than a comment saying not to. This
-/// one differs from both — it is issued by a third party, it is opaque (Google's are
+/// one differs from both - it is issued by a third party, it is opaque (Google's are
 /// <c>&lt;digits&gt;-&lt;hash&gt;.apps.googleusercontent.com</c>, which is not a URL), and it is
 /// never emitted by this server in anything.
 /// </remarks>
@@ -122,7 +122,7 @@ public readonly struct UpstreamAudience : IEquatable<UpstreamAudience>
     /// <remarks>
     /// Deliberately permissive about the shape, because it is not ours to constrain: providers issue
     /// GUIDs, hostnames and opaque strings. What is refused is anything that could not survive being
-    /// compared, logged or spliced — the empty string, an over-long value, and any character outside
+    /// compared, logged or spliced - the empty string, an over-long value, and any character outside
     /// printable ASCII, which covers the control characters that turn one log line into two.
     /// </remarks>
     public static bool TryParse(string? raw, out UpstreamAudience audience)

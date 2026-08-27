@@ -17,7 +17,7 @@ namespace Boltway.Storage.PostgreSql;
 /// <para>
 /// <b>The connection string here is never opened.</b> Generating a migration reads the model, not
 /// the database. It names a database that does not exist and a host that is not a deployment's, so a
-/// mistake — running <c>database update</c> with this factory — fails to connect rather than
+/// mistake - running <c>database update</c> with this factory - fails to connect rather than
 /// touching a real database. That is a weaker guard than the SQLite factory's, which can only ever
 /// create a stray file: a local PostgreSQL listening on the default port is a real thing to hit.
 /// Hence the name.

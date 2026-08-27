@@ -3,7 +3,7 @@ using Boltway.OAuth.Primitives.Ids;
 namespace Boltway.OAuth.Primitives.Tests;
 
 /// <summary>
-/// <see cref="RealmId"/> — constrained where it is created, wrapped where it is read back.
+/// <see cref="RealmId"/> - constrained where it is created, wrapped where it is read back.
 /// </summary>
 /// <remarks>
 /// The same split <see cref="SubjectId"/> records: a shape is a promise about what gets created, so
@@ -63,7 +63,7 @@ public sealed class RealmIdTests
     /// </summary>
     /// <remarks>
     /// A struct cannot stop a caller getting the uninitialised value, and it is written into a NOT
-    /// NULL column — so the type says which one it is and offers the substitution, rather than every
+    /// NULL column - so the type says which one it is and offers the substitution, rather than every
     /// store rediscovering the problem at the database.
     /// </remarks>
     [Fact]

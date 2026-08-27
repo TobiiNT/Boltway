@@ -23,8 +23,8 @@ public abstract record GrantOutcome
 
     /// <summary>An OAuth error, always delivered as JSON from the token endpoint.</summary>
     /// <param name="Rejection">
-    /// Why, in both forms. This grant is where the response is least informative on purpose — ten
-    /// distinct causes answer "The authorization code is invalid" — so the reason has to travel
+    /// Why, in both forms. This grant is where the response is least informative on purpose - ten
+    /// distinct causes answer "The authorization code is invalid" - so the reason has to travel
     /// with the failure rather than be reconstructed at the endpoint from the description.
     /// </param>
     public sealed record Failed(Rejection Rejection) : GrantOutcome
@@ -101,10 +101,10 @@ public sealed class AuthorizationCodeGrant(
         }
 
         // The `bw_ac_` prefix check refuses a refresh token presented as a code before any storage
-        // is touched — a wrong-purpose credential should not become a database lookup.
+        // is touched - a wrong-purpose credential should not become a database lookup.
         if (!OpaqueSecret.TryParse(rawCode, TokenPurpose.AuthorizationCode, out var code))
         {
-            // The value is not recorded, and this is the case where the temptation is strongest —
+            // The value is not recorded, and this is the case where the temptation is strongest -
             // it did not parse, so "it is probably not a real secret". It might be: the commonest
             // cause of this branch is a client sending a refresh token here, and that is a live
             // credential. The prefix check is what the diagnosis needs and the prefix is the part
@@ -137,8 +137,8 @@ public sealed class AuthorizationCodeGrant(
         }
 
         // Accept if sent, enforce if sent, never require. OAuth 2.1 §10.2 makes accepting it a MUST
-        // — "A client following only the OAuth 2.1 recommendations will not send the redirect_uri in
-        // the token request" — and enforcing it a MUST when it is there.
+        // - "A client following only the OAuth 2.1 recommendations will not send the redirect_uri in
+        // the token request" - and enforcing it a MUST when it is there.
         //
         // Compared against the value the authorization request carried, never against the client's
         // registered set. Claude Code registers portless http://localhost/callback and redirects to
@@ -148,7 +148,7 @@ public sealed class AuthorizationCodeGrant(
             && !string.Equals(redirectUri, record.RedirectUriUsed, StringComparison.Ordinal))
         {
             // Both strings, in the log only. This is the check Claude Code trips when a portless
-            // registration meets an ephemeral port, and the difference is one substring — which is
+            // registration meets an ephemeral port, and the difference is one substring - which is
             // unreadable from "The authorization code is invalid" and obvious from these two.
             return Invalid(
                 ReasonCode.AuthorizationCodeRedirectUriMismatch,
@@ -207,8 +207,8 @@ public sealed class AuthorizationCodeGrant(
                 break;
 
             case CodeRedemption.ReplayedWithinGrace:
-                // Denied — §4.1.3 makes that a MUST, and the tokens went to the first caller and
-                // cannot be handed out twice — but NOT revoked. A second delivery moments later is
+                // Denied - §4.1.3 makes that a MUST, and the tokens went to the first caller and
+                // cannot be handed out twice - but NOT revoked. A second delivery moments later is
                 // an HTTP retry after a lost response, a proxy retry or a double-click far more
                 // often than it is an attacker who has also obtained the client authentication and
                 // the verifier.
@@ -223,12 +223,12 @@ public sealed class AuthorizationCodeGrant(
             case CodeRedemption.ReplayedOutsideGrace:
                 // §4.1.3: "SHOULD revoke (when possible) all access tokens and refresh tokens
                 // previously issued based on that authorization code." Every other check has passed,
-                // so whoever sent this holds the client authentication and the verifier — the
+                // so whoever sent this holds the client authentication and the verifier - the
                 // evidence §7.5.2 requires before revoking anything.
                 await _grants.RevokeAsync(record.GrantId, now, cancellationToken);
 
                 // Byte-identical to an unknown code on the wire. Confirming that a replay was
-                // noticed tells a thief which of their codes was real — but this is the one refusal
+                // noticed tells a thief which of their codes was real - but this is the one refusal
                 // in the grant that revokes a live session, so the log has to say so plainly or the
                 // user's report ("it just signed me out") has nothing to match against.
                 return Invalid(
@@ -258,8 +258,8 @@ public sealed class AuthorizationCodeGrant(
     /// <para>
     /// <b>All three failures return <c>invalid_grant</c>, including the "verifier with no stored
     /// challenge" case that §3.2.4's general enumeration assigns to <c>invalid_request</c>.</b> Two
-    /// reasons. RFC 7636 §4.6 names <c>invalid_grant</c> for the mismatch, and §4.1.3 — the
-    /// grant-specific section — says only "MUST reject" without naming a code, so the general
+    /// reasons. RFC 7636 §4.6 names <c>invalid_grant</c> for the mismatch, and §4.1.3 - the
+    /// grant-specific section - says only "MUST reject" without naming a code, so the general
     /// enumeration does not override it. And returning a <i>different</i> code for "no challenge was
     /// stored" than for "wrong verifier" is a distinguishing oracle for exactly the downgrade
     /// attacker PKCE exists to stop.
@@ -278,7 +278,7 @@ public sealed class AuthorizationCodeGrant(
 
         if (!record.PkceWasRequested)
         {
-            // Unreachable while N-02 holds — this server never issues a code without a challenge —
+            // Unreachable while N-02 holds - this server never issues a code without a challenge -
             // so arriving here means a corrupted record or a downgrade attempt.
             return null;
         }
@@ -294,7 +294,7 @@ public sealed class AuthorizationCodeGrant(
 
         // TryParse rather than a rehydrate-without-checking, so a corrupted stored challenge fails
         // closed. Re-validating a value that was validated on the way in costs a base64url decode
-        // and removes the case where a truncated column produces a challenge that matches nothing —
+        // and removes the case where a truncated column produces a challenge that matches nothing -
         // or, worse, one that matches something.
         if (!CodeChallenge.TryParse(record.CodeChallenge, record.ChallengeMethod, out var challenge))
         {
@@ -365,13 +365,13 @@ public sealed class RefreshTokenGrant(
 {
     // Optional and last, like `metrics`, so a host constructing this by hand keeps working. It is
     // only used to reach the entitlement policy and the directory, and a null one means the filter
-    // does not run — the same "no policy registered, no narrowing" behaviour ScopeEntitlement has.
+    // does not run - the same "no policy registered, no narrowing" behaviour ScopeEntitlement has.
     private readonly IServiceProvider _services = services ?? EmptyServices.Instance;
 
     // Optional, and last in the list, so a host that does not register metrics constructs this
     // exactly as before. `reuse` is the row worth an alert: RFC 9700 §2.2.2 says a replayed refresh
     // token is either a client replaying one it should have discarded or somebody else holding a
-    // copy, and the server cannot tell which — so it is counted rather than inferred later from a
+    // copy, and the server cannot tell which - so it is counted rather than inferred later from a
     // log line whose retention nobody checked.
     private readonly Diagnostics.AuthorizationServerMetrics? _metrics = metrics;
 
@@ -388,7 +388,7 @@ public sealed class RefreshTokenGrant(
     /// How long after consumption a repeat presentation is a retry rather than a reuse.
     /// </summary>
     /// <remarks>
-    /// Not optional. Claude refreshes both proactively — up to five minutes before expiry — and
+    /// Not optional. Claude refreshes both proactively - up to five minutes before expiry - and
     /// reactively on a 401, so the two race in normal operation. Without a window the loser of that
     /// race is reported as a stolen token and the user is logged out, which reads as an outage.
     /// </remarks>
@@ -430,7 +430,7 @@ public sealed class RefreshTokenGrant(
         {
             // Unknown, and that is all this branch knows. It is also where a rotated-away token
             // lands after its grace window closes and its row is gone, which is the difference
-            // between a user who signed out and a deployment whose store is losing rows — so the
+            // between a user who signed out and a deployment whose store is losing rows - so the
             // reason is separate from ReuseDetected below rather than merged into one "dead".
             return Dead(ReasonCode.RefreshTokenUnknown, $"client_id={client.ClientId.Value}");
         }
@@ -445,7 +445,7 @@ public sealed class RefreshTokenGrant(
         }
 
         // §6: "ensure that the refresh token was issued to the authenticated client". Checked
-        // before redemption, not after — redeeming first would consume the legitimate user's token
+        // before redemption, not after - redeeming first would consume the legitimate user's token
         // on a request the wrong client made, which is the same denial of service the
         // authorization-code path orders its checks to avoid.
         if (grant.ClientId != client.ClientId)
@@ -464,7 +464,7 @@ public sealed class RefreshTokenGrant(
 
         // The entitlement filter, again. Applying it only at /authorize would mean a consent granted
         // while somebody was entitled keeps minting the scope after they are not, for as long as the
-        // refresh family lives — which is the longest-lived thing this server issues.
+        // refresh family lives - which is the longest-lived thing this server issues.
         var entitled = await Authorize.ScopeEntitlement
             .FilterAsync(_services, grant.Subject, scope, cancellationToken)
             .ConfigureAwait(false);
@@ -472,7 +472,7 @@ public sealed class RefreshTokenGrant(
         if (entitled.Values.Count == 0)
         {
             // X-42. The account can hold none of what this grant covers, so there is no narrower
-            // token to issue — unlike the ordinary case, where filtering just returns less.
+            // token to issue - unlike the ordinary case, where filtering just returns less.
             return Dead(
                 ReasonCode.ScopeNotAllowedForClient,
                 $"subject={grant.Subject.Value}; requested={scope.ToWireString()}");
@@ -497,7 +497,7 @@ public sealed class RefreshTokenGrant(
         // Derived from the family and the generation rather than generated, so that a second racer
         // landing on ReplayedWithinGrace can compute the *same* plaintext from the record the store
         // hands back. Only the hash is ever stored, so a generated successor is unrecoverable by
-        // anyone but the caller that made it — which is why the grace path used to answer
+        // anyone but the caller that made it - which is why the grace path used to answer
         // invalid_grant to a client that was doing nothing wrong.
         var successor = _deriver.Derive(record.FamilyId, record.Generation + 1);
 
@@ -508,7 +508,7 @@ public sealed class RefreshTokenGrant(
             GraceWindow,
             cancellationToken);
 
-        // All four cases, no default arm — a fifth would be a compile error here rather than a
+        // All four cases, no default arm - a fifth would be a compile error here rather than a
         // branch someone forgets.
         switch (redemption)
         {
@@ -517,7 +517,7 @@ public sealed class RefreshTokenGrant(
 
                 // grant.AuthTime, not the presented token's IssuedAt. Using the token's issue time
                 // moved auth_time forward on every rotation, so a session authenticated a month ago
-                // reported one minutes old — which silently defeats any relying party enforcing
+                // reported one minutes old - which silently defeats any relying party enforcing
                 // max_age or step-up authentication.
                 return new GrantOutcome.Issued(
                     await _issuer.IssueForRefreshAsync(
@@ -529,7 +529,7 @@ public sealed class RefreshTokenGrant(
 
                 // N-08: "two concurrent redemptions ⇒ one successor, BOTH callers get it." The store
                 // returned the successor that already exists rather than minting a second one, and
-                // the deriver reconstructs its plaintext from the same record — so the loser of the
+                // the deriver reconstructs its plaintext from the same record - so the loser of the
                 // race receives a working token instead of being told its credential is dead.
                 //
                 // Claude refreshes proactively and reactively, so this race happens in normal
@@ -545,7 +545,7 @@ public sealed class RefreshTokenGrant(
                 // costs: with the derivation key differing between instances, the loser of the race
                 // got HTTP 200, a working access token, and a refresh token whose hash is in no row.
                 // The client then discards its previous token because rotation told it to, the
-                // parent is already consumed, and the family is unrecoverable — with nothing logged,
+                // parent is already consumed, and the family is unrecoverable - with nothing logged,
                 // because the server never sees the dud again.
                 //
                 // Three ways in, all live: a key generated per process rather than configured, a key
@@ -557,11 +557,11 @@ public sealed class RefreshTokenGrant(
                 // Failing closed means invalid_grant, which is a credential the client can act on:
                 // it re-runs the authorization flow and the user is signed in again. A corpse is not
                 // something any client can act on. Constant-time via Sha256Hash.Matches, though the
-                // timing here leaks nothing an attacker could use — the comparison is against a
+                // timing here leaks nothing an attacker could use - the comparison is against a
                 // value they would already have to hold.
                 //
                 // A row written before the `ck_` wire prefix was retired holds the hash of the old
-                // spelling, and the material is identical — the prefix sits outside the MAC. So a
+                // spelling, and the material is identical - the prefix sits outside the MAC. So a
                 // mismatch is checked against the old name before it is treated as a mismatch at
                 // all. This is not a second chance for a wrong key: a wrong key produces material
                 // that matches neither spelling, and the refusal below still fires. What it buys is
@@ -579,9 +579,9 @@ public sealed class RefreshTokenGrant(
                 {
                     // The one refusal in this file that is almost certainly the operator's fault
                     // rather than the caller's, which is why it does not share a reason with the
-                    // others. Every route into it is a deployment mistake — a derivation key
+                    // others. Every route into it is a deployment mistake - a derivation key
                     // generated per process, a key rotated with no overlap, a family predating the
-                    // deriver — and the symptom without this line is users reporting random,
+                    // deriver - and the symptom without this line is users reporting random,
                     // permanent, unattributable logouts.
                     return Dead(
                         ReasonCode.RefreshTokenSuccessorUnrecoverable,
@@ -600,7 +600,7 @@ public sealed class RefreshTokenGrant(
 
                 // The only signal that a refresh token leaked. Either the legitimate client replayed
                 // one it should have discarded or someone else has a copy, and the server cannot
-                // tell which — so it assumes the worse one. RFC 9700 §2.2.2.
+                // tell which - so it assumes the worse one. RFC 9700 §2.2.2.
                 await _refreshTokens.RevokeFamilyAsync(reuse.FamilyId, now, cancellationToken);
                 await _grants.RevokeAsync(reuse.GrantId, now, cancellationToken);
                 return Dead(
@@ -621,7 +621,7 @@ public sealed class RefreshTokenGrant(
     /// <remarks>
     /// §6: the requested scope "MUST NOT include any scope not originally granted by the resource
     /// owner, and if omitted is treated as equal to the scope originally granted". Widening is
-    /// <c>invalid_scope</c> and never <c>invalid_grant</c> — a client reads the latter as "the
+    /// <c>invalid_scope</c> and never <c>invalid_grant</c> - a client reads the latter as "the
     /// refresh token is dead" and discards a live credential.
     /// </remarks>
     private static ScopeSet ResolveScope(OAuthParameters parameters, GrantRecord grant, out GrantOutcome? error)
@@ -671,7 +671,7 @@ public sealed class RefreshTokenGrant(
     /// </summary>
     /// <remarks>
     /// The code must be exactly <c>invalid_grant</c>. Anthropic's integration guidance is explicit
-    /// that a client branches on this string — "not <c>invalid_request</c> or a custom code" — and a
+    /// that a client branches on this string - "not <c>invalid_request</c> or a custom code" - and a
     /// client that cannot recognise a dead refresh token has no recovery path but to sit there
     /// failing.
     /// </remarks>
@@ -692,8 +692,8 @@ public readonly record struct NarrowedResource(ResourceIdentifier? Resource, Gra
 /// RFC 8707 §2.2 narrowing, shared by both grants.
 /// </summary>
 /// <remarks>
-/// One implementation because the two grants differ only in which set they narrow <i>from</i> — the
-/// code's resources for an exchange, the grant's for a refresh — and every other rule is the same.
+/// One implementation because the two grants differ only in which set they narrow <i>from</i> - the
+/// code's resources for an exchange, the grant's for a refresh - and every other rule is the same.
 /// Two copies would drift on the one that matters: never widening.
 /// </remarks>
 public static class ResourceNarrowing
@@ -713,7 +713,7 @@ public static class ResourceNarrowing
 
         // More than one is refused rather than served with a multi-valued `aud`. RFC 8707 §3 says an
         // authorization server "may be unwilling or unable to fulfill a token request with multiple
-        // resources", and a token valid at two resources is one either can replay at the other —
+        // resources", and a token valid at two resources is one either can replay at the other -
         // which is the property resource indicators exist to remove.
         if (requested.Count > 1)
         {
@@ -766,7 +766,7 @@ public static class ResourceNarrowing
 
         // The registry is the only source of a ResourceIdentifier, so a token cannot be minted for
         // a resource that was not resolved here. Unknown and not-permitted return the same null and
-        // therefore the same words — distinguishing them enumerates the customer's internal service
+        // therefore the same words - distinguishing them enumerates the customer's internal service
         // topology.
         return resolved is null
             ? Failed(

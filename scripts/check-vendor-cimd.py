@@ -4,7 +4,7 @@
     python3 scripts/check-vendor-cimd.py [spec-dir]
 
 `spec/REQUIREMENTS.md` section 6 is nineteen `C-*` rows describing how two vendors' MCP clients
-actually behave — including their defects, which is the half that makes it valuable. `C-04` is a
+actually behave - including their defects, which is the half that makes it valuable. `C-04` is a
 field-name bug in a document somebody else publishes. `C-06` is a redirect URI declared without a
 port. `C-03` is which client authentication method one of them offers at `/token`.
 
@@ -16,8 +16,8 @@ current. After that it is a claim wearing a date.
 `pinned-drafts.py` next door watches the IETF for the same reason and is the model for this file,
 down to the exit codes. The difference is what moves: a working group publishes a revision every
 few months, and a vendor ships whenever it likes. The two captures already in `spec/` are fourteen
-days apart and one of them exists *because* something changed — ChatGPT's documents grew the RFC
-7591 singular spelling beside the RFC 8414 plural — which was found by hand, at whatever moment
+days apart and one of them exists *because* something changed - ChatGPT's documents grew the RFC
+7591 singular spelling beside the RFC 8414 plural - which was found by hand, at whatever moment
 somebody happened to look.
 
 **What it compares.** The newest `cimd-live-*.json` in the spec directory names a set of URLs and
@@ -37,9 +37,9 @@ true. Nothing on `main` is broken by it.
 **Exit codes, and they are a contract `vendor-cimd.yml` reads:**
 
     0  every captured document still answers what it answered
-    1  at least one has changed, or the capture named nothing to check — work owed, and the
+    1  at least one has changed, or the capture named nothing to check - work owed, and the
        workflow opens a tracking issue
-    2  at least one URL could not be fetched — nothing was measured about it, so the run is red
+    2  at least one URL could not be fetched - nothing was measured about it, so the run is red
        and the workflow retries rather than filing
 
 Standard library only, deliberately. A check whose own dependencies can break is a check that goes
@@ -185,7 +185,7 @@ def main(argv: list[str]) -> int:
             print(f"  {line}")
 
         # Ahead of the changed check on purpose. A run that could not ask every question has not
-        # established the answer to the ones it did — reporting "one changed, one unknown" as work
+        # established the answer to the ones it did - reporting "one changed, one unknown" as work
         # owed would file an issue whose list is incomplete, and the retry costs one minute.
         return 2
 

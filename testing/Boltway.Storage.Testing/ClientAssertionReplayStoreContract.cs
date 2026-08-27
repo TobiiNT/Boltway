@@ -15,7 +15,7 @@ namespace Boltway.Storage.Testing;
 /// </para>
 /// <para>
 /// <b>Expiry is not a claim rule here.</b> A store asked to claim a <c>jti</c> whose <c>exp</c> has
-/// already passed still records it and still refuses the second attempt — the validator refuses an
+/// already passed still records it and still refuses the second attempt - the validator refuses an
 /// expired assertion long before this store is consulted, so building an expiry check in as well
 /// would put the same rule in two places and let them disagree. What the expiry <i>is</i> for is
 /// <see cref="IClientAssertionReplayStore.DeleteExpiredAsync"/>, which is the only method that reads
@@ -36,7 +36,7 @@ public abstract class ClientAssertionReplayStoreContract
     private static readonly DateTimeOffset Now = new(2026, 8, 22, 12, 0, 0, TimeSpan.Zero);
 
     /// <summary>
-    /// A <c>jti</c> this store has not seen is claimed — single use is once, not never.
+    /// A <c>jti</c> this store has not seen is claimed - single use is once, not never.
     /// </summary>
     /// <remarks>
     /// The control for every refusal below: a store that answered <see langword="false"/> to
@@ -65,7 +65,7 @@ public abstract class ClientAssertionReplayStoreContract
     /// </summary>
     /// <remarks>
     /// The control for the test above, and a real defect if it fails: keyed on <c>jti</c> alone, one
-    /// client picking <c>"1"</c> — which nothing stops it doing — locks every other client out of
+    /// client picking <c>"1"</c> - which nothing stops it doing - locks every other client out of
     /// that value for as long as the row lives, and the refusal reaches them as
     /// <c>invalid_client</c> on an assertion they never replayed.
     /// </remarks>
@@ -97,7 +97,7 @@ public abstract class ClientAssertionReplayStoreContract
     /// </summary>
     /// <remarks>
     /// <b>The test the obvious implementation fails.</b> A read followed by an insert passes
-    /// "claim, then claim again" — that is sequential — and loses here, where every caller reads
+    /// "claim, then claim again" - that is sequential - and loses here, where every caller reads
     /// before any of them writes. Sequential is the case that never happens during a replay attempt;
     /// this is the case that does.
     /// </remarks>
@@ -115,7 +115,7 @@ public abstract class ClientAssertionReplayStoreContract
     /// <summary>An expired row is claimable again once it has been swept, and not before.</summary>
     /// <remarks>
     /// Both halves matter. Sweeping early would reopen the replay window; never sweeping is a table
-    /// that grows without bound. The store does not decide when — nothing here schedules the sweep —
+    /// that grows without bound. The store does not decide when - nothing here schedules the sweep -
     /// so what is asserted is that the method does what its name says when a deployment calls it.
     /// </remarks>
     [Fact]

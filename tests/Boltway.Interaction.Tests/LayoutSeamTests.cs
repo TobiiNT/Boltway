@@ -9,7 +9,7 @@ namespace Boltway.Interaction.Tests;
 /// </summary>
 /// <remarks>
 /// <b>This class is the argument for tier two existing.</b> The layout below is the kind a real
-/// deployment writes — a header, a nav, a footer, its own classes, nothing like the shipped shell —
+/// deployment writes - a header, a nav, a footer, its own classes, nothing like the shipped shell -
 /// and the whole renderer contract is run through it. Twenty-two assertions about N-14, A-11, A-14
 /// and the CSP, none of which the layout author had to know about, all still true.
 /// </remarks>
@@ -43,7 +43,7 @@ public sealed class BrandedLayoutRendererTests : InteractionRendererContract
 /// What happens when a layout does not do the one thing a layout must.
 /// </summary>
 /// <remarks>
-/// Without these, the middle tier would be the top tier with a smaller interface — a deployment
+/// Without these, the middle tier would be the top tier with a smaller interface - a deployment
 /// could ship a consent page with no client hostname, no scope list and no form, and the first
 /// symptom would be a user who cannot connect. The check exists so the failure lands on the person
 /// writing the layout, at the first render, in their own testing.
@@ -101,7 +101,7 @@ public sealed class LayoutGuardTests
                 + "</body></html>"));
     }
 
-    /// <summary>A layout that truncates the body — a template with a length cap on a slot.</summary>
+    /// <summary>A layout that truncates the body - a template with a length cap on a slot.</summary>
     [Fact]
     public void A_layout_that_truncates_the_body_is_refused()
     {

@@ -20,7 +20,7 @@ namespace Boltway.AuthorizationServer.Configuration;
 /// </code>
 /// <para>
 /// <c>= { }</c> in an object initializer is a <b>collection</b> initializer: it means "call
-/// <c>Add</c> zero times". It does not clear anything. Measured — the options came back holding
+/// <c>Add</c> zero times". It does not clear anything. Measured - the options came back holding
 /// their defaults, <c>127.0.0.0/8</c> and <c>::1</c>, exactly as if the two lines were absent.
 /// </para>
 /// <para>
@@ -28,7 +28,7 @@ namespace Boltway.AuthorizationServer.Configuration;
 /// reaches these containers from a Docker bridge address rather than loopback, so every forwarded
 /// header was <b>rejected</b>: <c>Request.IsHttps</c> stayed false behind working TLS, which
 /// answers 500 on the sign-in form because antiforgery will not write a Secure cookie over what it
-/// believes is http — and <c>RemoteIpAddress</c> stayed the proxy, so <c>LoginThrottle</c>'s
+/// believes is http - and <c>RemoteIpAddress</c> stayed the proxy, so <c>LoginThrottle</c>'s
 /// per-source limit put the whole deployment in one bucket. Fixing that limit was the entire
 /// stated purpose of the change that introduced these two lines. It never worked, on Cloud Run
 /// either, and the comment above it said the lists were cleared.
@@ -48,12 +48,12 @@ public static class ProxyHeaders
     /// peer, and from nothing further out.
     /// </summary>
     /// <param name="hops">
-    /// How many proxies stand in front. One is what both deployments have — Cloud Run's front end,
+    /// How many proxies stand in front. One is what both deployments have - Cloud Run's front end,
     /// or Caddy.
     /// <para>
     /// <b>This is the number to change if a CDN is ever put in front.</b> With Cloudflare's proxy
     /// on, the chain arriving at Caddy is already <c>client, cloudflare</c>, Caddy appends itself,
-    /// and a limit of 1 takes the last hop — so every request is attributed to Caddy's neighbour
+    /// and a limit of 1 takes the last hop - so every request is attributed to Caddy's neighbour
     /// rather than to the person, and the per-source login limit goes back to being per deployment.
     /// It fails the same silent way it failed before any of this existed.
     /// </para>

@@ -57,7 +57,7 @@ public sealed record PendingExternalLogin(
 /// <para>
 /// <b>Everything that decides where the user ends up is in this cookie, and nothing that decides it
 /// comes back from the upstream.</b> That sentence is the whole open-redirect argument. The upstream
-/// controls exactly three things on the callback — <c>code</c>, <c>state</c> and <c>error</c> — and
+/// controls exactly three things on the callback - <c>code</c>, <c>state</c> and <c>error</c> - and
 /// none of them is a URL. The <c>returnUrl</c> that the browser is finally sent to was written here,
 /// by this server, from a value that had already passed <c>LocalUrl.IsLocalPathTo</c> at the start;
 /// it is re-gated on the way out anyway, because "it was validated when it was written" is a claim
@@ -65,13 +65,13 @@ public sealed record PendingExternalLogin(
 /// </para>
 /// <para>
 /// <b>Why a cookie rather than a server-side row.</b> A row would need a store, a schema, a
-/// migration across every deployed database, and a cleanup job — for a value that lives ten minutes
+/// migration across every deployed database, and a cleanup job - for a value that lives ten minutes
 /// and is meaningless to anyone but the browser holding it. The cookie is encrypted and
 /// authenticated by ASP.NET Core Data Protection, which is the same mechanism protecting the session
 /// and antiforgery cookies this server already relies on, so it inherits their key-management story
 /// rather than inventing a second one. The cost is stated rather than hidden: a fleet whose
 /// instances do not share a data-protection key ring will fail these callbacks, and the failure is
-/// <c>ExternalPendingRequestMissing</c> — which is why that reason exists separately from a state
+/// <c>ExternalPendingRequestMissing</c> - which is why that reason exists separately from a state
 /// mismatch.
 /// </para>
 /// <para>
@@ -94,7 +94,7 @@ public sealed class ExternalLoginStateStore
     /// <remarks>
     /// The <c>__Host-</c> prefix is enforced by the browser rather than by us: it refuses the cookie
     /// unless it is <c>Secure</c>, has <c>Path=/</c> and carries no <c>Domain</c>. The last of those
-    /// is the one that matters — without it a sibling host on the same registrable domain can set a
+    /// is the one that matters - without it a sibling host on the same registrable domain can set a
     /// cookie this server would read.
     /// </remarks>
     public const string CookieName = "__Host-boltway-external";
@@ -179,7 +179,7 @@ public sealed class ExternalLoginStateStore
                 IsEssential = true,
 
                 // A session cookie, with no Expires. The payload carries its own absolute expiry and
-                // that is the one enforced — a cookie lifetime is a hint the browser may round, and
+                // that is the one enforced - a cookie lifetime is a hint the browser may round, and
                 // this server must not accept a pending request it considers expired just because a
                 // browser still had it.
             });
@@ -190,7 +190,7 @@ public sealed class ExternalLoginStateStore
     /// </summary>
     /// <remarks>
     /// Deliberately one method. Reading without deleting is what makes a callback replayable, and a
-    /// separate <c>Clear</c> is a call site that can be forgotten on the path that returns early —
+    /// separate <c>Clear</c> is a call site that can be forgotten on the path that returns early -
     /// which is every failure path, which is where a replay would be aimed.
     /// </remarks>
     /// <returns>The pending request, or <see langword="null"/> if there is not a usable one.</returns>
@@ -279,8 +279,8 @@ public sealed class ExternalLoginStateStore
     /// <see cref="CryptographicOperations.FixedTimeEquals(ReadOnlySpan{byte}, ReadOnlySpan{byte})"/>
     /// rather than <c>string.Equals</c>. The comparison is against a value an attacker supplies and
     /// wants to guess, which is the definition of the case where an early-exit comparison leaks. It
-    /// is a small leak here — the value is 256 bits of CSPRNG and the network noise is larger than
-    /// the signal — and using the constant-time comparison anyway costs one method call and removes
+    /// is a small leak here - the value is 256 bits of CSPRNG and the network noise is larger than
+    /// the signal - and using the constant-time comparison anyway costs one method call and removes
     /// the argument.
     /// </remarks>
     public static bool StateMatches(string expected, string? presented)
@@ -299,7 +299,7 @@ public sealed class ExternalLoginStateStore
     /// The same comparison, and separately named because it answers a different question: OIDC Core
     /// §3.1.3.7 rule 11 makes this the relying party's obligation, and it is the check that stops an
     /// ID token obtained for one sign-in being replayed into another. A missing <c>nonce</c> fails,
-    /// which is the point — a token issued without one cannot be shown to belong to this round trip.
+    /// which is the point - a token issued without one cannot be shown to belong to this round trip.
     /// </remarks>
     public static bool NonceMatches(string expected, string? presented) => StateMatches(expected, presented);
 
@@ -309,7 +309,7 @@ public sealed class ExternalLoginStateStore
     /// <summary>The range <see cref="DateTimeOffset.FromUnixTimeSeconds"/> will accept.</summary>
     /// <remarks>
     /// Clamped rather than range-checked, because the value has already been through
-    /// authenticated encryption — an out-of-range number here means this server wrote one, not that
+    /// authenticated encryption - an out-of-range number here means this server wrote one, not that
     /// somebody supplied one. It is clamped rather than trusted because
     /// <c>FromUnixTimeSeconds</c> throws on the edges, and a throw on this path is a 500 where a
     /// refusal belongs. The same defect was found and fixed on <c>CookieUserSession</c>'s
@@ -324,8 +324,8 @@ public sealed class ExternalLoginStateStore
 
 /// <summary>The cookie payload, on its way through the data protector.</summary>
 /// <remarks>
-/// One-letter member names. Not for the bytes — the payload is encrypted and a few dozen of them
-/// change nothing — but because this is a serialization contract with itself across a version
+/// One-letter member names. Not for the bytes - the payload is encrypted and a few dozen of them
+/// change nothing - but because this is a serialization contract with itself across a version
 /// boundary, and short opaque names discourage anyone reading a decrypted blob and treating it as a
 /// documented format. The purpose string carries the version; changing the shape means changing it.
 /// </remarks>

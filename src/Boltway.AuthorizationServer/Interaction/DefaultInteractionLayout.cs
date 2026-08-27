@@ -18,15 +18,15 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// </para>
 /// <para>
 /// <b>Nothing inline.</b> The pages send <c>default-src 'self'</c> with no <c>style-src</c> or
-/// <c>script-src</c> override, so both inherit <c>'self'</c> — an inline <c>&lt;style&gt;</c> or
+/// <c>script-src</c> override, so both inherit <c>'self'</c> - an inline <c>&lt;style&gt;</c> or
 /// <c>style="…"</c> attribute is blocked by the browser rather than by review. A stylesheet on this
 /// origin is covered by <c>'self'</c>, which is what <see cref="InteractionOptions.StylesheetPaths"/>
 /// produces and why it needs no change to the policy.
 /// </para>
 /// <para>
 /// <b>The shell is two boxes and the stylesheet decides what that means.</b>
-/// <c>bw-shell &gt; bw-panel + bw-content</c> is enough structure for a split-panel sign-in — brand
-/// on the left, the decision on the right — and for the same markup to stack into a header bar on a
+/// <c>bw-shell &gt; bw-panel + bw-content</c> is enough structure for a split-panel sign-in - brand
+/// on the left, the decision on the right - and for the same markup to stack into a header bar on a
 /// phone. It is emitted unconditionally, including when nothing is themed: an unstyled page is then
 /// the brand panel's few words followed by the body, in that order, which reads correctly with no
 /// stylesheet at all. <b>The panel never carries anything about the client</b>, which is what keeps
@@ -60,7 +60,7 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
     /// <param name="localizer">
     /// Where the panel's two sentences come from, or <see langword="null"/> for none. Keys are
     /// <see cref="InteractionText.ShellTagline"/> and <see cref="InteractionText.ShellDomain"/>,
-    /// both of which fall back to empty and are then omitted — so a deployment that translates
+    /// both of which fall back to empty and are then omitted - so a deployment that translates
     /// nothing gets the panel it would have got without a localizer at all.
     /// </param>
     public DefaultInteractionLayout(InteractionOptions options, IStringLocalizer? localizer)
@@ -83,7 +83,7 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
 
         // The resolved culture, never the requested one. RequestLocalizationMiddleware has already
         // matched whatever arrived against SupportedUICultures and fallen back if it matched
-        // nothing, so this is a value the server chose — putting `ui_locales` here directly would
+        // nothing, so this is a value the server chose - putting `ui_locales` here directly would
         // reflect a query parameter into the document.
         //
         // Encoded anyway. A culture name cannot contain a quote, and "cannot" is a property of the
@@ -135,7 +135,7 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
     /// <para>
     /// <b>The logo is the only thing here that predates the panel, and it is rendered exactly as it
     /// was.</b> The product name reaches this page as that image's <c>alt</c> and by no other route
-    /// — writing it as text beside the logo was tried and reverted, because
+    /// - writing it as text beside the logo was tried and reverted, because
     /// <c>The_product_name_is_not_in_the_body</c> is N-14 in an assertion: the most prominent text
     /// on the consent page is the client hostname, and a deployment name rendered as text is the
     /// one thing on the page that could out-rank it without anybody choosing that. A deployment
@@ -209,7 +209,7 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
     /// sets <c>InvariantGlobalization</c>, under which every culture carries invariant data.
     /// Measured 2026-08-23 on .NET SDK 10.0.111 by constructing each tag below and reading the
     /// property: all nine returned <see langword="false"/>, exactly as <c>en</c> did. So the
-    /// framework call is not unavailable here — it is a silent wrong answer for every language
+    /// framework call is not unavailable here - it is a silent wrong answer for every language
     /// alike, and would have shipped as "no page is ever right-to-left" with nothing failing.
     /// </para>
     /// <para>
@@ -217,7 +217,7 @@ public sealed class DefaultInteractionLayout : IInteractionLayout
     /// same day: .NET normalizes a culture name's language subtag to lower case, so
     /// <c>GetCultureInfo("AR").Name</c> is <c>ar</c> and nothing mixed-case reaches this set through
     /// <c>CurrentUICulture</c> today. That is a property of the framework rather than of this file,
-    /// and an ordinal comparer would make it one this file depends on — so there is no test pinning
+    /// and an ordinal comparer would make it one this file depends on - so there is no test pinning
     /// the insensitivity, because there is no path here that exercises it.
     /// </para>
     /// <para>

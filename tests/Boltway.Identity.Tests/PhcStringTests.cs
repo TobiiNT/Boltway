@@ -106,7 +106,7 @@ public sealed class PhcStringTests
     /// <para>
     /// A 16-byte salt ends in a character carrying two significant bits and four ignored ones.
     /// <c>…ODw</c>, <c>…ODx</c>, <c>…ODy</c> and <c>…ODz</c> therefore decode to identical bytes, and
-    /// the decoder accepts all four — four spellings of one salt, so re-encoding a stored hash would
+    /// the decoder accepts all four - four spellings of one salt, so re-encoding a stored hash would
     /// not reproduce it.
     /// </para>
     /// </remarks>
@@ -131,7 +131,7 @@ public sealed class PhcStringTests
     /// <remarks>
     /// Its own test because the value has to be chosen to contain a character the two alphabets
     /// disagree on. Most random salts encode to the same characters either way, so a row picked at
-    /// random would pass whether or not the check exists — the mistake this file's whole approach is
+    /// random would pass whether or not the check exists - the mistake this file's whole approach is
     /// meant to avoid.
     /// </remarks>
     [Fact]

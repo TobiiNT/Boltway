@@ -30,7 +30,7 @@ public sealed class InteractionOptions
     /// <summary>How long a product name may be before it is refused.</summary>
     /// <remarks>
     /// Operator-supplied rather than attacker-supplied, so this is a layout guard rather than a
-    /// security one — but the page it lands on is the one whose entire job is to be read carefully,
+    /// security one - but the page it lands on is the one whose entire job is to be read carefully,
     /// and a name long enough to push the client hostname off a phone screen defeats N-14 just as
     /// effectively whether or not anyone meant it to.
     /// </remarks>
@@ -41,7 +41,7 @@ public sealed class InteractionOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The host serves them itself — <c>app.UseStaticFiles()</c> and a file under <c>wwwroot</c> is
+    /// The host serves them itself - <c>app.UseStaticFiles()</c> and a file under <c>wwwroot</c> is
     /// the whole of it. <c>'self'</c> covers a same-origin stylesheet, so this needs no change to
     /// the policy and no nonce.
     /// </para>
@@ -71,13 +71,13 @@ public sealed class InteractionOptions
     /// <remarks>
     /// <para>
     /// <b>This server's own logo, never the client's.</b> A client's <c>logo_uri</c> is a URL the
-    /// client chose, and rendering it would tell whoever hosts it about every consent-page view —
+    /// client chose, and rendering it would tell whoever hosts it about every consent-page view -
     /// which is why <c>default-src 'self'</c> refuses it and why N-14 says to proxy rather than
     /// hotlink. That proxy does not exist, so no client logo reaches these pages at all.
     /// </para>
     /// <para>
     /// Rendered with <see cref="ProductName"/> as its alt text when there is one, and with empty
-    /// alt text when there is not — a decorative image with an invented description is worse for a
+    /// alt text when there is not - a decorative image with an invented description is worse for a
     /// screen reader than one that announces nothing.
     /// </para>
     /// </remarks>
@@ -89,14 +89,14 @@ public sealed class InteractionOptions
     /// <remarks>
     /// <para>
     /// <b>Off, and the shipped pages do not need it.</b> They contain no inline script and no inline
-    /// style, so with this off the policy stays exactly what it has always been —
+    /// style, so with this off the policy stays exactly what it has always been -
     /// <c>default-src 'self'</c> governing scripts and styles by fallback, and nothing on the page
     /// asking for more. Turn it on only when a layout genuinely has inline content, because a nonce
     /// nobody uses is a token in a header that invites the next person to find a use for it.
     /// </para>
     /// <para>
     /// <b>What changes when it is on.</b> Two directives appear: <c>script-src 'self' 'nonce-…'</c>
-    /// and <c>style-src 'self' 'nonce-…'</c>. <c>'self'</c> is repeated in both on purpose — naming a
+    /// and <c>style-src 'self' 'nonce-…'</c>. <c>'self'</c> is repeated in both on purpose - naming a
     /// directive replaces the <c>default-src</c> fallback for it entirely, so omitting <c>'self'</c>
     /// would silently stop same-origin stylesheets and script files from loading, which is the
     /// stylesheet <see cref="StylesheetPaths"/> just configured.
@@ -110,7 +110,7 @@ public sealed class InteractionOptions
     /// </para>
     /// <para>
     /// The nonce is 128 bits from the system CSPRNG, fresh for every response, and never reused.
-    /// That is only sound because these pages already send <c>Cache-Control: no-store</c> — a nonced
+    /// That is only sound because these pages already send <c>Cache-Control: no-store</c> - a nonced
     /// page served twice from a cache is a nonce an attacker has seen, which is the failure that
     /// makes most nonce deployments worthless.
     /// </para>
@@ -130,7 +130,7 @@ public sealed class InteractionOptions
     /// </para>
     /// <para>
     /// <b>Why this is a server setting rather than something CSS could do.</b> A stylesheet can
-    /// reorder these with <c>order</c> on a flex container — and doing so would move the buttons
+    /// reorder these with <c>order</c> on a flex container - and doing so would move the buttons
     /// without moving the tab order, so a keyboard reaches them in the order the markup has and the
     /// eye reaches them in the order the page shows. That is WCAG 2.4.3 broken on the one page where
     /// somebody may be typing a password they cannot see. Reordering has to happen in the markup.
@@ -191,7 +191,7 @@ public sealed class InteractionOptions
     /// <para>
     /// <c>//evil.example/x.css</c> is the case worth naming: it looks like a path, and a browser
     /// reads it as protocol-relative and fetches it from another origin. <c>/\evil.example</c> is the
-    /// same attack spelled differently — browsers normalise the backslash to a forward slash, so a
+    /// same attack spelled differently - browsers normalise the backslash to a forward slash, so a
     /// check that only looked for <c>//</c> would pass it through.
     /// </para>
     /// <para>

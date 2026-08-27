@@ -6,24 +6,24 @@ namespace Boltway.AuthorizationServer.Administration;
 /// <remarks>
 /// <para>
 /// An account created without a role signs in and holds nothing, and the person who discovers that
-/// is never the operator who forgot the argument — it is the account's owner, later, reading an
+/// is never the operator who forgot the argument - it is the account's owner, later, reading an
 /// almost-empty resource as data loss. A deployment that wants "everyone starts as a member" says
 /// so once, here, instead of relying on every creation path to remember.
 /// </para>
 /// <para>
 /// <b>These fill an absence; they never add to a choice.</b> A caller who names a role gets exactly
-/// that role — <see cref="UserAdministration.CreateAsync"/> does not union the defaults in, because
+/// that role - <see cref="UserAdministration.CreateAsync"/> does not union the defaults in, because
 /// an assignment the operator did not make and cannot see in their own request is how an account
 /// ends up holding more than anyone decided it should.
 /// </para>
 /// <para>
-/// <b>Registering this type is the whole switch.</b> Absent, creation behaves as it always has —
+/// <b>Registering this type is the whole switch.</b> Absent, creation behaves as it always has -
 /// no role unless one is named. There is deliberately no way to construct an empty one: "no
 /// defaults" is said by not registering it, so an empty set can only be a configuration mistake,
 /// and it is refused here rather than discovered as accounts that hold nothing.
 /// </para>
 /// <para>
-/// Every id must be one the realm defines by the time an account is created —
+/// Every id must be one the realm defines by the time an account is created -
 /// <c>IUserStore.SetRolesAsync</c> refuses an assignment nothing can resolve, which turns a typo
 /// here into a failed creation rather than a silent no-op. The host's <c>migrate</c> verb checks
 /// this at deploy time, after seeding, so the failure lands in a deploy log instead of on the
@@ -36,7 +36,7 @@ public sealed record AccountDefaults
     /// <param name="roles">
     /// Role ids, matched ordinally against the realm's definitions. At least one; none may be blank
     /// or carry whitespace, for the same reason <see cref="Abstractions.Users.RoleDefinition"/>
-    /// refuses them — they are compared character for character against a claim.
+    /// refuses them - they are compared character for character against a claim.
     /// </param>
     /// <exception cref="ArgumentException">The rules above are broken.</exception>
     public AccountDefaults(IEnumerable<string> roles)

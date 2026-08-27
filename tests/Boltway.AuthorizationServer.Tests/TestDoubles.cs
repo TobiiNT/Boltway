@@ -82,7 +82,7 @@ internal sealed class TestResourceRegistry : IResourceRegistry
     /// <summary>Nominate the resource a sign-in with no <c>resource</c> is audienced at.</summary>
     /// <remarks>
     /// Opt-in, and it must be called after the matching <see cref="Add"/>. A registry that has not
-    /// been told falls through to the interface's default member and answers null — the same
+    /// been told falls through to the interface's default member and answers null - the same
     /// position every deployment written before this method existed is in, which is what makes
     /// "nothing changes unless you nominate one" a thing tests can observe rather than assert about
     /// their own double.
@@ -117,7 +117,7 @@ internal static class Build
     /// <remarks>
     /// Needed to tell "widening beyond the grant" apart from "resource this server never heard of".
     /// A widening test that names an unregistered resource passes without the narrowing check,
-    /// because the registry refuses it anyway — measured, the mutation removing that check survived.
+    /// because the registry refuses it anyway - measured, the mutation removing that check survived.
     /// </remarks>
     public const string OtherResource = "https://other-mcp.example.com/mcp";
 
@@ -196,7 +196,7 @@ internal static class Build
         // Described, because the doctor's scope-descriptions check reads this and a fixture called
         // "healthy" has to be. It was not: all three scopes were advertised with no sentence for
         // the consent screen, which A-14 renders as the bare scope name plus a note saying there is
-        // no description — correct, and useless to the person approving it. The check went in and
+        // no description - correct, and useless to the person approving it. The check went in and
         // this is what it found first.
         options.ScopeDescriptions["openid"] = "Confirm who you are.";
         options.ScopeDescriptions["offline_access"] = "Stay connected without asking you again.";

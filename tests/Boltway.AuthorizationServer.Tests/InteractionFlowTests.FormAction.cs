@@ -9,13 +9,13 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// Chrome and Safari apply <c>form-action</c> to the redirect a submission follows, not only to its
 /// immediate target. Under a bare <c>form-action 'self'</c> the consent POST is allowed and the 303
-/// it answers with is blocked — after the authorization code has been issued. So the server logs a
+/// it answers with is blocked - after the authorization code has been issued. So the server logs a
 /// completed authorization, the client never sees the code, and nothing anywhere reports a failure.
 /// </para>
 /// <para>
 /// It reached a deployment because <c>curl</c> does not enforce CSP: an end-to-end check that
 /// followed every redirect by hand, including the one to the client, passed. These tests assert the
-/// header rather than the flow for the same reason a browser is what found it — the flow passes
+/// header rather than the flow for the same reason a browser is what found it - the flow passes
 /// either way.
 /// </para>
 /// </remarks>
@@ -45,7 +45,7 @@ public sealed partial class InteractionFlowTests
     /// The assertion that pins <i>which</i> URI the source is built from. RFC 8252 §7.3 registers
     /// <c>http://127.0.0.1/callback</c> with no port because a native app cannot know its ephemeral
     /// one until it binds; the request then arrives on 49321. A source derived from the registration
-    /// would be <c>http://127.0.0.1</c>, which CSP reads as port 80 — so it would match nothing the
+    /// would be <c>http://127.0.0.1</c>, which CSP reads as port 80 - so it would match nothing the
     /// app is listening on, and the sign-in would fail exactly as it did before any of this.
     /// </remarks>
     [Fact]

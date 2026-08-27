@@ -14,14 +14,14 @@ namespace Boltway.OAuth.Primitives.Http;
 /// <para>
 /// The failure mode worth naming: <c>error_description</c> is the one parameter carrying
 /// human-written text, and a stray <c>"</c> in it terminates the quoted string early. Everything
-/// after that point — including <c>resource_metadata</c>, which is the entire discovery pointer —
+/// after that point - including <c>resource_metadata</c>, which is the entire discovery pointer -
 /// is parsed as garbage or dropped. So a careless error message does not degrade the diagnostics;
 /// it removes the client's only route to authenticating at all.
 /// </para>
 /// <para>
 /// The defence here is to <b>strip</b> characters outside the permitted set rather than escape
 /// them. RFC 6750 §3 defines <c>error</c> and <c>error_description</c> over
-/// <c>%x20-21 / %x23-5B / %x5D-7E</c> — a range that excludes <c>"</c> and <c>\</c> outright — so a
+/// <c>%x20-21 / %x23-5B / %x5D-7E</c> - a range that excludes <c>"</c> and <c>\</c> outright - so a
 /// backslash-escaped quote is not a legal value even though RFC 7235's <c>quoted-string</c> grammar
 /// would carry it. Emitting one means betting on the client's parser. Stripping means the header is
 /// always well-formed and always parseable, at the cost of some punctuation in a message no
@@ -39,7 +39,7 @@ public static class WwwAuthenticate
     /// <remarks>
     /// Capping only <c>error_description</c> left <c>realm</c>, <c>resource_metadata</c> and the
     /// scope list unbounded, so a long realm or a client entitled to many scopes could push the
-    /// header past a reverse proxy's buffer — nginx's <c>proxy_buffer_size</c> defaults to 4 KB —
+    /// header past a reverse proxy's buffer - nginx's <c>proxy_buffer_size</c> defaults to 4 KB -
     /// and turn it into a 502. The client then sees no <c>resource_metadata</c> at all, which is
     /// precisely the failure this whole type exists to prevent, arriving by a different route.
     /// </remarks>
@@ -50,7 +50,7 @@ public static class WwwAuthenticate
     /// </summary>
     /// <param name="error">
     /// RFC 6750 error code, or <see langword="null"/>. RFC 6750 §3.1 says to omit it when the
-    /// request carried no credentials at all — but both Claude and ChatGPT need it present to
+    /// request carried no credentials at all - but both Claude and ChatGPT need it present to
     /// trigger their re-authentication UI, and a challenge they ignore is worse than a slightly
     /// over-specified one, so callers pass <c>invalid_token</c> even in that case.
     /// </param>
@@ -143,7 +143,7 @@ public static class WwwAuthenticate
         first = false;
 
         // Always a quoted-string, never a bare token. A URL contains ':' and '/', which are not
-        // tchar, so resource_metadata unquoted is not merely ugly — it is unparseable.
+        // tchar, so resource_metadata unquoted is not merely ugly - it is unparseable.
         builder.Append(name).Append("=\"").Append(sanitized).Append('"');
     }
 
@@ -153,7 +153,7 @@ public static class WwwAuthenticate
     /// <remarks>
     /// Validated before the join, not sanitised after it. Sanitising afterwards turns a space
     /// inside one scope into a separator, so <c>["story:read story:write"]</c> becomes two scopes
-    /// and <c>["a\"b", "c"]</c> becomes three — and an empty element yields a double space, which
+    /// and <c>["a\"b", "c"]</c> becomes three - and an empty element yields a double space, which
     /// is not a legal <c>scope</c> value at all. This header is the only thing that tells a client
     /// what to re-authorise for (X-34), so a mangled list means it asks for the wrong scope and
     /// keeps being refused.
@@ -191,7 +191,7 @@ public static class WwwAuthenticate
     /// Reduce a value to the RFC 6750 §3 character set: <c>%x20-21 / %x23-5B / %x5D-7E</c>.
     /// </summary>
     /// <remarks>
-    /// Excludes <c>"</c> (%x22) and <c>\</c> (%x5C) by construction, and everything below %x20 —
+    /// Excludes <c>"</c> (%x22) and <c>\</c> (%x5C) by construction, and everything below %x20 -
     /// so a newline or a carriage return in a message cannot split the header and inject another
     /// one. Response splitting through an error message is a real class of bug and this is where it
     /// is closed.
@@ -209,7 +209,7 @@ public static class WwwAuthenticate
             else if (c is '"' or '\\' or '\n' or '\r' or '\t')
             {
                 // Collapse the dangerous ones to a space rather than deleting them, so
-                // `say "no"` reads as `say  no ` instead of `say no` — the shape of the original
+                // `say "no"` reads as `say  no ` instead of `say no` - the shape of the original
                 // survives, which matters when someone is comparing a log line to a header.
                 builder.Append(' ');
             }

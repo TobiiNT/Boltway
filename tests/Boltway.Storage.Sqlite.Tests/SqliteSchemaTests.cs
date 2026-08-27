@@ -55,7 +55,7 @@ public sealed class SqliteSchemaTests : IDisposable
     [Fact]
     public void The_connection_enforces_foreign_keys()
     {
-        // SQLite ignores REFERENCES clauses unless foreign_keys is on, and it is off by default —
+        // SQLite ignores REFERENCES clauses unless foreign_keys is on, and it is off by default -
         // per connection, not per database. EF Core's SQLite provider turns it on when it opens a
         // connection, which is a property of a library this project does not own, so it is measured
         // here rather than asserted in a comment. Without it the external_logins foreign key in the

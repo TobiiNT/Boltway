@@ -7,7 +7,7 @@ namespace Boltway.AdminBff.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The Role box is free text and the server keeps it that way on purpose — <c>AdminAuthorization</c>
+/// The Role box is free text and the server keeps it that way on purpose - <c>AdminAuthorization</c>
 /// treats the role as an opaque string it never compares to a constant, and turning a role into an
 /// entitlement belongs to the deployment through <c>IScopeEntitlementPolicy</c>. So nothing refuses
 /// <c>foundeur</c>, and nothing should: an unknown role is a legitimate thing for a directory to
@@ -51,7 +51,7 @@ public sealed class RoleConsequenceTests
     /// </summary>
     /// <remarks>
     /// <c>foundeur</c> is one keystroke from <c>founder</c> and means the opposite. The page has to
-    /// say so, and it has to say so without refusing the value — which is why the assertion is that
+    /// say so, and it has to say so without refusing the value - which is why the assertion is that
     /// the sentence appears and the input still carries what was typed.
     /// </remarks>
     [Fact]
@@ -86,7 +86,7 @@ public sealed class RoleConsequenceTests
     /// <remarks>
     /// <c>AdminRoleScopePolicy</c> compares ordinally, so <c>Founder</c> is not <c>founder</c> and
     /// does not administer anything. A page that matched case-insensitively would tell an operator
-    /// the account is privileged while the server refuses it — a wrong answer being worse here than
+    /// the account is privileged while the server refuses it - a wrong answer being worse here than
     /// no answer.
     /// </remarks>
     [Fact]
@@ -120,7 +120,7 @@ public sealed class RoleConsequenceTests
     /// </summary>
     /// <remarks>
     /// The role is a string an operator typed and this app never validated, and it reaches the page
-    /// three times now — the input's value, the sentence, and the datalist — so it is three chances
+    /// three times now - the input's value, the sentence, and the datalist - so it is three chances
     /// to get encoding wrong rather than one.
     /// </remarks>
     [Fact]
@@ -156,7 +156,7 @@ public sealed class RoleConsequenceTests
     /// </summary>
     /// <remarks>
     /// They used to read "Address is proven" and "May sign in", which name a state and leave the
-    /// operator to work out the consequence — and the consequences are not guessable. An unverified
+    /// operator to work out the consequence - and the consequences are not guessable. An unverified
     /// address cannot be typed at sign-in but the handle still can, and disabling an account refuses
     /// new sign-ins while every token already issued keeps working. Both facts are load-bearing and
     /// neither was on the page.
@@ -192,7 +192,7 @@ public sealed class RoleConsequenceTests
     /// denylist. `IGrantStore.IsRevokedAsync` has no production caller in either repository, and a
     /// test in Boltway.OAuth.Tokens.Tests says so in as many words. The caveat on the very
     /// button it pointed at, rendered seven lines below on the same page, already said the true
-    /// thing — so the page contradicted itself for whoever read both.
+    /// thing - so the page contradicted itself for whoever read both.
     /// </para>
     /// <para>
     /// The test above pinned the two halves that were true and nothing pinned the half that was

@@ -16,7 +16,7 @@ namespace Boltway.Interaction.Testing;
 /// <para>
 /// <b>The one assumption:</b> a correctly rendered page has no raw <c>&lt;</c> or <c>&gt;</c> in
 /// text or in an attribute value, because everything interpolated has been HTML-encoded. A renderer
-/// that violates that breaks <see cref="Text"/> — and fails
+/// that violates that breaks <see cref="Text"/> - and fails
 /// <c>Interpolated_markup_is_encoded_rather_than_rendered</c> in the same run, which is the finding
 /// that matters.
 /// </para>
@@ -38,7 +38,7 @@ public static partial class Markup
     [GeneratedRegex(@"\sstyle\s*=", RegexOptions.IgnoreCase)]
     private static partial Regex StyleAttribute();
 
-    /// <summary>Inline event handlers — <c>onclick</c>, <c>onload</c> and the rest of the family.</summary>
+    /// <summary>Inline event handlers - <c>onclick</c>, <c>onload</c> and the rest of the family.</summary>
     [GeneratedRegex(@"\son[a-z]+\s*=", RegexOptions.IgnoreCase)]
     private static partial Regex EventHandlerAttribute();
 
@@ -48,7 +48,7 @@ public static partial class Markup
     /// <remarks>
     /// Absolute URLs, protocol-relative URLs, <c>data:</c> and <c>javascript:</c>. Under
     /// <c>default-src 'self'</c> with no <c>style-src</c> or <c>script-src</c> override, every one of
-    /// them is refused by the browser — so a renderer that emits one has produced a page that is
+    /// them is refused by the browser - so a renderer that emits one has produced a page that is
     /// broken in production and passing in a fixture, which is the failure this whole suite exists
     /// to move earlier.
     /// </remarks>
@@ -60,8 +60,8 @@ public static partial class Markup
     /// <summary>The page's text, as a reader sees it: tags removed, entities resolved once.</summary>
     /// <remarks>
     /// Decoded exactly once, which is what makes this the double-encoding detector. A name encoded
-    /// twice arrives here as <c>Caf&amp;#233;</c> rather than <c>Café</c> — the literal mojibake a
-    /// review measured on the consent page — and the assertion that the name reads back verbatim is
+    /// twice arrives here as <c>Caf&amp;#233;</c> rather than <c>Café</c> - the literal mojibake a
+    /// review measured on the consent page - and the assertion that the name reads back verbatim is
     /// the one that fails.
     /// </remarks>
     public static string Text(string html) =>
@@ -93,15 +93,15 @@ public static partial class Markup
     /// </summary>
     /// <remarks>
     /// <para>
-    /// With <paramref name="nonce"/> <see langword="null"/> — which is the deployment default —
+    /// With <paramref name="nonce"/> <see langword="null"/> - which is the deployment default -
     /// every inline block is uncovered, because the policy then has no <c>script-src</c> or
     /// <c>style-src</c> at all and <c>default-src 'self'</c> refuses inline content outright.
     /// </para>
     /// <para>
     /// With a nonce, a block carrying <c>nonce="…"</c> with that exact value runs and one without it
     /// does not. The nonce is compared rather than merely looked for, because a layout that emits a
-    /// nonce it generated itself — instead of the one from the model, which is the one in the header
-    /// — produces markup that looks correct and is refused by every browser.
+    /// nonce it generated itself - instead of the one from the model, which is the one in the header
+    /// - produces markup that looks correct and is refused by every browser.
     /// </para>
     /// </remarks>
     public static IReadOnlyList<string> UnnoncedInlineBlocks(string html, string? nonce) =>
@@ -122,7 +122,7 @@ public static partial class Markup
     /// <remarks>
     /// Separate from the block check because the distinction is real and easy to get wrong: CSP
     /// nonces apply to elements, never to attributes. Turning a nonce on makes an inline
-    /// <c>&lt;style&gt;</c> work and leaves <c>style="…"</c> refused exactly as before — it would
+    /// <c>&lt;style&gt;</c> work and leaves <c>style="…"</c> refused exactly as before - it would
     /// take <c>'unsafe-hashes'</c>, which nothing here offers.
     /// </remarks>
     public static bool HasInlineStyleAttribute(string html) => StyleAttribute().IsMatch(html);

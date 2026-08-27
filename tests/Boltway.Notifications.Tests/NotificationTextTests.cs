@@ -16,7 +16,7 @@ public sealed class NotificationTextTests
     public void Problems_checks_every_string_a_deployment_can_replace()
     {
         // The check-list was hand-maintained and had drifted: NewDeviceAuthorizedSubjectText and
-        // NewDeviceAuthorizedBodyText were missing, and the body takes five arguments — the most of
+        // NewDeviceAuthorizedBodyText were missing, and the body takes five arguments - the most of
         // any message here, so the likeliest to be mis-edited. What that costs is narrow and bad:
         // Problems() is why a host refuses to start rather than failing to deliver mail, and for
         // the one message that is a security alert the bad translation instead fell back to English
@@ -140,7 +140,7 @@ public sealed class NotificationTextTests
     /// A sentence that cannot render is named at startup, not discovered when somebody is waiting.
     /// </summary>
     /// <remarks>
-    /// The sender catches and logs a failed send by design — throwing would turn "your password was
+    /// The sender catches and logs a failed send by design - throwing would turn "your password was
     /// reset and we could not tell you" into "your password was not reset". So a broken template
     /// produces a mail that silently never arrives, on the one flow where not arriving is the whole
     /// problem. <c>Problems()</c> is what lets a host refuse instead.
@@ -165,8 +165,8 @@ public sealed class NotificationTextTests
     /// A broken sentence still sends, in English, rather than throwing at the reader.
     /// </summary>
     /// <remarks>
-    /// The startup check is the place to refuse. If one gets past it — a host that never called
-    /// <c>Problems()</c> — the fallback keeps the mail arriving, because an English reset link is
+    /// The startup check is the place to refuse. If one gets past it - a host that never called
+    /// <c>Problems()</c> - the fallback keeps the mail arriving, because an English reset link is
     /// worth more than a correctly-translated silence.
     /// </remarks>
     [Fact]

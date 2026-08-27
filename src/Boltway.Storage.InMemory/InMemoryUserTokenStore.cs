@@ -9,7 +9,7 @@ namespace Boltway.Storage.InMemory;
 /// </summary>
 /// <remarks>
 /// In memory, so every outstanding link stops working on a restart. That is a smaller cost than it
-/// is for the other stores — a reset link lives fifteen minutes and asking again is one click — but
+/// is for the other stores - a reset link lives fifteen minutes and asking again is one click - but
 /// it is still a cost, and it is why this is opt-in with the rest of them.
 /// </remarks>
 public sealed class InMemoryUserTokenStore : IUserTokenStore

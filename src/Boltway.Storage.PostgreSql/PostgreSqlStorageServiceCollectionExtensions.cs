@@ -17,7 +17,7 @@ public static class PostgreSqlStorageServiceCollectionExtensions
     /// <returns>The collection, for chaining.</returns>
     /// <remarks>
     /// <para>
-    /// One call rather than seven, because seven is where a deployment forgets one — and the missing
+    /// One call rather than seven, because seven is where a deployment forgets one - and the missing
     /// piece would not be a store but <see cref="IRelationalStoreBehavior"/>, whose absence is the
     /// one that produces a race rather than a startup error.
     /// </para>
@@ -31,7 +31,7 @@ public static class PostgreSqlStorageServiceCollectionExtensions
     /// <b><c>EnableRetryOnFailure</c> is not configured here, and that is deliberate.</b>
     /// <c>DESIGN.md</c> §1.2 keeps it off on <c>/token</c>: a retry inside a ten-second budget turns
     /// a fast failure into a timeout. <see cref="PostgreSqlRelationalStoreBehavior"/> is built so
-    /// there is nothing for a retry policy to retry — it takes the lock rather than gambling on an
+    /// there is nothing for a retry policy to retry - it takes the lock rather than gambling on an
     /// optimistic isolation level, so contention is bounded waiting rather than a
     /// <c>40001</c> a caller has no case for.
     /// </para>

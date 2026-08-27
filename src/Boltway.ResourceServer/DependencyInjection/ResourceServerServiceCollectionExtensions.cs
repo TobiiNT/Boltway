@@ -59,7 +59,7 @@ public static class ResourceServerServiceCollectionExtensions
     /// <b>What this buys, and what it costs.</b> Without it, ending a session takes effect when the
     /// access token expires and not before, because a signed token is verified offline and this
     /// server never asks anybody. With it, the lag is
-    /// <see cref="IntrospectionOptions.CacheLifetime"/> instead — thirty seconds by default against
+    /// <see cref="IntrospectionOptions.CacheLifetime"/> instead - thirty seconds by default against
     /// a thirty-minute token. The cost is a client credential of this resource server's own and a
     /// round trip on the first request of each cache window.
     /// </para>
@@ -69,7 +69,7 @@ public static class ResourceServerServiceCollectionExtensions
     /// looking like it was configured correctly.
     /// </para>
     /// <para>
-    /// <b>Its own named client, not the application's</b> — see
+    /// <b>Its own named client, not the application's</b> - see
     /// <see cref="IntrospectionRevocationCheck.HttpClientName"/>.
     /// </para>
     /// </remarks>
@@ -82,15 +82,15 @@ public static class ResourceServerServiceCollectionExtensions
         services.AddHttpClient(IntrospectionRevocationCheck.HttpClientName);
 
         // Registered here rather than left to the host, so the fail-open count exists wherever the
-        // check does. A meter the host never names publishes nothing — but that is one line in a
+        // check does. A meter the host never names publishes nothing - but that is one line in a
         // host, whereas a metrics object nobody constructed is a silence with no fix at all.
         services.TryAddSingleton<Diagnostics.ResourceServerMetrics>();
 
         services.AddSingleton<IAccessTokenRevocationCheck>(sp =>
         {
             // Built here rather than bound from configuration, so a missing endpoint or an empty
-            // secret is a startup failure with the property named — `required` members on the
-            // options type do that much — rather than a fail-open warning on every request that
+            // secret is a startup failure with the property named - `required` members on the
+            // options type do that much - rather than a fail-open warning on every request that
             // reads as the authorization server being down.
             var options = new IntrospectionOptions();
             configure(options);
@@ -143,7 +143,7 @@ public static class ResourceServerApplicationBuilderExtensions
     /// <remarks>
     /// <b>Call this after <c>UseRouting()</c> and before <c>UseEndpoints()</c>.</b> Before routing,
     /// there is no endpoint yet, so the middleware cannot see that the metadata document is
-    /// anonymous or which scopes an endpoint declares — it would challenge the discovery document
+    /// anonymous or which scopes an endpoint declares - it would challenge the discovery document
     /// and deadlock the flow. After the endpoints, the handler has already run and its result is
     /// already destined for a <c>200</c>, which produces no authentication prompt in Claude at all.
     /// </remarks>

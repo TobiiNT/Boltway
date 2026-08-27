@@ -12,7 +12,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// Both vendors are public clients, and <c>PublicClientReconsentGuard</c> sends a public client to
 /// the consent page on <b>every</b> authorization. So until these endpoints existed, neither Claude
-/// nor ChatGPT could complete a single flow against this server — the redirect went to a route that
+/// nor ChatGPT could complete a single flow against this server - the redirect went to a route that
 /// was not mapped.
 /// </remarks>
 public sealed partial class InteractionFlowTests
@@ -33,7 +33,7 @@ public sealed partial class InteractionFlowTests
     /// <remarks>
     /// The shape N-14 exists for, and the only one in which "the page shows both hosts" is a claim a
     /// test can distinguish. With the vendors' real configuration both hosts are <c>claude.ai</c>, so
-    /// an assertion looking for that string passes whichever of the two was rendered — measured, and
+    /// an assertion looking for that string passes whichever of the two was rendered - measured, and
     /// the reason dropping the redirect-host line from the page failed nothing.
     /// </remarks>
     private static async Task<FlowFixture> LoopbackClientAsync() =>
@@ -168,7 +168,7 @@ public sealed partial class InteractionFlowTests
     /// The hostname is the entire mitigation for a self-asserted client name: anyone can publish
     /// <c>{"client_name":"Claude"}</c> at their own URL, and nobody else can publish it at
     /// <c>claude.ai</c>. The redirect host is the mitigation for the attack CIMD structurally
-    /// cannot prevent — an attacker presenting the real client's metadata document and binding their
+    /// cannot prevent - an attacker presenting the real client's metadata document and binding their
     /// own callback.
     /// </remarks>
     [Fact]
@@ -180,7 +180,7 @@ public sealed partial class InteractionFlowTests
         var page = await fixture.Client.GetStringAsync(start.Headers.Location!.ToString());
 
         // Asserted against the rendered markup, not against the page text. Both hosts also appear
-        // inside the hidden returnUrl field — it carries the whole authorization query — so a
+        // inside the hidden returnUrl field - it carries the whole authorization query - so a
         // substring search passes with the display lines deleted. Measured: dropping the
         // redirect-host line failed nothing until these assertions named the markup around it.
         Assert.Contains("<strong>claude.ai</strong>", page, StringComparison.Ordinal);
@@ -211,7 +211,7 @@ public sealed partial class InteractionFlowTests
     /// <remarks>
     /// RFC 8252 §7.1's other native-app shape, and it had neither. The flag tested only
     /// <c>RedirectKind.Loopback</c>, so no warning; and <c>Uri.Host</c> is empty for a URI with no
-    /// authority, so the page rendered "the code will be sent to &lt;strong&gt;&lt;/strong&gt;" —
+    /// authority, so the page rendered "the code will be sent to &lt;strong&gt;&lt;/strong&gt;" -
     /// measured. §8.4 is explicit that any application can register a private-use scheme and the
     /// operating system does not adjudicate, which is the same risk the loopback warning exists for.
     /// </remarks>
@@ -238,7 +238,7 @@ public sealed partial class InteractionFlowTests
 
         Assert.Contains("on your own device", page, StringComparison.Ordinal);
 
-        // The destination line specifically, not merely the string somewhere on the page — the
+        // The destination line specifically, not merely the string somewhere on the page - the
         // hidden returnUrl field carries the whole authorization request, so "contains the scheme"
         // is satisfied by a page that displays nothing at all. That exact substitution has been
         // measured in this file twice.
@@ -251,7 +251,7 @@ public sealed partial class InteractionFlowTests
     /// </summary>
     /// <remarks>
     /// The consent POST re-runs the whole pipeline rather than trusting the page that rendered, so
-    /// every decision — client resolution included — is made against this request. Without that, an
+    /// every decision - client resolution included - is made against this request. Without that, an
     /// approval would complete against state that changed while the user was reading.
     /// </remarks>
     [Fact]
@@ -279,7 +279,7 @@ public sealed partial class InteractionFlowTests
     /// A scope with no configured description shows the raw scope and says so. A-14.
     /// </summary>
     /// <remarks>
-    /// Never a description derived by parsing the name — the failure that rule comes from is a page
+    /// Never a description derived by parsing the name - the failure that rule comes from is a page
     /// that assumed <c>action:resource</c> and rendered "read: story your read" as the thing a user
     /// was agreeing to.
     /// </remarks>

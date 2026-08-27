@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>
-/// <see cref="IScopeEntitlementPolicy"/> — the check scope alone cannot make.
+/// <see cref="IScopeEntitlementPolicy"/> - the check scope alone cannot make.
 /// </summary>
 /// <remarks>
 /// Scopes are requested by a client and granted by consent, so without this any account could obtain
@@ -22,7 +22,7 @@ public sealed class ScopeEntitlementTests
 {
     private static readonly CodeVerifier Verifier = CodeVerifier.Generate();
 
-    /// <summary>Grants only what one named role may hold — one deployment's policy, as a test double.</summary>
+    /// <summary>Grants only what one named role may hold - one deployment's policy, as a test double.</summary>
     private sealed class FounderOnly(string role) : IScopeEntitlementPolicy
     {
         public ValueTask<ScopeSet> FilterAsync(
@@ -105,7 +105,7 @@ public sealed class ScopeEntitlementTests
     /// </summary>
     /// <remarks>
     /// It filters rather than refusing. OAuth already means "granted may be narrower than
-    /// requested", so a demotion should shrink what a client gets — turning it into a client that
+    /// requested", so a demotion should shrink what a client gets - turning it into a client that
     /// cannot connect at all is a much larger change than the one the operator made.
     /// </remarks>
     [Fact]
@@ -120,7 +120,7 @@ public sealed class ScopeEntitlementTests
     }
 
     /// <summary>
-    /// Filtering to nothing is <c>invalid_scope</c> — X-42.
+    /// Filtering to nothing is <c>invalid_scope</c> - X-42.
     /// </summary>
     /// <remarks>
     /// The one case where refusing is right: the client asked for nothing this account can have, so

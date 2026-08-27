@@ -1,13 +1,13 @@
 // The whole of this app's JavaScript: copy a credential that is on screen once.
 //
-// It is loaded only by the two pages that can show one — the renderer emits the <script> beside the
-// buttons rather than the shell emitting it on every page — so the other six are still the
+// It is loaded only by the two pages that can show one - the renderer emits the <script> beside the
+// buttons rather than the shell emitting it on every page - so the other six are still the
 // zero-JavaScript pages the policy header describes. Same-origin file, which `default-src 'self'`
 // already covers: nothing inline, and no change to the CSP.
 //
 // Delegated from the document rather than bound per button, because a page may carry two of them
 // and this file is included once per card. Everything it needs is on the button: `data-copy` is the
-// id of the element holding the value, and `data-copied` is what to say afterwards — a sentence,
+// id of the element holding the value, and `data-copied` is what to say afterwards - a sentence,
 // which is why it comes from the text table and not from here.
 //
 // The button does nothing this page could not do without it. The value sits in a `<code>` the
@@ -36,8 +36,8 @@
     }
 
     // navigator.clipboard is unavailable on an insecure origin, and this app is served over TLS in
-    // any deployment that has an authorization server to talk to. Where it is missing — a plain
-    // http:// development host — the selection below is the whole behaviour, which is the same
+    // any deployment that has an authorization server to talk to. Where it is missing - a plain
+    // http:// development host - the selection below is the whole behaviour, which is the same
     // thing that happens with this file absent.
     var text = source.textContent;
 
@@ -49,7 +49,7 @@
     navigator.clipboard.writeText(text).then(function () {
       said(button);
     }, function () {
-      // Refused — a permissions policy, or a window that was not focused. Selecting is the honest
+      // Refused - a permissions policy, or a window that was not focused. Selecting is the honest
       // fallback: it leaves the operator one keystroke from the same result rather than a button
       // that reports success it did not have.
       select(source);

@@ -11,8 +11,8 @@ namespace Boltway.OAuth.Net.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The whole reason this file exists is that <c>SafeHttpFetcher</c> is GET-only by construction —
-/// <c>HttpMethod.Get</c> was hardcoded — and federation needs a POST carrying a client secret. The
+/// The whole reason this file exists is that <c>SafeHttpFetcher</c> is GET-only by construction -
+/// <c>HttpMethod.Get</c> was hardcoded - and federation needs a POST carrying a client secret. The
 /// interesting assertions are therefore not "the POST arrives" but the two properties that make it
 /// safe to have added: the guards that still apply, and the fact that the secret reaches the socket
 /// and nowhere else.
@@ -221,7 +221,7 @@ public sealed class UpstreamEndpointClientTests : IDisposable
     public async Task A_redirect_from_the_token_endpoint_is_reported_and_not_followed()
     {
         // The sharpest of the retained guards. AllowAutoRedirect defaults to true in .NET, and a
-        // followed 302 would re-send the whole request — credential included — to whatever Location
+        // followed 302 would re-send the whole request - credential included - to whatever Location
         // named. There is no legitimate redirect on this path.
         using var listener = new RecordingListener(
             () => Response("302 Found", "", "Location: https://evil.example/collect"));
@@ -255,7 +255,7 @@ public sealed class UpstreamEndpointClientTests : IDisposable
     public async Task A_non_200_from_the_token_endpoint_is_a_status_and_not_a_body()
     {
         // An upstream answering `invalid_grant` is a 400, and the caller has to be able to tell that
-        // apart from a transport failure — one is the code being wrong, the other is the network.
+        // apart from a transport failure - one is the code being wrong, the other is the network.
         using var listener = new RecordingListener(
             () => Response("400 Bad Request", "{\"error\":\"invalid_grant\"}"));
 
@@ -295,7 +295,7 @@ public sealed class UpstreamEndpointClientTests : IDisposable
     {
         Assert.False(new UpstreamEndpointClientOptions().AllowPrivateAddresses);
 
-        // The same default the CIMD fetcher has, for different reasons — see the two option
+        // The same default the CIMD fetcher has, for different reasons - see the two option
         // classes. Asserted together so a change to either is a change to this line.
         Assert.False(new SafeHttpFetcherOptions().AllowPrivateAddresses);
     }
@@ -325,7 +325,7 @@ public sealed class UpstreamEndpointClientTests : IDisposable
     /// <remarks>
     /// The sweep rather than one case, because the leak that matters is the one on a path nobody
     /// thought about. Each row below is a different failure branch of the transport, and the outcome
-    /// is rendered whole — every property of the record — and searched.
+    /// is rendered whole - every property of the record - and searched.
     /// </remarks>
     [Fact]
     public async Task No_outcome_from_a_credentialed_post_contains_the_secret()
@@ -333,7 +333,7 @@ public sealed class UpstreamEndpointClientTests : IDisposable
         List<string> leaks = [];
 
         // 200, a 4xx, a redirect, an over-cap body, a refused address, and a connection that is not
-        // there at all — which is the branch whose detail is an exception message.
+        // there at all - which is the branch whose detail is an exception message.
         (string Name, Func<Task<FetchOutcome>> Act)[] cases =
         [
             ("ok", () => WithListener(() => Response("200 OK", "{\"id_token\":\"x\"}"))),
@@ -364,7 +364,7 @@ public sealed class UpstreamEndpointClientTests : IDisposable
 
     /// <summary>The control for the sweep above: the search would find the secret if it were there.</summary>
     /// <remarks>
-    /// Without this, "no outcome contains the secret" is also what a broken <c>Render</c> reports —
+    /// Without this, "no outcome contains the secret" is also what a broken <c>Render</c> reports -
     /// which is the failure mode <c>LESSONS.md</c> is entirely about. This asserts the instrument
     /// works by handing it something that does contain the value.
     /// </remarks>
@@ -410,7 +410,7 @@ public sealed class UpstreamEndpointClientTests : IDisposable
     /// </summary>
     /// <remarks>
     /// <c>OpaqueSecret</c>'s doc comment records that a <c>ToString</c> override alone is not the
-    /// defence — a reflecting serializer or a structured-logging destructurer never calls it. The
+    /// defence - a reflecting serializer or a structured-logging destructurer never calls it. The
     /// answer here was to give the type no public member carrying the value, and this measures that
     /// rather than assuming it.
     /// </remarks>

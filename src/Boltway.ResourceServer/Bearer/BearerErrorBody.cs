@@ -6,7 +6,7 @@ namespace Boltway.ResourceServer.Bearer;
 /// <remarks>
 /// Two fields, both copies of what the <c>WWW-Authenticate</c> header already carries. RFC 6750 §3
 /// puts the machine-readable signal in the header, so this body exists for the person reading a
-/// terminal — and keeping it to an exact copy is what stops it becoming a second, divergent source
+/// terminal - and keeping it to an exact copy is what stops it becoming a second, divergent source
 /// of truth about why a request was refused.
 /// </remarks>
 internal sealed record BearerErrorBody

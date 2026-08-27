@@ -5,14 +5,14 @@ using Boltway.OAuth.Primitives.Scopes;
 namespace Boltway.AuthorizationServer.Administration;
 
 /// <summary>
-/// Withholds the administrative scopes — <see cref="AdminScopes.Administrative"/>, the users pair
-/// and the roles pair alike — from accounts whose role is not one this deployment named.
+/// Withholds the administrative scopes - <see cref="AdminScopes.Administrative"/>, the users pair
+/// and the roles pair alike - from accounts whose role is not one this deployment named.
 /// </summary>
 /// <remarks>
 /// <para>
 /// <b>Without this, turning on the admin API makes every account that can sign in an
-/// administrator.</b> <c>AdminAuthorization.Check</c> asks two questions — is the principal a
-/// bearer rather than a cookie (<c>N-17</c>), and does the token carry the scope — and deliberately
+/// administrator.</b> <c>AdminAuthorization.Check</c> asks two questions - is the principal a
+/// bearer rather than a cookie (<c>N-17</c>), and does the token carry the scope - and deliberately
 /// never reads the role: the remarks on <see cref="AdminScopes"/> say the role "stays an opaque
 /// string it never compares to a constant, and turning a role into an entitlement is
 /// <c>IScopeEntitlementPolicy</c>'s job, in the deployment". That is the correct division. What was
@@ -26,13 +26,13 @@ namespace Boltway.AuthorizationServer.Administration;
 /// </para>
 /// <para>
 /// <b>The role names come from the deployment and the mechanism from here.</b> This class holds no
-/// constant a role is compared against — <c>admin</c>, <c>founder</c> and <c>owner</c> are all
+/// constant a role is compared against - <c>admin</c>, <c>founder</c> and <c>owner</c> are all
 /// somebody's vocabulary and none of them are this library's.
 /// </para>
 /// <para>
 /// <b>It narrows rather than refusing outright.</b> A request for <c>openid users:read</c> from an
 /// ordinary account yields <c>openid</c>, so they sign in, and the consent screen they are shown
-/// lists what they are actually getting — a person who cannot administer the directory is told by
+/// lists what they are actually getting - a person who cannot administer the directory is told by
 /// the absence of those lines, before they agree to anything. Returning the empty set instead would
 /// refuse the whole authorization with <c>invalid_scope</c>, which reads to a client as "this server
 /// is broken" rather than "you are not an administrator". The subsequent <c>401</c> from
@@ -47,7 +47,7 @@ namespace Boltway.AuthorizationServer.Administration;
 /// The roles pair is gated exactly as hard as the users pair, and <see
 /// cref="AdminScopes.Administrative"/> is what keeps that true by construction: a scope added there
 /// is stripped here without this class changing. <c>roles:write</c> in particular is not a lesser
-/// grant — redefining what a role stands for changes what every holder's next token may do, so a
+/// grant - redefining what a role stands for changes what every holder's next token may do, so a
 /// policy that stripped only the users pair would leave the vocabulary those scopes protect
 /// writable by anyone who could consent.
 /// </para>
@@ -65,7 +65,7 @@ public sealed class AdminRoleScopePolicy : IScopeEntitlementPolicy
     /// </param>
     /// <exception cref="ArgumentException">
     /// No roles were named. An empty set would withhold the administrative scopes from everybody,
-    /// which locks the deployment out of its own directory — and it would do it quietly, on the
+    /// which locks the deployment out of its own directory - and it would do it quietly, on the
     /// next sign-in, long after whoever wrote the empty value had stopped watching.
     /// </exception>
     public AdminRoleScopePolicy(IEnumerable<string> roles)
@@ -96,7 +96,7 @@ public sealed class AdminRoleScopePolicy : IScopeEntitlementPolicy
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        // The overwhelmingly common request — a connector asking for its own scopes — never
+        // The overwhelmingly common request - a connector asking for its own scopes - never
         // mentions these, and leaves here having allocated almost nothing.
         if (!AdminScopes.Administrative.Any(requested.Contains))
         {

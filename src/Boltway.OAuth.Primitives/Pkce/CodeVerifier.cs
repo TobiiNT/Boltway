@@ -27,8 +27,8 @@ public readonly struct CodeVerifier
     /// <summary>The verifier as sent, ASCII.</summary>
     /// <remarks>
     /// Carries the same attributes as <c>OpaqueSecret.Wire</c>, for the same reason and after the
-    /// same omission: this reads as a request parameter — it arrives in a form post next to
-    /// <c>grant_type</c> — and it is a credential. Whoever holds it can redeem the matching
+    /// same omission: this reads as a request parameter - it arrives in a form post next to
+    /// <c>grant_type</c> - and it is a credential. Whoever holds it can redeem the matching
     /// authorization code, which is why <c>GrantHandlers</c> logs its <i>length</i> and never its
     /// value. It had no serialization defence at all until a test went looking.
     /// </remarks>

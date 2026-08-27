@@ -18,7 +18,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Grants;
 /// </param>
 /// <param name="CreatedAt">When consent was given.</param>
 /// <param name="AuthTime">
-/// When the user actually authenticated — <b>not</b> when any token derived from this grant was
+/// When the user actually authenticated - <b>not</b> when any token derived from this grant was
 /// issued.
 /// </param>
 /// <param name="RevokedAt">When it was withdrawn, if it was.</param>
@@ -31,7 +31,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Grants;
 /// is the moment somebody is asking whether one of them is theirs. It is stamped once, when the
 /// grant is created, and no refresh touches it: the question a session list asks is which device
 /// <i>approved</i>, and restamping would answer a different one at the cost of a write on the hot
-/// path of every rotation. <b>No address is stored beside it</b> — that is the field that turns a
+/// path of every rotation. <b>No address is stored beside it</b> - that is the field that turns a
 /// session list into a location history, and this deployment decided against it. Null on every
 /// grant created before the field existed, and on any request that sent no header; null is what
 /// comes back, because nobody can attribute those after the fact.
@@ -40,7 +40,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Grants;
 /// <paramref name="AuthTime"/> lives here rather than only on the authorization code because the
 /// refresh path needs it and the code is gone by then. Measured before it existed: the refresh
 /// handler passed the presented token's issue time, so <c>auth_time</c> moved forward on every
-/// rotation — a session authenticated thirty days ago reported one minutes old, which silently
+/// rotation - a session authenticated thirty days ago reported one minutes old, which silently
 /// defeats every relying party enforcing <c>max_age</c> or step-up authentication.
 /// </para>
 /// </remarks>
@@ -82,7 +82,7 @@ public sealed record GrantRecord(
 /// <param name="Nonce">The OIDC nonce, echoed into the ID token.</param>
 /// <param name="AuthTime">When the user authenticated.</param>
 /// <param name="IssuedAt">When the code was issued.</param>
-/// <param name="ExpiresAt">When it expires. Short — a code is meant to be redeemed immediately.</param>
+/// <param name="ExpiresAt">When it expires. Short - a code is meant to be redeemed immediately.</param>
 /// <param name="RedeemedAt">
 /// When it was redeemed, or <see langword="null"/>.
 /// </param>
@@ -90,7 +90,7 @@ public sealed record GrantRecord(
 /// <para>
 /// <b>A redeemed row is retained until <paramref name="ExpiresAt"/>, not deleted.</b> That is what
 /// makes N-07 possible: when a code is presented twice, the second presentation must be validated
-/// <i>fully</i> — client binding, redirect URI, PKCE — before anything is revoked. Deleting the row
+/// <i>fully</i> - client binding, redirect URI, PKCE - before anything is revoked. Deleting the row
 /// on first use leaves nothing to validate against, so the only available response to a replay is
 /// "revoke the grant", and that is a denial of service: an attacker who sniffed a code but has no
 /// verifier could kill the legitimate client's tokens at will.
@@ -156,7 +156,7 @@ public sealed record RefreshTokenRecord(
 /// This was a <see cref="bool"/>, and the <see langword="false"/> case carried two meanings that
 /// have opposite correct responses. "A fully valid second presentation" is the attacker replay
 /// §4.1.3 says SHOULD revoke every token descended from the code. "The same request arrived twice"
-/// is an HTTP retry after a lost response, a proxy retry, or a double-click — and revoking there
+/// is an HTTP retry after a lost response, a proxy retry, or a double-click - and revoking there
 /// destroys the session the first delivery just created.
 /// </para>
 /// <para>
@@ -177,7 +177,7 @@ public abstract record CodeRedemption
     /// Already redeemed, within the grace window. Deny, but <b>do not revoke</b>.
     /// </summary>
     /// <remarks>
-    /// §4.1.3 makes denying the second request a MUST regardless — the tokens went to the first
+    /// §4.1.3 makes denying the second request a MUST regardless - the tokens went to the first
     /// caller and cannot be handed out again. What the window changes is the blast radius: a retry
     /// arriving moments later is far more likely to be the same client than an attacker who
     /// obtained the code, the client authentication and the verifier.
@@ -190,7 +190,7 @@ public abstract record CodeRedemption
     /// <remarks>
     /// §4.1.3: the server "SHOULD revoke (when possible) all access tokens and refresh tokens
     /// previously issued based on that authorization code". Reaching here means every other check
-    /// passed, so the presenter holds the client authentication and the verifier — which is the
+    /// passed, so the presenter holds the client authentication and the verifier - which is the
     /// evidence §7.5.2 requires before revoking anything.
     /// </remarks>
     public sealed record ReplayedOutsideGrace : CodeRedemption;
@@ -211,7 +211,7 @@ public sealed record RefreshTokenSeed(Sha256Hash TokenHash, DateTimeOffset Expir
 /// <item><description>
 /// Merging <see cref="ReplayedWithinGrace"/> into <see cref="ReuseDetected"/> makes every racing
 /// refresh a security incident. Claude refreshes both proactively (up to five minutes before
-/// expiry) and reactively (on a 401), so the two genuinely race in normal operation — and the user
+/// expiry) and reactively (on a 401), so the two genuinely race in normal operation - and the user
 /// sees a forced logout that reads as an outage.
 /// </description></item>
 /// <item><description>
@@ -234,7 +234,7 @@ public abstract record RefreshRedemption
     /// </summary>
     /// <remarks>
     /// Not a security event. Two refreshes racing is what a correct client does when its proactive
-    /// timer and a 401 coincide, and the response has to be the successor that already exists —
+    /// timer and a 401 coincide, and the response has to be the successor that already exists -
     /// minting a second one would fork the family, which is a known CVE class and defeats reuse
     /// detection entirely.
     /// </remarks>
@@ -245,7 +245,7 @@ public abstract record RefreshRedemption
     /// </summary>
     /// <remarks>
     /// The only signal that a refresh token leaked. Either the legitimate client is replaying one
-    /// it should have discarded, or someone else has a copy — and the server cannot tell which, so
+    /// it should have discarded, or someone else has a copy - and the server cannot tell which, so
     /// it must assume the worse one. RFC 9700 §2.2.2.
     /// </remarks>
     public sealed record ReuseDetected(string GrantId, string FamilyId) : RefreshRedemption;

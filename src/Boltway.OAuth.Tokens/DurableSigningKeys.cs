@@ -12,7 +12,7 @@ namespace Boltway.OAuth.Tokens;
 /// The sample generates one at startup and says outright what that costs: every restart
 /// invalidates every token the process issued, and a second replica signs with a key the
 /// first one's clients have never fetched. On a platform that scales to zero, "restart"
-/// means "any quiet ten minutes", so the failure is not rare — it is the normal case, and it
+/// means "any quiet ten minutes", so the failure is not rare - it is the normal case, and it
 /// surfaces to a user as <c>invalid_token</c> on a session that was working a moment ago.
 /// That is a demo ending, and it reads as the client's fault.
 /// </para>
@@ -23,7 +23,7 @@ namespace Boltway.OAuth.Tokens;
 /// "the key" would make rotation impossible without a redeploy. Publish a
 /// <see cref="SigningKeyState.Pending"/> key, wait out the cache lead time, promote it to
 /// <see cref="SigningKeyState.Active"/> and move the old one to
-/// <see cref="SigningKeyState.Retiring"/> — all three steps are edits to one secret.
+/// <see cref="SigningKeyState.Retiring"/> - all three steps are edits to one secret.
 /// </para>
 ///
 /// <code>
@@ -95,7 +95,7 @@ public static class DurableSigningKeys
 
         // Caught here rather than at the first token request. The ring throws on a missing
         // active key too, but by then the server has started, passed its health check and
-        // told the platform it is ready — so the failure arrives as a 500 on a user's sign-in
+        // told the platform it is ready - so the failure arrives as a 500 on a user's sign-in
         // rather than as a deployment that refused to go live.
         if (!keys.Any(k => k.State is SigningKeyState.Active))
         {
@@ -106,7 +106,7 @@ public static class DurableSigningKeys
 
         // Active is not enough: it has to be active for the algorithm the issuer mints with.
         // A ring holding only an ES256 key satisfied the check above, started, published a JWKS
-        // full of EC keys, passed its health probe, took traffic — and then answered every token
+        // full of EC keys, passed its health probe, took traffic - and then answered every token
         // request with an uncaught InvalidOperationException from deep in the minter, three hops
         // from the configuration that caused it. RS256 is the interop floor rather than a
         // preference: RFC 9068 §2.1 makes it mandatory to implement, and OIDC Discovery §3
@@ -127,7 +127,7 @@ public static class DurableSigningKeys
     /// or for starting a rotation. Written here rather than left to a shell recipe, so the
     /// key that ends up in the vault has the size and the labelling this server requires.
     /// </summary>
-    /// <param name="kid">Identifier. A date is a good one — it says when it started.</param>
+    /// <param name="kid">Identifier. A date is a good one - it says when it started.</param>
     /// <param name="state">Usually <c>active</c> for the first key, <c>pending</c> for a rotation.</param>
     /// <param name="timeProvider">Clock.</param>
     public static string NewRsaEntry(string kid, SigningKeyState state = SigningKeyState.Active, TimeProvider? timeProvider = null)
@@ -195,7 +195,7 @@ public static class DurableSigningKeys
             // Measured rather than guessed, because the obvious suspicion is wrong: a PEM that
             // lost every newline on the way through an environment variable still parses, and
             // so does one converted to CRLF. What actually fails is a missing
-            // `-----BEGIN …-----` line or a body that was truncated — so that is what the
+            // `-----BEGIN …-----` line or a body that was truncated - so that is what the
             // message says to look for.
             throw new InvalidOperationException(
                 $"Signing key `{kid}` could not be read as a {algorithm} private key. Check the " +

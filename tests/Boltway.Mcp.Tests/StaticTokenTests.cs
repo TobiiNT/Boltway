@@ -20,7 +20,7 @@ namespace Boltway.Mcp.Tests;
 /// This connector publishes no RFC 9728 metadata and points at no authorization server,
 /// because with static tokens there is not one. That is the whole change: it used to
 /// publish a document with an empty <c>authorization_servers</c> list, which is a client
-/// told it needs a token and handed nowhere to get one — LESSONS #8 exactly, produced by
+/// told it needs a token and handed nowhere to get one - LESSONS #8 exactly, produced by
 /// the library written to prevent LESSONS #8. Discovery lives in
 /// <c>Boltway.ResourceServer</c> now, and is exercised by
 /// <see cref="ResourceServerHandshakeTests"/>.
@@ -91,7 +91,7 @@ public sealed class StaticTokenTests : IAsyncLifetime
 
         // No pointer, deliberately. There is no authorization server behind static tokens,
         // and a `resource_metadata` naming a document that lists no issuer is a dead end
-        // that looks like a discovery chain — worse than an obvious failure, because
+        // that looks like a discovery chain - worse than an obvious failure, because
         // nothing reports it.
         Assert.DoesNotContain("resource_metadata", challenge, StringComparison.Ordinal);
 
@@ -175,7 +175,7 @@ public sealed class StaticTokenTests : IAsyncLifetime
         // That default is right, and it means a refusal thrown as a plain Exception is
         // silently downgraded to noise: the server logs the sentence it went to the
         // trouble of writing and the model is told only that something went wrong. This
-        // type derived from Exception for a release. Nothing reported it — the tool still
+        // type derived from Exception for a release. Nothing reported it - the tool still
         // "failed", just uselessly.
         Assert.Contains("`doc-42` is outside the scope this token carries", text, StringComparison.Ordinal);
         Assert.Contains("ToolError [forbidden]", text, StringComparison.Ordinal);
@@ -188,7 +188,7 @@ public sealed class StaticTokenTests : IAsyncLifetime
         var principal = BearerAuthenticator.ParseTokenMap("a:ada:founder")["a"];
 
         // Null rather than a stand-in. There is no authorization server on this path, so there is
-        // no client, no token id and no grant id to learn — and a connector recording an invented
+        // no client, no token id and no grant id to learn - and a connector recording an invented
         // one would make every entry in its trail indistinguishable from a real attribution, not
         // only these.
         Assert.Null(principal.ClientId);

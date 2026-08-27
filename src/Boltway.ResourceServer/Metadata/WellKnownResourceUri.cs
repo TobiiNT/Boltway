@@ -7,7 +7,7 @@ namespace Boltway.ResourceServer.Metadata;
 /// <para>
 /// <b>Insertion, not appending.</b> The well-known segment goes <i>between</i> the host and the
 /// path, so <c>https://mcp.example.com/mcp</c> publishes at
-/// <c>https://mcp.example.com/.well-known/oauth-protected-resource/mcp</c> — not at
+/// <c>https://mcp.example.com/.well-known/oauth-protected-resource/mcp</c> - not at
 /// <c>https://mcp.example.com/mcp/.well-known/oauth-protected-resource</c>. The distillation in
 /// <c>spec/research/protected-resource-metadata-and-mcp.md</c> calls this "the single most-failed
 /// requirement", and it is the same rule RFC 8414 §3.1 states for authorization servers, which the
@@ -32,13 +32,13 @@ internal static class WellKnownResourceUri
     /// Insert <see cref="Suffix"/> into a resource identifier.
     /// </summary>
     /// <param name="resource">
-    /// An absolute <c>https</c> identifier with no fragment and no query — the shape
+    /// An absolute <c>https</c> identifier with no fragment and no query - the shape
     /// <c>ProtectedResource.TryCreate</c> has already established.
     /// </param>
     /// <remarks>
     /// The one transformation applied is §3.1's: <c>https://host/</c> loses its terminating slash,
     /// because that slash "follows the host component" and the suffix takes its place. Every other
-    /// byte of the path survives, trailing slash included — <c>https://host/mcp/</c> is a
+    /// byte of the path survives, trailing slash included - <c>https://host/mcp/</c> is a
     /// <i>different</i> resource identifier from <c>https://host/mcp</c>, and flattening the two
     /// here would publish the document at a URL whose §3.3 identity check then fails.
     /// </remarks>
@@ -54,7 +54,7 @@ internal static class WellKnownResourceUri
         var origin = resource[..pathStart];
         var rest = resource[pathStart..];
 
-        // "https://host/" — the slash immediately after the host and nothing else.
+        // "https://host/" - the slash immediately after the host and nothing else.
         if (string.Equals(rest, "/", StringComparison.Ordinal))
         {
             return origin + Suffix;
@@ -64,7 +64,7 @@ internal static class WellKnownResourceUri
     }
 
     /// <summary>
-    /// The path portion of <see cref="Insert"/> — what the routing table has to match.
+    /// The path portion of <see cref="Insert"/> - what the routing table has to match.
     /// </summary>
     internal static string PathOf(string resource)
     {

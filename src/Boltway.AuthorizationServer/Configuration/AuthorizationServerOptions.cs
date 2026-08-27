@@ -66,7 +66,7 @@ public sealed class AuthorizationServerOptions
     /// </summary>
     /// <remarks>
     /// The rule that governs this list is "never advertise a scope any valid client would be
-    /// refused" — ChatGPT requests every advertised OIDC scope by default, so an aspirational entry
+    /// refused" - ChatGPT requests every advertised OIDC scope by default, so an aspirational entry
     /// here becomes a refused authorization for that client. <c>offline_access</c> must be present
     /// for Claude to ever ask for a refresh token.
     /// </remarks>
@@ -77,7 +77,7 @@ public sealed class AuthorizationServerOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// A-14. The consent page never derives text by parsing a scope name — the field failure that
+    /// A-14. The consent page never derives text by parsing a scope name - the field failure that
     /// rule comes from is a screen that assumed <c>action:resource</c> and rendered "read: story your
     /// read" as the thing a user was agreeing to.
     /// </para>
@@ -103,7 +103,7 @@ public sealed class AuthorizationServerOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The two the code flow needs, and — today — the only two that can be set. Advertising a grant
+    /// The two the code flow needs, and - today - the only two that can be set. Advertising a grant
     /// is a promise: Claude Enterprise Managed Auth will only offer the jwt-bearer feature to a
     /// customer when the URN appears here, and a customer who is then refused at <c>/token</c> has
     /// been sent down a path this server invited them onto.
@@ -111,9 +111,9 @@ public sealed class AuthorizationServerOptions
     /// <para>
     /// Validation rejects any name not in <c>KnownGrantTypes</c>, which lists precisely the grants
     /// <c>TokenEndpoint</c> dispatches. So enabling a grant with no handler is a startup failure
-    /// rather than a runtime surprise. That sentence was here before the property was true —
+    /// rather than a runtime surprise. That sentence was here before the property was true -
     /// <c>client_credentials</c> and the jwt-bearer URN were both accepted with nothing behind them
-    /// — and the fix was to the code rather than to the sentence.
+    /// - and the fix was to the code rather than to the sentence.
     /// </para>
     /// </remarks>
     public IList<string> GrantTypesSupported => _grantTypesSupported;
@@ -128,12 +128,12 @@ public sealed class AuthorizationServerOptions
     /// </para>
     /// <para>
     /// <see cref="ClientAuthMethod.PrivateKeyJwt"/> is <b>not</b> in the default set, because it is
-    /// not implemented yet — and advertising it would be N-06 exactly: a capability in the metadata
+    /// not implemented yet - and advertising it would be N-06 exactly: a capability in the metadata
     /// with nothing behind it. Add it here once there is a JWKS-fetching authenticator to honour it.
     /// </para>
     /// <para>
     /// Omitting it is not a vendor lockout, because ChatGPT's live metadata offers
-    /// <c>["none", "private_key_jwt"]</c> — <i>both</i> — so there is a method left that both sides
+    /// <c>["none", "private_key_jwt"]</c> - <i>both</i> - so there is a method left that both sides
     /// can complete. <b>That sentence used to end the paragraph above, and on its own it was not
     /// enough.</b> It describes what ChatGPT offers; it says nothing about whether this server reads
     /// the offer. On 2026-08-17 it did not: ChatGPT had added
@@ -141,7 +141,7 @@ public sealed class AuthorizationServerOptions
     /// the singular and never looked at the array, and every ChatGPT connection failed at
     /// <c>/token</c> with <c>invalid_client</c> while this comment read as though the case were
     /// covered. <c>CimdDocument.TryReadAuthMethod</c> now reads both members and
-    /// <c>The_live_chatgpt_document_is_a_public_client</c> pins the document that broke it — the
+    /// <c>The_live_chatgpt_document_is_a_public_client</c> pins the document that broke it - the
     /// interop claim belongs to a test, and this is the note saying which one.
     /// </para>
     /// </remarks>
@@ -160,7 +160,7 @@ public sealed class AuthorizationServerOptions
     /// Default <c>true</c> rather than <c>false</c>: it is a standard OIDC endpoint, it discloses
     /// only what the caller's own access token already carries, and an OIDC client that finds no
     /// <c>userinfo_endpoint</c> in the discovery document has no channel at all for the address or
-    /// the role — the ID token deliberately carries neither. A deployment that wants it gone sets
+    /// the role - the ID token deliberately carries neither. A deployment that wants it gone sets
     /// this to false and the document stops naming it.
     /// </para>
     /// <para>
@@ -174,8 +174,8 @@ public sealed class AuthorizationServerOptions
     /// </code>
     /// <para>
     /// All four published in the discovery document; none routed by
-    /// <c>MapBoltwayAuthorizationServer</c>. That is four simultaneous N-06 violations —
-    /// "advertised capability == actual capability" — in the default configuration, which is the
+    /// <c>MapBoltwayAuthorizationServer</c>. That is four simultaneous N-06 violations -
+    /// "advertised capability == actual capability" - in the default configuration, which is the
     /// configuration nearly every deployment runs. The doctor reported the metadata check as Pass
     /// throughout, because it validated the document's shape rather than whether anything answered.
     /// </para>
@@ -188,7 +188,7 @@ public sealed class AuthorizationServerOptions
     /// <para>
     /// <b>And the correction to that history spent a release where nobody could read it.</b> It was
     /// written as a <i>second</i> <c>&lt;remarks&gt;</c> element on this property, beside a
-    /// <c>&lt;summary&gt;</c> left reading "Off, because it is not implemented" — so the one line a
+    /// <c>&lt;summary&gt;</c> left reading "Off, because it is not implemented" - so the one line a
     /// doc viewer, an IDE tooltip and a reader all actually show was the stale one, and the true
     /// text sat in an element that renders second or not at all. A capability claim in the wrong
     /// element is a capability claim nobody sees corrected. Keep this property's summary true first.
@@ -205,7 +205,7 @@ public sealed class AuthorizationServerOptions
     /// <summary>Whether <c>/introspect</c> is routed and advertised. RFC 7662.</summary>
     /// <remarks>
     /// <para>
-    /// <b>Implemented now, and this flag does both halves</b> — the pairing <see cref="UserInfoEnabled"/>
+    /// <b>Implemented now, and this flag does both halves</b> - the pairing <see cref="UserInfoEnabled"/>
     /// describes, so the document cannot name an endpoint nothing serves.
     /// </para>
     /// <para>
@@ -222,7 +222,7 @@ public sealed class AuthorizationServerOptions
     /// <summary>
     /// Whether <c>/logout</c> is routed and advertised. OIDC RP-Initiated Logout §2.1. Off; see
     /// <see cref="UserInfoEnabled"/>. <c>MapInteraction</c> routes it rather than
-    /// <c>MapBoltwayAuthorizationServer</c> directly, because it is a page a person looks at —
+    /// <c>MapBoltwayAuthorizationServer</c> directly, because it is a page a person looks at -
     /// the pairing is the same one, one flag layer down.
     /// </summary>
     public bool EndSessionEnabled { get; set; }
@@ -236,7 +236,7 @@ public sealed class AuthorizationServerOptions
     /// changed their password, or pressed the control that ends every session, is told the job is
     /// done; for up to this long a browser holding the old cookie is still signed in. Five minutes
     /// is the default because the check reads the directory and the alternative is a query in front
-    /// of every authenticated page load — the same trade, and the same honesty about it, as the
+    /// of every authenticated page load - the same trade, and the same honesty about it, as the
     /// resource server's introspection cache.
     /// </para>
     /// <para>
@@ -259,7 +259,7 @@ public sealed class AuthorizationServerOptions
     /// <remarks>
     /// 30 minutes, and the number is a tradeoff rather than a default worth copying. Claude
     /// refreshes proactively up to 5 minutes early (C-19), so a 10-minute token refreshes every
-    /// 5 minutes — thrash. An hour means up to an hour of revocation lag against a resource server
+    /// 5 minutes - thrash. An hour means up to an hour of revocation lag against a resource server
     /// that validates offline and therefore never asks us whether the token still stands. 30 gives
     /// roughly 25-minute refresh spacing and bounded lag.
     /// </remarks>
@@ -270,7 +270,7 @@ public sealed class AuthorizationServerOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>RS256 because it is the interop floor</b> — RFC 9068 §2.1 makes it mandatory to
+    /// <b>RS256 because it is the interop floor</b> - RFC 9068 §2.1 makes it mandatory to
     /// implement, so it is the one every relying party can verify. It is a default rather than a
     /// rule: the key ring, the JWKS document and the verifier already handle ES256, and a
     /// deployment whose key policy is elliptic-curve could not use this server at all while the
@@ -308,7 +308,7 @@ public sealed class AuthorizationServerOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Both parameters mean "re-authenticate", and both are carried in the <c>returnUrl</c> — so
+    /// Both parameters mean "re-authenticate", and both are carried in the <c>returnUrl</c> - so
     /// without a floor, an authentication that has just happened does not satisfy the parameter that
     /// asked for it, and <c>/authorize</c> sends the user to <c>/login</c> forever. <c>max_age=0</c>
     /// is the certain case: any elapsed time exceeds zero.
@@ -371,8 +371,8 @@ public sealed class AuthorizationServerOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Off. An admin API on an authorization server is the highest-value target in the system — a
-    /// flaw there is not a leaked document, it is the directory — so a deployment that manages
+    /// Off. An admin API on an authorization server is the highest-value target in the system - a
+    /// flaw there is not a leaked document, it is the directory - so a deployment that manages
     /// accounts over ssh should not be serving one at all.
     /// </para>
     /// <para>
@@ -390,7 +390,7 @@ public sealed class AuthorizationServerOptions
     /// Off, and for a milder reason than <see cref="AdministrationEnabled"/>. The blast radius here
     /// is one account rather than the directory: <c>users:self</c> conveys no authority over anyone
     /// else, and no handler on that surface takes an identifier. The default is off because
-    /// <c>N-06</c> applies to every endpoint equally — a deployment gets what it asked for — not
+    /// <c>N-06</c> applies to every endpoint equally - a deployment gets what it asked for - not
     /// because turning it on is dangerous.
     /// </para>
     /// <para>
@@ -410,8 +410,8 @@ public sealed class AuthorizationServerOptions
     /// Off, and separate from <see cref="SelfServiceEnabled"/> because they are separate surfaces
     /// with opposite authentication. <c>/account/*</c> is bearer-only for programmatic callers;
     /// these are cookie-authenticated pages with antiforgery, for a person in a browser. Either is
-    /// useful without the other — a headless deployment wants the API, and a deployment whose users
-    /// are people rather than programs wants the pages — so one flag would force a choice nobody
+    /// useful without the other - a headless deployment wants the API, and a deployment whose users
+    /// are people rather than programs wants the pages - so one flag would force a choice nobody
     /// asked to make.
     /// </para>
     /// <para>
@@ -429,7 +429,7 @@ public sealed class AuthorizationServerOptions
     /// <para>
     /// Off, and the one of the four surface flags with a hard prerequisite: turning it on without an
     /// <c>INotificationSender</c> registered is refused at startup. The endpoints would answer 202,
-    /// mint a token, and deliver nothing — a flow that reports success and does not work, which is
+    /// mint a token, and deliver nothing - a flow that reports success and does not work, which is
     /// the failure shape this server refuses to start into.
     /// </para>
     /// <para>
@@ -456,7 +456,7 @@ public sealed class AuthorizationServerOptions
     /// <para>
     /// <b>Every entry is served, and startup refuses the list otherwise.</b> The comment here used
     /// to say "locales with a shipped resource file", generated "from what exists, not from what is
-    /// aspired to" — and there was no resource file, nothing that read one, and nothing anywhere
+    /// aspired to" - and there was no resource file, nothing that read one, and nothing anywhere
     /// that read the <c>ui_locales</c> request parameter. A deployment could list <c>vi</c> and
     /// serve English to everyone who asked for it, with the warning against exactly that sitting on
     /// the property that permitted it. That is <c>N-06</c>, on the field whose own documentation
@@ -468,7 +468,7 @@ public sealed class AuthorizationServerOptions
     /// <c>UiLocalesRequestCultureProvider</c> reads the parameter,
     /// <c>AddBoltwayInteractionLocalization</c> supplies the tables, and
     /// <c>AuthorizeEndpoint.LocalReturn</c> carries the resolved culture on to the pages. So the
-    /// count is not the rule — being served is. <c>RequireAdvertisedLocalesAreServed</c> compares
+    /// count is not the rule - being served is. <c>RequireAdvertisedLocalesAreServed</c> compares
     /// this list against <c>SupportedUICultures</c> at map time and refuses a mismatch in either
     /// direction, which catches an advertised locale nobody serves and a served locale nobody
     /// advertises, without caring which configuration call ran first.
@@ -476,7 +476,7 @@ public sealed class AuthorizationServerOptions
     /// <para>
     /// Leaving it empty is also honest, and is the default: no claim is not a false claim, and a
     /// client that sends <c>ui_locales</c> anyway gets what OIDC says it may get, which is whatever
-    /// the provider has. The limit lifts when locale negotiation exists — see
+    /// the provider has. The limit lifts when locale negotiation exists - see
     /// <c>docs/USER-MANAGEMENT.md</c> §7.5.
     /// </para>
     /// </remarks>
@@ -492,8 +492,8 @@ public sealed class AuthorizationServerOptions
     // that uses it: EfClientStore and ConfiguredClients yield None or ClientSecretBasic
     // depending on whether a secret hash exists, service accounts are created ClientSecretBasic
     // outright, and CIMD §4.1 refuses every symmetric method. So an integrator read it out of
-    // the discovery document, configured `client_secret_post` — the default in a great many
-    // OAuth libraries — and got `invalid_client` saying "This client must authenticate with a
+    // the discovery document, configured `client_secret_post` - the default in a great many
+    // OAuth libraries - and got `invalid_client` saying "This client must authenticate with a
     // client secret" while sending exactly that. N-06 again, and the same shape as the four
     // advertised-but-unrouted endpoints and `form_post`.
     //
@@ -514,7 +514,7 @@ public sealed class AuthorizationServerOptions
     /// rather than the previously-valid value. It used to be assigned only on success and never
     /// reset, which meant setting <c>Issuer</c> to something invalid produced
     /// <c>TryValidate() == false</c> alongside a <c>ValidatedIssuer</c> that still returned the old
-    /// https URL — a property whose name asserted something it had stopped guaranteeing.
+    /// https URL - a property whose name asserted something it had stopped guaranteeing.
     /// </remarks>
     public IssuerString ValidatedIssuer { get; private set; }
 
@@ -539,7 +539,7 @@ public sealed class AuthorizationServerOptions
     /// <remarks>
     /// Nested here for the reason <see cref="ExternalLogin"/> is: one place a deployment is
     /// configured and one validation run. It is also the reason these settings are validated at all
-    /// — a stylesheet path the browser will refuse is the kind of mistake that otherwise surfaces as
+    /// - a stylesheet path the browser will refuse is the kind of mistake that otherwise surfaces as
     /// "the login page looks wrong", weeks later, to somebody who did not configure it.
     /// </remarks>
     public InteractionOptions Interaction { get; } = new();
@@ -554,7 +554,7 @@ public sealed class AuthorizationServerOptions
     /// Called by the registration extension once the metadata document has been serialized. After
     /// that point the served bytes are fixed, so a host that adds a scope is creating a divergence
     /// nothing would detect: the options singleton would report a scope the published document does
-    /// not advertise, and — since the authorize pipeline is built from the same options — one that
+    /// not advertise, and - since the authorize pipeline is built from the same options - one that
     /// clients cannot discover but the server would accept. Mutating a frozen collection throws
     /// where the mutation happens instead.
     /// </remarks>
@@ -627,7 +627,7 @@ public sealed class AuthorizationServerOptions
         }
 
         // N-06, reached through configuration rather than through code. Selecting this profile makes
-        // MetadataBuilder publish registration_endpoint, and nothing routes /register — measured, GET
+        // MetadataBuilder publish registration_endpoint, and nothing routes /register - measured, GET
         // and POST both 404. That is the same shape as the four endpoint flags that defaulted to
         // advertising /userinfo, /revoke, /introspect and /logout while all four 404'd, and it
         // survived that fix because it is a profile rather than a flag.
@@ -695,7 +695,7 @@ public sealed class AuthorizationServerOptions
     /// <para>
     /// This list used to also carry <c>client_credentials</c> and the jwt-bearer URN, for which
     /// <c>TokenEndpoint</c> has no arm. So a customer who enabled either got it advertised in the
-    /// discovery document and then refused at runtime by the dispatch switch's fallthrough — which
+    /// discovery document and then refused at runtime by the dispatch switch's fallthrough - which
     /// is N-06 (advertised capability must equal actual capability) reached through configuration,
     /// and it directly contradicted the claim <see cref="GrantTypesSupported"/> makes about itself.
     /// </para>
@@ -788,7 +788,7 @@ public sealed class AuthorizationServerOptions
 
         // OIDC Discovery §3: an OP "MUST support the openid scope value". We publish the OIDC
         // superset document from the same object, so omitting it would advertise an OP that is not
-        // one. It costs nothing — `openid` gates OIDC behaviour rather than granting access.
+        // one. It costs nothing - `openid` gates OIDC behaviour rather than granting access.
         if (!parsed.Contains("openid"))
         {
             errors.Add(
@@ -798,7 +798,7 @@ public sealed class AuthorizationServerOptions
 
         // Claude appends `offline_access` to its authorization request only when the AS metadata
         // lists it. Without it no refresh token is ever requested, so every connection dies at the
-        // access token's expiry and the user re-authorizes — with nothing in any log saying why.
+        // access token's expiry and the user re-authorizes - with nothing in any log saying why.
         if (!parsed.Contains("offline_access"))
         {
             errors.Add(
@@ -852,7 +852,7 @@ public sealed class AuthorizationServerOptions
         {
             // N-06 for this surface. The endpoints authorize on `users:read` and `users:write`, and a
             // scope this server does not advertise is one no client will ever put in an authorization
-            // request — so the surface would be routed, guarded, and unreachable, which reads to an
+            // request - so the surface would be routed, guarded, and unreachable, which reads to an
             // operator as a permissions bug in whatever they are holding.
             //
             // `roles:read`/`roles:write` are deliberately not in this list: the role endpoints accept
@@ -893,7 +893,7 @@ public sealed class AuthorizationServerOptions
         // More than one used to be refused outright, because nothing read `ui_locales` and there was
         // no per-locale text. Both exist now, so the check moved rather than went away: map time
         // compares this list against the cultures RequestLocalizationMiddleware will actually
-        // honour and refuses a mismatch in either direction. That is a stronger rule than counting —
+        // honour and refuses a mismatch in either direction. That is a stronger rule than counting -
         // one advertised locale that the middleware does not serve is the same lie as five.
 
         foreach (var locale in UiLocalesSupported)

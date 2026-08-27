@@ -16,9 +16,9 @@ namespace Boltway.AuthorizationServer.Resources;
 /// </para>
 /// <para>
 /// It exists because of what an operability review measured. <c>IResourceRegistry</c> was public and
-/// required, had no shipped implementation, and — because the only way to mint a
+/// required, had no shipped implementation, and - because the only way to mint a
 /// <see cref="ResourceIdentifier"/> was <c>internal</c> to a grant list the server assembly was not
-/// on — could not be implemented by anybody outside this repository. The reviewer had to rename
+/// on - could not be implemented by anybody outside this repository. The reviewer had to rename
 /// their host assembly to <c>Boltway.AuthorizationServer.Tests</c> to make it compile. Opening
 /// the mint point was half the fix; this is the other half, because "you must implement this
 /// interface before the server will answer a single request" is a bad first five minutes even when
@@ -48,7 +48,7 @@ public sealed class ConfiguredResourceRegistry : IResourceRegistry
     /// <param name="registrations">The registrations.</param>
     /// <param name="oidcResource">
     /// The canonical identifier of one of <paramref name="registrations"/>, or <see langword="null"/>
-    /// for a server that nominates none — which is the behaviour this type had before.
+    /// for a server that nominates none - which is the behaviour this type had before.
     /// </param>
     /// <exception cref="ArgumentException">
     /// <paramref name="oidcResource"/> names a resource that is not registered.
@@ -61,7 +61,7 @@ public sealed class ConfiguredResourceRegistry : IResourceRegistry
         _registrations = [.. registrations];
 
         // Ordinal, and on the full canonical string. A-22: a resource identifier carries a path, and
-        // an origin-keyed lookup would make https://host/a and https://host/b the same resource —
+        // an origin-keyed lookup would make https://host/a and https://host/b the same resource -
         // which is the shipped bug that broke ChatGPT custom connectors, arriving through the back
         // door of a dictionary comparer.
         _byCanonical = new Dictionary<string, ResourceRegistration>(StringComparer.Ordinal);
@@ -83,7 +83,7 @@ public sealed class ConfiguredResourceRegistry : IResourceRegistry
             // audienced at an identifier this registry does not know, producing a token no resource
             // server can verify. Thrown rather than dropped to null, because dropping it turns a typo
             // in one environment variable back into the `invalid_target` this parameter exists to
-            // remove — the same symptom, now with a correct-looking configuration.
+            // remove - the same symptom, now with a correct-looking configuration.
             if (!_byCanonical.TryGetValue(oidcResource, out var oidc))
             {
                 throw new ArgumentException(
@@ -112,7 +112,7 @@ public sealed class ConfiguredResourceRegistry : IResourceRegistry
     /// <param name="oidcResource">
     /// The canonical identifier one of <paramref name="resources"/> is registered under, nominated as
     /// the audience for a request that asks only for OIDC's own scopes. Must be a key of
-    /// <paramref name="resources"/>. Null — the default — leaves the server nominating none, which is
+    /// <paramref name="resources"/>. Null - the default - leaves the server nominating none, which is
     /// what every deployment did before this parameter existed, so omitting it changes nothing.
     /// </param>
     /// <exception cref="ArgumentException">
@@ -171,7 +171,7 @@ public sealed class ConfiguredResourceRegistry : IResourceRegistry
         // No A-02 count check here, and its absence is the point of this method existing separately.
         // `DefaultForAsync` refuses to choose between two registrations because a request that named
         // no resource might have meant either. A request carrying only OIDC's own scopes cannot have
-        // meant either — it is not reaching a protected resource at all — so the number of them is
+        // meant either - it is not reaching a protected resource at all - so the number of them is
         // not information about this decision.
         //
         // The caller is responsible for having established that. See the interface.
@@ -186,7 +186,7 @@ public sealed class ConfiguredResourceRegistry : IResourceRegistry
 
         // Unknown and not-permitted are the same answer, because distinguishing them enumerates the
         // customer's internal service topology for anyone who can reach /authorize. This registry
-        // has no per-client permission model, so today only the first case can arise — the shape is
+        // has no per-client permission model, so today only the first case can arise - the shape is
         // here so adding one later cannot introduce the oracle.
         return ValueTask.FromResult(
             _byCanonical.TryGetValue(requested.Value, out var registration) ? registration.Resource : null);
@@ -198,7 +198,7 @@ public sealed class ConfiguredResourceRegistry : IResourceRegistry
         ArgumentNullException.ThrowIfNull(client);
 
         // A-02: exactly one registration means there is no ambiguity to resolve, so a request that
-        // names no resource gets it. Two or more and the answer is null — picking one would make the
+        // names no resource gets it. Two or more and the answer is null - picking one would make the
         // audience of every token depend on the order a dictionary happened to enumerate, which is a
         // silent cross-resource token leak that no client can detect (RFC 8707 has no metadata field
         // that would let it ask). Null here becomes an `invalid_target` the operator can read.

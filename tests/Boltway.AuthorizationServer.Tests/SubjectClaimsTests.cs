@@ -20,8 +20,8 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// The defect these are a reaction to: an access token carried <c>iss</c>, <c>aud</c>, <c>sub</c>,
 /// <c>scope</c>, <c>client_id</c>, <c>gid</c>, <c>iat</c>, <c>exp</c> and <c>jti</c>, and nothing
-/// else. Downstream, a connector with a whole attribution path — commit author, actor line,
-/// refusals naming the caller — degraded every one of them to a ULID the moment it moved off
+/// else. Downstream, a connector with a whole attribution path - commit author, actor line,
+/// refusals naming the caller - degraded every one of them to a ULID the moment it moved off
 /// static tokens onto this server. Nothing failed. The git history simply stopped naming people,
 /// and would have been noticed months later by someone reading it.
 /// </para>
@@ -159,7 +159,7 @@ public sealed class SubjectClaimsTests
     /// <summary>A scalar claim, or the first element when the claim is an array.</summary>
     /// <remarks>
     /// <c>role</c> became an array when an account started holding several. It stays an array with
-    /// one element rather than collapsing to a string, so this reads either shape — the assertions
+    /// one element rather than collapsing to a string, so this reads either shape - the assertions
     /// are about which role travels, not about the JSON type, and the type is asserted on its own
     /// below.
     /// </remarks>
@@ -190,7 +190,7 @@ public sealed class SubjectClaimsTests
         Assert.Equal(SignedIn.Value, Claim(payload, "sub"));
     }
 
-    /// <summary>Nothing is released without the mapper — the default is a token that names nobody.</summary>
+    /// <summary>Nothing is released without the mapper - the default is a token that names nobody.</summary>
     /// <remarks>
     /// This is the state the whole file is about, kept as a test rather than a memory. It is a
     /// correct default: a resource server that only needs to know a request is authorised should
@@ -232,7 +232,7 @@ public sealed class SubjectClaimsTests
         Assert.Equal("founder", Claim(payload, "role"));
     }
 
-    /// <summary>No role on the account, no claim — rather than an empty string or a default.</summary>
+    /// <summary>No role on the account, no claim - rather than an empty string or a default.</summary>
     /// <remarks>
     /// An empty <c>role</c> claim is worse than an absent one: absent means "this server does not
     /// say", which a resource server answers with its own least-privileged fallback, while
@@ -258,7 +258,7 @@ public sealed class SubjectClaimsTests
     /// Deliberate asymmetry, pinned here because it looks like an oversight. An address is personal
     /// data the subject consents to release; a role is what the resource server needs in order to
     /// answer at all, and putting it behind a scope means a client that forgot to ask gets a token
-    /// that authenticates and then reads nothing — which surfaces as an empty result set rather
+    /// that authenticates and then reads nothing - which surfaces as an empty result set rather
     /// than as a missing scope.
     /// </remarks>
     [Fact]
@@ -276,7 +276,7 @@ public sealed class SubjectClaimsTests
     // The address is scoped
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>No <c>email</c> scope, no address — even though the account has one.</summary>
+    /// <summary>No <c>email</c> scope, no address - even though the account has one.</summary>
     [Fact]
     public async Task The_address_stays_out_of_a_token_whose_grant_does_not_cover_it()
     {
@@ -343,7 +343,7 @@ public sealed class SubjectClaimsTests
     /// <remarks>
     /// The reason the mapper is called inside <c>TokenIssuer.MintAsync</c> rather than in the
     /// authorization-code handler. Calling it on one path only would give a client a token carrying
-    /// a name for an hour and then, after the first silent refresh, one without — <c>TokenIssuer</c>'s
+    /// a name for an hour and then, after the first silent refresh, one without - <c>TokenIssuer</c>'s
     /// own remarks call that the "it stopped working overnight" failure, and it is the shape hardest
     /// to attribute because nothing fails at the moment the behaviour changes.
     /// </remarks>
@@ -406,7 +406,7 @@ public sealed class SubjectClaimsTests
     /// </summary>
     /// <remarks>
     /// A user deleted between sign-in and refresh. Failing the exchange here would turn a tidy-up
-    /// into a token endpoint returning 500 on a path that has nothing to do with the deletion —
+    /// into a token endpoint returning 500 on a path that has nothing to do with the deletion -
     /// and the grant is still valid for what it says. It just says less.
     /// </remarks>
     [Fact]

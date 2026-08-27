@@ -46,7 +46,7 @@ public sealed class ConsentAntiPhishingTests
     /// The self-asserted name never appears without the sentence that says it is unverified.
     /// </summary>
     /// <remarks>
-    /// The caveat prints unconditionally and there is no verified branch — a decision, not an
+    /// The caveat prints unconditionally and there is no verified branch - a decision, not an
     /// omission. Encoded here as "a name implies the caveat", because that is the shape it settles
     /// into: the answer to "when does it say verified" is never, until a party other than the
     /// application says so, and nothing on this page is that party.
@@ -63,8 +63,8 @@ public sealed class ConsentAntiPhishingTests
     /// <summary>The only thing the page ever says about verification is that there is none.</summary>
     /// <remarks>
     /// Removes the one sentence that is allowed to mention verification, then asserts the word does
-    /// not survive anywhere else. A "verified" branch added later — a badge, a checkmark caption, a
-    /// reassuring aside — fails here rather than shipping a page that vouches for a name this server
+    /// not survive anywhere else. A "verified" branch added later - a badge, a checkmark caption, a
+    /// reassuring aside - fails here rather than shipping a page that vouches for a name this server
     /// never checked.
     /// </remarks>
     [Fact]
@@ -81,7 +81,7 @@ public sealed class ConsentAntiPhishingTests
     /// <summary>No name means no name paragraph, and nothing to caveat.</summary>
     /// <remarks>
     /// The caveat belongs to the name. A page with no <c>client_name</c> has no self-assertion to
-    /// warn about, so it carries neither the claim nor the "unverified" line — printing the caveat
+    /// warn about, so it carries neither the claim nor the "unverified" line - printing the caveat
     /// beside nothing would teach a reader to skip it on the page where it matters.
     /// </remarks>
     [Fact]
@@ -97,7 +97,7 @@ public sealed class ConsentAntiPhishingTests
     /// The hostname leads, the name claim follows it, the redirect host follows that.
     /// </summary>
     /// <remarks>
-    /// "Reversing that order is the whole attack" — the renderer's own words. A page led by the name
+    /// "Reversing that order is the whole attack" - the renderer's own words. A page led by the name
     /// and a logo, with the real host in small print, is a phishing surface this server would have
     /// endorsed. Document order is the contract, so it is asserted as document order.
     /// </remarks>
@@ -116,7 +116,7 @@ public sealed class ConsentAntiPhishingTests
     }
 
     /// <summary>
-    /// The client's logo sits inside the unverified sentence, after the host — never before it.
+    /// The client's logo sits inside the unverified sentence, after the host - never before it.
     /// </summary>
     /// <remarks>
     /// A logo is the same self-assertion the name is, in the form that is hardest to be sceptical
@@ -143,7 +143,7 @@ public sealed class ConsentAntiPhishingTests
     /// <summary>A logo with no name is not drawn at all.</summary>
     /// <remarks>
     /// The model sets the logo only when the name is set, and the renderer draws it only inside the
-    /// name branch — so a logo can never appear as a bare mark with nothing beside it saying it is
+    /// name branch - so a logo can never appear as a bare mark with nothing beside it saying it is
     /// unverified. Both halves enforce the same rule; this pins the renderer's half, where a future
     /// edit could lift the logo out of the name branch and undo it.
     /// </remarks>
@@ -152,7 +152,7 @@ public sealed class ConsentAntiPhishingTests
     {
         var html = Render(Model(name: null, logo: "/client-logo/abc"));
 
-        // Unthemed, so no product logo either — any img here would be the disembodied client logo.
+        // Unthemed, so no product logo either - any img here would be the disembodied client logo.
         Assert.DoesNotContain("<img", html, StringComparison.Ordinal);
     }
 
@@ -162,7 +162,7 @@ public sealed class ConsentAntiPhishingTests
     /// <remarks>
     /// A-14: the page must not parse <c>docs:write</c> into "Write the knowledge base" and present the
     /// guess as if the server had described it. The raw token in a <c>code</c> element plus the
-    /// configuration warning is the honest rendering — it says what was asked for and that nobody
+    /// configuration warning is the honest rendering - it says what was asked for and that nobody
     /// wrote down what it means.
     /// </remarks>
     [Fact]
@@ -177,8 +177,8 @@ public sealed class ConsentAntiPhishingTests
     /// <summary>A described scope shows the description and not the raw token in a code element.</summary>
     /// <remarks>
     /// The other side of A-14: when the server does have a description, it is shown as prose, and the
-    /// undescribed warning does not appear. Both directions are pinned so a regression in either —
-    /// a raw token where a description exists, or a warning where one was configured — is caught.
+    /// undescribed warning does not appear. Both directions are pinned so a regression in either -
+    /// a raw token where a description exists, or a warning where one was configured - is caught.
     /// </remarks>
     [Fact]
     public void A_described_scope_shows_its_description_and_no_warning()

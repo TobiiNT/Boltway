@@ -62,7 +62,7 @@ public static class TokenEndpoint
     /// <b>This endpoint was the first to shed and is no longer the only one.</b> <c>/introspect</c>
     /// and <c>/userinfo</c> answer the same 503 through the same helper; <c>/authorize</c> sheds
     /// differently, because it already had an exception boundary and the code it may emit is
-    /// registered — see there.
+    /// registered - see there.
     /// </para>
     /// </remarks>
     private static async Task<IResult> HandleAsync(HttpContext http, CancellationToken cancellationToken)
@@ -113,8 +113,8 @@ public static class TokenEndpoint
         var options = services.GetRequiredService<AuthorizationServerOptions>();
 
         // An unknown grant is `unsupported_grant_type`, never `invalid_request`. §3.2.4 carves it
-        // out explicitly — invalid_request covers "an unsupported parameter value (other than grant
-        // type)" — and the two send a client looking in different places.
+        // out explicitly - invalid_request covers "an unsupported parameter value (other than grant
+        // type)" - and the two send a client looking in different places.
         if (!options.GrantTypesSupported.Contains(grantType, StringComparer.Ordinal))
         {
             return Error(http, Rejection.Of(
@@ -147,7 +147,7 @@ public static class TokenEndpoint
         // could use `refresh_token` freely.
         //
         // An empty list means "did not say", which C-14 requires be read as permission rather than
-        // refusal — a client that declares nothing is one that also works against other servers.
+        // refusal - a client that declares nothing is one that also works against other servers.
         if (client.GrantTypes.Count > 0 && !client.GrantTypes.Contains(grantType, StringComparer.Ordinal))
         {
             return Error(
@@ -170,7 +170,7 @@ public static class TokenEndpoint
                 .HandleAsync(parameters, client, cancellationToken),
 
             // Reachable only if GrantTypesSupported names a grant with no handler, which options
-            // validation refuses — so this is a wiring error, not a client error.
+            // validation refuses - so this is a wiring error, not a client error.
             _ => new GrantOutcome.Failed(Rejection.Of(
                 ReasonCode.GrantTypeHasNoHandler,
                 OAuthErrorCode.UnsupportedGrantType,
@@ -190,7 +190,7 @@ public static class TokenEndpoint
     {
         // The injected provider. ExpiresAt comes from it, and subtracting the system clock instead
         // produced expires_in values that disagreed with the token's own exp: measured at 37799 for
-        // a token whose exp - iat was 1800, and clamped to 0 with the offset reversed — a client
+        // a token whose exp - iat was 1800, and clamped to 0 with the offset reversed - a client
         // trusting either refreshes at exactly the wrong time.
         var lifetime = tokens.ExpiresAt - time.GetUtcNow();
 
@@ -209,7 +209,7 @@ public static class TokenEndpoint
             IdToken = tokens.IdToken,
 
             // Always emitted. §3.2.3 makes it REQUIRED when it differs from what was asked for and
-            // RECOMMENDED otherwise — "optional when identical" asks the client to compare, and one
+            // RECOMMENDED otherwise - "optional when identical" asks the client to compare, and one
             // that assumes it got what it asked for finds out from a 403 much later.
             Scope = tokens.Scope.ToWireString(),
         });
@@ -224,8 +224,8 @@ public static class TokenEndpoint
     /// </summary>
     /// <remarks>
     /// The challenge scheme has to survive past authentication. RFC 6749 §5.2 requires a 401's
-    /// <c>WWW-Authenticate</c> to match the scheme the client used, and a failure raised later —
-    /// an unauthorized grant, say — still went through Basic or private_key_jwt to get here.
+    /// <c>WWW-Authenticate</c> to match the scheme the client used, and a failure raised later -
+    /// an unauthorized grant, say - still went through Basic or private_key_jwt to get here.
     /// </remarks>
     private static IResult Error(HttpContext http, Rejection rejection, ClientAuthentication authentication)
     {

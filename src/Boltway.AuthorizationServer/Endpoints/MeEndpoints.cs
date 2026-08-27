@@ -18,7 +18,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <summary>The self-service pages. E-46.</summary>
 /// <remarks>
 /// <para>
-/// <b>Cookie-authenticated, with antiforgery, and they refuse a bearer token — the mirror image of
+/// <b>Cookie-authenticated, with antiforgery, and they refuse a bearer token - the mirror image of
 /// <see cref="AccountEndpoints"/>.</b> Read literally, <c>N-17</c> would cover <c>/account/*</c> as
 /// well and mean a user changing their own password has to run an OAuth client. That is absurd,
 /// and the way out is a third prefix rather than a softened rule: <c>/admin/</c> and
@@ -28,7 +28,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <para>
 /// <b>Why the different rule is sound.</b> <c>N-17</c> exists because an XSS on the sign-in page
 /// would otherwise reach <c>users:write</c>, and <c>users:write</c> is everyone. These pages reach
-/// exactly one account — the one already signed in — and <c>S-49</c> makes a password change require
+/// exactly one account - the one already signed in - and <c>S-49</c> makes a password change require
 /// the current password, which an XSS does not have. Different blast radius, different rule.
 /// </para>
 /// <para>
@@ -38,7 +38,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// </para>
 /// <para>
 /// <b>Every page is drawn through <see cref="IInteractionRenderer"/>,</b> so a deployment that has
-/// replaced the look of <c>/login</c> and <c>/consent</c> gets these in the same look — and every
+/// replaced the look of <c>/login</c> and <c>/consent</c> gets these in the same look - and every
 /// one of those methods is a default interface member, so one that has not gets the library's pages
 /// and still compiles (§7.4).
 /// </para>
@@ -168,7 +168,7 @@ public static class MeEndpoints
     /// <summary>The query flag the redirect after a press carries back.</summary>
     /// <remarks>
     /// A redirect rather than rendering the page from the POST, so a refresh does not re-send. The
-    /// flag says what happened to the press — not that the address is confirmed, which stays false
+    /// flag says what happened to the press - not that the address is confirmed, which stays false
     /// until somebody opens the link, and which the model carries separately for that reason.
     /// </remarks>
     private const string VerificationFlag = "verification";
@@ -178,7 +178,7 @@ public static class MeEndpoints
     /// <para>
     /// Three conditions, and each removes a way for the button to be a lie. No address, nothing to
     /// send to. Already verified, nothing to prove. No <c>PasswordRecoveryEnabled</c>, and the
-    /// deployment has no <c>INotificationSender</c> at all — that flag is refused at startup without
+    /// deployment has no <c>INotificationSender</c> at all - that flag is refused at startup without
     /// one, so it is the server's own answer to "can this process send mail", not a second guess at
     /// it.
     /// </para>
@@ -199,12 +199,12 @@ public static class MeEndpoints
     /// <para>
     /// <b>The half of <c>E-41</c> that never existed.</b>
     /// <c>AccountRecovery.RequestEmailVerificationAsync</c> minted the token and composed the mail,
-    /// <c>/verify-email</c> redeemed it, and nothing called the first one — its only callers were
+    /// <c>/verify-email</c> redeemed it, and nothing called the first one - its only callers were
     /// three tests, so no deployment could produce the link that page receives.
     /// </para>
     /// <para>
     /// <b>Throttled, and the account being signed in is not a reason to skip it.</b> §3.1: this
-    /// sends mail to an address the server chooses, so it cannot be used to reach a stranger — but a
+    /// sends mail to an address the server chooses, so it cannot be used to reach a stranger - but a
     /// held session is still a button that mails somebody on every press, and the counter is what
     /// keeps a stuck client or a bored operator from filling their own inbox. Keyed on the subject,
     /// which is the honest key here: unlike <c>/forgot</c> there is no oracle to protect, so the
@@ -213,7 +213,7 @@ public static class MeEndpoints
     /// <para>
     /// <b>The same redirect whether or not anything was sent.</b> The three conditions in
     /// <see cref="CanVerifyEmail"/> are re-checked, because a button drawn by a page is not a
-    /// promise about the request that follows it — an address can be verified, or removed, between
+    /// promise about the request that follows it - an address can be verified, or removed, between
     /// the render and the press. There is nothing to report in that case: the page it lands on shows
     /// the current state, which is the answer.
     /// </para>
@@ -245,7 +245,7 @@ public static class MeEndpoints
         {
             // A redirect carrying a sentence, not the 429 the API surface answers with. This is a
             // form post from a browser, and RecoveryEndpoints.TooManyRequests writes a JSON problem
-            // document — which on a page is §7.3's complaint exactly: a line of JSON where a
+            // document - which on a page is §7.3's complaint exactly: a line of JSON where a
             // sentence should be. The header still goes out for anything reading it.
             http.Response.Headers.RetryAfter =
                 ((int)Math.Ceiling(admission.RetryAfter.TotalSeconds))
@@ -285,7 +285,7 @@ public static class MeEndpoints
     /// <para>
     /// <b>The subject comes from the session and from nowhere else.</b> There is no field in this
     /// form naming an account, so the handler has no value it could be made to act on but the
-    /// caller's own — the same property <c>/account/*</c> has, arrived at the same way.
+    /// caller's own - the same property <c>/account/*</c> has, arrived at the same way.
     /// </para>
     /// <para>
     /// <b>The confirmation field is checked here rather than in the browser.</b> A mistyped new
@@ -334,7 +334,7 @@ public static class MeEndpoints
             cancellationToken);
 
         // Signed out on the way out, when they asked to be. Revoking grants does not touch this
-        // browser's cookie — a grant and a session are different things — so leaving the cookie
+        // browser's cookie - a grant and a session are different things - so leaving the cookie
         // would answer "sign me out everywhere, including here" with everywhere but here.
         if (result.Status is AdministrationStatus.Ok && revoke)
         {
@@ -377,7 +377,7 @@ public static class MeEndpoints
     /// <see cref="AccountEndpoints"/> spells out: the id arrives from a form field, and
     /// <c>IGrantStore.RevokeAsync</c> takes an id and no subject. Without the check this page would
     /// end any session in the deployment for anyone who can sign in. A grant that is not the
-    /// caller's is treated as absent — the page redraws with nothing said, which is what a stale
+    /// caller's is treated as absent - the page redraws with nothing said, which is what a stale
     /// form should do and is also not an oracle.
     /// </remarks>
     private static async Task<IResult> PostSessionsAsync(HttpContext http, CancellationToken cancellationToken)
@@ -401,7 +401,7 @@ public static class MeEndpoints
         var ended = false;
 
         // "None of this was me". Two posts: the first asks, the second acts. The question is not
-        // ceremony — every other control on this page ends one grant, which the reader can undo by
+        // ceremony - every other control on this page ends one grant, which the reader can undo by
         // approving again, and this one ends the application they are reading the page in.
         // One field, two values, carried by whichever button was pressed. `ask` draws the question
         // and `confirm` answers it; anything else is neither and falls through to the single-grant
@@ -424,7 +424,7 @@ public static class MeEndpoints
 
             // And the browser sessions, which the grant store knows nothing about. Without this the
             // control cuts what the applications hold and leaves whoever granted it signed in, free
-            // to grant it again — the gap SessionRevalidation exists to close, and the reason this
+            // to grant it again - the gap SessionRevalidation exists to close, and the reason this
             // page's next sentence can now say the password is the second step rather than the only
             // one that does anything.
             //
@@ -476,7 +476,7 @@ public static class MeEndpoints
 
         // One call for the whole page rather than one per row. The list is already in hand, and a
         // query per session is the shape that is invisible with three of them and is the page with
-        // thirty — which is whoever has the most, not whoever tested it.
+        // thirty - which is whoever has the most, not whoever tested it.
         var refreshed = await http.RequestServices
             .GetRequiredService<IRefreshTokenStore>()
             .LastIssuedForGrantsAsync([.. grants.Select(g => g.GrantId)], cancellationToken);
@@ -538,8 +538,8 @@ public static class MeEndpoints
     /// <b>The client id comes from a form field and the subject does not</b>, which is what makes
     /// the pair safe: <c>IConsentStore.RevokeAsync</c> is keyed on <c>(subject, client)</c> and the
     /// subject is the session's, so however the id is spelled it can only ever reach a record of the
-    /// caller's own. That is a stronger property than <c>/me/sessions</c> has — a grant id is a
-    /// global key, so that handler has to load and compare — and it is why there is no ownership
+    /// caller's own. That is a stronger property than <c>/me/sessions</c> has - a grant id is a
+    /// global key, so that handler has to load and compare - and it is why there is no ownership
     /// check here rather than one that was forgotten.
     /// </para>
     /// <para>
@@ -550,7 +550,7 @@ public static class MeEndpoints
     /// they are. A malformed one redraws the page having done nothing, like a stale grant id does.
     /// </para>
     /// <para>
-    /// <b>This does not end the sessions</b>, and the page says so — <c>E-38</c>. Revoking grants
+    /// <b>This does not end the sessions</b>, and the page says so - <c>E-38</c>. Revoking grants
     /// from here would make "ask me again next time" also mean "sign me out", and only one of those
     /// is what the button said.
     /// </para>
@@ -630,8 +630,8 @@ public static class MeEndpoints
     /// </para>
     /// <para>
     /// <b>And then the directory, not the session.</b> The session carries a subject and the time it
-    /// was proven; everything these pages display — the handle, the address, whether a password
-    /// exists — is read now. A cookie can outlive the account it names.
+    /// was proven; everything these pages display - the handle, the address, whether a password
+    /// exists - is read now. A cookie can outlive the account it names.
     /// </para>
     /// </remarks>
     private static async Task<UserAccount?> SignedInAccountAsync(
@@ -656,7 +656,7 @@ public static class MeEndpoints
     /// </summary>
     /// <remarks>
     /// 303, like every other redirect this server emits (E-20), and the <c>returnUrl</c> is a
-    /// constant from <see cref="AuthorizationServerPaths"/> rather than anything off the request —
+    /// constant from <see cref="AuthorizationServerPaths"/> rather than anything off the request -
     /// so this cannot become a way to make the sign-in page redirect somewhere chosen by a caller.
     /// <c>/login</c> validates it again anyway, against a closed list that these three paths are on.
     /// </remarks>

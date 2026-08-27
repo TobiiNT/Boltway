@@ -42,7 +42,7 @@ public sealed class ResourceServerClaimsTests
     /// No role claim means the caller holds none, and this library does not invent one.
     /// </summary>
     /// <remarks>
-    /// It used to answer <c>user</c>, which was a vocabulary — a word no deployment had chosen,
+    /// It used to answer <c>user</c>, which was a vocabulary - a word no deployment had chosen,
     /// arriving from a library that documents everywhere else that it holds no opinion about what a
     /// role is. What an absent role means is the connector's decision, and a connector that wants a
     /// floor writes one.
@@ -69,7 +69,7 @@ public sealed class ResourceServerClaimsTests
     /// refuse: the static-token path has no authorization server and so never carries one.
     /// </summary>
     /// <remarks>
-    /// Still true of <c>Scopes</c>, and no longer the whole answer — the two tests below are the
+    /// Still true of <c>Scopes</c>, and no longer the whole answer - the two tests below are the
     /// half this one cannot express. Kept as-is so that the property a connector may already be
     /// reading is pinned separately from the one that explains it.
     /// </remarks>
@@ -119,7 +119,7 @@ public sealed class ResourceServerClaimsTests
     /// <remarks>
     /// This is the fail-open the whole change is about. <c>ScopeSet.TryParse</c> rejects a claim
     /// whole on one character outside RFC 6749's set, so a token written to restrict somebody
-    /// produced the same empty set as a token that said nothing about scope — and a connector
+    /// produced the same empty set as a token that said nothing about scope - and a connector
     /// falling back on empty then gave that caller <i>more</i> than the token allowed, with nothing
     /// failing anywhere.
     /// </remarks>
@@ -158,7 +158,7 @@ public sealed class ResourceServerClaimsTests
     /// <c>Claims</c>.
     /// </summary>
     /// <remarks>
-    /// Each was already on the principal — <c>FromClaims</c> copies the whole claim set — so this
+    /// Each was already on the principal - <c>FromClaims</c> copies the whole claim set - so this
     /// is a typed read of data that was there, not new plumbing. What it buys is that a key typed
     /// wrong is a compile error rather than a silent null on the surface whose job is saying who
     /// did what.
@@ -206,7 +206,7 @@ public sealed class ResourceServerClaimsTests
     /// A consumer writes this into the commit trailer that answers "which application made this
     /// change", so casing, a trailing slash and anything else are part of the value. Lowercasing or
     /// canonicalising it here would rewrite what that history means, one release after the history
-    /// was written — <c>assumed</c> recorded as <c>measured</c>, on a surface nobody re-reads.
+    /// was written - <c>assumed</c> recorded as <c>measured</c>, on a surface nobody re-reads.
     /// </remarks>
     [Fact]
     public void The_client_id_is_verbatim()
@@ -223,7 +223,7 @@ public sealed class ResourceServerClaimsTests
     /// The control for the three tests above, and the distinction a connector acts on: null is
     /// "this authenticator did not learn one", and the answer is to leave the field unset rather
     /// than write something plausible. Empty string would be a value, and an invented value cannot
-    /// be told from a real one — the reason <c>Email</c> carries the same rule.
+    /// be told from a real one - the reason <c>Email</c> carries the same rule.
     /// </remarks>
     [Fact]
     public void An_absent_identity_claim_is_null_rather_than_empty()

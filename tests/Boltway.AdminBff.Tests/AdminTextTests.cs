@@ -34,7 +34,7 @@ public sealed class AdminTextTests
     /// </summary>
     /// <remarks>
     /// The property the whole design rests on. One operator's own notes describe a founder meeting a
-    /// Vietnamese page with "Change your password" in the middle of it — this working rather than
+    /// Vietnamese page with "Change your password" in the middle of it - this working rather than
     /// failing, and the reason translating three sentences and leaving forty was not an option.
     /// </remarks>
     [Fact]
@@ -80,7 +80,7 @@ public sealed class AdminTextTests
                 (AdminText.OpAnonymiseCaveat, "Không hoàn tác được.")));
 
         // Decoded once, because HtmlEncode turns part of the Vietnamese range into numeric
-        // entities — valid, and what a browser draws correctly. Asserting the literal appeared in
+        // entities - valid, and what a browser draws correctly. Asserting the literal appeared in
         // the raw HTML would be asserting the encoder did nothing. Surviving exactly one decode is
         // the property that matters, and it is what a second encoding pass would break.
         var once = WebUtility.HtmlDecode(html);
@@ -140,7 +140,7 @@ public sealed class AdminTextTests
     /// </summary>
     /// <remarks>
     /// The direction <c>InteractionText.Default</c> in the library already takes, and the two must
-    /// not disagree — a reader who learns the rule from one of them applies it to the other. What
+    /// not disagree - a reader who learns the rule from one of them applies it to the other. What
     /// this replaces is quieter and worse: the table answered with the key, so
     /// <c>RoleHoldersTruncated</c> could reach an operator as though it were a sentence, with
     /// nothing in any log saying it had. English or a red test beats a page nobody can explain.
@@ -190,7 +190,7 @@ public sealed class AdminTextTests
     /// </summary>
     /// <remarks>
     /// What makes the throw above safe to ship. A constant added without a row in the table is a key
-    /// no page can render and no deployment can translate — it was silently the key on the page
+    /// no page can render and no deployment can translate - it was silently the key on the page
     /// before, and it would be an exception now, so it is worth catching here instead. The same
     /// reason the library keeps two deliberately empty strings in its own table rather than leaving
     /// them out.

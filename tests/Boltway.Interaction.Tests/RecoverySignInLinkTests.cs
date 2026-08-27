@@ -9,13 +9,13 @@ namespace Boltway.Interaction.Tests;
 /// <remarks>
 /// <para>
 /// All three used to write <c>href="/login"</c> unconditionally, and <c>GET /login</c> with no
-/// <c>returnUrl</c> answers <c>400</c> — it has no client and nowhere to go afterwards. So the last
+/// <c>returnUrl</c> answers <c>400</c> - it has no client and nowhere to go afterwards. So the last
 /// thing a person saw at the end of a successful password reset was the error page: <i>"This page
 /// was opened without a valid authorization request."</i>
 /// </para>
 /// <para>
 /// Found by resetting a password on a running deployment and pressing the button the page offers,
-/// which is the only way it could have been found — every test here passed, because none of them
+/// which is the only way it could have been found - every test here passed, because none of them
 /// asked where the link went.
 /// </para>
 /// </remarks>
@@ -80,7 +80,7 @@ public sealed class RecoverySignInLinkTests
     /// </summary>
     /// <remarks>
     /// A deployment can route password recovery without routing the self-service pages, and then
-    /// no standalone destination exists at all — <c>/authorize</c> needs a request in flight and
+    /// no standalone destination exists at all - <c>/authorize</c> needs a request in flight and
     /// nothing else accepts a bare arrival. A link that lands on an error page is worse than no
     /// link: it spends the reader's trust before it fails, at the end of the flow where they have
     /// least of it left.
@@ -104,7 +104,7 @@ public sealed class RecoverySignInLinkTests
 /// </summary>
 /// <remarks>
 /// <c>/me</c> had no way to link at all, so a deployment could configure Google, render the button
-/// on the sign-in page, and leave every existing account unable to reach it — <c>UnknownIdentity</c>
+/// on the sign-in page, and leave every existing account unable to reach it - <c>UnknownIdentity</c>
 /// is <c>Refuse</c> by default, so signing in with an unlinked identity is correctly refused and
 /// there was nothing anywhere that would link one.
 /// </remarks>
@@ -119,7 +119,7 @@ public sealed class AccountProviderLinkTests
     /// <summary>A configured provider is offered, as a form.</summary>
     /// <remarks>
     /// A form and not a link, because linking changes the account: a <c>GET</c> that did it would be
-    /// reachable from an <c>&lt;img&gt;</c> tag on any page — the logout-CSRF shape, which is why
+    /// reachable from an <c>&lt;img&gt;</c> tag on any page - the logout-CSRF shape, which is why
     /// <c>/logout</c> asks too.
     /// </remarks>
     [Fact]
@@ -142,7 +142,7 @@ public sealed class AccountProviderLinkTests
         Assert.DoesNotContain("/external/", page, StringComparison.Ordinal);
 
         // The provider section's form specifically, not "any form on the page". This asserted the
-        // latter, which was the same thing right up until the sign-out became a form too — and then
+        // latter, which was the same thing right up until the sign-out became a form too - and then
         // it failed for a reason that had nothing to do with providers.
         Assert.DoesNotContain("action=\"/external/", page, StringComparison.Ordinal);
 
@@ -172,7 +172,7 @@ public sealed class AccountProviderLinkTests
         // And it is a statement, not a control dressed as one.
         // The provider's own control, not "any button on the page". The line above already says
         // there is no form posting to this provider, and a form is the only thing that would give
-        // it a button — whereas the page has a sign-out button of its own, which is not an offer to
+        // it a button - whereas the page has a sign-out button of its own, which is not an offer to
         // link Google.
         Assert.DoesNotContain("/external/google/link", page, StringComparison.Ordinal);
     }

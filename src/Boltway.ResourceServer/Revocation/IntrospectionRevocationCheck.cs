@@ -14,7 +14,7 @@ namespace Boltway.ResourceServer.Revocation;
 /// <para>
 /// <b>A client id and secret of its own, and that is the cost of RFC 7662.</b> §2.1 requires the
 /// endpoint to be authorized, and an authorization server that accepted <c>none</c> there would let
-/// anybody scan for live tokens. So a resource server doing this holds a long-lived credential —
+/// anybody scan for live tokens. So a resource server doing this holds a long-lived credential -
 /// the thing to know about it is that the credential authenticates the <i>resource server</i> and
 /// grants no access to anybody's data: what it buys is the right to ask about a token the caller
 /// already handed over.
@@ -25,13 +25,13 @@ public sealed class IntrospectionOptions
     /// <summary>The authorization server's introspection endpoint, absolute.</summary>
     /// <remarks>
     /// Configured rather than derived from the issuer. RFC 8414 lets a server put it anywhere, and
-    /// guessing <c>{issuer}/introspect</c> is right until it is not — at which point every request
+    /// guessing <c>{issuer}/introspect</c> is right until it is not - at which point every request
     /// fails open silently, which is the failure this class is least able to notice.
     /// </remarks>
     /// <remarks>
     /// <b>Settable rather than <c>required</c>, and validated at registration instead.</b> Every
     /// other option in this library is filled by an <c>Action&lt;T&gt;</c>, which cannot assign an
-    /// <c>init</c> member — and a type that could only be built at a construction site would make
+    /// <c>init</c> member - and a type that could only be built at a construction site would make
     /// this the one registration shaped differently from its neighbours. What replaces the compiler
     /// check is <c>AddIntrospectionRevocationCheck</c>, which refuses at startup and names the
     /// property that is missing.
@@ -76,7 +76,7 @@ public sealed class IntrospectionOptions
 /// <remarks>
 /// <para>
 /// <b>It fails open, and it says so every time.</b> When the authorization server cannot be reached
-/// — a restart, a deploy, a network blip — this answers "not revoked" and writes a warning naming
+/// - a restart, a deploy, a network blip - this answers "not revoked" and writes a warning naming
 /// the reason. The alternative was considered and rejected by the deployment this was written for:
 /// the two services share a host, so an authorization server restart would take the resource server
 /// down with it, several times per deploy, to close a window measured in seconds. The window it
@@ -94,7 +94,7 @@ public sealed class IntrospectionOptions
 /// <b>Only live answers are cached.</b> A revoked answer is not stored at all, which sounds
 /// backwards and is not: the cache exists to avoid a round trip on the hot path, and the hot path
 /// is tokens that work. A revoked token arrives rarely, is refused immediately, and its client
-/// re-authorizes — caching that answer would optimise the case that stops happening.
+/// re-authorizes - caching that answer would optimise the case that stops happening.
 /// </para>
 /// <para>
 /// <b>Keyed on a hash, never on the token.</b> The map outlives any one request, and a process dump
@@ -128,7 +128,7 @@ public sealed class IntrospectionRevocationCheck : IAccessTokenRevocationCheck
     /// <param name="clock">The clock the cache expires against.</param>
     /// <param name="metrics">
     /// Where the fail-open count goes. Optional so that constructing this by hand stays a
-    /// two-argument affair, and always supplied by <c>AddIntrospectionRevocationCheck</c> — a
+    /// two-argument affair, and always supplied by <c>AddIntrospectionRevocationCheck</c> - a
     /// deployment that reaches this type through DI is counted whether it asked to be or not,
     /// because the number nobody thought to ask for is the one this instrument exists to produce.
     /// </param>
@@ -137,7 +137,7 @@ public sealed class IntrospectionRevocationCheck : IAccessTokenRevocationCheck
     /// preference.</b> <c>StructuralRuleTests.Only_the_guarded_fetcher_touches_system_net_http</c>
     /// bans <c>System.Net.Http</c> outside <c>Boltway.OAuth.Net</c>, and this type is the one
     /// named exception. Resolving the client in the registration extension instead would make that
-    /// extension a second exception, for one line — so the call lives here, where the argument for
+    /// extension a second exception, for one line - so the call lives here, where the argument for
     /// it is already written down.
     /// </remarks>
     public IntrospectionRevocationCheck(
@@ -221,7 +221,7 @@ public sealed class IntrospectionRevocationCheck : IAccessTokenRevocationCheck
     /// reachable server saying <c>active: false</c> and an unreachable server are both "no useful
     /// answer" to a caller in a hurry, and they have opposite correct responses: one must refuse
     /// the request and the other must not. A boolean here would have to pick, and whichever it
-    /// picked would be wrong half the time — either an authorization-server blip logs every user
+    /// picked would be wrong half the time - either an authorization-server blip logs every user
     /// out, or a revoked session survives one because a deploy was in progress.
     /// </remarks>
     private async Task<bool?> AskAsync(string token, CancellationToken cancellationToken)
@@ -264,7 +264,7 @@ public sealed class IntrospectionRevocationCheck : IAccessTokenRevocationCheck
                 || active.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
             {
                 // RFC 7662 §2.2 makes `active` REQUIRED. A 200 without it is a server that is not
-                // speaking this protocol — a proxy's error page, or the wrong URL configured — and
+                // speaking this protocol - a proxy's error page, or the wrong URL configured - and
                 // reading a missing field as "not active" would log every user out on a typo.
                 Warn(
                     FailedOpenReason.MalformedResponse,
@@ -304,7 +304,7 @@ public sealed class IntrospectionRevocationCheck : IAccessTokenRevocationCheck
     /// <para>
     /// <b>Read off the OAuth <c>error</c> member rather than the HTTP status.</b> RFC 6749 §5.2 puts
     /// the machine-readable reason in the body, and <c>invalid_client</c> is unambiguous where a 401
-    /// is not — a proxy in front of the authorization server answers 401 too, and so does an
+    /// is not - a proxy in front of the authorization server answers 401 too, and so does an
     /// authorization server that has simply been replaced by a login page. It is also the only form
     /// this assembly may write: an architecture rule bans a 400-599 constant outside the rejection
     /// writer, because a hand-written status is how a 4xx escapes the one place that logs it.

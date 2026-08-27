@@ -12,9 +12,9 @@ namespace Boltway.Storage.Sqlite.Tests;
 /// </summary>
 /// <remarks>
 /// The suite that had exactly one derived class until now, and that class was a dictionary behind a
-/// lock. Everything the contract says about atomicity — one winner out of sixteen concurrent
+/// lock. Everything the contract says about atomicity - one winner out of sixteen concurrent
 /// redemptions, a family that does not fork, a sweeper that does not remove a row a redemption just
-/// wrote — was true of the in-memory store because a <c>lock</c> makes it true, and untested
+/// wrote - was true of the in-memory store because a <c>lock</c> makes it true, and untested
 /// anywhere a transaction has to make it true instead.
 /// </remarks>
 public sealed class SqliteGrantStoreTests : GrantStoreContract, IDisposable

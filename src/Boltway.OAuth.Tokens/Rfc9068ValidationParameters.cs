@@ -20,11 +20,11 @@ namespace Boltway.OAuth.Tokens;
 /// </para>
 /// <list type="number">
 /// <item><description>
-/// <c>ValidTypes</c> — unset means the <c>typ</c> header is not checked, so an ID token is accepted
+/// <c>ValidTypes</c> - unset means the <c>typ</c> header is not checked, so an ID token is accepted
 /// as an access token. Same signature, same issuer, same subject; only the type distinguishes them.
 /// </description></item>
 /// <item><description>
-/// <c>ValidAlgorithms</c> — unset means the algorithm is taken from the token's own header, which
+/// <c>ValidAlgorithms</c> - unset means the algorithm is taken from the token's own header, which
 /// is the algorithm-confusion attack: an attacker re-signs a forged token using the published
 /// public key as an HMAC secret.
 /// </description></item>
@@ -67,7 +67,7 @@ public static class Rfc9068ValidationParameters
             ValidateIssuer = true,
             ValidIssuer = issuer.Value,
 
-            // N-01. The audience is THIS resource's identifier, compared in full — never the
+            // N-01. The audience is THIS resource's identifier, compared in full - never the
             // request's origin. A resource identifier legitimately carries a path
             // (https://mcp.example.com/mcp), and comparing only the origin is a shipped real-world
             // bug that broke ChatGPT custom connectors.
@@ -81,7 +81,7 @@ public static class Rfc9068ValidationParameters
             // resource server, not inferred from the property name.
             //
             // Two identifiers differing only by a trailing slash are two resources everywhere else
-            // in this product — RFC 9728 §6 forbids normalizing them together, §3.3 makes the
+            // in this product - RFC 9728 §6 forbids normalizing them together, §3.3 makes the
             // metadata document's `resource` a byte-identity check, and Anthropic's own guidance is
             // that the value must match the MCP server URL "exactly as the user enters it in
             // Claude". Leaving the tolerance on means an audience restriction that is stricter in
@@ -108,7 +108,7 @@ public static class Rfc9068ValidationParameters
     /// <param name="audience">This server's client identifier at that upstream.</param>
     /// <param name="signingKeys">The upstream's public keys, from its JWKS.</param>
     /// <param name="validTypes">
-    /// The <c>typ</c> header values to accept. Must not be empty — see the exception below.
+    /// The <c>typ</c> header values to accept. Must not be empty - see the exception below.
     /// </param>
     /// <param name="clockSkew">Clock tolerance.</param>
     /// <exception cref="ArgumentException"><paramref name="validTypes"/> is empty.</exception>
@@ -124,7 +124,7 @@ public static class Rfc9068ValidationParameters
     /// <para>
     /// This server is an OAuth <i>client</i> here, so the direction of every check is reversed from
     /// the two above: the issuer is somebody else's, the keys are somebody else's, and the audience
-    /// is an identifier they issued to us. What does not reverse is which settings matter —
+    /// is an identifier they issued to us. What does not reverse is which settings matter -
     /// <c>ValidTypes</c> and <c>ValidAlgorithms</c> are unset by default in
     /// <c>Microsoft.IdentityModel</c> on this path too.
     /// </para>
@@ -165,8 +165,8 @@ public static class Rfc9068ValidationParameters
             // The set is configurable per provider; being able to switch the check off is not.
             ValidTypes = validTypes,
 
-            // The same closed set this server signs with. `none` has no path here — RequireSignedTokens
-            // below is the second half of that — and no symmetric algorithm is listed, so an upstream
+            // The same closed set this server signs with. `none` has no path here - RequireSignedTokens
+            // below is the second half of that - and no symmetric algorithm is listed, so an upstream
             // key published in a JWKS cannot be turned into an HMAC secret.
             ValidAlgorithms = SigningAlgorithms.All,
 
@@ -175,7 +175,7 @@ public static class Rfc9068ValidationParameters
 
             // The audience is this server's client identifier AT THE UPSTREAM. Note the parameter
             // type: it is neither a ResourceIdentifier nor a ClientIdentifier, because it is neither
-            // — it is an identifier a third party issued to us, and it must not be interchangeable
+            // - it is an identifier a third party issued to us, and it must not be interchangeable
             // at a call site with the two identifiers this server issues.
             ValidateAudience = true,
             ValidAudiences = [audience.Value],
@@ -189,7 +189,7 @@ public static class Rfc9068ValidationParameters
             // than an inconsistency. Those two validate tokens this server minted, where the `kid`
             // is ours and a token naming an unknown one is a token we did not issue. This one
             // validates a token minted by somebody else, mid-rotation, where a `kid` we have not
-            // seen means the cached key set is stale — and refusing every token during an upstream's
+            // seen means the cached key set is stale - and refusing every token during an upstream's
             // key rotation is an outage caused by the upstream doing the right thing. The keys are
             // still only the ones fetched from the upstream's own JWKS.
             TryAllIssuerSigningKeys = true,
@@ -214,7 +214,7 @@ public static class Rfc9068ValidationParameters
     /// <remarks>
     /// Note the parameter type. <see cref="ForAccessToken"/> takes a
     /// <see cref="ResourceIdentifier"/> and this takes a <see cref="ClientIdentifier"/>, so the two
-    /// audiences cannot be swapped at a call site — the compiler refuses. Putting a resource URL in
+    /// audiences cannot be swapped at a call site - the compiler refuses. Putting a resource URL in
     /// an ID token's <c>aud</c> makes every conformant relying party reject it at OIDC Core
     /// §3.1.3.7 rule 3, and the rejection surfaces on the client with no error code the server
     /// controls.
@@ -269,7 +269,7 @@ public static class Rfc9068ValidationParameters
     /// <b>The one factory here with <c>ValidateAudience</c> off, and the reason is that there is no
     /// audience to validate against.</b> Every other verifier in this type is a party checking
     /// "was this token minted for me". Introspection is the issuer answering "did I mint this, and
-    /// does it still stand" about a token minted for somebody else — the caller is the resource
+    /// does it still stand" about a token minted for somebody else - the caller is the resource
     /// server, and the audience is one of the facts being reported back rather than a gate. Passing
     /// an audience in would require the endpoint to know which resource each presented token was
     /// for before it has read it, which is the thing it is being asked.
@@ -279,7 +279,7 @@ public static class Rfc9068ValidationParameters
     /// algorithm, signature and expiry are all checked exactly as on the resource-server path, so
     /// the only tokens this accepts are unexpired access tokens carrying this server's own
     /// signature. A forged token, an ID token presented as an access token, and a token from
-    /// another issuer are all refused here as they are everywhere else — and a refusal becomes
+    /// another issuer are all refused here as they are everywhere else - and a refusal becomes
     /// <c>active: false</c> rather than an error, per RFC 7662 §2.2.
     /// </para>
     /// <para>
@@ -305,7 +305,7 @@ public static class Rfc9068ValidationParameters
             ValidIssuer = issuer.Value,
 
             // See the remarks. Set explicitly rather than left to the library, so that a reader
-            // finding it off here knows it was decided rather than forgotten — which is the whole
+            // finding it off here knows it was decided rather than forgotten - which is the whole
             // argument for this type existing.
             ValidateAudience = false,
 
@@ -325,7 +325,7 @@ public static class Rfc9068ValidationParameters
     /// Parameters for validating a client assertion at the token endpoint. RFC 7523 §3.
     /// </summary>
     /// <param name="clientId">
-    /// The client. It is <b>both</b> the expected <c>iss</c> and the expected <c>sub</c> — §3 makes
+    /// The client. It is <b>both</b> the expected <c>iss</c> and the expected <c>sub</c> - §3 makes
     /// them the same value for this profile, and the <c>sub</c> half is checked by the caller
     /// because a <c>TokenValidationParameters</c> has no place to express it.
     /// </param>
@@ -339,7 +339,7 @@ public static class Rfc9068ValidationParameters
     /// <b>The issuer is the client, which reads oddly and is what §3 says.</b> Everywhere else in
     /// this file the issuer is this server; here the assertion is minted by the client, about
     /// itself, for us. So <see cref="TokenValidationParameters.ValidIssuer"/> is a client identifier
-    /// and <see cref="TokenValidationParameters.ValidAudiences"/> holds this server's — the exact
+    /// and <see cref="TokenValidationParameters.ValidAudiences"/> holds this server's - the exact
     /// reverse of <see cref="ForIdToken"/>, one method up.
     /// </para>
     /// <para>
@@ -348,7 +348,7 @@ public static class Rfc9068ValidationParameters
     /// otherwise interchangeable. Here there is nothing to confuse: a client assertion is verified
     /// against the <i>client's</i> keys, and this server mints nothing with those keys, so there is
     /// no second token kind a valid signature could belong to. RFC 7523 registers no <c>typ</c>
-    /// requirement, and demanding one would refuse conformant clients — measured on ChatGPT's own
+    /// requirement, and demanding one would refuse conformant clients - measured on ChatGPT's own
     /// metadata, which declares <c>token_endpoint_auth_signing_alg</c> and no type at all.
     /// </para>
     /// <para>
@@ -381,7 +381,7 @@ public static class Rfc9068ValidationParameters
             // The same closed set this server signs with, and the reason is sharper here than
             // anywhere else in this file: these keys arrive in a JWKS from a host an attacker may
             // control. No symmetric algorithm is listed, so a published public key cannot be turned
-            // into an HMAC secret, and `none` has no path at all — RequireSignedTokens below is the
+            // into an HMAC secret, and `none` has no path at all - RequireSignedTokens below is the
             // other half.
             ValidAlgorithms = SigningAlgorithms.All,
 

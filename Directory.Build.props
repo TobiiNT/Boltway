@@ -31,7 +31,7 @@
     1.0.0 would say more than this gets to say.
 
     **This said 0.1.0 "because nothing here has ever been published", and that was false when it was
-    written.** Every id in this repository was already on nuget.org at 0.1.0 — one
+    written.** Every id in this repository was already on nuget.org at 0.1.0 - one
     `curl https://api.nuget.org/v3-flatcontainer/boltway.mcp/index.json` settles it, and eighteen of
     them answered. Publishing from that state would have packed 0.1.0 against a feed that already
     held 0.1.0, and the paragraph below describes exactly what happens next. The comment was the
@@ -39,12 +39,12 @@
     before trusting a sentence here, this one included.
 
     The rule that outlives this number: **once a version is published, it is frozen.** A feed will
-    not take a second 0.1.0 and will not tell anybody it refused — it skips the duplicate and the
+    not take a second 0.1.0 and will not tell anybody it refused - it skips the duplicate and the
     workflow stays green, so the new assembly simply never ships. That failure is silent on the
     publishing side and loud on the consuming side, in the worst possible place: a downstream
     consumer restores the frozen package, compiles green (the C# compiler does not check a call
     that lives inside an already-compiled dependency), and throws MissingMethodException at
-    startup. That is not hypothetical — it took a production container into a restart loop behind
+    startup. That is not hypothetical - it took a production container into a restart loop behind
     a 502 until it was rolled back.
 
     Two consequences worth stating plainly:
@@ -93,7 +93,7 @@
       `RequestLocalizationMiddleware` can match `ui_locales` against.
 
       What it does NOT need is ICU. Nothing on those pages formats a number, a date or a currency,
-      and no comparison anywhere in this repository is culture-sensitive — the ban list forbids the
+      and no comparison anywhere in this repository is culture-sensitive - the ban list forbids the
       normalizing members of System.Uri, every string comparison is Ordinal or OrdinalIgnoreCase by
       rule, and `LOWER()`-style folding is done in C# on a normalized column rather than by a
       collation. So allowing a culture to be *named* costs nothing that the invariant setting was
@@ -125,8 +125,8 @@
       No `dpop`. It was in this list while `spec/REQUIREMENTS.md` S-37 said DPoP is deferred and
       "advertise nothing DPoP-related", and §4 of the same file says advertising it "invites proofs
       we reject". A search tag is an advertisement: somebody filtering nuget.org for `dpop` was
-      being shown a package that does not implement it. That is N-06 — the rule this repository
-      cites more than any other — on the one surface a stranger meets before the README.
+      being shown a package that does not implement it. That is N-06 - the rule this repository
+      cites more than any other - on the one surface a stranger meets before the README.
 
       Put it back in the commit that implements RFC 9449, not before.
     -->
@@ -156,12 +156,12 @@
     similarly-named `Boltway.*` packages, so the failure was invisible internally and total
     externally.
 
-    It fires at pack time, which is where the nuspec is written — so it is only a gate if something
+    It fires at pack time, which is where the nuspec is written - so it is only a gate if something
     packs before a tag is cut. CI does now; that is the other half of this fix and it is in
     `.github/workflows/ci.yml`.
   -->
   <!--
-    Nothing detected a breaking change. No PublicApiAnalyzers, no ApiCompat, no baseline — a removed
+    Nothing detected a breaking change. No PublicApiAnalyzers, no ApiCompat, no baseline - a removed
     or re-signatured public member produced a green build and a published package, and
     `Boltway.PublicApi.Tests` is a compile canary over a handful of seams rather than a surface
     baseline.
@@ -172,17 +172,17 @@
     without a name changing).
 
     The baseline is the release before this one, because that is what a consumer has already
-    restored. At 0.x a break is permitted — `VERSIONING.md` says so — and the point is not to forbid
+    restored. At 0.x a break is permitted - `VERSIONING.md` says so - and the point is not to forbid
     it but to make it a thing somebody decided rather than a thing nobody noticed.
 
     **It moves in the same commit as `<Version>`, and leaving it behind is silent in one direction.**
     A baseline a release too old still catches everything that release inherited, so most of the gate
     keeps working and nothing looks wrong. What it stops seeing is a member the previous release
     *added* and this one removes: the baseline package never carried it, so there is nothing to
-    report — and that is exactly the member a consumer on the newest release compiles against.
+    report - and that is exactly the member a consumer on the newest release compiles against.
     Measured on 2026-08-24 against a 0.1.0 baseline while 0.2.0 was the released version: making
     `AuthorizationServerMetadata.ScopesSupported` internal failed the pack with two CP0002 errors,
-    and making `PromptValuesSupported` internal — same file, same kind of break, added in 0.2.0 —
+    and making `PromptValuesSupported` internal - same file, same kind of break, added in 0.2.0 -
     packed green. Pointing the baseline at 0.2.0 turned the second one red.
 
     Never equal to `<Version>`: a baseline equal to the version being packed validates nothing, also
@@ -196,7 +196,7 @@
 
     **Its own error message suggests the wrong fix.** It offers
     `/p:ApiCompatGenerateSuppressionFile=true`, which writes the break into an XML file nobody
-    reads again — the shape CLAUDE.md rules out for the architecture tests, for the same reason. A
+    reads again - the shape CLAUDE.md rules out for the architecture tests, for the same reason. A
     deliberate break at 0.x is recorded by moving the version and saying so in CHANGELOG.md, where
     the consumer who is about to hit it will see it.
   -->

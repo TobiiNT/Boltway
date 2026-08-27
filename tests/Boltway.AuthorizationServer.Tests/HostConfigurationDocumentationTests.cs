@@ -11,30 +11,30 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <b>The host READMEs are the only documents in this repository an operator acts on today</b>, and
 /// they had drifted in both directions at once. Reading the code and not the document:
 /// <c>ADMIN_ROLES</c>, which the authorization server <i>refuses to start</i> without once the admin
-/// API is on, appeared in no table — so the one setting whose absence costs a restart was the one
+/// API is on, appeared in no table - so the one setting whose absence costs a restart was the one
 /// nothing told you to set. So did <c>CLIENTS</c>, while the admin BFF's own README said to register
 /// it "in the server's <c>CLIENTS</c>": the admin UI could not be stood up from the documentation.
 /// Reading the document and not the code: <c>SMTP_STARTTLS</c>, replaced by <c>SMTP_SECURITY</c>,
-/// still documented with a warning attached to it — a value an operator could set, and did, that
+/// still documented with a warning attached to it - a value an operator could set, and did, that
 /// this image never looks up and never complains about.
 /// </para>
 /// <para>
 /// Both directions matter and they fail differently. A key with no row is a capability nobody can
 /// reach. A row with no key is worse: it is a promise, the same shape as <c>N-06</c> one layer out,
-/// and the operator has no way to tell — an environment variable nothing reads produces no error,
+/// and the operator has no way to tell - an environment variable nothing reads produces no error,
 /// no log line and no symptom until the day the behaviour it was supposed to configure matters.
 /// </para>
 /// <para>
 /// This is the <c>check:emitted</c> pattern the repository already uses in
 /// <c>StructuralRuleTests.PackableProjects</c> and <c>Every_project_says_whether_it_packs</c>: the
 /// source moved, so the artefact derived from it must move with it, or the build fails on purpose.
-/// A README is an emitted artefact in exactly that sense — it is derived from <c>Program.cs</c> and
+/// A README is an emitted artefact in exactly that sense - it is derived from <c>Program.cs</c> and
 /// nothing but a person's memory was keeping it so.
 /// </para>
 /// <para>
 /// <b>It reads the two files off disk rather than reflecting over a loaded host.</b> No test project
-/// references either host — the only thing that has ever compiled <c>Program.cs</c> is the Docker
-/// build, which is its own defect and is written up on <c>ProxyHeaders</c> — and referencing one to
+/// references either host - the only thing that has ever compiled <c>Program.cs</c> is the Docker
+/// build, which is its own defect and is written up on <c>ProxyHeaders</c> - and referencing one to
 /// get at its configuration would give this test a way to fail that has nothing to do with what it
 /// measures. The repository root is found by shape, the same walk
 /// <c>StructuralRuleTests.RepositoryRoot</c> makes, because a relative path with a fixed number of
@@ -44,8 +44,8 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// <b>What it cannot see</b>: a key reached by something other than the four spellings below. Every
 /// read in both hosts today goes through <c>config["…"]</c> or through <c>Required</c>,
-/// <c>Flag</c> or <c>Duration</c>, and the helpers that wrap a single key — <c>LogFormat</c>,
-/// <c>Hops</c> — read it with the indexer, so they are covered too. A fifth spelling would be
+/// <c>Flag</c> or <c>Duration</c>, and the helpers that wrap a single key - <c>LogFormat</c>,
+/// <c>Hops</c> - read it with the indexer, so they are covered too. A fifth spelling would be
 /// invisible here, which is what the count controls are for: they fail when the scan stops finding
 /// what it used to rather than reporting green over a file it can no longer parse.
 /// </para>
@@ -73,7 +73,7 @@ public sealed partial class HostConfigurationDocumentationTests
     /// <c>OTEL_EXPORTER_OTLP_PROTOCOL</c> and <c>OTEL_EXPORTER_OTLP_HEADERS</c> are read by the
     /// OpenTelemetry exporter out of the environment directly. They belong in the table anyway,
     /// because a deployment pointing this host at a vendor gateway has to set both and would
-    /// otherwise send an <c>https://</c> base URL over gRPC — the transport the .NET exporter
+    /// otherwise send an <c>https://</c> base URL over gRPC - the transport the .NET exporter
     /// defaults to. Documenting a setting somebody else reads is the opposite of the defect this
     /// test exists for: the variable does something, and the row is the only place that says so.
     /// </para>
@@ -94,7 +94,7 @@ public sealed partial class HostConfigurationDocumentationTests
         var documented = SettingsDocumented(Path.Combine(directory, "README.md"));
 
         // The controls, and they are not ceremony: both halves are absence assertions, so a scan
-        // that found nothing — a moved file, a renamed heading, a table rewritten in another shape —
+        // that found nothing - a moved file, a renamed heading, a table rewritten in another shape -
         // would report a clean pass over two files it never read. The numbers are floors well under
         // what is there rather than exact counts, because an exact count is the thing this test is
         // here to stop anybody maintaining by hand.
@@ -121,7 +121,7 @@ public sealed partial class HostConfigurationDocumentationTests
     /// <remarks>
     /// The control for the rule above, and the half that caught the live defect. <c>SMTP_STARTTLS</c>
     /// sat in the table with a warning that setting it <c>false</c> would put the SMTP password on
-    /// the wire in the clear, long after <c>SMTP_SECURITY</c> replaced it — so an operator following
+    /// the wire in the clear, long after <c>SMTP_SECURITY</c> replaced it - so an operator following
     /// the document configured nothing, was told nothing, and held a belief about their mail
     /// transport that no line of code supported. Renaming a setting without moving its row leaves
     /// exactly that, and there is no runtime signal for it: an unread environment variable is
@@ -157,8 +157,8 @@ public sealed partial class HostConfigurationDocumentationTests
     /// <summary>Every configuration key <c>Program.cs</c> reads.</summary>
     /// <remarks>
     /// Uppercase and underscores only, which is what an environment variable looks like and what
-    /// keeps <c>config.GetConnectionString("Postgres")</c> — a different lookup shape, documented on
-    /// the <c>DATABASE_URL</c> row it falls back from — out of the set.
+    /// keeps <c>config.GetConnectionString("Postgres")</c> - a different lookup shape, documented on
+    /// the <c>DATABASE_URL</c> row it falls back from - out of the set.
     /// </remarks>
     private static HashSet<string> SettingsRead(string program)
     {
@@ -172,8 +172,8 @@ public sealed partial class HostConfigurationDocumentationTests
     /// <summary>Every key named in the first cell of the README's Configuration table.</summary>
     /// <remarks>
     /// The table under <c>## Configuration</c> and no further: the scan stops at the next heading of
-    /// any depth, so the tables inside the subsections below it — the <c>/userinfo</c> claims, the
-    /// <c>LOG_FORMAT</c> values — are not rows and cannot satisfy this. That is the strict reading
+    /// any depth, so the tables inside the subsections below it - the <c>/userinfo</c> claims, the
+    /// <c>LOG_FORMAT</c> values - are not rows and cannot satisfy this. That is the strict reading
     /// on purpose. A setting explained in a paragraph is a setting an operator finds only by reading
     /// the whole document, and the table is what they scan.
     /// </remarks>
@@ -194,7 +194,7 @@ public sealed partial class HostConfigurationDocumentationTests
             if (line.StartsWith('#')) break;
             if (!line.StartsWith('|')) continue;
 
-            // The first cell only. The second is prose, and it cites other settings by name —
+            // The first cell only. The second is prose, and it cites other settings by name -
             // reading the whole row would let `ADMIN_ROLES` be "documented" by a sentence about it
             // on somebody else's row, which is how a row goes missing without this noticing.
             var cells = line.Split('|');

@@ -64,7 +64,7 @@ public static class AuthorizationServerPaths
     /// <remarks>
     /// <para>
     /// <b>A proxy, because hotlinking is a disclosure.</b> A client's <c>logo_uri</c> is a URL the
-    /// client chose, and ChatGPT's live metadata points at a third-party CDN — so an
+    /// client chose, and ChatGPT's live metadata points at a third-party CDN - so an
     /// <c>&lt;img src&gt;</c> straight at it would tell that host who is looking at a consent page
     /// for which application, and when. The consent page's own <c>default-src 'self'</c> refuses it
     /// anyway, which is the second half of the same decision rather than a separate one.
@@ -119,7 +119,7 @@ public static class AuthorizationServerPaths
     /// <remarks>
     /// Singular and under the account, because that is what it is: a property of a person rather
     /// than a member of a client collection. One account holds at most one, so there is no id in
-    /// the path and no list to page through — <c>POST</c> creates or rotates, <c>PATCH</c> turns it
+    /// the path and no list to page through - <c>POST</c> creates or rotates, <c>PATCH</c> turns it
     /// off, <c>DELETE</c> removes it.
     /// </remarks>
     public const string AdminUserServiceAccount = "/admin/users/{handle}/service-account";
@@ -141,7 +141,7 @@ public static class AuthorizationServerPaths
     /// <remarks>
     /// <b>No identifier in the path, and that is the design rather than a shorthand.</b> Every
     /// <c>/admin</c> route names whose account it is; none of these do. A handler that cannot be
-    /// told which account to act on has no code path that reaches another one — §1.6, two surfaces
+    /// told which account to act on has no code path that reaches another one - §1.6, two surfaces
     /// rather than one with a guard, and the guard is the thing that gets a special case added to it
     /// eighteen months later.
     /// </remarks>
@@ -168,7 +168,7 @@ public static class AuthorizationServerPaths
     /// <summary>Withdraw one approval. E-38.</summary>
     /// <remarks>
     /// <b>A catch-all segment, because a client id is often a URL.</b> This server supports client
-    /// ID metadata documents, where the id <i>is</i> <c>https://claude.ai/oauth/…</c> — several path
+    /// ID metadata documents, where the id <i>is</i> <c>https://claude.ai/oauth/…</c> - several path
     /// segments and a scheme. <c>{clientId}</c> would match none of it, and telling callers to
     /// percent-encode the slashes moves the problem into whether the proxy in front normalises
     /// <c>%2F</c>, which is not a thing this repository can promise about somebody else's
@@ -179,7 +179,7 @@ public static class AuthorizationServerPaths
     /// <summary>Where a reset link lands. E-42, E-43.</summary>
     /// <remarks>
     /// <b>Not under <c>/account/</c> or <c>/me/</c>, and it is neither of those things.</b> It is
-    /// reached by somebody who cannot sign in, holding a token instead of a session — so it carries
+    /// reached by somebody who cannot sign in, holding a token instead of a session - so it carries
     /// no cookie requirement and no bearer requirement, and putting it under either prefix would
     /// make one of the two N-17 architecture tests wrong about it.
     /// </remarks>
@@ -194,7 +194,7 @@ public static class AuthorizationServerPaths
     /// <remarks>
     /// <para>
     /// <b>A page, because <see cref="AccountPasswordForgot"/> answers JSON.</b> That endpoint is for
-    /// a caller driving the flow programmatically, and it already accepts a form post — but it
+    /// a caller driving the flow programmatically, and it already accepts a form post - but it
     /// answers <c>202</c> with a JSON body, so a browser posting to it directly is shown a line of
     /// JSON where a sentence should be. §7.3 made this call once already for <c>E-40</c> and
     /// <c>E-41</c>: an endpoint with no page is a design that mails somebody a URL answering 405.
@@ -220,7 +220,7 @@ public static class AuthorizationServerPaths
     /// <remarks>
     /// <b>A third prefix, and the reason there are three rather than two.</b> Read literally,
     /// <c>N-17</c> would mean a user changing their own password has to run an OAuth client,
-    /// which is absurd — and the way out is not to soften the rule. <c>/admin/</c> and
+    /// which is absurd - and the way out is not to soften the rule. <c>/admin/</c> and
     /// <c>/account/</c> are bearer-only and refuse a cookie; these are the opposite and refuse a
     /// bearer. Disjoint prefixes make both halves mechanical: an architecture test reads the routing
     /// table and needs no judgement about which page meant what.
@@ -253,14 +253,14 @@ public static class AuthorizationServerPaths
     /// <b>POST only, and it is the half of <c>E-41</c> that was missing.</b>
     /// <c>AccountRecovery.RequestEmailVerificationAsync</c> minted the token and composed the mail,
     /// <see cref="VerifyEmail"/> redeemed it, and the <c>EmailVerification</c> token purpose existed
-    /// — with nothing anywhere calling the first one. Its only callers were three tests, so a real
+    /// - with nothing anywhere calling the first one. Its only callers were three tests, so a real
     /// deployment could never produce the link that page exists to receive. §7.3 made this call
     /// once for <c>E-40</c>: an endpoint with no page mails somebody a URL that answers 405; this is
     /// the same defect facing the other way, a page nothing can send you to.
     /// </para>
     /// <para>
     /// <b>Here rather than beside <see cref="Forgot"/>, because the caller is signed in.</b> The
-    /// method's own remarks say it is "not an oracle and does not need <c>S-48</c>'s treatment" —
+    /// method's own remarks say it is "not an oracle and does not need <c>S-48</c>'s treatment" -
     /// the caller already holds a session for this subject, so "does this account exist" is not a
     /// secret being kept from them. Putting it on the public surface would mean inventing that
     /// treatment for a question nobody was asking.
@@ -283,7 +283,7 @@ public static class AuthorizationServerPaths
     /// <para>
     /// <c>/login</c> used to resume exactly one thing, and its <c>returnUrl</c> check took one path.
     /// A person who lands on <c>/me</c> without a session has to be sent somewhere to get one, and
-    /// coming back afterwards is the whole point — so the check now takes this list.
+    /// coming back afterwards is the whole point - so the check now takes this list.
     /// </para>
     /// <para>
     /// <b>It is a constant, closed at compile time.</b> Relaxing the check to "any local path" would
@@ -293,13 +293,13 @@ public static class AuthorizationServerPaths
     /// <para>
     /// The <c>/me</c> entries stay listed whether or not a deployment serves them. A
     /// <c>returnUrl</c> naming a page that is not routed lands on this server's own 404, which is a
-    /// worse experience and not a security property — and making the list depend on configuration
+    /// worse experience and not a security property - and making the list depend on configuration
     /// would mean the sign-in page's validation differed between deployments.
     /// </para>
     /// <para>
     /// <b>Every page under <see cref="MePrefix"/> belongs here, and adding one means adding it
     /// here.</b> A page reachable while signed in but missing from this list works perfectly until
-    /// the session expires, and then answers a refusal at <c>/login</c> — which is the worst time to
+    /// the session expires, and then answers a refusal at <c>/login</c> - which is the worst time to
     /// find out, and is what happened to <c>/me</c> itself before this became a list. The routing
     /// table is read back and compared against this list in <c>MeSurfaceTests</c>, so the two cannot
     /// drift without a test saying which page was forgotten.
@@ -310,7 +310,7 @@ public static class AuthorizationServerPaths
 
     /// <summary>The prefix the programmatic self-service API shares.</summary>
     /// <remarks>
-    /// What the <c>N-17</c> architecture test scans for, along with <see cref="Account"/> itself —
+    /// What the <c>N-17</c> architecture test scans for, along with <see cref="Account"/> itself -
     /// which has no trailing slash and so matches no prefix, and would have been the one route on
     /// this surface the test never looked at.
     /// </remarks>
@@ -323,8 +323,8 @@ public static class AuthorizationServerPaths
     /// A POST, not a GET, and the reason is what the request does rather than what it looks like: it
     /// writes a cookie that binds this browser to a <c>state</c>, a <c>nonce</c> and a PKCE verifier
     /// for the next ten minutes. A GET would let any page on the internet plant that cookie in a
-    /// visitor's browser, which is not by itself an account takeover — the callback still has to
-    /// match a <c>state</c> the attacker cannot read — but it is a state-changing request on this
+    /// visitor's browser, which is not by itself an account takeover - the callback still has to
+    /// match a <c>state</c> the attacker cannot read - but it is a state-changing request on this
     /// origin, and this server's other two of those are antiforgery-protected form posts. Being
     /// consistent costs one form element on the sign-in page.
     /// </remarks>
@@ -348,7 +348,7 @@ public static class AuthorizationServerPaths
     /// <remarks>
     /// Built by substitution rather than by string interpolation at each call site, so the three
     /// route templates above and the URLs that are emitted cannot drift apart. The scheme is
-    /// constrained to <c>[a-z0-9-]</c> at startup, so nothing here needs escaping — and that is a
+    /// constrained to <c>[a-z0-9-]</c> at startup, so nothing here needs escaping - and that is a
     /// property of the validation, not of this method, which is why the validation is a startup
     /// failure rather than a filter.
     /// </remarks>

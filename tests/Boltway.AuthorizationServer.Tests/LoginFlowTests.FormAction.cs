@@ -15,8 +15,8 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// Chromium was asked directly whether that second hop is covered: a form submission redirected
 /// off-origin through one same-origin stop, under <c>form-action 'self'</c>, is blocked exactly like
-/// a direct one, and naming the destination lets both through. So every returning user — everyone
-/// past their first authorization, which is everyone most days — would have signed in successfully
+/// a direct one, and naming the destination lets both through. So every returning user - everyone
+/// past their first authorization, which is everyone most days - would have signed in successfully
 /// and gone nowhere.
 /// </para>
 /// </remarks>
@@ -42,7 +42,7 @@ public sealed partial class LoginFlowTests
     /// </summary>
     /// <remarks>
     /// That page has the same form on it, so a first attempt that fails and a second that succeeds is
-    /// the ordinary case rather than an edge — and it is the one where a policy set only on the
+    /// the ordinary case rather than an edge - and it is the one where a policy set only on the
     /// initial <c>GET</c> would be missing.
     /// </remarks>
     [Fact]
@@ -65,8 +65,8 @@ public sealed partial class LoginFlowTests
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The method deciding this source documents every failure as silent — a returnUrl that names no
-    /// client, an unparseable redirect URI, one matching no registration — and then read the query
+    /// The method deciding this source documents every failure as silent - a returnUrl that names no
+    /// client, an unparseable redirect URI, one matching no registration - and then read the query
     /// with an indexer, which throws on a key that is absent rather than yielding empty. So the one
     /// case nobody listed was the one that escaped: an unhandled <c>KeyNotFoundException</c>, and a
     /// browser given an empty 500 with no body, no reason and no reference.

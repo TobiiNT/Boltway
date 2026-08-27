@@ -37,14 +37,14 @@ namespace Boltway.ResourceServer.Endpoints;
 /// connector linking to a deployment: it fetched
 /// <c>/.well-known/oauth-protected-resource/mcp</c> twice, from <c>Python/3.12 aiohttp/3.13.5</c>,
 /// and requested the root form <b>zero</b> times. So the path-inserted form is not the one in
-/// doubt — it is the one ChatGPT actually uses, and a server that served only the shape OpenAI
+/// doubt - it is the one ChatGPT actually uses, and a server that served only the shape OpenAI
 /// documents would fail every ChatGPT connection. Serving both still costs one route; what changed
 /// is which of the two is load-bearing.
 /// </para>
 /// <para>
 /// <b>CORS is written by hand, not by <c>RequireCors</c>.</b> This is a fix rather than a style.
 /// <c>RequireCors</c> attaches metadata that the CORS <i>middleware</i> acts on, and a host that
-/// never calls <c>UseCors()</c> gets "contains CORS metadata, but a middleware was not found" — a
+/// never calls <c>UseCors()</c> gets "contains CORS metadata, but a middleware was not found" - a
 /// <b>500 on the discovery document</b>, which is the one response that must work before anything
 /// else can. It is measured on the authorization-server side and invisible to any test fixture that
 /// happens to call <c>UseCors()</c>. These are simple cross-origin GETs, so no preflight is
@@ -52,19 +52,19 @@ namespace Boltway.ResourceServer.Endpoints;
 /// </para>
 /// <para>
 /// <b>Anonymous, explicitly.</b> A global authorization fallback policy that 401s the metadata
-/// document deadlocks the entire flow — the client cannot discover where to authenticate because
-/// discovering that requires authenticating — and it is a repeatedly observed real-world connector
+/// document deadlocks the entire flow - the client cannot discover where to authenticate because
+/// discovering that requires authenticating - and it is a repeatedly observed real-world connector
 /// failure. <c>AllowAnonymous</c> here is also what this server's own bearer middleware keys off.
 /// </para>
 /// <para>
 /// <b>And <c>AllowAnonymous</c> is only <i>this</i> pipeline's word for it.</b> A host that runs
-/// authentication of its own alongside this library — an MCP connector with its own caller model is
-/// the common shape — has a second vocabulary for "no credential needed", and neither middleware
+/// authentication of its own alongside this library - an MCP connector with its own caller model is
+/// the common shape - has a second vocabulary for "no credential needed", and neither middleware
 /// reads the other's. The endpoints below carry the framework's marker; a host middleware keyed on
 /// its own marker refuses them, and the symptom is a client that cannot discover where to
 /// authenticate while every other route behaves. <b>Measured on a real deployment on 2026-08-26</b>:
 /// both well-known forms answering <c>401</c>, keys fetched, tokens validating, and a suite of 402
-/// unit tests green — because none of them is about a pipeline.
+/// unit tests green - because none of them is about a pipeline.
 /// </para>
 /// <para>
 /// So a host with its own authentication middleware marks these endpoints in <i>its</i> vocabulary
@@ -112,7 +112,7 @@ public static class ProtectedResourceMetadataEndpoints
         // next. A path this server does not serve gets a bare 404, so a client moves on to its next
         // probe instead of parsing whatever a SPA fallback would have returned; and a 404 is a
         // better answer than a 200 carrying another resource's document, which §3.3 requires the
-        // client to discard anyway — with the difference that a discarded 200 usually ends
+        // client to discard anyway - with the difference that a discarded 200 usually ends
         // discovery while a 404 does not.
         endpoints
             .MapMethods(WellKnownResourceUri.Suffix + "/{*rest}", ProbeMethods, (HttpContext context) =>
@@ -129,7 +129,7 @@ public static class ProtectedResourceMetadataEndpoints
     /// Whether the requested path is the one this resource's identifier inserts to.
     /// </summary>
     /// <remarks>
-    /// Ordinal, on <see cref="HttpRequest.Path"/>, which ASP.NET Core has already decoded once —
+    /// Ordinal, on <see cref="HttpRequest.Path"/>, which ASP.NET Core has already decoded once -
     /// the same decoding a client's own URL went through. No normalization beyond that: RFC 9728 §6
     /// forbids it, and a trailing slash is a different resource identifier, so
     /// <c>/.well-known/oauth-protected-resource/mcp/</c> is not this resource unless the configured
@@ -153,7 +153,7 @@ internal static class MetadataHeaders
     /// <remarks>
     /// Skipped when something already set it. A host running a global CORS policy would otherwise
     /// produce the header twice, and two <c>Access-Control-Allow-Origin</c> values is a CORS failure
-    /// in every browser — so "helpfully" adding ours would break exactly the case it was meant to
+    /// in every browser - so "helpfully" adding ours would break exactly the case it was meant to
     /// serve.
     /// </remarks>
     internal static void AllowAnyOrigin(HttpResponse response)
@@ -186,7 +186,7 @@ internal sealed class CachedJsonResult(ImmutableArray<byte> json, string etag, i
         response.StatusCode = StatusCodes.Status200OK;
 
         // Exactly "application/json". RFC 9728 §3.2 requires it, and the observed intolerance is
-        // for `text/json` and `text/plain` rather than for a charset parameter — but there is
+        // for `text/json` and `text/plain` rather than for a charset parameter - but there is
         // nothing to gain by adding one, so none is added.
         response.ContentType = "application/json";
         response.ContentLength = json.Length;
@@ -214,7 +214,7 @@ internal sealed class CachedJsonResult(ImmutableArray<byte> json, string etag, i
     /// <para>
     /// <c>internal</c> rather than <c>private</c> so a test can reach it, and that is not a
     /// convenience. <b>Measured:</b> an HTTP-level test cannot exercise the one-line spelling at
-    /// all — <c>If-None-Match</c> is a known header, so <c>HttpClient</c> parses the list and hands
+    /// all - <c>If-None-Match</c> is a known header, so <c>HttpClient</c> parses the list and hands
     /// the server two header values before the request leaves the process. A test driven through
     /// the client passes whether this splits on commas, splits on spaces, or does not split at
     /// all, which is to say it proves nothing about the line it is pointed at.

@@ -80,8 +80,8 @@ public sealed class OAuthErrorsTests
     /// </summary>
     /// <remarks>
     /// This used to be folded into the test above as a flat "every row is 400", which was true only
-    /// because every row was a client error. Adding <c>server_error</c> — the row the exception
-    /// boundary needs, since there is no redirect available on this surface — made that assertion
+    /// because every row was a client error. Adding <c>server_error</c> - the row the exception
+    /// boundary needs, since there is no redirect available on this surface - made that assertion
     /// fail for the right reason: answering a server fault with 400 tells the caller their request
     /// was malformed and sends whoever is debugging it to the client.
     /// </remarks>
@@ -105,7 +105,7 @@ public sealed class OAuthErrorsTests
     public void A_mismatched_redirect_uri_and_a_malformed_challenge_share_a_code_but_not_a_fate()
     {
         // The reason AuthorizePreRedirect is its own surface. `invalid_request` is the correct code
-        // for both, and keyed on (endpoint, code) alone they collapse — resolving the
+        // for both, and keyed on (endpoint, code) alone they collapse - resolving the
         // never-redirect case to a redirect.
         var beforeValidation = OAuthErrors.Resolve(OAuthSurface.AuthorizePreRedirect, OAuthErrorCode.InvalidRequest);
         var afterValidation = OAuthErrors.Resolve(OAuthSurface.Authorize, OAuthErrorCode.InvalidRequest);
@@ -204,7 +204,7 @@ public sealed class OAuthErrorsTests
     [Fact]
     public void Registration_management_answers_401_and_never_404()
     {
-        // Including for a client that does not exist — a 404 would make this endpoint a client-id
+        // Including for a client that does not exist - a 404 would make this endpoint a client-id
         // enumeration oracle.
         var spec = OAuthErrors.Resolve(OAuthSurface.RegistrationManagement, OAuthErrorCode.InvalidToken);
 

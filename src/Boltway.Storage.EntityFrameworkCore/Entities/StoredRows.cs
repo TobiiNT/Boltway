@@ -12,7 +12,7 @@ namespace Boltway.Storage.EntityFrameworkCore.Entities;
 /// <c>IReadOnlyList&lt;string&gt;</c>, and two of those do not fit one column:
 /// <c>ClientIdentifier</c> carries a <c>Kind</c> that cannot be recovered from its value, and a
 /// resource list is not a scalar. Separate rows cost a mapping function per aggregate and buy
-/// columns whose types are exactly what the query needs — <c>INTEGER</c> ticks that compare
+/// columns whose types are exactly what the query needs - <c>INTEGER</c> ticks that compare
 /// numerically, <c>BLOB</c> digests that compare byte for byte and are subject to no collation.
 /// </para>
 /// <para>
@@ -115,7 +115,7 @@ internal sealed class RefreshTokenRow
 /// <remarks>
 /// <para>
 /// The contract never mentions this table, because <c>RefreshTokenRecord</c> has no revoked field
-/// and <c>RevokeFamilyAsync</c> writes nothing to the token rows — it counts them. So a relational
+/// and <c>RevokeFamilyAsync</c> writes nothing to the token rows - it counts them. So a relational
 /// store has to choose a shape, and the two candidates are not equivalent.
 /// </para>
 /// <para>
@@ -132,7 +132,7 @@ internal sealed class RefreshTokenRow
 /// <para>
 /// It also decides what <c>RevokeFamilyAsync</c>'s return value counts. "Rows this call
 /// transitioned" is, under this shape, the number of <i>unconsumed</i> tokens in the family at the
-/// moment the family row was inserted — and zero for every later call, because the insert is what
+/// moment the family row was inserted - and zero for every later call, because the insert is what
 /// makes the call the one that did it.
 /// </para>
 /// </remarks>
@@ -180,7 +180,7 @@ internal sealed class GrantRow
     /// </summary>
     /// <remarks>
     /// Nullable and never backfilled. Every grant created before this column existed has none, and
-    /// nobody can say afterwards what device approved them — the same reason the connector's
+    /// nobody can say afterwards what device approved them - the same reason the connector's
     /// <c>actor</c> ledger column was left blank on its older rows.
     /// </remarks>
     public string? UserAgent { get; set; }
@@ -231,7 +231,7 @@ internal sealed class UserRow
     /// </summary>
     /// <remarks>
     /// A second column rather than a case-insensitive collation on the first. The interface asks for
-    /// two different things — a lookup that ignores case, and a uniqueness rule that ignores case —
+    /// two different things - a lookup that ignores case, and a uniqueness rule that ignores case -
     /// and a collation delivers both only if the provider's collation happens to fold the same way
     /// the C# comparison does. Folding in C# and comparing the folded value ordinally makes the
     /// answer the same on every provider, which is the point of a shared contract suite.
@@ -285,7 +285,7 @@ internal sealed class UserRow
     /// This was a plain <c>role</c> column, and the comment on it said there was no roles table
     /// because "a lookup table would be a place to enforce a vocabulary, and enforcing one here
     /// means every customer inherits the first customer's org chart". The table exists now and that
-    /// argument still holds — it is answered by the table holding no vocabulary rather than by
+    /// argument still holds - it is answered by the table holding no vocabulary rather than by
     /// there being no table. <c>roles</c> stores whatever ids and permission strings a deployment
     /// writes and this library compares none of them to a constant.
     /// </para>
@@ -322,7 +322,7 @@ internal sealed class ExternalLoginRow
 /// <remarks>
 /// A surrogate key, unlike every other row here. The natural key would be (time, actor, target) and
 /// two actions in the same tick against the same account are a real sequence rather than a
-/// collision — an append-only table is the one place a duplicate must be storable.
+/// collision - an append-only table is the one place a duplicate must be storable.
 /// </remarks>
 internal sealed class AdminAuditRow
 {
@@ -378,13 +378,13 @@ internal sealed class UserTokenRow
     /// <summary>When it stops working, as ticks.</summary>
     public required long ExpiresAt { get; set; }
 
-    /// <summary>What the redemption is about — the address, for a verification.</summary>
+    /// <summary>What the redemption is about - the address, for a verification.</summary>
     public string? Detail { get; set; }
 }
 
 /// <summary>A role a deployment defined.</summary>
 /// <remarks>
-/// Realm-scoped, because the id is a key a person chose — the same reason a username is. Two
+/// Realm-scoped, because the id is a key a person chose - the same reason a username is. Two
 /// directories holding an <c>editor</c> that means different things is what having realms is for.
 /// </remarks>
 internal sealed class RoleRow
@@ -395,7 +395,7 @@ internal sealed class RoleRow
     /// <summary>What a token carries. The other half, matched ordinally.</summary>
     /// <remarks>
     /// No normalized twin, unlike a username. A role id is not typed at a login page by somebody
-    /// who might shift-lock it — it is written once into configuration and compared to a claim, and
+    /// who might shift-lock it - it is written once into configuration and compared to a claim, and
     /// every consumer compares ordinally. Folding here would make this store answer a question no
     /// consumer asks, and make <c>Founder</c> and <c>founder</c> one role on this side while they stay two on
     /// the other.
@@ -407,8 +407,8 @@ internal sealed class RoleRow
 
     /// <summary>What the role stands for, space-separated, in the resource server's vocabulary.</summary>
     /// <remarks>
-    /// One column rather than a third table. A permission has no attributes of its own here — this
-    /// library does not know what one is — so a table would hold nothing but the string, and the
+    /// One column rather than a third table. A permission has no attributes of its own here - this
+    /// library does not know what one is - so a table would hold nothing but the string, and the
     /// join would exist to express a set that a space-separated column already expresses. The same
     /// shape <c>GrantRow.Scope</c> uses, for the same reason, and <c>RoleDefinition</c> refuses a
     /// permission carrying whitespace so the round trip cannot lose one.
@@ -422,7 +422,7 @@ internal sealed class UserRoleRow
     /// <summary>Whose account. Half of the primary key.</summary>
     public required string Subject { get; set; }
 
-    /// <summary>Which realm the role is defined in — the account's own.</summary>
+    /// <summary>Which realm the role is defined in - the account's own.</summary>
     /// <remarks>
     /// Carried here so the foreign key can be the whole of the role's key. Without it this row
     /// could name an <c>editor</c> without saying whose, and the database could not tell that the
@@ -451,7 +451,7 @@ internal sealed class UserRoleRow
 /// <para>
 /// The columns are the subset of <c>ClientRecord</c> that a stored client needs. Response types are
 /// absent because only <c>code</c> is ever honoured, and grant types are absent because they are
-/// derived from <see cref="Owner"/> exactly as they are for a configured client — a stored list
+/// derived from <see cref="Owner"/> exactly as they are for a configured client - a stored list
 /// would be a second place for the two sets to overlap.
 /// </para>
 /// </remarks>
@@ -491,7 +491,7 @@ internal sealed class ClientRow
     /// issued and the ones already out live until they expire.
     ///
     /// Ticks rather than a DateTimeOffset, matching every other instant in this schema. PostgreSQL
-    /// would otherwise get a <c>timestamptz</c>, which holds microseconds where a .NET tick is 100ns —
+    /// would otherwise get a <c>timestamptz</c>, which holds microseconds where a .NET tick is 100ns -
     /// measured lossy on this server, and <c>PostgreSqlSchemaTests</c> fails the whole schema if any
     /// column is a timestamp of any kind.
     /// </remarks>
@@ -512,7 +512,7 @@ internal sealed class ClientRow
 /// </remarks>
 internal sealed class ClientAssertionRow
 {
-    /// <summary>The client the assertion authenticated — its <c>iss</c> and <c>sub</c>.</summary>
+    /// <summary>The client the assertion authenticated - its <c>iss</c> and <c>sub</c>.</summary>
     public required string ClientId { get; set; }
 
     /// <summary>The assertion's <c>jti</c>, verbatim.</summary>

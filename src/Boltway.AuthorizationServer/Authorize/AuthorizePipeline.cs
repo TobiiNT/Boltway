@@ -31,8 +31,8 @@ public abstract record AuthorizeOutcome
 /// </summary>
 /// <remarks>
 /// <para>
-/// The ordering is <c>client_id</c>, then <c>redirect_uri</c>, then everything else — RFC 6749
-/// §4.1.2.1 — and it is enforced by method signatures rather than by the sequence of calls. Every
+/// The ordering is <c>client_id</c>, then <c>redirect_uri</c>, then everything else - RFC 6749
+/// §4.1.2.1 - and it is enforced by method signatures rather than by the sequence of calls. Every
 /// stage that can redirect takes a <see cref="ValidatedRedirect"/> as a parameter, and the only
 /// place one exists is after <see cref="TryValidateRedirectUri"/> has produced it. Hoisting such a
 /// stage above that call does not compile: <c>CS0841, cannot use local variable 'redirect' before
@@ -41,7 +41,7 @@ public abstract record AuthorizeOutcome
 /// <para>
 /// That is a stronger claim than this class made before, and the difference was measured. The
 /// stages used to read <c>context.Redirect!</c>, so reordering them <i>did</i> compile and failed
-/// at runtime with "Nullable object must have a value" — a 500 from the authorization endpoint,
+/// at runtime with "Nullable object must have a value" - a 500 from the authorization endpoint,
 /// caught by tests but not by the type system the comment credited.
 /// </para>
 /// <para>
@@ -86,7 +86,7 @@ public sealed class AuthorizePipeline(
     /// <remarks>
     /// <para>
     /// This list is a spec citation, not a policy. Every name in it is registered by OpenID Connect
-    /// Core and describes the sign-in itself — who the user is, and whether the session may be
+    /// Core and describes the sign-in itself - who the user is, and whether the session may be
     /// refreshed. None of them can name an operation at somebody's API without colliding with the
     /// spec, which is what makes "the request asked for only these" mean "the request is not
     /// reaching a protected resource".
@@ -94,7 +94,7 @@ public sealed class AuthorizePipeline(
     /// <para>
     /// <b>Only ever shrink this.</b> Adding a scope here says "a request carrying this still needs no
     /// audience of its own", and a deployment scope added by mistake would be granted at the OIDC
-    /// resource without the request ever naming it — the silent cross-resource grant N-01 exists to
+    /// resource without the request ever naming it - the silent cross-resource grant N-01 exists to
     /// prevent, arriving through a list nobody re-reads. Names not in <c>scopes_supported</c> are
     /// refused a stage earlier, so listing the full OIDC set costs nothing and keeps the citation
     /// whole rather than tracking one deployment's configuration.
@@ -204,7 +204,7 @@ public sealed class AuthorizePipeline(
             // X-31. A resolver that declined to look is not a resolver that looked and found
             // nothing, and the difference is the whole point of the separate error: answering
             // invalid_client here would tell a client with a perfectly good identifier to change it,
-            // and would drop the one fact that makes the response actionable — when to try again.
+            // and would drop the one fact that makes the response actionable - when to try again.
             //
             // No fall-through to the next resolver either, for the same reason as below: this one
             // recognised the identifier, and it is the one that knows why it did not answer.
@@ -267,7 +267,7 @@ public sealed class AuthorizePipeline(
         if (raw is null)
         {
             // RFC 6749 §3.1.2.3 permits omitting it only when exactly one is registered. With
-            // several, the server cannot pick — and picking would let a client that registered a
+            // several, the server cannot pick - and picking would let a client that registered a
             // second URI receive codes at whichever one this server happened to sort first.
             //
             // The count is deliberately not in the message: it is a fact about the client's
@@ -332,7 +332,7 @@ public sealed class AuthorizePipeline(
             // The log gets what the response withholds. The response says nothing about WHICH
             // registration was close, because a diff lets a caller enumerate the registrations one
             // character at a time; the operator holding the log already knows them, and the one
-            // question they have — "is this the port, the trailing slash, or a different host" — needs
+            // question they have - "is this the port, the trailing slash, or a different host" - needs
             // both strings side by side.
             error = Html(
                 context,
@@ -364,7 +364,7 @@ public sealed class AuthorizePipeline(
 
         // Absent is `invalid_request`, not `unsupported_response_type`. RFC 6749 §4.1.2.1 reserves
         // the latter for "obtaining an authorization code using this method", which presupposes a
-        // method was named — and the two codes send a client debugging in different directions.
+        // method was named - and the two codes send a client debugging in different directions.
         if (string.IsNullOrEmpty(responseType))
         {
             return Redirect(
@@ -376,7 +376,7 @@ public sealed class AuthorizePipeline(
         }
 
         // `code` and nothing else. OAuth 2.1 §10 removes the implicit grant, so `token` and
-        // `id_token token` are not "unsupported here" — they no longer exist.
+        // `id_token token` are not "unsupported here" - they no longer exist.
         if (!string.Equals(responseType, "code", StringComparison.Ordinal))
         {
             return Redirect(
@@ -406,7 +406,7 @@ public sealed class AuthorizePipeline(
         // issuing it a code honours neither half of what it said about itself.
         //
         // An empty list means "did not say", which C-14 requires be read as permission rather than
-        // refusal — a client that declares nothing is a client that also works elsewhere.
+        // refusal - a client that declares nothing is a client that also works elsewhere.
         if (client.ResponseTypes.Count > 0 && !client.ResponseTypes.Contains("code", StringComparer.Ordinal))
         {
             return Redirect(
@@ -457,7 +457,7 @@ public sealed class AuthorizePipeline(
         {
             // An absent method is refused rather than defaulted to `plain`, which is what RFC 7636
             // §4.3 says it means. Under `plain` the challenge IS the verifier, so anyone who can
-            // read the authorization request can redeem the code — and the parameter an attacker
+            // read the authorization request can redeem the code - and the parameter an attacker
             // can strip must not be the one that selects the weaker mode.
             //
             // The offending value is not quoted back. It is caller-controlled, and naming the one
@@ -482,8 +482,8 @@ public sealed class AuthorizePipeline(
                 ReasonCode.PkceChallengeMalformed,
                 OAuthErrorCode.InvalidRequest,
                 "'code_challenge' must be 43 characters of unpadded base64url (RFC 7636 §4.2).",
-                // The length, not the value. A code_challenge is not itself a secret — it is the
-                // public half — but it identifies one, and the length is the whole diagnosis.
+                // The length, not the value. A code_challenge is not itself a secret - it is the
+                // public half - but it identifies one, and the length is the whole diagnosis.
                 $"code_challenge_length={challenge.Length}");
         }
 
@@ -508,7 +508,7 @@ public sealed class AuthorizePipeline(
         if (!ScopeSet.TryParse(raw, out var requested, out _))
         {
             // The invalid token is not quoted back. RFC 6749 §3.3's scope-token grammar admits '<',
-            // '>' and '/', so an unfiltered echo is a caller-chosen payload on the error page —
+            // '>' and '/', so an unfiltered echo is a caller-chosen payload on the error page -
             // measured, `scope=<script>alert(1)</script>` came back whole.
             return Redirect(
                 context,
@@ -517,7 +517,7 @@ public sealed class AuthorizePipeline(
                 OAuthErrorCode.InvalidScope,
                 "The 'scope' parameter contains an invalid value.",
                 // Echoed to the log and never to the response. The measured payload that motivated
-                // withholding it — `scope=<script>alert(1)</script>` — came back whole in the body;
+                // withholding it - `scope=<script>alert(1)</script>` - came back whole in the body;
                 // in a log field with the control characters stripped it is just the input.
                 $"scope={raw}");
         }
@@ -563,7 +563,7 @@ public sealed class AuthorizePipeline(
             // API, so it is answered before the ambiguity rule below rather than by it. The
             // distinction is the whole point: `DefaultForAsync` returns null with two registrations
             // because a request naming no resource might have meant either of them, and here it
-            // cannot have meant either — there is no operation in `openid email` to perform at one.
+            // cannot have meant either - there is no operation in `openid email` to perform at one.
             //
             // Measured, and this is why the branch exists: Grafana's OIDC client sends no `resource`
             // (RFC 8707 is an OAuth extension it does not implement), so on a server with two
@@ -572,7 +572,7 @@ public sealed class AuthorizePipeline(
             //
             // Both halves of the condition carry weight. `openid` present is what makes it a sign-in
             // at all; nothing outside `OidcOwnScopes` is what keeps it one. Drop the second half and
-            // `scope=openid docs:write` would be audienced at the OIDC resource — a write scope
+            // `scope=openid docs:write` would be audienced at the OIDC resource - a write scope
             // granted at a resource the request never named, which is the failure N-01 is about.
             if (context.IsOidc && context.Scope.Except(OidcOwnScopes).Count == 0)
             {
@@ -586,7 +586,7 @@ public sealed class AuthorizePipeline(
 
                 // Falls through on purpose. A server that nominates no OIDC resource is in exactly
                 // the position it was in before this branch existed, and the answer there is the
-                // ambiguity rule and its error — not a resource picked on the deployment's behalf.
+                // ambiguity rule and its error - not a resource picked on the deployment's behalf.
             }
 
             // A-02: the configured default applies ONLY when none was requested, never as a
@@ -598,7 +598,7 @@ public sealed class AuthorizePipeline(
                 // The count is in the detail because the message says "no unambiguous default" and
                 // that sentence has two causes an operator cannot tell apart from the outside: no
                 // resource is registered at all, or several are and none was nominated. Those need
-                // opposite fixes — register one, or name which one — and the log line that used to
+                // opposite fixes - register one, or name which one - and the log line that used to
                 // carry only `client_id` sent people to the client to look for a bug in the party
                 // that had done nothing wrong.
                 var registrations = await _resources.AllAsync(cancellationToken);
@@ -633,7 +633,7 @@ public sealed class AuthorizePipeline(
         foreach (var candidate in raw)
         {
             // Deduplicated on the raw value before the registry is asked. A repeated value is not an
-            // error — RFC 8707 says nothing about it — but it should not appear twice in the grant
+            // error - RFC 8707 says nothing about it - but it should not appear twice in the grant
             // set, and it should not cost a second lookup inside the latency budget.
             if (!seen.Add(candidate))
             {
@@ -709,7 +709,7 @@ public sealed class AuthorizePipeline(
         }
 
         // Never required and never invented. This is an OAuth flow unless the client asked for
-        // OIDC, and both vendors' MCP clients omit `openid` entirely — requiring a nonce would
+        // OIDC, and both vendors' MCP clients omit `openid` entirely - requiring a nonce would
         // refuse every one of them. A server-generated nonce would be worse than none: the client
         // compares it against what it stored, so inventing one passes a replay check the client
         // believes it is performing.
@@ -768,7 +768,7 @@ public sealed class AuthorizePipeline(
             // refused rather than parsed into something plausible.
             //
             // The upper bound is not decoration. `long` accepts up to 9.2e18 and
-            // TimeSpan.FromSeconds throws above 922337203685 — so before this check, max_age
+            // TimeSpan.FromSeconds throws above 922337203685 - so before this check, max_age
             // 922337203686 left the pipeline through the exception boundary as `server_error`,
             // telling the client the server broke when the request was malformed, and writing one
             // unbounded "unhandled exception" log line per request for any caller who asked.
@@ -803,9 +803,9 @@ public sealed class AuthorizePipeline(
     /// </summary>
     /// <remarks>
     /// The <c>TryParse</c> result is honoured. It used to be discarded and the out-parameter
-    /// dereferenced, which meant a client record holding a <c>default(RegisteredRedirectUri)</c> —
+    /// dereferenced, which meant a client record holding a <c>default(RegisteredRedirectUri)</c> -
     /// constructible by any <see cref="IClientResolver"/>, since the struct is public and the list
-    /// is unvalidated — threw out of <c>/authorize</c> before the redirect line, where there is not
+    /// is unvalidated - threw out of <c>/authorize</c> before the redirect line, where there is not
     /// even a <c>server_error</c> redirect to fall back to.
     /// </remarks>
     private static bool TryMatchRegistered(
@@ -827,7 +827,7 @@ public sealed class AuthorizePipeline(
     /// <remarks>
     /// <paramref name="detail"/> is the half the client never sees, and every stage that has
     /// something an operator would want passes one. It is filtered for control characters inside
-    /// <see cref="Rejection.Of"/> — several of these carry a caller-supplied <c>client_id</c> or
+    /// <see cref="Rejection.Of"/> - several of these carry a caller-supplied <c>client_id</c> or
     /// <c>redirect_uri</c>, and a CR/LF pair in a log field is a forged second line.
     /// </remarks>
     private static AuthorizeOutcome.Html Html(

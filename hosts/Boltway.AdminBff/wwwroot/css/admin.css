@@ -1,4 +1,4 @@
-/* One sheet, no framework, no web fonts — `default-src 'self'` refuses a CDN and the pages have no
+/* One sheet, no framework, no web fonts - `default-src 'self'` refuses a CDN and the pages have no
    script to widen it for. A deployment with its own design replaces this file. */
 :root { color-scheme: light dark; --line: color-mix(in srgb, currentColor 20%, transparent); }
 
@@ -9,7 +9,7 @@ body {
 
 /* Still one bar, out of two groups. The shell puts the destinations in a <nav> and the operator
    and sign-out in a footer, which is what a rail needs and what a sheet laying them out sideways
-   has to flatten again — three levels of flex, so a deployment that wants the rail has the groups
+   has to flatten again - three levels of flex, so a deployment that wants the rail has the groups
    and this one still reads as the line of links it always was. */
 header {
   display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
@@ -59,7 +59,7 @@ button {
 .secret-card .notice { border: 0; padding: 0; }
 .secret-card .kv dd { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
 
-/* One click selects the whole value, which is the behaviour with or without the copy script — that
+/* One click selects the whole value, which is the behaviour with or without the copy script - that
    is what makes the button a keystroke saved rather than the only way through. */
 .copyable {
   flex: 1; min-width: 12rem; padding: .35rem .5rem; user-select: all;
@@ -69,7 +69,7 @@ button {
 button.copy { margin: 0; padding: .3rem .6rem; font-size: .875rem; }
 
 /* A role per row, and the service account as one section, both expanding in place. `<details>`
-   because these pages carry no JavaScript and the CSP has no script-src to widen — the browser's
+   because these pages carry no JavaScript and the CSP has no script-src to widen - the browser's
    own disclosure is the only one available. */
 .roles { border: 1px solid var(--line); border-radius: 6px; }
 .role + .role { border-top: 1px solid var(--line); }
@@ -91,7 +91,7 @@ button.copy { margin: 0; padding: .3rem .6rem; font-size: .875rem; }
 .service-body form + form { margin-top: 1rem; }
 
 /* A literal is never case-shifted. This sheet does not transform any heading, so nothing here
-   exposes it — but a deployment's sheet may, and a role id shown in the wrong case is a string that
+   exposes it - but a deployment's sheet may, and a role id shown in the wrong case is a string that
    would not match the one in the token. */
 code { text-transform: none; }
 
@@ -99,7 +99,7 @@ code { text-transform: none; }
 form.danger button { border-style: dashed; }
 
 /* A group of checkboxes is a fieldset, and a fieldset arrives with a border, padding and a legend
-   the browser insets into it — none of which any other field on this page has. Reset to a plain
+   the browser insets into it - none of which any other field on this page has. Reset to a plain
    block and let the legend read as the label it is. `min-width: 0` because a fieldset's default
    `min-width: min-content` stops it shrinking inside a grid or flex parent. */
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }

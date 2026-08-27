@@ -37,8 +37,8 @@ internal sealed class EfUserStore(
     /// <inheritdoc />
     /// <remarks>
     /// The lookup is on the normalized column, so the case-folding happens in C# and the SQL
-    /// comparison is ordinal. Doing it the other way — <c>WHERE lower(username) = lower(@name)</c>,
-    /// or a case-insensitive collation — makes the answer depend on the database's collation, and
+    /// comparison is ordinal. Doing it the other way - <c>WHERE lower(username) = lower(@name)</c>,
+    /// or a case-insensitive collation - makes the answer depend on the database's collation, and
     /// then two implementations of this interface disagree on the same input.
     /// </remarks>
     public async Task<UserAccount?> FindByUsernameAsync(
@@ -70,14 +70,14 @@ internal sealed class EfUserStore(
     /// <remarks>
     /// <para>
     /// Two rows are fetched where one is wanted, so "more than one account has this address" is
-    /// distinguishable from "one does" — <c>SingleOrDefaultAsync</c> would throw on the ambiguous
+    /// distinguishable from "one does" - <c>SingleOrDefaultAsync</c> would throw on the ambiguous
     /// case, turning a data condition into a 500 on the sign-in page, and <c>FirstOrDefault</c>
     /// would silently pick one and make which account a password reaches depend on the store's
     /// ordering. Neither is an answer; the contract says refuse.
     /// </para>
     /// <para>
     /// Normalised the same way a username is, and stored normalised alongside the address as typed.
-    /// Folding in the query instead — <c>u.Email.ToUpper() == …</c> — is the version that cannot use
+    /// Folding in the query instead - <c>u.Email.ToUpper() == …</c> - is the version that cannot use
     /// the index, on the one query where a scan is an anonymous caller's lever.
     /// </para>
     /// </remarks>
@@ -127,7 +127,7 @@ internal sealed class EfUserStore(
         var realmValue = realm.OrDefault.Value;
         // `Include` on the projected side of a join is not translated, so the roles are loaded by
         // the subject the join produced. Two round trips where the others take one, and the
-        // alternative — dropping to a manual join over user_roles — would be a second place that
+        // alternative - dropping to a manual join over user_roles - would be a second place that
         // has to agree with `ToAccount` about what an account's roles are.
         var row = await (from link in context.ExternalLogins
                          where link.Realm == realmValue
@@ -150,7 +150,7 @@ internal sealed class EfUserStore(
 
     /// <inheritdoc />
     /// <remarks>
-    /// Straight off <c>ix_external_logins_subject</c>, which has existed since the table did — the
+    /// Straight off <c>ix_external_logins_subject</c>, which has existed since the table did - the
     /// index was declared for the join this method finally makes directly.
     /// </remarks>
     public async Task<IReadOnlyList<ExternalLogin>> ListExternalLoginsAsync(
@@ -265,8 +265,8 @@ internal sealed class EfUserStore(
     /// <remarks>
     /// <para>
     /// One upstream identity maps to at most one local account, and re-linking it is refused. If it
-    /// could be moved, whoever controls the upstream subject — or anyone who can replay a link
-    /// request — repoints it at an account of their choosing, and the next federated sign-in lands
+    /// could be moved, whoever controls the upstream subject - or anyone who can replay a link
+    /// request - repoints it at an account of their choosing, and the next federated sign-in lands
     /// inside someone else's data.
     /// </para>
     /// <para>
@@ -348,7 +348,7 @@ internal sealed class EfUserStore(
     /// <remarks>
     /// <para>
     /// Three statements inside one transaction, where setting a single role was one. The account is
-    /// read for its realm — a role id is only meaningful inside one — the old assignments go, and
+    /// read for its realm - a role id is only meaningful inside one - the old assignments go, and
     /// the new ones land. Atomic, because the state between the delete and the insert is an account
     /// holding nothing, and a caller reading it there would see a demotion that was never asked for.
     /// </para>
@@ -429,7 +429,7 @@ internal sealed class EfUserStore(
 
         // Same shape as SetRoleAsync, and the comment there applies in the mirror image: one
         // statement, so this cannot carry a stale *role* back to the database while changing a
-        // credential. Load-modify-save would read the account, hash, and write everything back —
+        // credential. Load-modify-save would read the account, hash, and write everything back -
         // and a role changed between the read and the write would be silently undone by a password
         // reset, which is the kind of authorization regression nobody thinks to look for.
         var updated = await context.Users
@@ -492,7 +492,7 @@ internal sealed class EfUserStore(
         var subjectValue = subject.Value;
 
         // Both columns in one statement. Two statements would leave a window in which the address is
-        // the new one and the verification flag still describes the old one — brief, and in exactly
+        // the new one and the verification flag still describes the old one - brief, and in exactly
         // the direction that matters, since the wrong half to be visible is "verified".
         var updated = await context.Users
             .Where(u => u.Subject == subjectValue)
@@ -520,14 +520,14 @@ internal sealed class EfUserStore(
         if (after?.Value is { } cursor)
         {
             // `CompareTo`, because `string.Compare(a, b, StringComparison.Ordinal)` does not
-            // translate — measured, EF Core refuses the query rather than falling back, which is the
+            // translate - measured, EF Core refuses the query rather than falling back, which is the
             // right refusal: a client-side evaluation here would page by loading the table.
             //
             // The comparison and the ORDER BY below both run in the column's collation, so they
             // agree with each other whatever that collation is, and that agreement is what makes the
             // cursor sound. It is *not* guaranteed to be ordinal: pinning that would mean an
             // explicit collation on the column, which is a migration and a decision about every
-            // deployed database. Subjects are ULIDs — digits and uppercase Crockford base32 — so
+            // deployed database. Subjects are ULIDs - digits and uppercase Crockford base32 - so
             // every collation this is likely to meet orders them the same way, and the contract
             // asserts the property that actually matters: no row skipped and none repeated.
             rows = rows.Where(u => u.Subject.CompareTo(cursor) > 0);
@@ -571,7 +571,7 @@ internal sealed class EfUserStore(
                     .SetProperty(u => u.NormalizedEmail, (string?)null)
                     .SetProperty(u => u.EmailVerified, false)
                     .SetProperty(u => u.PasswordHash, (string?)null)
-                    // Not `?? now`, unlike SetEnabledAsync — an account already disabled keeps its
+                    // Not `?? now`, unlike SetEnabledAsync - an account already disabled keeps its
                     // original time there because "since when" is the question a disabled account is
                     // asked. Here the answer wanted is when it stopped being a person's account, and
                     // that is now whatever else was true a minute ago.
@@ -584,7 +584,7 @@ internal sealed class EfUserStore(
         }
 
         // Deleted rather than repointed at the tombstone. A link is a claim that an upstream
-        // identity belongs to this account, and it is exactly the claim being withdrawn — keeping it
+        // identity belongs to this account, and it is exactly the claim being withdrawn - keeping it
         // would leave the person's Google subject in the database, which is one of the identifiers
         // this operation exists to remove.
         await context.ExternalLogins
@@ -614,8 +614,8 @@ internal sealed class EfUserStore(
         Realm = RealmId.FromStorage(row.Realm),
         SessionsValidFrom = StoredValues.FromTicks(row.SessionsValidFrom),
 
-        // Ordered, because the set is unordered and a caller rendering it — an admin page, a log
-        // line, an assertion — otherwise gets whatever order the join came back in, which differs
+        // Ordered, because the set is unordered and a caller rendering it - an admin page, a log
+        // line, an assertion - otherwise gets whatever order the join came back in, which differs
         // between providers and between two runs on one of them.
         Roles = [.. row.Roles.Select(r => r.RoleId).Order(StringComparer.Ordinal)],
     };

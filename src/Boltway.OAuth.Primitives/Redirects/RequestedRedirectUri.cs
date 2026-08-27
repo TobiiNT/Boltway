@@ -14,7 +14,7 @@ namespace Boltway.OAuth.Primitives.Redirects;
 /// </para>
 /// <para>
 /// It looks unhelpful and it is the point. Normalizing here would mean an attacker chooses the
-/// input to the normalizer, and every normalization step maps several distinct strings onto one —
+/// input to the normalizer, and every normalization step maps several distinct strings onto one -
 /// which is precisely how a redirect allowlist gets widened.
 /// </para>
 /// </remarks>

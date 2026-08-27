@@ -12,7 +12,7 @@ namespace Boltway.Storage.EntityFrameworkCore.Stores;
 /// <para>
 /// <b>Insert and select. There is no update and no delete, and their absence is the design.</b> A
 /// log an administrator can edit proves nothing about administrators, so the type offers no way to
-/// do it — not as a guard that could be relaxed, but as a method that was never written.
+/// do it - not as a guard that could be relaxed, but as a method that was never written.
 /// </para>
 /// <para>
 /// Times are stored as ticks, like every other timestamp here, so ordering is exact on both

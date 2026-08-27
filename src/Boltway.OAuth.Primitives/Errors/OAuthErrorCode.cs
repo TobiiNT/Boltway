@@ -9,7 +9,7 @@ namespace Boltway.OAuth.Primitives.Errors;
 /// the call site, and clients branch on these exactly: RFC 6749 §5.2 and the connector
 /// documentation both say a refresh failure must be <c>invalid_grant</c> and "not
 /// <c>invalid_request</c> or a custom code", because the client's recovery path is selected by the
-/// string. An invented code is not a cosmetic problem — it is a client that never recovers.
+/// string. An invented code is not a cosmetic problem - it is a client that never recovers.
 /// </para>
 /// <para>
 /// The wire spelling lives in <see cref="OAuthErrors"/>, not here, so the enum member and the string
@@ -18,7 +18,7 @@ namespace Boltway.OAuth.Primitives.Errors;
 /// </remarks>
 public enum OAuthErrorCode
 {
-    /// <summary>No error code in the response. Distinct from "not set" — see RFC 6750 §3.1.</summary>
+    /// <summary>No error code in the response. Distinct from "not set" - see RFC 6750 §3.1.</summary>
     None = 0,
 
     // ── RFC 6749 §4.1.2.1, the authorization endpoint ───────────────────────────

@@ -8,7 +8,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Tokens;
 ///
 /// <para>
 /// Without one, an access token carries <c>iss</c>, <c>aud</c>, <c>sub</c>, <c>scope</c>,
-/// <c>client_id</c>, <c>iat</c>, <c>exp</c> and <c>jti</c> — and nothing that says who the
+/// <c>client_id</c>, <c>iat</c>, <c>exp</c> and <c>jti</c> - and nothing that says who the
 /// subject is. That is correct as a default and wrong as the only option: a resource server
 /// wanting to record <em>who did this</em> gets an opaque identifier, so it either writes the
 /// identifier into its audit trail or keeps a second table mapping subjects to people. Both
@@ -17,7 +17,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Tokens;
 ///
 /// <para>
 /// <strong>What this cannot do is more important than what it can.</strong> The minter
-/// refuses to let any claim here overwrite a protocol claim — a mapper that could set
+/// refuses to let any claim here overwrite a protocol claim - a mapper that could set
 /// <c>sub</c>, <c>aud</c> or <c>scope</c> would be an escalation seam wearing a convenience
 /// interface, and the refusal is an exception rather than a silent skip.
 /// </para>
@@ -32,7 +32,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Tokens;
 public interface IAccessTokenClaims
 {
     /// <summary>
-    /// Claims for this subject, or empty. Called once per access token, on the issuing path —
+    /// Claims for this subject, or empty. Called once per access token, on the issuing path -
     /// so it is on the latency budget of every sign-in and every refresh.
     /// </summary>
     /// <param name="subject">Who the token is about.</param>

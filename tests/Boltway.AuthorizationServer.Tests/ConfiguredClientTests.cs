@@ -21,7 +21,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </para>
 /// <para>
 /// The property most of this file is about is <b>coexistence</b>. A deployment serves Claude, which
-/// identifies itself by a metadata URL, and its own admin UI, which cannot — a confidential client's
+/// identifies itself by a metadata URL, and its own admin UI, which cannot - a confidential client's
 /// secret has no business in a document served over the public internet. Both resolvers are
 /// registered, so the one that must not answer for the other's identifiers is the thing to pin.
 /// </para>
@@ -65,7 +65,7 @@ public sealed class ConfiguredClientTests
 
     /// <summary>A client naming an owner does client_credentials, and only that.</summary>
     /// <remarks>
-    /// The two sets not overlapping is the design rather than a default — a client offering both
+    /// The two sets not overlapping is the design rather than a default - a client offering both
     /// would be one a human can authorize *and* one holding a standing credential for somebody
     /// else's account, with which answer applying decided by the endpoint the caller used.
     /// </remarks>
@@ -145,7 +145,7 @@ public sealed class ConfiguredClientTests
             client.RedirectUris.Select(r => r.Value));
 
         // The kind says how this client was learned about, and it is derived from where it was
-        // found rather than set beside it — an audit entry and the consent page both read it.
+        // found rather than set beside it - an audit entry and the consent page both read it.
         Assert.Equal(ClientIdKind.PreRegistered, client.ClientId.Kind);
     }
 
@@ -155,7 +155,7 @@ public sealed class ConfiguredClientTests
     /// <remarks>
     /// <b>The assertion that keeps the two resolvers able to share a deployment.</b> The pipeline
     /// stops at the first authoritative answer, so a configured resolver that refused everything it
-    /// did not recognise would make Claude's metadata URL unresolvable — and the symptom would be a
+    /// did not recognise would make Claude's metadata URL unresolvable - and the symptom would be a
     /// vendor client that cannot connect, on a server that serves it perfectly well when the admin
     /// UI is not configured.
     /// </remarks>
@@ -188,7 +188,7 @@ public sealed class ConfiguredClientTests
     /// <summary>The secret store answers the hash, and nothing for a client it does not know.</summary>
     /// <remarks>
     /// Null means "this client has no secret", which the authenticator reads as "cannot authenticate
-    /// with one" rather than as "any secret will do" — so answering null for an unknown id is the
+    /// with one" rather than as "any secret will do" - so answering null for an unknown id is the
     /// safe direction as well as the honest one.
     /// </remarks>
     [Fact]

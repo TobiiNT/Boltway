@@ -8,7 +8,7 @@ namespace Boltway.ResourceServer.Tests;
 /// <remarks>
 /// The rows come from the distillation in <c>spec/research/protected-resource-metadata-and-mcp.md</c>,
 /// which took them from the RFC. The "wrong" column of that table is the appended form, and it is
-/// the one every implementation reaches for first — so the negative rows below are not decoration,
+/// the one every implementation reaches for first - so the negative rows below are not decoration,
 /// they are the failure this file exists to keep out.
 /// </remarks>
 public sealed class WellKnownResourceUriTests

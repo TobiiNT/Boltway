@@ -24,7 +24,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// Every one of those breakages has the same shape: <c>max_age</c> keeps being satisfied. A relying
 /// party doing step-up authentication is told the user just authenticated, forever, and there is no
-/// signal on the wire that would let it notice. The class doc calls that out — "silently a no-op" —
+/// signal on the wire that would let it notice. The class doc calls that out - "silently a no-op" -
 /// and until now nothing held it.
 /// </para>
 /// </remarks>
@@ -37,7 +37,7 @@ public sealed partial class LoginFlowTests
     /// <para>
     /// The clock moves twenty minutes forward <b>between the sign-in and the rest of the flow</b>,
     /// so the authentication time and the mint time are far apart and the assertion can tell them
-    /// apart. With them equal — which is what a fixture that never moves its clock produces — this
+    /// apart. With them equal - which is what a fixture that never moves its clock produces - this
     /// test passes against a server that stamps <c>auth_time</c> at mint time, which is exactly the
     /// mutation that survived.
     /// </para>
@@ -71,7 +71,7 @@ public sealed partial class LoginFlowTests
     /// A session cookie carrying no readable <c>auth_time</c> is not a session.
     /// </summary>
     /// <remarks>
-    /// The alternative — defaulting to now — is the mutation that survived, and it is the worst
+    /// The alternative - defaulting to now - is the mutation that survived, and it is the worst
     /// available answer: it does not fail, it silently reports that the user authenticated this
     /// instant. Refusing means the user signs in again, which is correct and visible.
     /// </remarks>
@@ -95,7 +95,7 @@ public sealed partial class LoginFlowTests
     /// </summary>
     /// <remarks>
     /// Without it, every row passes against a reader that returns <see langword="null"/>
-    /// unconditionally — which would break every flow and still look like a hardened parser.
+    /// unconditionally - which would break every flow and still look like a hardened parser.
     /// </remarks>
     [Fact]
     public async Task A_session_with_a_well_formed_auth_time_is_read()
@@ -112,7 +112,7 @@ public sealed partial class LoginFlowTests
     /// <remarks>
     /// Stated separately because the failure mode differs from the others: <c>long.TryParse</c>
     /// accepts <c>9223372036854775807</c> and <c>253402300800</c>, and
-    /// <c>DateTimeOffset.FromUnixTimeSeconds</c> throws <c>ArgumentOutOfRangeException</c> on both —
+    /// <c>DateTimeOffset.FromUnixTimeSeconds</c> throws <c>ArgumentOutOfRangeException</c> on both -
     /// out of a method with no exception boundary above it, on the path every authenticated request
     /// takes. So those rows are not testing parsing, they are testing that a 500 became a sign-in
     /// prompt.
@@ -129,7 +129,7 @@ public sealed partial class LoginFlowTests
     /// </summary>
     /// <remarks>
     /// Constructed rather than driven through a real sign-in, because <c>CookieUserSignIn</c> can
-    /// only write well-formed values — the malformed cases arrive from a cookie some other
+    /// only write well-formed values - the malformed cases arrive from a cookie some other
     /// application encrypted with shared data-protection keys, which is an ordinary deployment and
     /// not an attack. The type under test is still the shipped one.
     /// </remarks>
@@ -174,7 +174,7 @@ public sealed partial class LoginFlowTests
         Assert.Equal(HttpStatusCode.SeeOther, signedIn.StatusCode);
 
         // The session is now twenty minutes old, if the caller asked for that. No `max_age` and no
-        // `prompt` on this request, so an old session is perfectly acceptable — which is what makes
+        // `prompt` on this request, so an old session is perfectly acceptable - which is what makes
         // the gap observable rather than merely present.
         if (advanceAfterSignIn is { } advance)
         {

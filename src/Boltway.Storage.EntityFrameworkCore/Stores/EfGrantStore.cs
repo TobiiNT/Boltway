@@ -95,11 +95,11 @@ internal sealed class EfGrantStore(
 
         // One conditional UPDATE over the subject's grants, and its rows-affected is the answer.
         // `RevokedAt == null` is what makes the count "how many this call transitioned" rather than
-        // "how many exist" — and it is also what makes calling this twice harmless.
+        // "how many exist" - and it is also what makes calling this twice harmless.
         //
         // There is no index on Subject today. The table is grants, one row per (user, client,
         // authorization), so a sequential scan here is a scan of a table with as many rows as the
-        // deployment has authorizations — and this runs when an operator is signing somebody out,
+        // deployment has authorizations - and this runs when an operator is signing somebody out,
         // not on a request path. An index is the right thing when that stops being true; adding one
         // now would be a migration on every deployed database for a query nobody runs in a loop.
         return await context.Grants
@@ -114,7 +114,7 @@ internal sealed class EfGrantStore(
 
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
-        // Revoked, not merely absent. An unknown grant is not revoked — conflating the two would
+        // Revoked, not merely absent. An unknown grant is not revoked - conflating the two would
         // make the denylist answer yes for every id anyone asks about.
         return await context.Grants.AnyAsync(g => g.GrantId == grantId && g.RevokedAt != null, cancellationToken);
     }

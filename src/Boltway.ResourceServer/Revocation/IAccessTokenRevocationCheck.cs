@@ -24,7 +24,7 @@ namespace Boltway.ResourceServer.Revocation;
 /// </para>
 /// <para>
 /// <b>Not registered means not checked</b>, which is the behaviour every deployment had before this
-/// existed. That is a real cost — revocation lag stays one token lifetime — and it is the right
+/// existed. That is a real cost - revocation lag stays one token lifetime - and it is the right
 /// default: a resource server that suddenly required an authorization server to be reachable on
 /// every request would be a new outage mode arriving with a package upgrade.
 /// </para>
@@ -43,7 +43,7 @@ public interface IAccessTokenRevocationCheck
     /// <remarks>
     /// <para>
     /// <b>The return is deliberately not a tri-state, and the asymmetry is the contract.</b>
-    /// "I could not find out" must answer <see langword="false"/> — the same as "still valid" — so
+    /// "I could not find out" must answer <see langword="false"/> - the same as "still valid" - so
     /// that an implementation which cannot reach its authorization server keeps the resource server
     /// serving. An implementation must not throw to signal that either: an exception out of here
     /// reaches the middleware as a 500 on a request that was perfectly well authenticated.

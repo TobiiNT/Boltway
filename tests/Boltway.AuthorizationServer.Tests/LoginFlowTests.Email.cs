@@ -13,12 +13,12 @@ namespace Boltway.AuthorizationServer.Tests;
 /// The asymmetry that produced this: <c>/forgot</c> accepted "tên đăng nhập hoặc email" and
 /// <c>/login</c> accepted only the handle, so a user asked for a reset with their address, set a
 /// password, typed the same address to sign in, and was told <i>"that username and password did not
-/// match"</i> — a true sentence about a question they had not asked. Reported after it happened.
+/// match"</i> - a true sentence about a question they had not asked. Reported after it happened.
 /// </para>
 /// <para>
 /// The rule the tests below pin is narrow on purpose: <b>a verified address, and one account.</b>
 /// An unverified address is a claim, not a proof, and the flow that may act on an unverified one is
-/// <c>/forgot</c> — which <i>sends to</i> the address, and so establishes control rather than
+/// <c>/forgot</c> - which <i>sends to</i> the address, and so establishes control rather than
 /// assuming it.
 /// </para>
 /// </remarks>
@@ -78,7 +78,7 @@ public sealed partial class LoginFlowTests
     /// </summary>
     /// <remarks>
     /// Order is the rule, not an implementation detail. If the address were asked first, registering
-    /// an account whose <i>handle</i> is somebody else's address would shadow their sign-in — the
+    /// an account whose <i>handle</i> is somebody else's address would shadow their sign-in - the
     /// caller would reach the shadowing account with the shadowing account's password, and the
     /// person whose address it is would find their own credentials refused.
     /// </remarks>
@@ -129,7 +129,7 @@ public sealed partial class LoginFlowTests
     /// <remarks>
     /// The enumeration guard, extended to the new lookup. Skipping the hash when the address matches
     /// nothing would answer faster for an unregistered address than for a registered one, which is
-    /// the same oracle a distinct error message would be — measured in milliseconds instead of
+    /// the same oracle a distinct error message would be - measured in milliseconds instead of
     /// words. <c>CountingPasswordHasher</c> asks the question a stopwatch cannot answer on a shared
     /// CI machine: was the work done at all?
     /// </remarks>

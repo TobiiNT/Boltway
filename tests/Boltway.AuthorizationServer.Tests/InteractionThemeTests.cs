@@ -13,7 +13,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// different claim and the one with a live failure mode: registering
 /// <c>IInteractionRenderer</c> by type rather than by factory selects the parameterless
 /// constructor, and every setting is then accepted, validated at startup, and silently ignored.
-/// Nothing else in the suite would notice — the pages still render, just unthemed.
+/// Nothing else in the suite would notice - the pages still render, just unthemed.
 /// </para>
 /// <para>
 /// End to end through the real pipeline rather than against the container, because the seam being
@@ -88,7 +88,7 @@ public sealed class InteractionThemeTests
     /// </summary>
     /// <remarks>
     /// The whole reason these paths are validated. Started, this deployment serves a login page that
-    /// renders unstyled with the explanation only in a browser console — and the operator who set
+    /// renders unstyled with the explanation only in a browser console - and the operator who set
     /// the path is the one person who could have fixed it in a second, at startup.
     /// </remarks>
     [Fact]

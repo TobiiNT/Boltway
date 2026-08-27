@@ -11,7 +11,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// <remarks>
 /// <para>
 /// <b>Constants rather than a <c>.resx</c>, and the difference is the fallback.</b> The design asked
-/// for a neutral resource file, and measured against .NET 10 that would work — a key missing from
+/// for a neutral resource file, and measured against .NET 10 that would work - a key missing from
 /// <c>vi</c> resolves to the neutral value, not to the key. What it also brings is satellite
 /// assemblies, which belong to the assembly owning the resx, so a customer still cannot add a
 /// language to <i>ours</i>. Since the override route is a registered
@@ -28,7 +28,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// </para>
 /// <para>
 /// <b>Whole sentences, not fragments.</b> "The application at {0} is asking to access your account"
-/// is one key rather than three, because word order is not a property every language shares — a page
+/// is one key rather than three, because word order is not a property every language shares - a page
 /// assembled from translated fragments in English order reads as machine output in most of them.
 /// </para>
 /// </remarks>
@@ -79,7 +79,7 @@ public static class InteractionText
     /// <remarks>
     /// The key keeps its name while the sentence changed, and that is deliberate: the constant's
     /// value <i>is</i> the lookup key, so renaming it would silently drop every deployment's
-    /// translation of this line to the English fallback — a page that goes half-English on upgrade,
+    /// translation of this line to the English fallback - a page that goes half-English on upgrade,
     /// which is the failure a translated deployment is least able to see.
     /// <para>
     /// A deployment whose accounts have no addresses should translate this back to "Username". The
@@ -111,7 +111,7 @@ public static class InteractionText
     /// What linking is for, said once above the buttons.
     /// </summary>
     /// <remarks>
-    /// Worth a sentence because the button alone reads as "sign in with Google" — which is what the
+    /// Worth a sentence because the button alone reads as "sign in with Google" - which is what the
     /// other page's button does, and this one does something different to an account that already
     /// exists.
     /// </remarks>
@@ -248,7 +248,7 @@ public static class InteractionText
     /// </summary>
     /// <remarks>
     /// <b>"Approved from", not "used on".</b> The value is stamped once, when the consent screen was
-    /// clicked, and no refresh touches it — so a session approved on a laptop and used from a phone
+    /// clicked, and no refresh touches it - so a session approved on a laptop and used from a phone
     /// still says laptop, and the wording has to be the one that stays true. It is also the question
     /// somebody is actually asking when they open this page: which of these did I agree to.
     /// </remarks>
@@ -261,7 +261,7 @@ public static class InteractionText
     /// <b>"Renewed", never "active", and the difference is not a shade of wording.</b> What this
     /// server can see is the moment the grant last minted a refresh token. Access tokens are signed
     /// rather than looked up, so a request made with one already in hand never reaches this process
-    /// — a person can work for half an hour without moving this number, and the number can move
+    /// - a person can work for half an hour without moving this number, and the number can move
     /// with nobody at the keyboard, because renewal is a timer in the client. Calling it "last
     /// active" would describe activity this server does not observe.
     /// </remarks>
@@ -300,7 +300,7 @@ public static class InteractionText
     /// </para>
     /// <para>
     /// <b>It is conditional because this server does not know the answer.</b> Since
-    /// <c>/introspect</c> shipped, ending a session can cut access already granted — but only for a
+    /// <c>/introspect</c> shipped, ending a session can cut access already granted - but only for a
     /// resource server that asks, and whether any asks is a decision taken in a different process
     /// that this one never hears from. Stating either outcome flatly would be an assumption written
     /// down as a measurement, on the page somebody opens precisely to find out whether they are
@@ -380,7 +380,7 @@ public static class InteractionText
     /// </summary>
     /// <remarks>
     /// Only rendered with <c>InteractionOptions.ProvidersFirst</c> on <b>and</b> both methods
-    /// configured — a page with one way in has nothing to separate. It is a sentence rather than a
+    /// configured - a page with one way in has nothing to separate. It is a sentence rather than a
     /// bare "or" because the thing below it is a specific alternative, and a divider that says which
     /// alternative saves the reader working it out from the fields.
     /// </remarks>
@@ -398,7 +398,7 @@ public static class InteractionText
     /// <summary>The submit control.</summary>
     public const string ForgotSubmit = nameof(ForgotSubmit);
 
-    /// <summary>The one answer the page gives. <c>S-48</c> — it does not depend on what was found.</summary>
+    /// <summary>The one answer the page gives. <c>S-48</c> - it does not depend on what was found.</summary>
     public const string ForgotSent = nameof(ForgotSent);
 
     /// <summary>What it says when the request was refused for rate. §3.1.</summary>
@@ -482,8 +482,8 @@ public static class InteractionText
     /// </summary>
     /// <remarks>
     /// <b>Empty by default and omitted when empty</b>, which is what makes it a shell setting rather
-    /// than a sentence the library says. There is nothing general to write here — a tagline is a
-    /// deployment's own claim about itself — so the shipped pages carry none, and a deployment that
+    /// than a sentence the library says. There is nothing general to write here - a tagline is a
+    /// deployment's own claim about itself - so the shipped pages carry none, and a deployment that
     /// wants one writes it in the file it already keeps its other sentences in. It is on the panel
     /// and never near the body, so nothing here can compete with the client hostname for N-14's
     /// most-prominent slot.
@@ -497,7 +497,7 @@ public static class InteractionText
     /// <para>
     /// <b>The deployment's own host, and nothing a request carried.</b> A person deciding whether to
     /// approve is deciding partly on where they are, and the address bar is the only thing that
-    /// tells them — which is not visible in an app's embedded browser and is the first thing a
+    /// tells them - which is not visible in an app's embedded browser and is the first thing a
     /// phishing page imitates. Saying it on the page is a second copy of a fact the server knows.
     /// </para>
     /// <para>
@@ -513,7 +513,7 @@ public static class InteractionText
     {
         // The two shell strings, empty on purpose: see their remarks. Present in the table rather
         // than absent from it because Default throws for a key it does not know, and Keys is what a
-        // deployment's translation file is checked against — a key missing here is one a deployment
+        // deployment's translation file is checked against - a key missing here is one a deployment
         // cannot set.
         [ShellTagline] = "",
         [ShellDomain] = "",
@@ -690,13 +690,13 @@ public static class InteractionText
     /// whole design. Twenty-six reason codes reach the error page and a person can take exactly five
     /// actions in response to them: start again, wait, tell whoever runs the application, ask an
     /// administrator, or nothing because they declined on purpose. Twenty-six sentences would be
-    /// twenty-six translations of "a redirect URI registration is unusable" — accurate, and useless
+    /// twenty-six translations of "a redirect URI registration is unusable" - accurate, and useless
     /// to the person reading it.
     /// </para>
     /// <para>
     /// <b>The precise cause is not lost, it moves to where it is useful.</b> Every refusal is logged
     /// with its <c>Reason</c>, its requirement id, its description and the private detail the page
-    /// never carries — <c>A-09</c> — and the page shows the correlation id that joins the two. That
+    /// never carries - <c>A-09</c> - and the page shows the correlation id that joins the two. That
     /// is what the reference is for, and it was already on the page. An operator gets more than the
     /// page ever showed them; the person gets a sentence they can act on.
     /// </para>
@@ -723,7 +723,7 @@ public static class InteractionText
 
             ReasonCode.RateLimited => ErrorTooMany,
 
-            // The account exists and is not allowed to sign in — an administrator's decision or an
+            // The account exists and is not allowed to sign in - an administrator's decision or an
             // unlinked identity. Distinct from the one below because the person to ask is different.
             ReasonCode.ExternalAccountDisabled
                 or ReasonCode.ExternalIdentityUnlinked
@@ -755,7 +755,7 @@ public static class InteractionText
     /// nothing downstream can tell.</b> <see cref="Format"/> encodes the text and then substitutes
     /// into <c>{0}</c>; no <c>{0}</c> means no substitution and a sentence that reads fine. On
     /// <see cref="ConsentClientAsking"/> the value being dropped is the host of the
-    /// <c>client_id</c> URL — the field <c>N-14</c> makes a MUST, the one thing on the consent page
+    /// <c>client_id</c> URL - the field <c>N-14</c> makes a MUST, the one thing on the consent page
     /// that says which application is actually asking. A deployment could delete it by editing a
     /// JSON file, and the page would still render, still pass the renderer contract, and still look
     /// finished.
@@ -763,7 +763,7 @@ public static class InteractionText
     /// <para>
     /// The arity is not a rule this adds: it is read off the English table, which is what
     /// <see cref="Format"/>'s callers are written against. A key with more placeholders than
-    /// English is a problem too — the extra one has no argument, so it reaches the page as the
+    /// English is a problem too - the extra one has no argument, so it reaches the page as the
     /// literal text <c>{1}</c>.
     /// </para>
     /// <para>
@@ -789,7 +789,7 @@ public static class InteractionText
 
             foreach (var (key, text) in table)
             {
-                // An unknown key is a separate complaint, made by the host that loaded the file —
+                // An unknown key is a separate complaint, made by the host that loaded the file -
                 // it can name the file. Here it simply has no English arity to be checked against.
                 if (text is null || !English.TryGetValue(key, out var english))
                 {
@@ -870,7 +870,7 @@ public static class InteractionText
 
         var text = Localized(localizer, key);
 
-        // The translation is encoded and the arguments are not — that order is the whole safety
+        // The translation is encoded and the arguments are not - that order is the whole safety
         // property. Doing it the other way, or using string.Format on the raw text, would let a
         // translation supply markup, and a translation is data a deployment edits rather than code
         // it reviews.

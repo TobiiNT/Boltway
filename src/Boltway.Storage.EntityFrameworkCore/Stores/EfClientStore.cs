@@ -55,8 +55,8 @@ internal sealed class EfClientStore(
 
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
 
-        // OrderBy so that a deployment which somehow acquired two — the schema permits it even
-        // though the product does not offer it — gets the same answer every time rather than
+        // OrderBy so that a deployment which somehow acquired two - the schema permits it even
+        // though the product does not offer it - gets the same answer every time rather than
         // whichever the planner happened to return.
         var row = await context.Clients
             .AsNoTracking()
@@ -80,7 +80,7 @@ internal sealed class EfClientStore(
         var value = client.ClientId.Value
             ?? throw new ArgumentException("The client has no identifier.", nameof(client));
 
-        // AsTracking, because AuthDbContext sets NoTracking globally — mutating an untracked
+        // AsTracking, because AuthDbContext sets NoTracking globally - mutating an untracked
         // entity and calling SaveChangesAsync is a silent no-op, which the contract suite caught on
         // the real database while the in-memory twin passed. Every mutating read below does this.
         var existing = await context.Clients
@@ -114,7 +114,7 @@ internal sealed class EfClientStore(
             existing.RedirectUris = string.Join(' ', client.RedirectUris.Select(r => r.Value));
 
             // Only when one was supplied. Re-storing a client to change its name must not silently
-            // destroy the credential it authenticates with — a null here means "unchanged", and
+            // destroy the credential it authenticates with - a null here means "unchanged", and
             // rotating a secret is its own act.
             if (secretHash is not null)
             {
@@ -179,7 +179,7 @@ internal sealed class EfClientStore(
     /// <remarks>
     /// A disabled client's secret is <i>not</i> withheld here. Authentication and authorization are
     /// different questions, and answering "no secret" for a client that has one would report a
-    /// disabled client as a misconfigured one — <c>ClientAuthenticator</c> would say it is
+    /// disabled client as a misconfigured one - <c>ClientAuthenticator</c> would say it is
     /// registered as public and must not present credentials, which sends the reader somewhere
     /// else entirely. Resolution is what refuses a disabled client, with <c>Disabled</c>.
     /// </remarks>

@@ -5,7 +5,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Users;
 /// <summary>Who is signed in, and when they proved it.</summary>
 /// <param name="Subject">The <c>sub</c> every token for this session will carry.</param>
 /// <param name="AuthenticatedAt">
-/// When the user actually authenticated — <b>not</b> when this request arrived.
+/// When the user actually authenticated - <b>not</b> when this request arrived.
 /// </param>
 /// <remarks>
 /// The distinction in <paramref name="AuthenticatedAt"/> is what makes <c>max_age</c> mean
@@ -28,7 +28,7 @@ public readonly record struct AuthenticatedUser(SubjectId Subject, DateTimeOffse
 /// <para>
 /// Deliberately <b>read-only</b>. Signing a user in is the login endpoint's job, and a seam that
 /// could also authenticate would let an <see cref="IUserSession"/> implementation establish a
-/// session <i>during</i> an authorization request — which is how "the connector logged me in as
+/// session <i>during</i> an authorization request - which is how "the connector logged me in as
 /// someone else" happens.
 /// </para>
 /// </remarks>
@@ -39,8 +39,8 @@ public interface IUserSession
     /// <remarks>
     /// Takes no request parameter, and that is what keeps this assembly free of an ASP.NET Core
     /// dependency: an implementation is registered per request and reaches its own context however
-    /// it likes. The alternative — passing the request in as <see cref="object"/> for the
-    /// implementation to downcast — would move the dependency from the project file into every
+    /// it likes. The alternative - passing the request in as <see cref="object"/> for the
+    /// implementation to downcast - would move the dependency from the project file into every
     /// implementation, where the compiler stops checking it.
     /// </remarks>
     ValueTask<AuthenticatedUser?> GetAsync(CancellationToken cancellationToken);

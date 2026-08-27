@@ -14,7 +14,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// These rules used to live inline in the host's <c>Program.cs</c>, which meant they were reachable
 /// only by running a command. Nothing tested them, and the first HTTP admin surface would have been
-/// a second copy of each — with the copies drifting first where nobody looks, which is the audit
+/// a second copy of each - with the copies drifting first where nobody looks, which is the audit
 /// write and the "no password parameter" rule.
 /// </remarks>
 public sealed class UserAdministrationTests
@@ -40,7 +40,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -77,7 +77,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -99,7 +99,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -153,7 +153,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -177,7 +177,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -223,7 +223,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -254,7 +254,7 @@ public sealed class UserAdministrationTests
     /// </summary>
     /// <remarks>
     /// "Since when" is the question a disabled account is asked, and moving the answer to the moment
-    /// somebody ran the command a second time loses the only fact worth having — usually while
+    /// somebody ran the command a second time loses the only fact worth having - usually while
     /// somebody is reconstructing an incident.
     /// </remarks>
     [Fact]
@@ -265,7 +265,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -290,7 +290,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -325,7 +325,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -387,7 +387,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -452,7 +452,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -490,7 +490,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -511,7 +511,7 @@ public sealed class UserAdministrationTests
     /// An architecture assertion rather than a behavioural one, and it is here because the rule is
     /// about what cannot be added rather than about what happens. A <c>password</c> parameter on any
     /// of these methods is how a chosen password reaches shell history, terminal scrollback and
-    /// whatever ran the command — so the absence is the control, and a test is what notices it
+    /// whatever ran the command - so the absence is the control, and a test is what notices it
     /// <summary>
     /// Without a grant store, the two session operations say which line is missing.
     /// </summary>
@@ -531,7 +531,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -560,7 +560,7 @@ public sealed class UserAdministrationTests
     /// <remarks>
     /// These are two writes and nothing here can make them one. The order is the recovery story:
     /// anonymising first and dying in between leaves a tombstoned account whose refresh tokens still
-    /// mint — a session belonging to somebody the directory says is gone. This way round it leaves an
+    /// mint - a session belonging to somebody the directory says is gone. This way round it leaves an
     /// ordinary account whose owner has been signed out, which an operator can see and rerun.
     /// </remarks>
     [Fact]
@@ -571,7 +571,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -651,7 +651,7 @@ public sealed class UserAdministrationTests
     /// Anonymising an account records the handle it destroyed.
     /// </summary>
     /// <remarks>
-    /// The audit entry is the only place the handle survives — the account no longer carries it.
+    /// The audit entry is the only place the handle survives - the account no longer carries it.
     /// That is the boundary of what the operation promises: the directory stops naming the person,
     /// and the record of who was administered stays readable, because otherwise nobody can answer
     /// whether it was done properly.
@@ -664,7 +664,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);
@@ -705,8 +705,8 @@ public sealed class UserAdministrationTests
     /// <para>
     /// <c>E-34</c> made the blanket form false rather than the rule wrong. <c>S-49</c> requires the
     /// current password as proof, and a password somebody has to remember cannot be generated for
-    /// them, so <see cref="UserAdministration.ChangePasswordAsync"/> takes two. What is still true —
-    /// and what this now pins — is that <b>the operator path takes none</b>: no CLI verb can grow a
+    /// them, so <see cref="UserAdministration.ChangePasswordAsync"/> takes two. What is still true -
+    /// and what this now pins - is that <b>the operator path takes none</b>: no CLI verb can grow a
     /// password field, because the method behind every CLI verb has no parameter to bind it to.
     /// </para>
     /// <para>
@@ -757,7 +757,7 @@ public sealed class UserAdministrationTests
     /// </summary>
     /// <remarks>
     /// The ordering is the whole assertion. Discovering the missing store after the write would
-    /// leave the account half-done — new password, old sessions — behind a 500 that says nothing
+    /// leave the account half-done - new password, old sessions - behind a 500 that says nothing
     /// about which half landed, which is the confidence rule broken where it costs most.
     /// </remarks>
     [Fact]
@@ -768,7 +768,7 @@ public sealed class UserAdministrationTests
 
         // Defined before anything can hold them. Creation does not assign and assignment refuses an
         // id the realm does not define, so a directory with no roles is one where nobody can be given
-        // one — the rule, stated as a fixture.
+        // one - the rule, stated as a fixture.
         foreach (var id in new[] { "founder", "employee" })
         {
             await roles.StoreAsync(new RoleDefinition(id, id, []), CancellationToken.None);

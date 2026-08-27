@@ -20,15 +20,15 @@ public static class EntityFrameworkStorageServiceCollectionExtensions
     /// <remarks>
     /// <para>
     /// <b>This does not configure a provider and does not register one.</b> A caller still owes two
-    /// things: an <c>IDbContextFactory&lt;AuthDbContext&gt;</c> — a factory rather than a scoped
-    /// context, because these stores are singletons and a <c>DbContext</c> is not thread-safe — and
+    /// things: an <c>IDbContextFactory&lt;AuthDbContext&gt;</c> - a factory rather than a scoped
+    /// context, because these stores are singletons and a <c>DbContext</c> is not thread-safe - and
     /// an <see cref="IRelationalStoreBehavior"/>. A provider package such as
     /// <c>Boltway.Storage.Sqlite</c> supplies both and calls this; wiring it by hand is
     /// supported and is the path a customer on an unlisted provider takes.
     /// </para>
     /// <para>
     /// <c>TryAdd</c> throughout, so a host that already registered something else for one of these
-    /// keeps it and gets the rest — which is the shape of a migration, one store at a time.
+    /// keeps it and gets the rest - which is the shape of a migration, one store at a time.
     /// </para>
     /// </remarks>
     public static IServiceCollection AddBoltwayEntityFrameworkStores(this IServiceCollection services)
@@ -55,7 +55,7 @@ public static class EntityFrameworkStorageServiceCollectionExtensions
         // implementation a deployment running private_key_jwt needs.
         services.TryAddSingleton<IClientAssertionReplayStore, EfClientAssertionReplayStore>();
 
-        // The client table. Registering it does not by itself make a stored client resolvable —
+        // The client table. Registering it does not by itself make a stored client resolvable -
         // AddStoredClients on the authorization server side is what puts a resolver in front of it,
         // and the order it is called in decides whether configuration or the table wins.
         services.TryAddSingleton<IClientStore, EfClientStore>();

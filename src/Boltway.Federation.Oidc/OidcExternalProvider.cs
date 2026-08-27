@@ -28,7 +28,7 @@ namespace Boltway.Federation.Oidc;
 /// <para>
 /// It is <c>sealed</c>. A subclass overriding <see cref="CompleteAsync"/> would be a second
 /// validation path, and the shape a provider is meant to take is a different
-/// <see cref="OidcProviderOptions"/> — which is what <c>Boltway.Federation.Google</c> is.
+/// <see cref="OidcProviderOptions"/> - which is what <c>Boltway.Federation.Google</c> is.
 /// </para>
 /// </remarks>
 public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposable
@@ -54,7 +54,7 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
 
         // Re-validated here rather than trusted, because this constructor is public and a customer
         // may reach it without going through the registration extension. Options validation sets
-        // the parsed fields this class reads, so skipping it is not a style lapse — it leaves
+        // the parsed fields this class reads, so skipping it is not a style lapse - it leaves
         // ValidatedIssuer empty and every ID token comparison against the empty string.
         if (!options.TryValidate(out var errors))
         {
@@ -85,7 +85,7 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
     /// <para>
     /// Answers <see cref="ProviderAvailability.Available"/> for every client. This provider carries
     /// no per-client restriction, which is A-10 rather than an omission: "no two-tier connection
-    /// model — every configured identity source is usable by every valid client unless explicitly
+    /// model - every configured identity source is usable by every valid client unless explicitly
     /// restricted". A deployment that needs a restriction wraps this class or writes its own, and
     /// A-11 is what makes the wrapper's refusal show up as a disabled control with a reason instead
     /// of a missing button.
@@ -93,7 +93,7 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
     /// <para>
     /// It also does <b>not</b> probe the upstream. A liveness check here would put an outbound
     /// request on every render of the login page, keyed on nothing, and the honest answer it could
-    /// give — "reachable a moment ago" — is not the question. An upstream that is down produces a
+    /// give - "reachable a moment ago" - is not the question. An upstream that is down produces a
     /// specific failure on the callback, which is logged with a correlation id.
     /// </para>
     /// </remarks>
@@ -110,8 +110,8 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
     /// </para>
     /// <para>
     /// <b>Falling back to the issuer's origin is the load-bearing half.</b> Discovery is a network
-    /// fetch behind a cache, so the first render after a restart — or any render once the cache has
-    /// expired and the fetch fails — would otherwise answer null, ship a strict policy, and leave
+    /// fetch behind a cache, so the first render after a restart - or any render once the cache has
+    /// expired and the fetch fails - would otherwise answer null, ship a strict policy, and leave
     /// the button silently doing nothing. That is the exact defect this method exists to close,
     /// reached through the back door, and it is invisible: the page is correct, the redirect is
     /// correct, the browser declines. Observed as a deploy verifier passing a check for a *bare*
@@ -121,7 +121,7 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
     /// The issuer is configuration rather than a fetch, so it is available at every render. It is a
     /// lower bound and not a guess: an upstream whose authorization endpoint sits on a different
     /// origin from its issuer is served no worse than by the null this replaces, and the common
-    /// configuration — Google, Okta, Entra, Auth0 — puts both on one host. Naming a source the
+    /// configuration - Google, Okta, Entra, Auth0 - puts both on one host. Naming a source the
     /// browser never navigates to costs nothing; failing to name one it does costs the flow.
     /// </para>
     /// </remarks>
@@ -151,7 +151,7 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
         {
             // Thrown rather than returned, because ExternalChallenge has no failure case: the type
             // exists to be a validated redirect target. The server's endpoint catches this and turns
-            // it into a logged rejection — it cannot become a 500, because the exception boundary is
+            // it into a logged rejection - it cannot become a 500, because the exception boundary is
             // the same one every interaction page sits behind.
             throw new UpstreamProviderException(
                 ExternalFailureKind.ProviderUnavailable, endpoints.Detail!);
@@ -184,8 +184,8 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
     /// </summary>
     /// <remarks>
     /// The same three failures <c>AuthorizeResults.Build</c> records, one layer over. An
-    /// authorization endpoint may legitimately carry a query string — several enterprise products
-    /// put a tenant or a policy there — so concatenating <c>"?…"</c> would produce a second
+    /// authorization endpoint may legitimately carry a query string - several enterprise products
+    /// put a tenant or a policy there - so concatenating <c>"?…"</c> would produce a second
     /// <c>?</c>, which is a legal character inside a query and therefore fails silently. And every
     /// value here needs percent-encoding: a display name or a hosted-domain hint containing
     /// <c>&amp;</c> would otherwise inject a parameter.
@@ -216,7 +216,7 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
 
         // RFC 9207 §2.4: when the authorization response carries `iss`, a client MUST validate it.
         // An upstream that does not send it is conformant and common, so its absence is not a
-        // failure — but a value that disagrees with the configured issuer is a mix-up attack in
+        // failure - but a value that disagrees with the configured issuer is a mix-up attack in
         // progress and is refused before the code is spent.
         if (context.Parameters.TryGetValue("iss", out var declaredIssuer)
             && !string.Equals(declaredIssuer, _options.ValidatedIssuer.Value, StringComparison.Ordinal))
@@ -380,7 +380,7 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
                     subject,
 
                     // Uncompared. The value it must equal is in the browser's pending-request
-                    // cookie, which this assembly cannot see — the comparison is the server's, in
+                    // cookie, which this assembly cannot see - the comparison is the server's, in
                     // one place, for every provider.
                     identity.FindFirst("nonce")?.Value,
                     claims)),
@@ -394,7 +394,7 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
     /// An allow-list rather than the whole claim set. Two reasons, and the second is the one that
     /// matters: a copied claim set is unbounded attacker-influenced data on its way into a log line
     /// and possibly into an account record; and an allow-list makes it obvious, on one line, that
-    /// <c>email</c> is here for display and provisioning and is <b>never</b> read as an identity —
+    /// <c>email</c> is here for display and provisioning and is <b>never</b> read as an identity -
     /// which is the rule the whole account-resolution design rests on.
     /// </remarks>
     private static readonly string[] SurfacedClaims = ["email", "email_verified", "name", "picture", "hd"];
@@ -413,8 +413,8 @@ public sealed class OidcExternalProvider : IExternalIdentityProvider, IDisposabl
 
 /// <summary>A provider that cannot run at all, thrown out of <see cref="OidcExternalProvider.BeginAsync"/>.</summary>
 /// <remarks>
-/// The start of a federated sign-in has no failure return value — <see cref="ExternalChallenge"/> is
-/// a redirect target and there is no such thing as a redirect to nowhere — so the one failure it can
+/// The start of a federated sign-in has no failure return value - <see cref="ExternalChallenge"/> is
+/// a redirect target and there is no such thing as a redirect to nowhere - so the one failure it can
 /// have travels as an exception. The authorization server's federation endpoints catch it and turn
 /// it into a logged rejection with a correlation id, so it never surfaces as an unhandled 500.
 /// </remarks>

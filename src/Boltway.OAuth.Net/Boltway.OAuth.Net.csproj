@@ -13,7 +13,7 @@
       both directions. Handing back raw bytes would put the parse in whichever package called it,
       which is two implementations of "which members of a JWKS are signing keys" the day a second
       caller appears. Putting the fetch in Boltway.OAuth.Tokens instead would mean Tokens
-      referencing this project — and Tokens is the one assembly both halves of the product compile
+      referencing this project - and Tokens is the one assembly both halves of the product compile
       against, so every resource server would acquire an HTTP transport whether it fetches anything
       or not.
     -->
@@ -29,9 +29,9 @@
       said sixteen packages moved together, which is exactly how many projects declared IsPackable;
       this one packed anyway, because packing is what the SDK does with a library unless told
       otherwise. It was right about the files and wrong about the feed for the two publishes
-      that followed — 2026-08-19, and v0.3.0 itself, which is the one that noticed.
+      that followed - 2026-08-19, and v0.3.0 itself, which is the one that noticed.
 
-      True is what it already was. Saying so changes no output — it makes the output legible from
+      True is what it already was. Saying so changes no output - it makes the output legible from
       here, which is what StructuralRuleTests.Every_project_says_whether_it_packs now requires of
       every project in this repository.
     -->

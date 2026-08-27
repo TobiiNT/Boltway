@@ -13,14 +13,14 @@ namespace Boltway.OAuth.Net;
 /// <remarks>
 /// <para>
 /// A plain class rather than a record, and that is not a style choice: a record synthesizes
-/// <see cref="object.ToString"/> over every member, so a record here would render the form fields —
+/// <see cref="object.ToString"/> over every member, so a record here would render the form fields -
 /// which on the upstream token exchange include the authorization code and, under
 /// <c>client_secret_post</c>, the client secret. One <c>$"{body}"</c> in a diagnostic would be the
 /// whole leak. This type has no <c>ToString</c> of its own and inherits the one that prints the type
 /// name.
 /// </para>
 /// <para>
-/// <see langword="internal"/>, so a body can only be assembled inside this assembly — which is where
+/// <see langword="internal"/>, so a body can only be assembled inside this assembly - which is where
 /// the guards are.
 /// </para>
 /// </remarks>
@@ -48,7 +48,7 @@ internal sealed class GuardedRequestBody
 /// Extracted when the upstream identity-provider client landed, because the alternative was a second
 /// <see cref="SocketsHttpHandler"/> configured by hand. Every line in the handler below exists
 /// because the default is wrong, and a second copy is a second place for one of them to be omitted
-/// — which would produce a client that follows redirects, or resolves the host twice, and still sits
+/// - which would produce a client that follows redirects, or resolves the host twice, and still sits
 /// inside <c>Boltway.OAuth.Net</c> where the architecture rule reports it as guarded.
 /// </para>
 /// <para>
@@ -89,13 +89,13 @@ internal sealed class GuardedTransport : IDisposable
             //
             // ConnectCallback runs once per CONNECTION, and its InitialRequestMessage is the
             // request that opened it. With pooling on, a second fetch to the same host:port reuses
-            // a connection validated for a DIFFERENT request — measured: three fetches resolving
+            // a connection validated for a DIFFERENT request - measured: three fetches resolving
             // to .1, .2, .2 were all served by .1, with ConnectCallback running once. The default
             // idle timeout is 60s, so an attacker re-triggering /authorize once a minute pins the
             // server's connection to an address of their choosing indefinitely.
             //
             // It is not a live SSRF today, because the RFC 6890 check runs unconditionally before
-            // every send — but "the value connected to is the value validated" was simply untrue,
+            // every send - but "the value connected to is the value validated" was simply untrue,
             // and that sentence is the entire claim this class makes. These fetches are
             // low-volume and cached; a fresh connection each time is the right price.
             PooledConnectionLifetime = TimeSpan.Zero,
@@ -128,7 +128,7 @@ internal sealed class GuardedTransport : IDisposable
     /// Nothing from <paramref name="body"/> reaches a <see cref="FetchOutcome"/>. The only failure
     /// case that carries text from outside this method is
     /// <see cref="FetchOutcome.TransportFailed"/>, whose detail is the transport exception's
-    /// message — a DNS, TCP or TLS failure, which is about the connection and never about what was
+    /// message - a DNS, TCP or TLS failure, which is about the connection and never about what was
     /// going to be written on it.
     /// </remarks>
     internal async Task<FetchOutcome> SendAsync(
@@ -189,7 +189,7 @@ internal sealed class GuardedTransport : IDisposable
                 if (body.AuthorizationHeader is { } authorization)
                 {
                     // TryAddWithoutValidation, so a malformed credential is refused by the remote
-                    // end rather than by an exception here — an ArgumentException out of the header
+                    // end rather than by an exception here - an ArgumentException out of the header
                     // collection renders the offending value in its message, and this is the one
                     // value that must never appear in an exception.
                     message.Headers.TryAddWithoutValidation("Authorization", authorization);
@@ -218,7 +218,7 @@ internal sealed class GuardedTransport : IDisposable
             }
 
             // A missing or unparseable Content-Type leaves `default(MediaType)`, which reports
-            // IsJson false — so the caller decides what to do about it. Refusing the body here
+            // IsJson false - so the caller decides what to do about it. Refusing the body here
             // would be wrong: whether a document must be JSON is the caller's rule, not the
             // transport's.
             _ = MediaType.TryParse(response.Content.Headers.ContentType?.ToString(), out var contentType);
@@ -250,15 +250,15 @@ internal sealed class GuardedTransport : IDisposable
     /// <para>
     /// <b><c>s-maxage</c> first, and that is the correction this method exists for.</b> This was
     /// <c>response.Headers.CacheControl?.MaxAge</c>, which is the directive for a <i>private</i>
-    /// cache. Everything caching behind this transport is shared by construction — one process
-    /// holding one origin's document on behalf of every user of that client — and RFC 9111 §5.2.2.10
+    /// cache. Everything caching behind this transport is shared by construction - one process
+    /// holding one origin's document on behalf of every user of that client - and RFC 9111 §5.2.2.10
     /// says <c>s-maxage</c> overrides <c>max-age</c> for exactly that case. An origin publishing
     /// <c>s-maxage=60, max-age=3600</c> is telling shared caches sixty seconds; reading the wrong
     /// member holds its document for an hour, which is an hour of acting on a redirect URI or a key
     /// it has already replaced.
     /// </para>
     /// <para>
-    /// <c>Expires</c> last, and only when neither directive is present — §5.3. Its absence was
+    /// <c>Expires</c> last, and only when neither directive is present - §5.3. Its absence was
     /// costing the other side rather than us: with no freshness at all the caller falls back to its
     /// own floor, so an origin that publishes only <c>Expires</c> a day out was being refetched on
     /// that floor instead. LESSONS #9's conduct point is about being wrong in that direction.
@@ -266,7 +266,7 @@ internal sealed class GuardedTransport : IDisposable
     /// <para>
     /// A past or unparseable <c>Expires</c> returns <see cref="TimeSpan.Zero"/> rather than a
     /// negative span or null: §5.3 makes an <c>Expires</c> in the past mean stale, and "stale" and
-    /// "said nothing" are different answers — a caller's floor should apply to the second, not be
+    /// "said nothing" are different answers - a caller's floor should apply to the second, not be
     /// silently handed the first.
     /// </para>
     /// </remarks>
@@ -336,7 +336,7 @@ internal sealed class GuardedTransport : IDisposable
         SocketsHttpConnectionContext context, CancellationToken cancellationToken)
     {
         // The address was checked in SendAsync and carried here on the request, so the value
-        // connected to is the value validated — there is no second DNS lookup between the two.
+        // connected to is the value validated - there is no second DNS lookup between the two.
         if (!context.InitialRequestMessage.Options.TryGetValue(ValidatedAddressKey, out var address))
         {
             throw new InvalidOperationException(

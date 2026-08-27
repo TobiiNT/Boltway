@@ -11,7 +11,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// <para>
 /// The consent page holds a URL, not a decision, and re-derives everything from it. That was true of
-/// stages 1 to 8 — client resolution, exact redirect matching, PKCE, scope — and false of stages 9
+/// stages 1 to 8 - client resolution, exact redirect matching, PKCE, scope - and false of stages 9
 /// and 10, which existed only in the authorization endpoint. Two adversarial probes reached an
 /// authorization code through the gap, one past an explicit policy refusal and one past an
 /// unsatisfied <c>max_age</c>.
@@ -33,7 +33,7 @@ public sealed partial class InteractionFlowTests
     /// is the seam a deployment uses for a client blocklist, a per-tenant allowlist or a risk
     /// engine. Measured before the fix: <c>/authorize</c> redirected with <c>access_denied</c>, and
     /// <c>GET /consent</c> on the same returnUrl rendered a full approve form whose POST returned
-    /// <c>?code=bw_ac_…</c>. No CSRF and no interception needed — any signed-in user, one URL.
+    /// <c>?code=bw_ac_…</c>. No CSRF and no interception needed - any signed-in user, one URL.
     /// </remarks>
     [Fact]
     public async Task A_denied_policy_cannot_be_bypassed_by_posting_to_the_consent_page()
@@ -74,7 +74,7 @@ public sealed partial class InteractionFlowTests
     /// The seeded session authenticates at 11:00 and the clock reads 12:00, so <c>max_age=60</c> is
     /// an hour past. Measured before the fix: <c>/authorize</c> sent the user to <c>/login</c>, and
     /// posting the same returnUrl to <c>/consent</c> returned a code carrying the hour-old
-    /// <c>auth_time</c> — so a relying party that asked for recent authentication was told it
+    /// <c>auth_time</c> - so a relying party that asked for recent authentication was told it
     /// happened. OIDC Core §3.1.2.1 makes the re-authentication a MUST.
     /// </remarks>
     [Theory]
@@ -117,7 +117,7 @@ public sealed partial class InteractionFlowTests
     /// The control: with a fresh session and a permitting policy, the same POST does issue a code.
     /// </summary>
     /// <remarks>
-    /// Without this, both tests above are satisfied by a consent endpoint that refuses everything —
+    /// Without this, both tests above are satisfied by a consent endpoint that refuses everything -
     /// which is a different bug with the same green tick, and one that would break both vendors.
     /// </remarks>
     [Fact]
@@ -153,7 +153,7 @@ public sealed partial class InteractionFlowTests
     /// </para>
     /// <para>
     /// Both directions are asserted: the name arrives intact once decoded, and the raw
-    /// <c>&lt;script&gt;</c> does not appear — encoding once is the requirement, not encoding less.
+    /// <c>&lt;script&gt;</c> does not appear - encoding once is the requirement, not encoding less.
     /// </para>
     /// </remarks>
     [Fact]
@@ -188,7 +188,7 @@ public sealed partial class InteractionFlowTests
     /// <remarks>
     /// The cap exists so a name cannot push the client's real hostname off the screen. Double
     /// encoding expanded each <c>&lt;</c> to six rendered characters, so a name at the 64-character
-    /// limit displayed as roughly 256 — about four times the intended budget, which is the failure
+    /// limit displayed as roughly 256 - about four times the intended budget, which is the failure
     /// the cap was written to prevent, arriving through the encoder instead of through the length.
     /// </remarks>
     [Fact]
@@ -210,7 +210,7 @@ public sealed partial class InteractionFlowTests
         //
         // The longest run of encoded angle brackets, which is the name and nothing else. It used to
         // be the text between "It calls itself &ldquo;" and "&rdquo;", and that stopped matching the
-        // moment those words became a translatable string — the quotation marks belong to a sentence
+        // moment those words became a translatable string - the quotation marks belong to a sentence
         // a deployment owns now, and they arrive as &#8220; rather than &ldquo;. A test anchored on
         // prose fails on the translation rather than on the defect, which is why the renderer
         // contract next door refuses to assert wording at all.
@@ -259,7 +259,7 @@ public sealed partial class InteractionFlowTests
     /// <param name="policy">
     /// What the fixture's policy answers. For the denied case the page is fetched from a *separate*
     /// fixture that permits, because a denied policy is exactly what stops the page rendering once
-    /// the fix is in — and the returnUrl, which is all the POST actually carries, is identical
+    /// the fix is in - and the returnUrl, which is all the POST actually carries, is identical
     /// either way. That is the point of the attack: the URL is not a capability.
     /// </param>
     private static async Task<(string Field, string Token, string ReturnUrl)> ConsentFormAsync(
@@ -274,8 +274,8 @@ public sealed partial class InteractionFlowTests
 
             var borrowed = FormFields(page);
 
-            // The antiforgery pair has to come from the fixture the POST goes to — it is bound to
-            // that host's data-protection keys — so only the returnUrl is borrowed.
+            // The antiforgery pair has to come from the fixture the POST goes to - it is bound to
+            // that host's data-protection keys - so only the returnUrl is borrowed.
             var (field, token, _) = await ConsentTokenFromLoginAsync(fixture);
 
             return (field, token, borrowed.ReturnUrl);

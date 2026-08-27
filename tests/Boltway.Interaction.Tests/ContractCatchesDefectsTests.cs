@@ -16,7 +16,7 @@ public enum Defect
     /// <summary>A renderer that satisfies the whole contract. The control.</summary>
     None = 0,
 
-    /// <summary>The self-asserted name leads and the hostname follows it — N-14 reversed.</summary>
+    /// <summary>The self-asserted name leads and the hostname follows it - N-14 reversed.</summary>
     NameBeforeHost = 1,
 
     /// <summary>The name is printed with nothing next to it saying it is unverified.</summary>
@@ -25,16 +25,16 @@ public enum Defect
     /// <summary><see cref="ConsentViewModel.RedirectsToThisDevice"/> is ignored.</summary>
     NoDeviceWarning = 1 << 2,
 
-    /// <summary>An undescribed scope renders as bare text, with no configuration warning — A-14.</summary>
+    /// <summary>An undescribed scope renders as bare text, with no configuration warning - A-14.</summary>
     NoUndescribedWarning = 1 << 3,
 
-    /// <summary>A configured-but-unavailable provider is dropped instead of disabled — A-11.</summary>
+    /// <summary>A configured-but-unavailable provider is dropped instead of disabled - A-11.</summary>
     DropDisabledProvider = 1 << 4,
 
     /// <summary>Interpolated values are written through unencoded.</summary>
     NoEncoding = 1 << 5,
 
-    /// <summary>Interpolated values are encoded twice — the mojibake regression.</summary>
+    /// <summary>Interpolated values are encoded twice - the mojibake regression.</summary>
     DoubleEncode = 1 << 6,
 
     /// <summary>A <c>style</c> attribute the page's own CSP refuses.</summary>
@@ -48,13 +48,13 @@ public enum Defect
 
     /// <summary>
     /// <see cref="LogoutViewModel.State"/> is ignored, so both halves of the sign-out page render as
-    /// the confirmation — what a renderer written against an older model produces.
+    /// the confirmation - what a renderer written against an older model produces.
     /// </summary>
     IgnoreLogoutState = 1 << 10,
 
     /// <summary>
     /// <see cref="LoginViewModel.PasswordRecoveryEnabled"/> is ignored, so the sign-in page never
-    /// offers a reset — a deployment with recovery configured that nobody in a browser can reach.
+    /// offers a reset - a deployment with recovery configured that nobody in a browser can reach.
     /// </summary>
     DropForgotLink = 1 << 11,
 }
@@ -64,7 +64,7 @@ public enum Defect
 /// </summary>
 /// <remarks>
 /// <para>
-/// A suite that passes against the implementation it was written for has demonstrated nothing —
+/// A suite that passes against the implementation it was written for has demonstrated nothing -
 /// every assertion could be tautological and the run would look identical. What makes a contract
 /// worth shipping is evidence that each guard bites, so each row below breaks exactly one rule and
 /// names the test that must notice.
@@ -72,7 +72,7 @@ public enum Defect
 /// <para>
 /// <b><see cref="Defect.None"/> is the control, and it is the row that makes the others mean
 /// something.</b> Without it, a sabotaged renderer failing its guard could equally be a renderer
-/// that fails everything for an unrelated reason — the defect would not be attributable. The control
+/// that fails everything for an unrelated reason - the defect would not be attributable. The control
 /// asserts the same renderer with no defect passes the entire contract, so a failure elsewhere is
 /// the one defect that was introduced.
 /// </para>
@@ -128,8 +128,8 @@ public sealed class ContractCatchesDefectsTests
             .ToList();
 
         // A control that controls nothing is worse than none, because it reports as a pass. If the
-        // reflection above ever stops matching — a renamed attribute, a contract test that grows a
-        // parameter — this is what says so instead of quietly asserting over an empty list. The
+        // reflection above ever stops matching - a renamed attribute, a contract test that grows a
+        // parameter - this is what says so instead of quietly asserting over an empty list. The
         // number is the count of parameterless [Fact]s on the contract; raise it when one is added.
         Assert.Equal(35, tests.Count);
 
@@ -287,7 +287,7 @@ public sealed class ContractCatchesDefectsTests
         /// </summary>
         /// <remarks>
         /// <c>IInteractionRenderer.RenderLogout</c> has a default implementation, so a renderer that
-        /// says nothing about sign-out silently gets the library's correct one — and a sabotage suite
+        /// says nothing about sign-out silently gets the library's correct one - and a sabotage suite
         /// probing that renderer would be probing the shipped page, not the customer's. The defect
         /// this file has to be able to introduce is the one a real implementation makes: writing the
         /// page and ignoring the state.

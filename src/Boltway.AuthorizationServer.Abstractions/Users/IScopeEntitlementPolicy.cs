@@ -15,7 +15,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Users;
 /// <para>
 /// <b>It filters, it does not refuse.</b> OAuth already means "granted may be narrower than
 /// requested", so a demotion should shrink what a client gets rather than stop it connecting. If
-/// filtering leaves the set empty, <i>that</i> is <c>invalid_scope</c> — the client asked for
+/// filtering leaves the set empty, <i>that</i> is <c>invalid_scope</c> - the client asked for
 /// nothing it can have.
 /// </para>
 /// <para>

@@ -15,7 +15,7 @@ namespace Boltway.AdminBff;
 /// these. The cost was always real; what changed is that the reader appeared.
 /// </para>
 /// <para>
-/// <b>Constants with English defaults, not a resx</b> — the same shape as
+/// <b>Constants with English defaults, not a resx</b> - the same shape as
 /// <c>Boltway.AuthorizationServer.Interaction.InteractionText</c>, and for the same reason:
 /// satellite assemblies belong to the assembly that owns the resource file, so a customer could
 /// never add a language to ours. English lives here and a missing translation falls back to it, one
@@ -23,7 +23,7 @@ namespace Boltway.AdminBff;
 /// </para>
 /// <para>
 /// <b>Per-string fallback is the property that matters.</b> A half-finished translation is a
-/// half-translated page rather than a broken one — the deployment's own notes describe a founder
+/// half-translated page rather than a broken one - the deployment's own notes describe a founder
 /// meeting a Vietnamese page with "Change your password" in the middle of it, which is this working
 /// rather than failing. It is also why translating three sentences and leaving forty was not an
 /// option: that is the same page, produced on purpose.
@@ -40,7 +40,7 @@ public sealed class AdminText
     /// The one key in a translation file that is not a sentence: the language its sentences are in.
     /// </summary>
     /// <remarks>
-    /// <c>$</c>-prefixed so it cannot collide with a real key — every constant on this class is a
+    /// <c>$</c>-prefixed so it cannot collide with a real key - every constant on this class is a
     /// <c>nameof</c>, and no C# identifier starts with <c>$</c>.
     /// </remarks>
     public const string LanguageKey = "$language";
@@ -63,19 +63,19 @@ public sealed class AdminText
     }
 
     /// <summary>
-    /// The BCP 47 tag for the <c>lang</c> attribute — <c>en</c> unless the file says otherwise.
+    /// The BCP 47 tag for the <c>lang</c> attribute - <c>en</c> unless the file says otherwise.
     /// </summary>
     /// <remarks>
     /// <para>
     /// It lives in the translation file rather than in its own environment variable so that the
     /// page's <c>lang</c> cannot disagree with the words on it. Two settings that must be kept in
-    /// step is how a Vietnamese page ends up declaring itself English — which is not cosmetic: a
+    /// step is how a Vietnamese page ends up declaring itself English - which is not cosmetic: a
     /// screen reader pronounces the page with the wrong phonology, and a browser offers to
     /// translate it from a language it is not in.
     /// </para>
     /// <para>
     /// A file that does not say gets <c>en</c>, which is what its untranslated keys fall back to.
-    /// That is wrong for a file translated into something else and silent about it — but it is the
+    /// That is wrong for a file translated into something else and silent about it - but it is the
     /// same answer the sentences themselves give, so the page stays internally consistent rather
     /// than claiming a language on no evidence.
     /// </para>
@@ -95,7 +95,7 @@ public sealed class AdminText
     /// <param name="key">One of the constants on this class.</param>
     /// <remarks>
     /// <para>
-    /// The indexer is the safe path and this is not — anything from here that reaches HTML without
+    /// The indexer is the safe path and this is not - anything from here that reaches HTML without
     /// being encoded is an injection. It exists for one context: a <c>&lt;title&gt;</c>, which
     /// <see cref="IAdminLayout"/> encodes itself because the other thing it renders there is a handle
     /// an operator typed. <see cref="AdminPage.Title"/> is plain text for that reason.
@@ -111,18 +111,18 @@ public sealed class AdminText
     /// <c>InteractionText.Default</c> in the library does and is the direction chosen on purpose.
     /// Returning the key is the quieter of the two and the more expensive: it puts
     /// <c>RoleHoldersTruncated</c> on a page as though it were a sentence, in front of the operator,
-    /// with nothing in any log saying so — the same defect the library's <c>Localized</c> records
+    /// with nothing in any log saying so - the same defect the library's <c>Localized</c> records
     /// arriving from a localizer that answers with the key, and the reason its fallback is explicit
     /// there. Throwing costs nothing a deployment can trip over, because the only keys that reach
     /// here are the constants on this class: a deployment's file is data on the other side of
     /// <see cref="Keys"/>, its unknown entries are warned about at startup and never looked up, and
     /// a missing one falls back to English one string at a time. What is left is a key this build
     /// ships with no sentence behind it, and <c>Every_key_is_reachable_from_a_page</c> renders every
-    /// page in the suite — so that becomes a red test rather than a page an operator screenshots.
+    /// page in the suite - so that becomes a red test rather than a page an operator screenshots.
     /// </para>
     /// <para>
-    /// A caller holding a string that <i>might</i> not be a key — the <c>?notice=</c> query
-    /// parameter is the one — asks <see cref="NoticeKeys"/> first rather than handing it here.
+    /// A caller holding a string that <i>might</i> not be a key - the <c>?notice=</c> query
+    /// parameter is the one - asks <see cref="NoticeKeys"/> first rather than handing it here.
     /// </para>
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">No such key.</exception>
@@ -234,7 +234,7 @@ public sealed class AdminText
     /// <summary>Checkbox: this account may still sign in.</summary>
     public const string SignInAllowed = nameof(SignInAllowed);
 
-    /// <summary>What disabling does and — the part people miss — what it does not.</summary>
+    /// <summary>What disabling does and - the part people miss - what it does not.</summary>
     public const string SignInAllowedNote = nameof(SignInAllowedNote);
 
     /// <summary>Heading for the service-account section.</summary>
@@ -260,8 +260,8 @@ public sealed class AdminText
     /// That the ticked set is the whole grant, and that an empty one is refused.
     /// </summary>
     /// <remarks>
-    /// Said before the button rather than discovered after it. The server refuses an empty set —
-    /// a credential that can never obtain a token is worse than a refusal — and this is the
+    /// Said before the button rather than discovered after it. The server refuses an empty set -
+    /// a credential that can never obtain a token is worse than a refusal - and this is the
     /// sentence that stops an operator meeting that refusal at all.
     /// </remarks>
     public const string ServiceAccountScopesRequired = nameof(ServiceAccountScopesRequired);
@@ -291,7 +291,7 @@ public sealed class AdminText
     public const string ServiceAccountRotate = nameof(ServiceAccountRotate);
 
     /// <summary>
-    /// What rotating does — and the two halves of it people get wrong in opposite directions.
+    /// What rotating does - and the two halves of it people get wrong in opposite directions.
     /// </summary>
     /// <remarks>
     /// Both clauses are load-bearing. That the old secret dies <i>immediately</i> is the half an
@@ -390,7 +390,7 @@ public sealed class AdminText
     /// </summary>
     /// <remarks>
     /// Why this is a box rather than a list of checkboxes, said on the page for the operator who
-    /// wonders. The authorization server publishes scopes and does not publish permissions — they
+    /// wonders. The authorization server publishes scopes and does not publish permissions - they
     /// are the resource server's words, and offering a closed list would invent a rule nothing
     /// enforces.
     /// </remarks>
@@ -400,12 +400,12 @@ public sealed class AdminText
     public const string RolePermissionsChoose = nameof(RolePermissionsChoose);
 
     /// <summary>
-    /// The note under the picker, when there is one — replacing <see cref="RolePermissionsNote"/>,
+    /// The note under the picker, when there is one - replacing <see cref="RolePermissionsNote"/>,
     /// which says the server cannot offer a list and stops being true the moment one is offered.
     /// </summary>
     /// <remarks>
     /// Both clauses are load-bearing: that the list is the deployment's own copy rather than the
-    /// server's rule, and that a held permission outside it still renders, ticked — because the
+    /// server's rule, and that a held permission outside it still renders, ticked - because the
     /// operator who cannot see where an unlisted permission went will conclude it was lost.
     /// </remarks>
     public const string RolePermissionsListedNote = nameof(RolePermissionsListedNote);
@@ -413,7 +413,7 @@ public sealed class AdminText
     /// <summary>Label over the accounts that hold a role.</summary>
     public const string RoleHolders = nameof(RoleHolders);
 
-    /// <summary>Said when no account holds the role — next to the delete button, on purpose.</summary>
+    /// <summary>Said when no account holds the role - next to the delete button, on purpose.</summary>
     public const string RoleHoldersNone = nameof(RoleHoldersNone);
 
     /// <summary>The count on a role's row, with <c>{0}</c> as the number.</summary>
@@ -424,7 +424,7 @@ public sealed class AdminText
     /// </summary>
     /// <remarks>
     /// Shown page-level when the account walk hit its cap. Without it, a role whose holders are
-    /// all beyond the cap reads as held by nobody — on the page with the delete button.
+    /// all beyond the cap reads as held by nobody - on the page with the delete button.
     /// </remarks>
     public const string RoleHoldersTruncated = nameof(RoleHoldersTruncated);
 
@@ -454,8 +454,8 @@ public sealed class AdminText
     /// </summary>
     /// <remarks>
     /// Both clauses are load-bearing and neither may be dropped. The assignments go with the
-    /// definition — that is the store's documented behaviour, chosen so no row names a definition
-    /// nobody can read — and an account left holding no role does not keep what it had.
+    /// definition - that is the store's documented behaviour, chosen so no row names a definition
+    /// nobody can read - and an account left holding no role does not keep what it had.
     /// </remarks>
     public const string RoleDeleteCaveat = nameof(RoleDeleteCaveat);
 
@@ -468,7 +468,7 @@ public sealed class AdminText
     // ── what just happened ──────────────────────────────────────────────────
     //
     // The banner a write redirects to its page with. These are the sentences that were literals in
-    // Program.cs — written straight into `?notice=` and printed by the renderer — so every write in
+    // Program.cs - written straight into `?notice=` and printed by the renderer - so every write in
     // a fully translated console produced one English line, which is the exact symptom this table
     // was built to stop.
     //
@@ -476,13 +476,13 @@ public sealed class AdminText
     // text from the query string reflected into the page, so any link could make this app's own
     // banner say anything: encoded, so never an injection, and still a sentence an operator reads as
     // their own console speaking. Now the parameter is matched against NoticeKeys and anything else
-    // renders nothing at all — a crafted link can choose which of six sentences appears, and cannot
+    // renders nothing at all - a crafted link can choose which of six sentences appears, and cannot
     // compose one. That property only holds while an unknown key renders nothing; echoing it back,
     // or handing it to the table, gives the channel straight back.
     //
     // The API's own refusals do not travel this way and must not start: `error_description` names
     // the rule that was broken, it is the authorization server's sentence rather than this app's,
-    // and a write the API refused renders RenderRefusal — where the sentence comes out of the
+    // and a write the API refused renders RenderRefusal - where the sentence comes out of the
     // response body instead of a query string somebody else can write.
 
     /// <summary>A write landed, and there is nothing more to say about it.</summary>
@@ -499,7 +499,7 @@ public sealed class AdminText
     /// </summary>
     /// <remarks>
     /// The only refusal that reaches a banner, because it is the only one with no server sentence
-    /// behind it — rotating a secret on an account whose service account is already gone, from a
+    /// behind it - rotating a secret on an account whose service account is already gone, from a
     /// page that was open while somebody deleted it. It claims nothing was changed, and the claim is
     /// sound rather than assumed: the check runs ahead of the call, so there is no write whose
     /// outcome is unknown. Everything the API refused keeps the API's own words on the refusal page.
@@ -522,7 +522,7 @@ public sealed class AdminText
     /// </summary>
     /// <remarks>
     /// Said on the account list, because the account page it was sent from no longer names anybody.
-    /// The second clause answers the question the first one raises — why the row is still there —
+    /// The second clause answers the question the first one raises - why the row is still there -
     /// before an operator concludes the deletion half-failed.
     /// </remarks>
     public const string NoticeAnonymised = nameof(NoticeAnonymised);
@@ -644,7 +644,7 @@ public sealed class AdminText
         // The last clause used to read "— end every session to cut those off", and it was false.
         // `RevokeSessionsAsync` stops refresh chains; an access token is a signed JWT that no
         // resource server checks against a denylist, and `IGrantStore.IsRevokedAsync` has no
-        // production caller in either repository — a test in Boltway.OAuth.Tokens.Tests says
+        // production caller in either repository - a test in Boltway.OAuth.Tokens.Tests says
         // so in as many words. `UserAdministration` says it too: "Refresh chains stop immediately;
         // access tokens do not… an operator responding to a compromise should know which of the
         // two they just did." The caveat on the button seven lines below already said the true

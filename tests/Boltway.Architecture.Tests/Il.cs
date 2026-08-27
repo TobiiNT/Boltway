@@ -18,8 +18,8 @@ internal static class Il
     /// <remarks>
     /// <para>
     /// This was a hand-maintained array, and a review measured what that costs. Deleting one entry
-    /// silently removed five rules' coverage of that assembly — three planted violations went from
-    /// three failures to zero — with the suite still reporting 11/11. Two shipping assemblies with
+    /// silently removed five rules' coverage of that assembly - three planted violations went from
+    /// three failures to zero - with the suite still reporting 11/11. Two shipping assemblies with
     /// real code were already missing, and the comment explaining the membership criterion described
     /// a grant that no longer exists, so the one thing a maintainer would read to decide whether to
     /// add an assembly was wrong.
@@ -31,7 +31,7 @@ internal static class Il
     /// it builds, without anyone remembering.
     /// </para>
     /// <para>
-    /// Test assemblies are excluded because the rules are about shipped behaviour — a test may
+    /// Test assemblies are excluded because the rules are about shipped behaviour - a test may
     /// legitimately construct a hostile <see cref="Uri"/> or call a banned API to prove a guard
     /// fires, and several do.
     /// </para>
@@ -106,7 +106,7 @@ internal static class Il
     /// </summary>
     /// <remarks>
     /// A call inside an <c>async</c> method or a lambda is emitted into a compiler-generated nested
-    /// type — <c>AuthorizeEndpoint/&lt;HandleAsync&gt;d__1</c> — so a call-site rule comparing
+    /// type - <c>AuthorizeEndpoint/&lt;HandleAsync&gt;d__1</c> - so a call-site rule comparing
     /// <c>FullName</c> against the type a person wrote does not match it. Every such rule was
     /// therefore blind to any call made from an async method, which in this codebase is most of
     /// them. Walking out to the outermost declaring type fixes all of them at once, and here rather
@@ -124,7 +124,7 @@ internal static class Il
         return current.FullName;
     }
 
-    /// <summary>Nested types included — a lambda's closure is a nested type, and IL lands there.</summary>
+    /// <summary>Nested types included - a lambda's closure is a nested type, and IL lands there.</summary>
     private static IEnumerable<TypeDefinition> AllTypes(IEnumerable<TypeDefinition> types)
     {
         foreach (var type in types)
@@ -177,7 +177,7 @@ internal static class Il
     /// <remarks>
     /// Exposed so a rule can assert it is zero. Cecil raises
     /// <see cref="AssemblyResolutionException"/> for a target in an assembly it cannot find, and
-    /// swallowing that silently truncates the walk — which would turn a reachability rule green by
+    /// swallowing that silently truncates the walk - which would turn a reachability rule green by
     /// failing to look, on a machine configured slightly differently from this one. Counting it
     /// makes the difference between "found no violation" and "did not look" observable.
     /// </remarks>

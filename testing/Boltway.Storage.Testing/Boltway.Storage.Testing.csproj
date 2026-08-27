@@ -4,7 +4,7 @@
     The storage contracts, as something a customer can reference.
 
     They lived in Boltway.Storage.Tests, which was `IsPackable=true` with the right reason written
-    on it — a store contract nobody outside this repository can run is a contract only this
+    on it - a store contract nobody outside this repository can run is a contract only this
     repository is held to. What it published was not usable, and it is the same three defects
     Boltway.Interaction.Testing was split out to fix, measured again on the packed output:
 
@@ -20,12 +20,12 @@
     The fix was written once and applied to the interaction half only. This is the storage half,
     and it is the half that reached nuget.org: Boltway.Storage.Tests 0.1.0 is on the feed with all
     three defects in it, and nuget.org has no delete. That package is superseded by this one rather
-    than replaced — the id stays taken.
+    than replaced - the id stays taken.
 
     So: the abstract contracts live here, with xunit and nothing else. The derivations stay next
     door, where they are this repository's tests rather than anybody's contract.
 
-    No test runner here on purpose. This assembly is never executed by itself — a customer's own
+    No test runner here on purpose. This assembly is never executed by itself - a customer's own
     test project supplies the runner, and adding one would put a second copy in their build.
   -->
 
@@ -43,7 +43,7 @@
 
       **The condition is how this expires, and it is a condition rather than a note for a reason.**
       This said "remove this the release after the first one that ships it", which is an instruction
-      to somebody who has to remember it — a year later, mid-release, in a file nobody opens unless
+      to somebody who has to remember it - a year later, mid-release, in a file nobody opens unless
       they are changing the contracts. The moment the baseline moves off 0.1.0 it names a version
       this id actually has, and the opt-out stops applying by itself. Nothing to remember, and no
       release where the check is off for a reason that has already stopped being true.
@@ -58,7 +58,7 @@
 
     <!--
       CA1707 (no underscores in a public member name) off, CS1591 (missing XML comment) left on,
-      and the split is the point — the same reasoning as Boltway.Interaction.Testing.
+      and the split is the point - the same reasoning as Boltway.Interaction.Testing.
 
       The names are underscored because a contract method's name is what a customer reads in their
       own test runner when it fails: `Redeeming_many_times_in_parallel_still_succeeds_exactly_once`

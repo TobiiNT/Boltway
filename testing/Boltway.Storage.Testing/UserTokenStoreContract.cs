@@ -15,7 +15,7 @@ namespace Boltway.Storage.Testing;
 /// </para>
 /// <para>
 /// <b>The single-use clause is the one an implementation gets wrong.</b> The obvious shape is a read
-/// followed by a delete, and it passes every test written as "redeem, then redeem again" — because
+/// followed by a delete, and it passes every test written as "redeem, then redeem again" - because
 /// that is sequential. What it fails is two presentations at once, which is a person double-clicking
 /// their own mail on a good day and somebody racing a stolen link on a bad one.
 /// </para>
@@ -119,7 +119,7 @@ public abstract class UserTokenStoreContract
     {
         // The reason the purpose is stored rather than inferred from which endpoint is asking. A
         // verification link redeemable at the reset endpoint would let anyone who can receive a
-        // "confirm your address" mail set the password — and that mail goes to an address somebody
+        // "confirm your address" mail set the password - and that mail goes to an address somebody
         // typed, sometimes before anyone has proven it is theirs.
         var store = NewTokenStore();
 
@@ -204,8 +204,8 @@ public abstract class UserTokenStoreContract
         Assert.Null(await store.RedeemAsync(
             HashOf("a2"), UserTokenPurpose.PasswordReset, Now, CancellationToken.None));
 
-        // Ada's verification link survives — changing a password says nothing about whether an
-        // address is hers — and so does Grace's reset link, which is the control that catches a
+        // Ada's verification link survives - changing a password says nothing about whether an
+        // address is hers - and so does Grace's reset link, which is the control that catches a
         // predicate missing its subject clause.
         Assert.NotNull(await store.RedeemAsync(
             HashOf("av"), UserTokenPurpose.EmailVerification, Now, CancellationToken.None));
@@ -220,7 +220,7 @@ public abstract class UserTokenStoreContract
     public async Task Deleting_for_a_subject_with_no_tokens_is_zero_rather_than_an_error()
     {
         // Every password change calls it, and most accounts have never asked for a reset. If this
-        // were a failure the ordinary case would be the broken one — and S-48 makes it worse than
+        // were a failure the ordinary case would be the broken one - and S-48 makes it worse than
         // that: the unfound path of a reset request runs this too, precisely so the timing does not
         // distinguish a real account from an invented one.
         var store = NewTokenStore();

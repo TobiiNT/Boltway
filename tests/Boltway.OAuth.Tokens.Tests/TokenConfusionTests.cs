@@ -56,7 +56,7 @@ public sealed class TokenConfusionTests
     {
         // The attack N-09 exists for, and it is not exotic: the client legitimately HOLDS an ID
         // token. It is signed by the same key, carries the same iss and the same sub, and is not
-        // expired. Only `typ` distinguishes it — and TokenValidationParameters.ValidTypes is unset
+        // expired. Only `typ` distinguishes it - and TokenValidationParameters.ValidTypes is unset
         // by default, so a resource server built the obvious way accepts it.
         var now = DateTimeOffset.UtcNow;
         var key = NewKey();
@@ -114,13 +114,13 @@ public sealed class TokenConfusionTests
     public void An_id_token_carries_typ_JWT()
     {
         // The counterpart the assertion above never had. N-09 is stated in both directions by the
-        // two "not accepted as" tests, but both of those ALSO fail on the audience — an ID token's
-        // aud is the client and an access token's is the resource — so an ID token minted with
+        // two "not accepted as" tests, but both of those ALSO fail on the audience - an ID token's
+        // aud is the client and an access token's is the resource - so an ID token minted with
         // `typ: at+jwt` breaks neither of them. Measured: with the ID token's type header swapped
         // for the access token's, every pre-existing test in this file still passed.
         //
         // What that costs is the one distinction RFC 9068 §2.1 exists to make. A resource server
-        // that pins `typ` and takes the audience from configuration — the shape §4 sanctions —
+        // that pins `typ` and takes the audience from configuration - the shape §4 sanctions -
         // would then accept an ID token, which the client legitimately holds, as an access token.
         var minted = Minter.MintIdToken(IdToken(DateTimeOffset.UtcNow), NewKey());
 
@@ -170,7 +170,7 @@ public sealed class TokenConfusionTests
     public async Task A_token_for_one_resource_is_refused_at_another()
     {
         // N-01 end to end. RFC 8707 registers no discovery flag, so a client cannot tell whether a
-        // server honours `resource` — which is why a server that ignores it is a real problem
+        // server honours `resource` - which is why a server that ignores it is a real problem
         // rather than a pedantic one: connect one malicious MCP server and its operator holds a
         // token that works at all the others.
         var now = DateTimeOffset.UtcNow;
@@ -233,13 +233,13 @@ public sealed class TokenConfusionTests
     [Fact]
     public void An_access_token_names_its_grant_in_gid()
     {
-        // `gid` is not on RFC 9068's required list, so the check above walks straight past it —
+        // `gid` is not on RFC 9068's required list, so the check above walks straight past it -
         // which is how renaming or dropping the claim broke no test at all.
         //
         // It is the whole of the revocation story. Access tokens are self-contained JWTs: nothing
         // is looked up when one is presented, so "revoking" one means recording its grant id on a
         // denylist and having the resource server refuse tokens that carry it. IGrantStore.
-        // RevokeAsync's remarks put it plainly — this is "why the access token carries a grant id
+        // RevokeAsync's remarks put it plainly - this is "why the access token carries a grant id
         // at all". Without the claim the denylist is inert: it fills up correctly, matches
         // nothing, and every revoked grant's access tokens keep working until they expire. No
         // signature check, no lifetime check and no audience check notices.

@@ -6,7 +6,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Resources;
 
 /// <summary>A protected resource this server issues tokens for.</summary>
 /// <param name="Resource">
-/// The canonical identifier, exactly as registered. Any HTTPS URL, path included — A-22, because an
+/// The canonical identifier, exactly as registered. Any HTTPS URL, path included - A-22, because an
 /// MCP server lives at <c>https://mcp.example.com/mcp</c> and a scheme that demanded a proprietary
 /// namespace would be one more ceremony between a customer and a working connector.
 /// </param>
@@ -28,13 +28,13 @@ public sealed record ResourceRegistration(
 /// <para>
 /// N-01's chokepoint. Inside the authorization server the only way to obtain a
 /// <see cref="ResourceIdentifier"/> is <see cref="ResolveAsync"/>, and an access token cannot be
-/// minted without one — so "accept the <c>resource</c> parameter and ignore it" and "stamp a house
+/// minted without one - so "accept the <c>resource</c> parameter and ignore it" and "stamp a house
 /// default" have no code path there.
 /// </para>
 /// <para>
 /// <b>What enforces that is a build gate, not the type system, and the difference matters.</b>
 /// <see cref="ResourceIdentifier.TryRegister"/> is <see langword="public"/>, because this interface
-/// is public and required and an implementation has to be able to return one — it was
+/// is public and required and an implementation has to be able to return one - it was
 /// <see langword="internal"/> for a period, during which no assembly outside the Boltway
 /// repository could implement <c>IResourceRegistry</c> at all. Who may call it is instead held by an
 /// IL rule over call sites, <c>Only_a_resource_registry_mints_a_resource_identifier</c>, which scans
@@ -50,7 +50,7 @@ public sealed record ResourceRegistration(
 /// That matters because RFC 8707 registers no discovery metadata field, so a client has <b>no way
 /// to detect</b> a server that ignores <c>resource</c>. A server that does issues tokens valid
 /// everywhere the user has access, and a user who connects one hostile MCP server hands its
-/// operator a token that works at all the others — with the client having done everything right.
+/// operator a token that works at all the others - with the client having done everything right.
 /// </para>
 /// </remarks>
 public interface IResourceRegistry
@@ -73,7 +73,7 @@ public interface IResourceRegistry
     /// <remarks>
     /// A-02: consulted <b>only</b> when <c>resource</c> is absent, never as a fallback when one was
     /// sent and did not resolve. Returning <see langword="null"/> when more than one resource is
-    /// registered is correct — silently picking one would make the audience depend on registration
+    /// registered is correct - silently picking one would make the audience depend on registration
     /// order.
     /// </remarks>
     ValueTask<ResourceIdentifier?> DefaultForAsync(ClientRecord client, CancellationToken cancellationToken);
@@ -89,14 +89,14 @@ public interface IResourceRegistry
     /// <para>
     /// <b>Separate from <see cref="DefaultForAsync"/> because the question is different.</b> That
     /// one asks "is there one unambiguous resource here", and A-02 answers no as soon as there are
-    /// two — picking one would make the audience of every token depend on dictionary order. This
+    /// two - picking one would make the audience of every token depend on dictionary order. This
     /// one asks something narrower: a request carrying nothing but OIDC's own scopes is not asking
     /// to reach a protected resource at all, it is asking who the user is, and the answer to *that*
     /// is not ambiguous however many resources are registered.
     /// </para>
     /// <para>
     /// <b>The caller must have established that the scope set is purely OIDC before calling this.</b>
-    /// An implementation cannot check it — it is handed a client, not a scope set — so the guarantee
+    /// An implementation cannot check it - it is handed a client, not a scope set - so the guarantee
     /// lives at the call site. Calling it for a request that asks for anything else would hand that
     /// request an audience it did not name, which is the confused-deputy problem RFC 8707 exists to
     /// prevent.

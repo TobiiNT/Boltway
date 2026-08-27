@@ -37,7 +37,7 @@ public readonly struct Sha256Hash : IEquatable<Sha256Hash>
     public static Sha256Hash Of(in OpaqueSecret secret) => OfString(secret.Wire);
 
     /// <summary>
-    /// Hash an arbitrary string. Used for lookup keys that are not secrets — a CIMD
+    /// Hash an arbitrary string. Used for lookup keys that are not secrets - a CIMD
     /// <c>client_id</c> URL used as a cache key, for instance.
     /// </summary>
     public static Sha256Hash OfString(string value)
@@ -47,7 +47,7 @@ public readonly struct Sha256Hash : IEquatable<Sha256Hash>
         // Strict UTF-8, and the strictness is the point.
         //
         // The permissive encoder replaces every lone surrogate with U+FFFD, so "\uD800",
-        // "\uDC00" and "\uFFFD" all hash identically — the exact "two different inputs hash the
+        // "\uDC00" and "\uFFFD" all hash identically - the exact "two different inputs hash the
         // same" that choosing UTF-8 over ASCII was supposed to avoid. This overload keys CIMD
         // cache entries by client_id, so a collision means two distinct clients sharing one cache
         // entry. Ill-formed UTF-16 cannot appear in a well-formed identifier, so throwing is
@@ -83,7 +83,7 @@ public readonly struct Sha256Hash : IEquatable<Sha256Hash>
     /// </summary>
     /// <remarks>
     /// Two uninitialised hashes compare equal, because <see cref="object.Equals(object)"/> requires
-    /// reflexivity and a type that breaks it corrupts every collection built on it — a
+    /// reflexivity and a type that breaks it corrupts every collection built on it - a
     /// <c>Dictionary&lt;Sha256Hash, …&gt;</c> could not find a key it had just stored, and a
     /// <c>HashSet</c> would accept the same value repeatedly. The safety property that matters
     /// belongs on <see cref="Matches"/>, which refuses an absent digest outright: an uninitialised

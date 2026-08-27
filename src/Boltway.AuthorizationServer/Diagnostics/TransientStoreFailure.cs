@@ -11,7 +11,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// <para>
 /// <b>The distinction is the whole value, and getting it wrong is worse in one direction than the
 /// other.</b> Too narrow and a database outage still answers <c>500</c>, which is where this
-/// started — no worse than before. Too broad and a genuine defect answers <c>503 Retry-After</c>,
+/// started - no worse than before. Too broad and a genuine defect answers <c>503 Retry-After</c>,
 /// which tells every client to keep trying and hides the bug behind a retry loop. So the test is
 /// the framework's own contract for "retry me" rather than a guess at which messages look
 /// infrastructural.
@@ -20,7 +20,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// <b><see cref="DbException.IsTransient"/> is that contract</b>, and it is BCL rather than
 /// provider surface: <c>System.Data.Common</c> ships in the shared framework, so this file compiles
 /// with no dependency on Npgsql, SQLite or anything else. A provider sets the flag for the errors it
-/// knows a caller may retry — connection failures, admission timeouts — and leaves it false for a
+/// knows a caller may retry - connection failures, admission timeouts - and leaves it false for a
 /// constraint violation or a syntax error, which is exactly the line that matters here.
 /// </para>
 /// <para>
@@ -32,8 +32,8 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// </para>
 /// <para>
 /// <b>The chain is walked, because the exception that reaches an endpoint is not the one that
-/// happened.</b> EF Core with <c>EnableRetryOnFailure</c> off — which <c>DESIGN.md</c> §1.2 requires
-/// on <c>/token</c> — recognises a transient provider error and rethrows it wrapped in an
+/// happened.</b> EF Core with <c>EnableRetryOnFailure</c> off - which <c>DESIGN.md</c> §1.2 requires
+/// on <c>/token</c> - recognises a transient provider error and rethrows it wrapped in an
 /// <see cref="InvalidOperationException"/> reading "An exception has been raised that is likely due
 /// to a transient failure." The <see cref="DbException"/> is then the inner. Testing only the
 /// outermost type would classify every real outage as a server fault, which is the production

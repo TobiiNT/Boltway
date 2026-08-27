@@ -26,7 +26,7 @@
   <!--
     The shipped assembly only, and deliberately no InternalsVisibleTo grant: this project is
     compiled against exactly what a customer has. If the contract ever needs an internal type to
-    express an assertion, that type belongs on the public surface instead — the customer writing
+    express an assertion, that type belongs on the public surface instead - the customer writing
     the renderer needs it just as much as the test does.
   -->
   <ItemGroup>

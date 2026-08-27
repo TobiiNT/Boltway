@@ -15,7 +15,7 @@ namespace Boltway.Mcp.Tests;
 /// <remarks>
 /// <para>
 /// <see cref="BoltwayExtensions.UseConnectorCaller"/> has to skip a request that routed to
-/// nothing — demanding a validated token for a path that is about to 404 is what turns a probe for
+/// nothing - demanding a validated token for a path that is about to 404 is what turns a probe for
 /// an unmapped subpath into a 500. But <c>GetEndpoint()</c> returning null also describes a
 /// pipeline where routing has not run at all, and skipping there would leave every real request
 /// unauthenticated. The two cases must be told apart by something, or the skip cannot be safe.
@@ -70,7 +70,7 @@ public sealed class EndpointFeatureProbeTests
 
     /// <summary>
     /// Routing ran and matched nothing: the feature is absent too, not merely empty. So
-    /// <c>IEndpointFeature</c> does not separate the two cases — measured, against the guess that
+    /// <c>IEndpointFeature</c> does not separate the two cases - measured, against the guess that
     /// an unmatched request would carry the feature with a null endpoint.
     /// </summary>
     [Fact]
@@ -80,7 +80,7 @@ public sealed class EndpointFeatureProbeTests
     }
 
     /// <summary>
-    /// Middleware genuinely ahead of routing sees neither — the same pair as an unmatched request.
+    /// Middleware genuinely ahead of routing sees neither - the same pair as an unmatched request.
     /// Nothing in the context tells them apart, which is why the skip cannot be written as "no
     /// endpoint, therefore unrouted".
     /// </summary>

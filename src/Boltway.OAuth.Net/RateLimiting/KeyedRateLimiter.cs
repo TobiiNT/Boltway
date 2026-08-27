@@ -6,7 +6,7 @@ namespace Boltway.OAuth.Net.RateLimiting;
 /// <param name="Allowed">Whether the attempt may proceed.</param>
 /// <param name="RetryAfter">
 /// How long until the key is admissible again. <see cref="TimeSpan.Zero"/> when
-/// <paramref name="Allowed"/>, and always positive when it is not — X-31 requires a
+/// <paramref name="Allowed"/>, and always positive when it is not - X-31 requires a
 /// <c>Retry-After</c>, and a zero there tells a client to retry immediately.
 /// </param>
 public readonly record struct RateDecision(bool Allowed, TimeSpan RetryAfter)
@@ -42,7 +42,7 @@ public sealed class KeyedRateLimiterOptions
     public TimeSpan MaxBackoff { get; set; } = TimeSpan.FromMinutes(15);
 
     /// <summary>
-    /// How long a key must be untouched before its history — counters <b>and</b> escalation — is
+    /// How long a key must be untouched before its history - counters <b>and</b> escalation - is
     /// forgotten.
     /// </summary>
     /// <remarks>
@@ -55,7 +55,7 @@ public sealed class KeyedRateLimiterOptions
     /// How many keys may be tracked at once.
     /// </summary>
     /// <remarks>
-    /// A bound, because the key is attacker-chosen in every use here — a <c>client_id</c> URL, a
+    /// A bound, because the key is attacker-chosen in every use here - a <c>client_id</c> URL, a
     /// remote host, a submitted username, a source address. Without it the limiter is itself the
     /// memory-exhaustion primitive it was added to prevent. See <see cref="KeyedRateLimiter"/> for
     /// which entry is dropped at the cap and what that costs.
@@ -78,7 +78,7 @@ public sealed class KeyedRateLimiterOptions
 /// <para>
 /// It is still worth having on its own: a single instance is where the CPU, the memory and the
 /// outbound sockets actually are, so a per-instance bound is what stops one instance being starved
-/// by one caller — which is the failure that was measured.
+/// by one caller - which is the failure that was measured.
 /// </para>
 /// <para>
 /// Fixed window rather than sliding or token bucket, on purpose. A fixed window admits up to twice
@@ -112,7 +112,7 @@ public sealed class KeyedRateLimiter
     /// Count one attempt against a key and say whether it may proceed.
     /// </summary>
     /// <param name="key">
-    /// The bucket. Compared ordinally, so the caller owns normalisation — two spellings that should
+    /// The bucket. Compared ordinally, so the caller owns normalisation - two spellings that should
     /// share a budget must arrive here as one string.
     /// </param>
     /// <remarks>
@@ -176,7 +176,7 @@ public sealed class KeyedRateLimiter
     /// Forget a key's history entirely.
     /// </summary>
     /// <remarks>
-    /// For the caller that has proof the attempts were legitimate — a correct password against the
+    /// For the caller that has proof the attempts were legitimate - a correct password against the
     /// account being counted. Whether that proof exists is the caller's judgement and not this
     /// type's: calling it on a key an attacker can also reach hands them a reset button.
     /// </remarks>
@@ -214,8 +214,8 @@ public sealed class KeyedRateLimiter
     /// and it is real: a caller who can create enough distinct keys, and keep creating them, will
     /// eventually push a blocked entry out even under this ordering, because blocked entries are
     /// only evicted last rather than never. What makes it a poor attack rather than a bypass is that
-    /// the flood is itself counted under whatever key the caller shares — a source address, a remote
-    /// host — and that the flood's own entries are always chosen first. The honest statement is that
+    /// the flood is itself counted under whatever key the caller shares - a source address, a remote
+    /// host - and that the flood's own entries are always chosen first. The honest statement is that
     /// the cap trades a hard memory bound for a soft enforcement one.
     /// </para>
     /// </remarks>

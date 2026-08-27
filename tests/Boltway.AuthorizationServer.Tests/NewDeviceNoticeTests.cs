@@ -12,7 +12,7 @@ using Boltway.Storage.InMemory;
 namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>
-/// When an approval produces a message, and — mostly — when it does not.
+/// When an approval produces a message, and - mostly - when it does not.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -25,7 +25,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// Driven against the real <see cref="InMemoryGrantStore"/> and <see cref="InMemoryUserStore"/>
 /// rather than fakes of them, because the decision depends on what
-/// <c>ListApprovedUserAgentsAsync</c> actually returns — including the part where it does not filter
+/// <c>ListApprovedUserAgentsAsync</c> actually returns - including the part where it does not filter
 /// out revoked grants, which a fake written from the interface summary would get wrong.
 /// </para>
 /// </remarks>
@@ -81,7 +81,7 @@ public sealed class NewDeviceNoticeTests
     /// A browser update is not a new device, and this is the test the whole design turns on.
     /// </summary>
     /// <remarks>
-    /// Comparing raw headers would send a message here — naming <c>Chrome on macOS</c>, which the
+    /// Comparing raw headers would send a message here - naming <c>Chrome on macOS</c>, which the
     /// reader recognises, because it is their own laptop that updated overnight. Every reader who
     /// gets one of those learns that this message does not mean what it says.
     /// </remarks>
@@ -152,7 +152,7 @@ public sealed class NewDeviceNoticeTests
 
     /// <summary>With no sender configured, nothing is prepared and the store is never read.</summary>
     /// <remarks>
-    /// A deployment that sends no mail should pay nothing for this feature — least of all a query
+    /// A deployment that sends no mail should pay nothing for this feature - least of all a query
     /// on the authorization path.
     /// </remarks>
     [Fact]
@@ -175,7 +175,7 @@ public sealed class NewDeviceNoticeTests
     /// </para>
     /// <para>
     /// Unfamiliar, so <c>Describe</c> returns the header itself and every character of it reaches
-    /// the message — which is why flattening is what protects this rather than parsing.
+    /// the message - which is why flattening is what protects this rather than parsing.
     /// </para>
     /// </remarks>
     [Fact]

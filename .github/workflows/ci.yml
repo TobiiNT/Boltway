@@ -1,6 +1,6 @@
 # Build and test, on every pull request and every push to main.
 #
-# This did not exist. The only place the tests ran was on the way to production — the connector's
+# This did not exist. The only place the tests ran was on the way to production - the connector's
 # deploy workflow, and (as of the same change that added this) the authorization server's. Which
 # means the moment you learned the code was broken was the moment you were pushing it live, and a
 # branch could sit red for a week with nothing saying so.
@@ -17,13 +17,13 @@ on:
     branches: [main]
 
   # Rebuilding a commit's image by hand, which had no route at all until the cancellation rule
-  # below was fixed — and still needs one, because a cancelled `image` job leaves that commit
+  # below was fixed - and still needs one, because a cancelled `image` job leaves that commit
   # without `ghcr.io/<owner>/<name>:<sha>` and `release` refuses to tag an image that is not in the
   # registry. Its error says to wait for the run and re-run it; a run that was *cancelled* is one
   # waiting never finishes, and a job in a cancelled run cannot be re-run on its own.
   #
   # `ref` takes a sha rather than only a branch because the stranded commit is by definition not
-  # the branch head any more — that is what cancelled it. Dispatch this from main with the sha of
+  # the branch head any more - that is what cancelled it. Dispatch this from main with the sha of
   # the commit that lost its image; the push condition below reads `github.ref`, which is the
   # branch dispatched from, so building an old commit from main still pushes and building it from
   # anywhere else still does not.
@@ -38,12 +38,12 @@ permissions:
   contents: read
 
 # A second push to the same branch makes the first run's answer worthless. Cancelling it is not
-# only about minutes — a queue of superseded runs is how a red that mattered gets scrolled past.
+# only about minutes - a queue of superseded runs is how a red that mattered gets scrolled past.
 #
 # **Except on main, where the same reasoning is backwards.** Every push to main is a commit that is
 # permanently addressable, and the `image` job below is the only thing that ever builds its
 # container image. Two merges in quick succession cancelled the first one's `image` job, and that
-# commit then had no `ghcr.io/…:<sha>` — not late, never. `release` requires exactly that image, by
+# commit then had no `ghcr.io/…:<sha>` - not late, never. `release` requires exactly that image, by
 # sha and by digest, so the commit was unreleasable and the only route back was a fresh commit.
 # Superseded is a property of a branch tip; it is not a property of a commit that is already on
 # main and may still be tagged.
@@ -59,18 +59,18 @@ jobs:
     # ------------------------------------
     # The default is 360 minutes, which is not a ceiling anybody chose. The failure it permits is
     # specific rather than theoretical: the known intermittent SQLite failure documented below is a
-    # concurrency defect, and a concurrency defect's other shape is a deadlock — a test that never
+    # concurrency defect, and a concurrency defect's other shape is a deadlock - a test that never
     # returns rather than one that returns wrong. That run holds a runner for six hours and, because
     # cancellation is now off for main, holds this workflow's concurrency group with it.
     #
-    # Sized well above the honest duration, so that reaching it means "stuck" rather than "slow" —
+    # Sized well above the honest duration, so that reaching it means "stuck" rather than "slow" -
     # a timeout tight enough to trip on a slow runner is a flake generator, and this repository's
     # rule is that a red must mean something. Measured against what these jobs actually take, not
     # guessed: raise it if a legitimate run ever gets close, rather than deleting it.
     timeout-minutes: 30
 
     # The storage contract suite fails rather than skipping when there is no server, on the grounds
-    # that its purpose is proving two implementations answer identically — a stand-in here would
+    # that its purpose is proving two implementations answer identically - a stand-in here would
     # test the stand-in. These credentials are its default connection string, so
     # BOLTWAY_TEST_POSTGRES stays unset.
     services:
@@ -94,16 +94,16 @@ jobs:
       # a trailing comment. A tag is a mutable pointer in somebody else's repository: `v4` is
       # whatever its owner last pointed it at, and the `image` job below runs one of these with
       # `packages: write` and a registry password on stdin. `Directory.Packages.props` already makes
-      # this argument about NuGet dependencies — floating a version is "one silent minor bump away
-      # from a different security posture than the one that was reviewed" — and an action is a
+      # this argument about NuGet dependencies - floating a version is "one silent minor bump away
+      # from a different security posture than the one that was reviewed" - and an action is a
       # dependency that appears in no lockfile at all.
       #
       # A pin rots, which is the honest cost. `.github/dependabot.yml` is the other half of the
       # trade: it moves the sha and the trailing comment together, so the pin becomes something
       # reviewed rather than something frozen.
       #
-      # `inputs.ref` is empty on push and pull_request — the `inputs` context exists on every event
-      # and answers empty for a name it does not have — and empty is what checkout reads as "the ref
+      # `inputs.ref` is empty on push and pull_request - the `inputs` context exists on every event
+      # and answers empty for a name it does not have - and empty is what checkout reads as "the ref
       # that started this run". So those two paths behave exactly as they did.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -115,7 +115,7 @@ jobs:
 
       # One solution, and it is one because it used to be two. Boltway.Mcp reaches across a
       # ProjectReference into Boltway.ResourceServer, so a change to the latter could always break
-      # the former — but the two lived in separate trees with separate solutions, which also put
+      # the former - but the two lived in separate trees with separate solutions, which also put
       # Boltway.Mcp outside the architecture scan for its whole life. Folding them together turned
       # two of those rules red immediately, one of them a network fetch outside the guarded client.
       #
@@ -123,8 +123,8 @@ jobs:
       # a defect shows up in.
       #
       # KNOWN FAILURE: SqliteGrantStoreTests.Redeeming_many_times_in_parallel_still_succeeds_
-      # exactly_once fails intermittently under parallel load — three of four runs when it was
-      # first measured — with `SQLite Error 1: 'cannot start a transaction within a transaction'`.
+      # exactly_once fails intermittently under parallel load - three of four runs when it was
+      # first measured - with `SQLite Error 1: 'cannot start a transaction within a transaction'`.
       # It is a real defect on the SQLITE_PATH storage path, documented on
       # SqliteRelationalStoreBehavior, and it is not excluded here on purpose: an exclusion outlives
       # the bug it was written for. SQLite is a development provider and the README says so; this
@@ -154,8 +154,8 @@ jobs:
       #
       # **Measured effect, inferred cause, and the two are kept apart on purpose.** What was
       # measured is the pair of runs above. What fits it: both rules read the constant pool with
-      # Mono.Cecil and treat an `ldc.i4` of 307/308, or of 400-599, as an HTTP status code — their
-      # own comments say the whole point is that the rule "cannot tell the difference" — and the
+      # Mono.Cecil and treat an `ldc.i4` of 307/308, or of 400-599, as an HTTP status code - their
+      # own comments say the whole point is that the rule "cannot tell the difference" - and the
       # failure named integers 590 to 593 inside `AccessTokenValidator.Classify` and `.Describe`,
       # which are not status codes anybody wrote. A coverage collector instruments the assemblies
       # under test and records a hit per sequence point by index, and in a module with several
@@ -168,7 +168,7 @@ jobs:
       #
       # Coverage is therefore not "unwired here": it is incompatible with an IL-constant scan that
       # runs in the same process, and wiring it up would mean a second `dotnet test` invocation that
-      # excludes the architecture project — a whole second build to produce a number nothing gates
+      # excludes the architecture project - a whole second build to produce a number nothing gates
       # on. That trade can be made later and deliberately; it is not a line in this command.
       - name: Test
         run: dotnet test Boltway.slnx --configuration Release --logger trx
@@ -177,7 +177,7 @@ jobs:
       # that uploads only after a green test run is an artefact of the case nobody investigates.
       #
       # No --results-directory: each project writes into its own TestResults/ by default, and that
-      # is collision-free by construction. A shared directory is not — the trx logger's default
+      # is collision-free by construction. A shared directory is not - the trx logger's default
       # filename is the machine and a timestamp, so two projects finishing in the same second write
       # the same name and the second silently wins, which would lose exactly one suite's results
       # and say nothing.
@@ -196,8 +196,8 @@ jobs:
           retention-days: 14
 
       # **Packing is a build surface `dotnet test` never touches, and until now the first pack of a
-      # commit happened after its tag was cut.** `dotnet pack` runs its own set of checks — the
-      # NU5xxx family — against metadata this repository actually uses: `PackageReadmeFile` names a
+      # commit happened after its tag was cut.** `dotnet pack` runs its own set of checks - the
+      # NU5xxx family - against metadata this repository actually uses: `PackageReadmeFile` names a
       # file that has to be there, `PackageLicenseExpression` has to be a valid SPDX expression,
       # a snupkg is produced beside every library, and warnings are errors here. None of that is
       # exercised by compiling and running tests, so a release could fail on the one step that
@@ -205,13 +205,13 @@ jobs:
       #
       # This is the same argument the `image` job below makes for the Dockerfile and fixes the same
       # way: the only way to know a build surface works is to run it on every commit rather than on
-      # the way out. It is a rebuild rather than `--no-build` on purpose — `dotnet test` builds the
+      # the way out. It is a rebuild rather than `--no-build` on purpose - `dotnet test` builds the
       # test projects and what they reference, which is not the same set as what packs.
       - name: Pack
         run: dotnet pack Boltway.slnx --configuration Release -o packages
 
       # Deliberately not a count. What packs is `StructuralRuleTests.PackableProjects`, checked by a
-      # test, and a number written here would be a second place to maintain it — one that goes stale
+      # test, and a number written here would be a second place to maintain it - one that goes stale
       # the day a package is added or a project starts multi-targeting. "Something was produced" is
       # the part this step can honestly assert; a pack that silently produced nothing would
       # otherwise read as a pass.
@@ -229,8 +229,8 @@ jobs:
   #
   # This is now the only thing that publishes the image, and the reasons it was here rather than
   # in the Cloud Run workflow are why that workflow is the one that went: it has to exist for
-  # anything that is not Cloud Run to pull — a compose file on a VPS names an image and cannot
-  # build one — while Artifact Registry is reachable only by something holding Google
+  # anything that is not Cloud Run to pull - a compose file on a VPS names an image and cannot
+  # build one - while Artifact Registry is reachable only by something holding Google
   # credentials, which a host outside GCP does not have. GHCR is already where this repository's
   # NuGet packages live, so the grant story is one somebody here has already done once.
   #
@@ -238,7 +238,7 @@ jobs:
   # minute to a job that exists to answer 'is the branch green', and a tag nobody deploys is a tag
   # nobody looks at." That reasoning priced the wrong thing. The image is a publishing step, but
   # this Dockerfile is also the only thing in the repository that compiles hosts/ with the inputs a
-  # deploy uses, and `dotnet test` cannot stand in for it — the first run of this job on main
+  # deploy uses, and `dotnet test` cannot stand in for it - the first run of this job on main
   # failed on a missing .editorconfig, on a commit whose `test` job was green.
   #
   # So it builds everywhere and pushes from main. A minute per pull request is the price of the one
@@ -246,7 +246,7 @@ jobs:
   # question `test` alone could answer for the thing that actually ships.
   #
   # **Two images, one matrix.** The admin UI is a separate deployable because `N-17` makes it an
-  # OAuth client rather than a page on the authorization server — see hosts/Boltway.AdminBff.
+  # OAuth client rather than a page on the authorization server - see hosts/Boltway.AdminBff.
   # It shipped without a Dockerfile and without a line here, so for its whole life it was a project
   # that built, passed its probes against `dotnet run`, and could not be deployed by anybody. That
   # is the same defect this repository has now found seven times, and the reason it survived here
@@ -258,7 +258,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
 
-    # A ceiling for the same reason the `test` job has one — see the comment there. Lower, because
+    # A ceiling for the same reason the `test` job has one - see the comment there. Lower, because
     # this job restores, builds and publishes one image and nothing here waits on a database; a
     # docker build that has been going twenty minutes is not a slow build, it is a hung one.
     timeout-minutes: 20
@@ -280,7 +280,7 @@ jobs:
       contents: read
       packages: write
 
-      # The two grants that let this job attest what it pushed — see the *Attest* step at the end.
+      # The two grants that let this job attest what it pushed - see the *Attest* step at the end.
       #
       # **`id-token: write` in a job that runs `docker build` is a real widening and it is taken
       # deliberately.** Everything in the Dockerfile's build context is this repository's own code,
@@ -295,13 +295,13 @@ jobs:
       attestations: write
 
     steps:
-      # Pinned to a commit rather than a tag, for the reason spelled out in the `test` job above —
+      # Pinned to a commit rather than a tag, for the reason spelled out in the `test` job above -
       # and most of all here, where the next step hands a registry password to a third-party action
       # in a job holding `packages: write`.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Full history, for the build number computed below. On the default shallow clone
-          # `git rev-list --count` answers 1 — not an error, just wrong — and the guard in the
+          # `git rev-list --count` answers 1 - not an error, just wrong - and the guard in the
           # build step is what turns that back into a red build instead of a `b1` tag quietly
           # overwriting the real first build's.
           fetch-depth: 0
@@ -322,7 +322,7 @@ jobs:
       # Three tags on one build: the sha is the identity a deploy should name, because `latest`
       # moves under a running host and makes "which build is serving" unanswerable; `bN` is the
       # same image ordered, so a person reading two tags knows which is newer and by how many
-      # merges. The number never replaces the sha anywhere a machine compares — the downstream verify.sh
+      # merges. The number never replaces the sha anywhere a machine compares - the downstream verify.sh
       # asserts the sha and its compose pins it. `latest` exists anyway, for the compose file a
       # person edits by hand and for a first deploy that has no sha yet.
       - name: Build
@@ -332,7 +332,7 @@ jobs:
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
           # The sha of what was checked out, not `github.sha`. They are the same value on push and
-          # on pull_request — and they are not on the dispatch that exists to rebuild a stranded
+          # on pull_request - and they are not on the dispatch that exists to rebuild a stranded
           # commit, where `github.sha` is the head of the branch the dispatch was made from and the
           # tree being built is an older commit. Tagging that image with the branch head's sha
           # would put the wrong bytes behind the one name a deploy is supposed to pin, which is a
@@ -341,7 +341,7 @@ jobs:
           echo "SHA=$SHA" >> "$GITHUB_ENV"
 
           # The build number: commits behind this one on the first-parent chain. A function of
-          # the commit rather than of CI state — the same commit rebuilt gets the same number,
+          # the commit rather than of CI state - the same commit rebuilt gets the same number,
           # renaming this file resets nothing, and anybody can recompute it from the repo.
           # `github.run_number` is none of those things. Both matrix rows compute the same
           # number from the same commit, which is the point: one commit, one number, two images.
@@ -358,7 +358,7 @@ jobs:
 
           # Context is the repository root. It used to be auth/, to keep a prospecting tool and
           # the MCP package out of the layer cache of a process with no use for them; neither
-          # reason survives — the tool is not in this repository at all and the MCP package is part
+          # reason survives - the tool is not in this repository at all and the MCP package is part
           # of the same tree the host builds from. BUILD_SHA is the same value as the tag, and it is passed in rather than derived so
           # that /health reports what the image is regardless of which tag it was pulled by. A
           # deployment pinning `latest` still gets a specific sha back from the running server,
@@ -381,7 +381,7 @@ jobs:
 
           # `latest` moves only when this run built the branch head. A dispatched rebuild exists to
           # restore an older commit's missing `:<sha>` image, and that commit is by definition one
-          # main has moved past — putting `latest` back on it would send every compose file that
+          # main has moved past - putting `latest` back on it would send every compose file that
           # names `latest` backwards on the next pull, silently, for a tag nobody re-reads. The two
           # tags above are identities of a commit and are safe to write at any time; this one is a
           # pointer, and a pointer is only correct in one direction.
@@ -397,7 +397,7 @@ jobs:
           #
           # **A tag is not an identity and that is the whole reason this line exists.** Every
           # argument this file already makes about `latest` moving under a running host applies to
-          # `:$SHA` as well — a tag is a pointer somebody with registry write access can repoint,
+          # `:$SHA` as well - a tag is a pointer somebody with registry write access can repoint,
           # and an attestation naming a tag would say "something called this name was built here",
           # which is not a claim worth signing. `sha256:…` is the content, so an attestation bound
           # to it survives anybody renaming, retagging or overwriting.
@@ -409,7 +409,7 @@ jobs:
             | grep "^$IMAGE@" | head -1 | cut -d@ -f2)"
 
           # An empty or malformed digest here would make the next step attest nothing, or attest the
-          # wrong subject, and both are worse than a red build — a provenance record that does not
+          # wrong subject, and both are worse than a red build - a provenance record that does not
           # match the artefact is a claim a consumer will act on. `N-06` on the supply-chain surface.
           case "$DIGEST" in
             sha256:*) ;;
@@ -430,8 +430,8 @@ jobs:
       # and whoever can write to it. `gh attestation verify oci://ghcr.io/<owner>/<name>:<sha>
       # --repo <owner>/<name>` now answers it against a transparency log, offline of these logs and
       # of anything an attacker with registry access could rewrite. That is the same shape of
-      # argument the `BUILD_SHA` build-arg makes for `/health` — the running thing should be able to
-      # prove what it is — carried one step earlier, to the artefact.
+      # argument the `BUILD_SHA` build-arg makes for `/health` - the running thing should be able to
+      # prove what it is - carried one step earlier, to the artefact.
       #
       # It runs only where the push ran, and for the same reason: a pull request builds the image to
       # prove the Dockerfile still works, and there is nothing in a registry to make a statement
@@ -444,7 +444,7 @@ jobs:
           subject-digest: ${{ env.DIGEST }}
 
           # The registry gets the attestation too, beside the image, so a puller who never comes to
-          # GitHub can still verify it. Only reachable because the login step above ran — which is
+          # GitHub can still verify it. Only reachable because the login step above ran - which is
           # main-only, exactly like this step.
           push-to-registry: true
 
@@ -457,7 +457,7 @@ jobs:
       #
       # The downstream connector releases on a `v*` tag now. One repository owns the decision to ship, a tag is what
       # records it, and a second repository able to start a deploy on its own schedule is exactly
-      # the automatic path that decision removes — the auth server would have moved under a
+      # the automatic path that decision removes - the auth server would have moved under a
       # release that had not asked for it, which is the same failure as resolving `latest`.
       #
       # The image is still built and pushed above, which is the part that was always this
@@ -465,5 +465,5 @@ jobs:
       # See *Releasing* in the downstream connector's deployment guide.
       #
       # Nothing here needs a credential for another repository any more. If `DOWNSTREAM_DEPLOY_TOKEN`
-      # still exists in this repository's secrets, it can be deleted — it is a PAT with
+      # still exists in this repository's secrets, it can be deleted - it is a PAT with
       # Actions: write on somebody else's repository and it is now granting that for nothing.

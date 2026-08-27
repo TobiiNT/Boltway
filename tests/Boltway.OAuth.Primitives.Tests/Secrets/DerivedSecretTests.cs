@@ -7,9 +7,9 @@ namespace Boltway.OAuth.Primitives.Tests.Secrets;
 /// </summary>
 /// <remarks>
 /// It is <see langword="internal"/>, reached from this assembly through <c>InternalsVisibleTo</c>.
-/// Being internal is itself a guard — a review found that while it was public,
+/// Being internal is itself a guard - a review found that while it was public,
 /// <c>FromDerivedMaterial(RegistrationAccessToken, SHA256("user@example.com"))</c> minted a valid
-/// credential for the sole authenticator of a client record — but narrowing the door says nothing
+/// credential for the sole authenticator of a client record - but narrowing the door says nothing
 /// about what happens once you are through it, and nothing was checking that.
 /// </remarks>
 public sealed class DerivedSecretTests
@@ -25,7 +25,7 @@ public sealed class DerivedSecretTests
         // 32 bytes is exactly 43 unpadded base64url characters, and TryParse accepts a body of
         // that length and nothing else. So material of any other size mints a `bw_rt_…` this
         // server cannot parse back: a refresh token that is dead the moment it is handed out,
-        // and dead in the one place a client cannot recover from — the refresh it makes after a
+        // and dead in the one place a client cannot recover from - the refresh it makes after a
         // 401. The failure is silent at mint time and surfaces as invalid_grant a month later.
         var error = Assert.Throws<ArgumentOutOfRangeException>(
             () => OpaqueSecret.FromDerivedMaterial(TokenPurpose.RefreshToken, new byte[length]));
@@ -38,12 +38,12 @@ public sealed class DerivedSecretTests
     [InlineData(16)]
     public void A_purposeless_secret_is_refused_on_the_purpose_before_the_material(int materialLength)
     {
-        // TokenPurpose.None is the uninitialised value, not a kind of secret — a `default`
+        // TokenPurpose.None is the uninitialised value, not a kind of secret - a `default`
         // TokenPurpose reaching here means a caller lost track of what it was minting.
         //
         // Stated precisely, because the guard is not load-bearing alone: PrefixFor's switch would
         // also refuse None, so None never yields a secret either way. What this check owns is the
-        // ORDER — the purpose is judged first, so a caller that got the purpose wrong is told
+        // ORDER - the purpose is judged first, so a caller that got the purpose wrong is told
         // about the purpose. The 16-byte row is what distinguishes the two: without this check
         // that call reports "material", sending the caller after the wrong bug.
         var error = Assert.Throws<ArgumentOutOfRangeException>(

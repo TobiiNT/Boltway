@@ -22,7 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>
-/// <c>/admin/*</c> — the highest-value target in the system, and the rules that keep it survivable.
+/// <c>/admin/*</c> - the highest-value target in the system, and the rules that keep it survivable.
 /// </summary>
 /// <remarks>
 /// A flaw here is not a leaked document, it is the directory. Everything in this file that looks
@@ -36,7 +36,7 @@ public sealed class AdminSurfaceTests
     /// A principal the test controls, standing in for the resource server's bearer middleware.
     /// </summary>
     /// <remarks>
-    /// The AS does not validate tokens — <c>Boltway.ResourceServer</c> does, in the host — so
+    /// The AS does not validate tokens - <c>Boltway.ResourceServer</c> does, in the host - so
     /// what these tests exercise is what this library decides about an already-validated principal.
     /// The scheme name matters and is asserted: "bearer" is not a cookie, and that is the whole of
     /// <c>N-17</c>'s input.
@@ -55,7 +55,7 @@ public sealed class AdminSurfaceTests
         {
             var roles = new InMemoryRoleStore();
 
-            // Defined before anything can hold them — creation does not assign, and assignment refuses
+            // Defined before anything can hold them - creation does not assign, and assignment refuses
             // an id the realm does not define.
             if (roles.FindAsync(RealmId.Default, "founder", CancellationToken.None).GetAwaiter().GetResult() is null)
             {
@@ -103,8 +103,8 @@ public sealed class AdminSurfaceTests
                 o.ScopesSupported.Add(AdminScopes.Write);
                 o.ScopesSupported.Add(AdminScopes.Self);
 
-                // The narrow pair. Optional in a deployment — users:read/users:write alone keep the
-                // whole surface reachable — advertised here because the tests below mint tokens
+                // The narrow pair. Optional in a deployment - users:read/users:write alone keep the
+                // whole surface reachable - advertised here because the tests below mint tokens
                 // carrying them.
                 o.ScopesSupported.Add(AdminScopes.RolesRead);
                 o.ScopesSupported.Add(AdminScopes.RolesWrite);
@@ -141,8 +141,8 @@ public sealed class AdminSurfaceTests
     /// </summary>
     /// <remarks>
     /// The structural half of <c>N-17</c>, over the routing table rather than over a handler. What it
-    /// catches is the well-meaning change — "it would be so much easier to call this from the consent
-    /// page" — which arrives as an attribute rather than as an <c>if</c>, and which no unit test of a
+    /// catches is the well-meaning change - "it would be so much easier to call this from the consent
+    /// page" - which arrives as an attribute rather than as an <c>if</c>, and which no unit test of a
     /// handler would ever see.
     /// </remarks>
     [Fact]
@@ -193,8 +193,8 @@ public sealed class AdminSurfaceTests
     /// The prefixes are disjoint, so both directions are mechanical and neither needs judgement.
     /// </para>
     /// <para>
-    /// What this catches is the change that goes the other way from the one above — "these pages
-    /// should also accept a token, so the CLI can drive them" — which would put a bearer-authenticated
+    /// What this catches is the change that goes the other way from the one above - "these pages
+    /// should also accept a token, so the CLI can drive them" - which would put a bearer-authenticated
     /// state-changing form on the origin that carries the session cookie, and give the pages two ways
     /// in where the whole design has one.
     /// </para>
@@ -235,7 +235,7 @@ public sealed class AdminSurfaceTests
     /// </summary>
     /// <remarks>
     /// Both assertions read the routing table and sort by prefix. A path that matched two of them
-    /// would be governed by two contradictory rules, and whichever test ran first would decide —
+    /// would be governed by two contradictory rules, and whichever test ran first would decide -
     /// so the disjointness is asserted rather than assumed from the strings looking different.
     /// </remarks>
     [Fact]
@@ -275,7 +275,7 @@ public sealed class AdminSurfaceTests
     /// <remarks>
     /// The behavioural half, and the one that would still fail if somebody satisfied the structural
     /// one by renaming a scheme. A principal authenticated by a cookie is refused whatever claims it
-    /// carries — including, as here, exactly the scope the endpoint wants.
+    /// carries - including, as here, exactly the scope the endpoint wants.
     /// </remarks>
     [Fact]
     public async Task A_cookie_principal_is_refused_even_carrying_the_right_scope()
@@ -310,7 +310,7 @@ public sealed class AdminSurfaceTests
     /// </summary>
     /// <remarks>
     /// Answering 401 would tell a caller who is already authenticated to authenticate again, which is
-    /// a loop that cannot terminate — they would present the same token and be told the same thing.
+    /// a loop that cannot terminate - they would present the same token and be told the same thing.
     /// </remarks>
     [Fact]
     public async Task A_token_without_the_scope_is_forbidden_rather_than_unauthorized()
@@ -437,7 +437,7 @@ public sealed class AdminSurfaceTests
     /// The whole point of the pair existing: a credential can hold the role vocabulary without
     /// holding the directory. <see cref="A_role_is_defined_listed_reworded_assigned_and_removed"/>
     /// runs the same surface under <c>users:read users:write</c>, and staying green there is the
-    /// other half of this contract — the broad pair keeps covering everything.
+    /// other half of this contract - the broad pair keeps covering everything.
     /// </remarks>
     [Fact]
     public async Task The_role_surface_accepts_its_dedicated_scopes()
@@ -465,7 +465,7 @@ public sealed class AdminSurfaceTests
             listed.GetProperty("roles").EnumerateArray(),
             r => r.GetProperty("id").GetString() == "scoped");
 
-        // The read half cannot write — the same split the users pair has.
+        // The read half cannot write - the same split the users pair has.
         var refused = await fixture.Client.PostAsJsonAsync(
             new Uri("/admin/roles", UriKind.Relative), new { id = "denied" });
 
@@ -483,7 +483,7 @@ public sealed class AdminSurfaceTests
     /// </summary>
     /// <remarks>
     /// The boundary that makes the narrow pair worth issuing. If <c>roles:*</c> ever satisfied a
-    /// user endpoint, a credential scoped to the vocabulary would silently hold the directory —
+    /// user endpoint, a credential scoped to the vocabulary would silently hold the directory -
     /// which is the exact over-grant the pair exists to end.
     /// </remarks>
     [Fact]
@@ -509,7 +509,7 @@ public sealed class AdminSurfaceTests
     /// </summary>
     /// <remarks>
     /// Two scopes satisfy each role endpoint, so a message naming only one sends the caller for a
-    /// broader grant than they need — the refusal is the one place the narrow pair gets advertised
+    /// broader grant than they need - the refusal is the one place the narrow pair gets advertised
     /// to the person holding the wrong token.
     /// </remarks>
     [Fact]
@@ -620,7 +620,7 @@ public sealed class AdminSurfaceTests
     /// </summary>
     /// <remarks>
     /// The reset endpoint takes no body, and the create request has no such field. A password
-    /// arriving over HTTP lands in a proxy log, an access log and whatever traced the request — so
+    /// arriving over HTTP lands in a proxy log, an access log and whatever traced the request - so
     /// the control is the absence, and this is what notices it coming back.
     /// </remarks>
     [Fact]
@@ -657,7 +657,7 @@ public sealed class AdminSurfaceTests
 
         Assert.Equal(["user.password.reset", "user.create"], actions);
 
-        // The client acted for a subject, so the trail says which one — unlike the CLI, whose actor
+        // The client acted for a subject, so the trail says which one - unlike the CLI, whose actor
         // is honestly null.
         Assert.All(
             entries.EnumerateArray(),
@@ -723,7 +723,7 @@ public sealed class AdminSurfaceTests
         var secondNames = second.GetProperty("users").EnumerateArray()
             .Select(u => u.GetProperty("handle").GetString()).ToList();
 
-        // Every account exactly once across the two pages, and no overlap — the property a keyset
+        // Every account exactly once across the two pages, and no overlap - the property a keyset
         // cursor has and an offset does not once anything is being created while somebody pages.
         Assert.Equal(["ada", "grace", "hedy"], firstNames.Concat(secondNames).Order(StringComparer.Ordinal));
         Assert.Null(second.GetProperty("next_after").GetString());
@@ -790,7 +790,7 @@ public sealed class AdminSurfaceTests
     /// </summary>
     /// <remarks>
     /// The count is the response body rather than a 204, because "there was nothing live" and
-    /// "three sessions ended" are different answers an operator acts on differently — and because
+    /// "three sessions ended" are different answers an operator acts on differently - and because
     /// running it twice to be sure should say zero the second time.
     /// </remarks>
     [Fact]
@@ -889,8 +889,8 @@ public sealed class AdminSurfaceTests
 
         Assert.Equal(subject.Value, tombstone.GetProperty("subject").GetString());
         Assert.Equal(JsonValueKind.Null, tombstone.GetProperty("email").ValueKind);
-        // An empty array rather than null. `role` is always an array now — a consumer that had to
-        // branch on the JSON type to read it would read it wrong the day somebody holds two — so
+        // An empty array rather than null. `role` is always an array now - a consumer that had to
+        // branch on the JSON type to read it would read it wrong the day somebody holds two - so
         // "this tombstone holds nothing" is an empty one, not an absent field.
         Assert.Empty(tombstone.GetProperty("role").EnumerateArray());
         Assert.False(tombstone.GetProperty("has_password").GetBoolean());
@@ -902,7 +902,7 @@ public sealed class AdminSurfaceTests
     /// </summary>
     /// <remarks>
     /// The directory's half of the operation, and the one that fails if a store sets the username
-    /// without moving the normalized index — invisible until somebody re-uses a handle, which is
+    /// without moving the normalized index - invisible until somebody re-uses a handle, which is
     /// months later and looks like a different bug.
     /// </remarks>
     [Fact]
@@ -925,7 +925,7 @@ public sealed class AdminSurfaceTests
         var second = (await again.Content.ReadFromJsonAsync<JsonElement>())
             .GetProperty("subject").GetString();
 
-        // A different account under the same name — not the old one brought back.
+        // A different account under the same name - not the old one brought back.
         Assert.NotEqual(first.Value, second);
     }
 
@@ -969,7 +969,7 @@ public sealed class AdminSurfaceTests
     /// Both write an audit entry, and anonymise writes the handle it destroyed.
     /// </summary>
     /// <remarks>
-    /// The entry is the only place the handle survives — the account no longer carries it. That is
+    /// The entry is the only place the handle survives - the account no longer carries it. That is
     /// the boundary of what anonymise promises: the directory stops naming the person, and the
     /// record of who was administered stays readable, because otherwise nobody can answer whether
     /// it was done properly.

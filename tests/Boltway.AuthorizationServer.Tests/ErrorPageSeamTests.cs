@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>
-/// The error page goes through <see cref="IInteractionRenderer"/> — and survives it failing.
+/// The error page goes through <see cref="IInteractionRenderer"/> - and survives it failing.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -29,8 +29,8 @@ public sealed class ErrorPageSeamTests
             seed.ConfigureServices = services =>
                 services.AddSingleton<IInteractionRenderer, MarkedRenderer>());
 
-        // GetAsync, not GetStringAsync: this page answers 500 by design — it is the landing place
-        // for a request that arrived with nothing to speak for it — and GetStringAsync throws on a
+        // GetAsync, not GetStringAsync: this page answers 500 by design - it is the landing place
+        // for a request that arrived with nothing to speak for it - and GetStringAsync throws on a
         // non-success status before a test can look at what was rendered.
         var response = await fixture.Client.GetAsync(new Uri("/error", UriKind.Relative));
         var body = await response.Content.ReadAsStringAsync();
@@ -43,7 +43,7 @@ public sealed class ErrorPageSeamTests
     /// </summary>
     /// <remarks>
     /// The whole point of the fallback. Without it, a deployment with a broken renderer answers the
-    /// error page by throwing inside the response that was already reporting an error — and what the
+    /// error page by throwing inside the response that was already reporting an error - and what the
     /// user sees depends on how far the response had been written, which is the least debuggable
     /// failure available.
     /// </remarks>

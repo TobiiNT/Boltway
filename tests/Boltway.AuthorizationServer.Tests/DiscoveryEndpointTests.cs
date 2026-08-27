@@ -53,7 +53,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
 
                     // Every seam MapBoltwayAuthorizationServer requires. This fixture used to
                     // register only the key ring, on the reasoning that a discovery-only host needs
-                    // nothing else — which was true until the startup check began verifying the
+                    // nothing else - which was true until the startup check began verifying the
                     // whole list before mapping any route. Discovery still has to survive the
                     // hostile pipeline below; that is what this file is about, and it is unchanged.
                     services.AddSingleton<IClientResolver>(new TestClientResolver([Build.Client()]));
@@ -77,7 +77,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
                 {
                     // Deliberately NO UseCors(). The discovery routes used to carry RequireCors
                     // metadata, which makes ASP.NET Core throw "contains CORS metadata, but a
-                    // middleware was not found" at request time — a 500 on every document, in every
+                    // middleware was not found" at request time - a 500 on every document, in every
                     // host that had not thought to add the middleware. A fixture that called
                     // UseCors() hid that completely, so this one does not.
                     app.UseRouting();
@@ -86,7 +86,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
                     {
                         endpoints.MapBoltwayAuthorizationServer();
 
-                        // A catch-all that answers everything with HTML — the SPA fallback whose
+                        // A catch-all that answers everything with HTML - the SPA fallback whose
                         // 200-with-markup terminates an MCP client's probe sequence with a parse
                         // error instead of letting it move on.
                         endpoints.MapFallback(context =>
@@ -164,7 +164,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     /// <remarks>
     /// Some client probes issue HEAD first. The framework's HEAD-to-GET fallback is <b>not</b> what
     /// makes this work: it applies only when no endpoint handles HEAD, and the
-    /// <c>/.well-known/{**rest}</c> 404 catch-all does — so before HEAD was declared explicitly on
+    /// <c>/.well-known/{**rest}</c> 404 catch-all does - so before HEAD was declared explicitly on
     /// the document routes, the catch-all won every HEAD probe and answered 404. This test is the
     /// one that found it.
     /// </remarks>
@@ -229,7 +229,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     /// </summary>
     /// <remarks>
     /// The fallback in this fixture answers everything else with markup. An MCP client probes
-    /// several URLs in sequence and moves on at a 404, so a 200 with HTML does not degrade — it
+    /// several URLs in sequence and moves on at a 404, so a 200 with HTML does not degrade - it
     /// ends discovery with a parse error on a document the client had no reason to doubt.
     /// </remarks>
     [Theory]
@@ -255,7 +255,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     /// <remarks>
     /// Registering <c>".../openid-configuration/"</c> alongside <c>".../openid-configuration"</c>
     /// is the same route template twice, which makes every request to either an
-    /// <c>AmbiguousMatchException</c> — a 500 on the first request any client makes. This asserts
+    /// <c>AmbiguousMatchException</c> - a 500 on the first request any client makes. This asserts
     /// the framework already handles the spelling, which is what makes the second registration
     /// both unnecessary and harmful.
     /// </remarks>
@@ -282,7 +282,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     /// (<c>/.well-known/oauth-authorization-server/tenant1</c>) while OIDC Discovery §4.1
     /// <i>appends</i> it after (<c>/tenant1/.well-known/openid-configuration</c>). Only the
     /// insertion form was routed at first, so this shape fell through to the SPA fallback this
-    /// fixture installs and came back <c>200 text/html</c> — the exact failure the 404 exists to
+    /// fixture installs and came back <c>200 text/html</c> - the exact failure the 404 exists to
     /// prevent, arriving through the half of the rule nobody had covered.
     /// </para>
     /// <para>
@@ -310,7 +310,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     /// </summary>
     /// <remarks>
     /// Without this, the 404 test passes just as well against a fixture that has no fallback at
-    /// all — which is to say it would be asserting nothing about the situation it names.
+    /// all - which is to say it would be asserting nothing about the situation it names.
     /// </remarks>
     [Fact]
     public async Task The_fixture_really_does_have_an_html_fallback()
@@ -338,7 +338,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     /// </summary>
     /// <remarks>
     /// OAuth 2.1 §3.2 and RFC 9700 §2.6: CORS MUST NOT be supported at the authorization endpoint.
-    /// This is why the policy is applied per endpoint rather than by <c>app.UseCors(policy)</c> —
+    /// This is why the policy is applied per endpoint rather than by <c>app.UseCors(policy)</c> -
     /// and since <c>/authorize</c> is not yet routed, what this asserts today is that the CORS
     /// middleware in the pipeline does not add headers to a route that did not ask for them.
     /// </remarks>
@@ -375,7 +375,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     /// <summary>The <c>jwks_uri</c> in the document is the URL that actually serves the key set.</summary>
     /// <remarks>
     /// A metadata document that points somewhere unserved is a working-looking deployment where
-    /// every signature validation fails — and the client reports it as an invalid token, not as a
+    /// every signature validation fails - and the client reports it as an invalid token, not as a
     /// missing key set.
     /// </remarks>
     [Fact]
@@ -407,7 +407,7 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     /// <para>
     /// <c>MetadataHonestyTests.Every_advertised_endpoint_answers</c> is that check. It cannot live
     /// here, because this fixture deliberately installs a <c>MapFallback</c> that answers everything
-    /// with HTML — so nothing 404s in this host and a sweep would be vacuous.
+    /// with HTML - so nothing 404s in this host and a sweep would be vacuous.
     /// </para>
     /// </remarks>
     [Fact]

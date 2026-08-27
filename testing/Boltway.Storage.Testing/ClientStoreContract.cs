@@ -21,7 +21,7 @@ namespace Boltway.Storage.Testing;
 /// <para>
 /// <b>Disabling twice does not move the timestamp.</b> "Since when" is the question asked
 /// immediately after "is it off", and answering it with the moment somebody clicked a second time
-/// is worse than not answering — it reads as a fact.
+/// is worse than not answering - it reads as a fact.
 /// </para>
 /// <para>
 /// This suite exists because the pair has diverged before. <c>IUserStore.StoreAsync</c> enforced a
@@ -102,7 +102,7 @@ public abstract class ClientStoreContract
     /// The digest handed to the store is the digest that comes back, and no other.
     /// </summary>
     /// <remarks>
-    /// The second comparison is the control — a store answering with one fixed digest would satisfy
+    /// The second comparison is the control - a store answering with one fixed digest would satisfy
     /// the first on its own.
     /// </remarks>
     [Fact]

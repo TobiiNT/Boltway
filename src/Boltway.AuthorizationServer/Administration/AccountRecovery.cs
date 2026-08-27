@@ -46,7 +46,7 @@ public enum RecoveryOutcome
     /// </summary>
     /// <remarks>
     /// One answer for all three. §7.3: a person who is not told their link expired clicks it again
-    /// rather than asking for a new one, and there is nothing to enumerate — a token is 256 bits of
+    /// rather than asking for a new one, and there is nothing to enumerate - a token is 256 bits of
     /// CSPRNG output, so saying "that link no longer works" is not the oracle <c>S-48</c> is about.
     /// </remarks>
     NoSuchToken,
@@ -61,7 +61,7 @@ public enum RecoveryOutcome
 /// <summary>The result of redeeming a reset link.</summary>
 /// <param name="Outcome">What happened.</param>
 /// <param name="Subject">Whose account, when the link named one.</param>
-/// <param name="SessionsRevoked">How many grants were revoked. §1.10 — always, on this route.</param>
+/// <param name="SessionsRevoked">How many grants were revoked. §1.10 - always, on this route.</param>
 public sealed record PasswordResetResultFromLink(
     RecoveryOutcome Outcome, SubjectId Subject = default, int SessionsRevoked = 0);
 
@@ -86,7 +86,7 @@ public sealed record EmailVerificationResult(
 /// <para>
 /// <b>The rule that shapes the request half is <c>S-48</c>:</b> asking for a reset answers
 /// identically whether or not the account exists, and does the same work either way. Not merely the
-/// same status code — the same store reads, so the timing does not distinguish them. Otherwise this
+/// same status code - the same store reads, so the timing does not distinguish them. Otherwise this
 /// endpoint is a way to test whether an address is registered here, at whatever rate the throttle
 /// allows.
 /// </para>
@@ -94,7 +94,7 @@ public sealed record EmailVerificationResult(
 /// <b>The rule that shapes the redemption half is <c>S-47</c>:</b> a link is single use, hashed at
 /// rest, expiring, and every outstanding reset link for a subject dies when the password changes by
 /// any route. That last clause is why <see cref="UserAdministration"/> calls
-/// <see cref="IUserTokenStore.DeleteForSubjectAsync"/> too — a link that still works after the
+/// <see cref="IUserTokenStore.DeleteForSubjectAsync"/> too - a link that still works after the
 /// password has changed is a second key held by whoever asked for it.
 /// </para>
 /// </remarks>
@@ -106,7 +106,7 @@ public sealed record EmailVerificationResult(
 /// <param name="clock">The clock.</param>
 /// <param name="notifications">
 /// Where messages go, or <see langword="null"/> in a deployment that has registered no sender. The
-/// flows still work — a token is still minted and still redeemable — and nothing arrives, which is
+/// flows still work - a token is still minted and still redeemable - and nothing arrives, which is
 /// visible immediately rather than at 3am. Refusing to mint would be worse: the operator who has
 /// not finished configuring mail would get a reset endpoint that answers 500.
 /// </param>
@@ -127,7 +127,7 @@ public sealed class AccountRecovery(
 {
     /// <summary>How many bytes of entropy a link carries.</summary>
     /// <remarks>
-    /// 32 — 256 bits, the same as every other secret this server mints. It is what makes "that link
+    /// 32 - 256 bits, the same as every other secret this server mints. It is what makes "that link
     /// no longer works" a safe sentence: there is nothing to enumerate, so the message can be honest
     /// without becoming an oracle.
     /// </remarks>
@@ -171,7 +171,7 @@ public sealed class AccountRecovery(
         {
             // The unfound path still touches the store, so a request for an unknown address costs
             // what a known one costs. Deleting nothing for a subject that does not exist is the
-            // cheapest honest way to do that — it is the same statement the found path runs.
+            // cheapest honest way to do that - it is the same statement the found path runs.
             await tokens.DeleteForSubjectAsync(
                 SubjectId.FromStorage("unknown"), UserTokenPurpose.PasswordReset, cancellationToken)
                 .ConfigureAwait(false);
@@ -261,7 +261,7 @@ public sealed class AccountRecovery(
             .ConfigureAwait(false);
 
         // Every session this account had predates the new password, so none of them are its
-        // sessions any more. Separate from the write above by design — see StampSessionsAsync —
+        // sessions any more. Separate from the write above by design - see StampSessionsAsync -
         // and unconditional on this path, because a password change nobody asked for is exactly
         // the case where the old browser must stop working.
         await users.StampSessionsAsync(redeemed.Subject, _clock.GetUtcNow(), cancellationToken).ConfigureAwait(false);
@@ -322,7 +322,7 @@ public sealed class AccountRecovery(
             subject, UserTokenPurpose.EmailVerification, cancellationToken).ConfigureAwait(false);
 
         // The address is stored on the token. Somebody who requests a link, then changes their
-        // address, then clicks the old link must not end up with the new address marked verified —
+        // address, then clicks the old link must not end up with the new address marked verified -
         // the link proves control of the mailbox it was sent to and of nothing else.
         await tokens.StoreAsync(
             new UserTokenRecord(hash, subject, UserTokenPurpose.EmailVerification, expiresAt, address),
@@ -365,7 +365,7 @@ public sealed class AccountRecovery(
 
         // The address on the token, compared to the address on the account. They differ when
         // somebody changed it after asking, and then this link proves nothing about what is there
-        // now — so it verifies nothing rather than verifying the new one.
+        // now - so it verifies nothing rather than verifying the new one.
         if (!string.Equals(redeemed.Detail, account.Email, StringComparison.OrdinalIgnoreCase))
         {
             await RecordAsync(
@@ -394,7 +394,7 @@ public sealed class AccountRecovery(
     /// <summary>By handle, then by address, in one realm.</summary>
     /// <remarks>
     /// <para>
-    /// This walks the realm to match an address. <c>ListAsync</c> is keyset-paged, so it is a scan —
+    /// This walks the realm to match an address. <c>ListAsync</c> is keyset-paged, so it is a scan -
     /// acceptable on an endpoint rate limited to a handful of calls a minute and on no other. Named
     /// rather than left to be discovered by whoever first has ten thousand accounts.
     /// </para>
@@ -412,7 +412,7 @@ public sealed class AccountRecovery(
     /// What stops this being a one-line change is that the two lookups do not agree on the same
     /// accounts. <c>FindByVerifiedEmailAsync</c> requires <c>EmailVerified</c>; this scan matches
     /// <c>Email</c> whether or not it was ever proven. Switching would stop sending reset links to
-    /// unverified addresses — defensible, arguably correct, and a lockout for every account whose
+    /// unverified addresses - defensible, arguably correct, and a lockout for every account whose
     /// address was set by an operator and never confirmed. That is a decision about who can recover
     /// an account, not a performance change, and it belongs to whoever makes it deliberately.
     /// </para>
@@ -471,7 +471,7 @@ public sealed class AccountRecovery(
     /// </summary>
     /// <remarks>
     /// <c>Sha256Hash.OfString</c> throws on ill-formed UTF-16, which is a bug at every other call
-    /// site and ordinary input here — this string comes out of a query parameter. A value that
+    /// site and ordinary input here - this string comes out of a query parameter. A value that
     /// cannot be hashed matches no row, which is the same answer as a value that simply is not one.
     /// </remarks>
     private static Sha256Hash HashOf(string token)
@@ -489,7 +489,7 @@ public sealed class AccountRecovery(
     /// <summary>An absolute URL on this issuer.</summary>
     /// <remarks>
     /// Built from <c>Issuer</c> rather than from the request, because the request that asks for a
-    /// reset is not the one that follows the link — and a <c>Host</c> header is attacker-controlled,
+    /// reset is not the one that follows the link - and a <c>Host</c> header is attacker-controlled,
     /// so composing the link from it is how a reset mail comes to point at somebody else's server.
     /// </remarks>
     private string Link(string path, string token) =>

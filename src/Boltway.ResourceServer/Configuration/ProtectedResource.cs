@@ -33,8 +33,8 @@ namespace Boltway.ResourceServer.Configuration;
 /// no grant and does not need one; and the "no public factory" claim has not been true since it was
 /// opened so that customers could implement <c>IResourceRegistry</c> at all. What actually keeps
 /// this type from becoming a second mint path is that it is <see langword="internal"/>, that no
-/// public member of this assembly returns a <see cref="ResourceIdentifier"/> — asserted over the
-/// whole public surface by a test in this project's test assembly — and that
+/// public member of this assembly returns a <see cref="ResourceIdentifier"/> - asserted over the
+/// whole public surface by a test in this project's test assembly - and that
 /// <c>Only_a_resource_registry_mints_a_resource_identifier</c> names this type in an allowlist, so
 /// a second one appearing is a diff a reviewer sees.
 /// </para>
@@ -70,7 +70,7 @@ internal sealed class ProtectedResource
     /// </summary>
     /// <remarks>
     /// The path-inserted form rather than the root form, because RFC 9728 §3.1 makes it the
-    /// normative location for an identifier that has a path — and because a client that follows the
+    /// normative location for an identifier that has a path - and because a client that follows the
     /// pointer never has to guess. RFC 9728 §5.1 puts no same-origin requirement on this value.
     /// </remarks>
     internal string MetadataUrl { get; }
@@ -100,7 +100,7 @@ internal sealed class ProtectedResource
     /// Returns rather than throws so a configuration doctor can report every problem at once. The
     /// caller in <c>AddBoltwayProtectedResource</c> throws, because a resource server that
     /// starts with a broken identity serves a metadata document every client is required to
-    /// discard — and does it with a 200, which is the hardest kind of failure to see.
+    /// discard - and does it with a 200, which is the hardest kind of failure to see.
     /// </remarks>
     internal static bool TryCreate(ProtectedResourceOptions options, out ProtectedResource? resource, out string? error)
     {
@@ -115,7 +115,7 @@ internal sealed class ProtectedResource
 
         // RFC 9728 §1.2 says a resource identifier SHOULD NOT have a query, and this server turns
         // that into MUST NOT. The reason is routing rather than purity: the metadata document is
-        // served by matching the request's PATH, and a query is not part of it — so two identifiers
+        // served by matching the request's PATH, and a query is not part of it - so two identifiers
         // differing only in their query would resolve to one route, and whichever one lost would be
         // answered with a document naming the other. A client applies §3.3, finds a `resource` that
         // is not what it inserted, and discards a document that arrived with a 200.

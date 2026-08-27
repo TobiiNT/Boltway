@@ -19,11 +19,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Boltway.AuthorizationServer.Tests;
 
 /// <summary>
-/// <c>/me/*</c> — the pages a person uses on their own account. E-46.
+/// <c>/me/*</c> - the pages a person uses on their own account. E-46.
 /// </summary>
 /// <remarks>
 /// The mirror of <see cref="AccountSurfaceTests"/>: same account, same rules, opposite
-/// authentication. §7.2 — <c>N-17</c> read literally would mean a user changing their own
+/// authentication. §7.2 - <c>N-17</c> read literally would mean a user changing their own
 /// password runs an OAuth client, so these are cookie-authenticated with antiforgery and refuse a
 /// bearer, and the prefixes are disjoint so both halves are mechanical.
 /// </remarks>
@@ -46,7 +46,7 @@ public sealed partial class MeSurfaceTests
     /// <remarks>
     /// The fixture pairs <c>TestUserSession</c> with no ASP.NET Core authentication, so the shipped
     /// <c>CookieUserSignIn</c> would throw looking for <c>IAuthenticationService</c>. That is the
-    /// fixture being half a deployment rather than a defect — the two seams are documented as one
+    /// fixture being half a deployment rather than a defect - the two seams are documented as one
     /// decision, and a deployment replacing the session replaces the sign-out with it. What is worth
     /// asserting here is that the page <i>calls</i> it, which is the decision this step made.
     /// </remarks>
@@ -75,7 +75,7 @@ public sealed partial class MeSurfaceTests
     {
         var roles = new InMemoryRoleStore();
 
-        // Defined before anything can hold them — creation does not assign, and assignment refuses
+        // Defined before anything can hold them - creation does not assign, and assignment refuses
         // an id the realm does not define.
         if (await roles.FindAsync(RealmId.Default, "founder", CancellationToken.None) is null)
         {
@@ -220,7 +220,7 @@ public sealed partial class MeSurfaceTests
     /// <para>
     /// <paramref name="tokenFrom"/> defaults to the page being posted to and is separate for the one
     /// case where it has to be: the session list draws a form <i>per session</i>, so a person with
-    /// none has no form to read a token from. Taking it from another page is not a workaround —
+    /// none has no form to read a token from. Taking it from another page is not a workaround -
     /// antiforgery tokens are not path-scoped, so it is exactly what a crafted post would do, which
     /// is the threat those tests are about.
     /// </para>
@@ -317,7 +317,7 @@ public sealed partial class MeSurfaceTests
     /// </summary>
     /// <remarks>
     /// The <c>returnUrl</c> is the reason <c>/login</c>'s check became a list. It used to accept one
-    /// path — <c>/authorize</c> — so before this step a person sent from <c>/me</c> to sign in would
+    /// path - <c>/authorize</c> - so before this step a person sent from <c>/me</c> to sign in would
     /// have been refused at the page they were sent to.
     /// </remarks>
     [Fact]
@@ -331,7 +331,7 @@ public sealed partial class MeSurfaceTests
             var response = await fixture.Client.GetAsync(new Uri(page, UriKind.Relative));
 
             // 303, not 302: every redirect this server emits is a See Other (E-20), and a POST
-            // that lands here — an expired session mid-form — must not be replayed to /login.
+            // that lands here - an expired session mid-form - must not be replayed to /login.
             Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
             Assert.Equal(
                 "/login?returnUrl=" + Uri.EscapeDataString(page),
@@ -383,7 +383,7 @@ public sealed partial class MeSurfaceTests
     /// <remarks>
     /// The session carries a subject and when it was proven, and nothing else. A page that rendered
     /// from it would show a handle that changed hours ago, and could not answer "is there a password
-    /// here" at all — which is the field deciding whether it offers a password link.
+    /// here" at all - which is the field deciding whether it offers a password link.
     /// </remarks>
     [Fact]
     public async Task The_front_page_shows_the_account_as_the_directory_holds_it()
@@ -505,8 +505,8 @@ public sealed partial class MeSurfaceTests
     /// Ticking the box ends every grant, and this browser's session with them.
     /// </summary>
     /// <remarks>
-    /// Revoking grants does not touch the cookie — a grant and a browser session are different
-    /// things — so without the explicit sign-out, "sign me out everywhere, including here" would
+    /// Revoking grants does not touch the cookie - a grant and a browser session are different
+    /// things - so without the explicit sign-out, "sign me out everywhere, including here" would
     /// answer everywhere but here.
     /// </remarks>
     [Fact]
@@ -599,7 +599,7 @@ public sealed partial class MeSurfaceTests
         Assert.DoesNotContain("grant-other", html, StringComparison.Ordinal);
 
         // Said whether or not anything is listed, because "I ended it" must not be read as "it is
-        // gone now" — which it may or may not be, depending on whether the application's own server
+        // gone now" - which it may or may not be, depending on whether the application's own server
         // asks this one. The page carries that caveat either way.
         Assert.Contains("until its current token expires", html, StringComparison.Ordinal);
     }
@@ -610,7 +610,7 @@ public sealed partial class MeSurfaceTests
     /// <remarks>
     /// <b>The assertion that matters is the second one.</b> A confirmation that has already done the
     /// thing is not a confirmation, and this is the control that ends the application the reader is
-    /// holding the page in — so pressing it once and changing your mind has to be free.
+    /// holding the page in - so pressing it once and changing your mind has to be free.
     /// </remarks>
     [Fact]
     public async Task Ending_everything_asks_first_and_ends_nothing_yet()
@@ -626,7 +626,7 @@ public sealed partial class MeSurfaceTests
 
         Assert.Contains("End every session above?", html, StringComparison.Ordinal);
 
-        // Still listed, and still live in the store. The page saying so is not evidence on its own —
+        // Still listed, and still live in the store. The page saying so is not evidence on its own -
         // a handler that revoked and then re-rendered a stale list would look identical here.
         Assert.Contains("client-a", html, StringComparison.Ordinal);
 
@@ -736,7 +736,7 @@ public sealed partial class MeSurfaceTests
     /// </summary>
     /// <remarks>
     /// Everything else here comes from configuration or from the store's own identifiers. This
-    /// arrives as a request header, is stored verbatim, and is rendered back to the account owner —
+    /// arrives as a request header, is stored verbatim, and is rendered back to the account owner -
     /// which is the shape of a stored cross-site scripting hole if the encoding is ever dropped.
     /// </remarks>
     [Fact]
@@ -808,7 +808,7 @@ public sealed partial class MeSurfaceTests
     /// </summary>
     /// <remarks>
     /// Every session younger than one access-token lifetime is in this state, so "never renewed"
-    /// would report ordinary freshness as something wrong — and a caveat explaining a line that is
+    /// would report ordinary freshness as something wrong - and a caveat explaining a line that is
     /// not on the page sends a reader looking for it.
     /// </remarks>
     [Fact]
@@ -835,7 +835,7 @@ public sealed partial class MeSurfaceTests
     /// <remarks>
     /// <para>
     /// <b>The sentence said "up to an hour" for as long as the option defaulted to thirty
-    /// minutes.</b> Every test passed throughout, because no test had ever read the sentence — and
+    /// minutes.</b> Every test passed throughout, because no test had ever read the sentence - and
     /// the failure is invisible from inside the codebase, since the string and the option are both
     /// individually correct and only their pairing is a lie. This is that pairing, asserted.
     /// </para>
@@ -895,7 +895,7 @@ public sealed partial class MeSurfaceTests
     /// </para>
     /// <para>
     /// Differential rather than a fixed string, because what has to be true is that the two pages
-    /// agree — a wording change should not have to be made in two tests, and a wording change made
+    /// agree - a wording change should not have to be made in two tests, and a wording change made
     /// in one page and not the other is exactly what this is for.
     /// </para>
     /// </remarks>
@@ -960,7 +960,7 @@ public sealed partial class MeSurfaceTests
     /// </summary>
     /// <remarks>
     /// <c>N-14</c>'s reasoning about the consent page applies to every page that names a client, and
-    /// the session page used to print the id alone — which for a CIMD client is a URL long enough to
+    /// the session page used to print the id alone - which for a CIMD client is a URL long enough to
     /// push the rest of the row off a phone.
     /// </remarks>
     [Fact]
@@ -1002,7 +1002,7 @@ public sealed partial class MeSurfaceTests
     /// </summary>
     /// <remarks>
     /// <b>The assertion this file exists for.</b> <c>IGrantStore.RevokeAsync</c> takes an id and no
-    /// subject, and this id arrives in a form field — so a handler that passed it straight through
+    /// subject, and this id arrives in a form field - so a handler that passed it straight through
     /// would let anyone who can sign in end any session in the deployment. The page redraws saying
     /// nothing, which is what a stale form should do and is also not an oracle.
     /// </remarks>
@@ -1015,7 +1015,7 @@ public sealed partial class MeSurfaceTests
         await SeedGrantAsync(world, Theirs, "client-a", "grant-other");
 
         // The token comes from /me/password because this account has no session of its own to
-        // draw a form — which is the whole point: the id being posted is somebody else's.
+        // draw a form - which is the whole point: the id being posted is somebody else's.
         var response = await SubmitAsync(
             fixture, "/me/sessions", [("grant", "grant-other")], tokenFrom: "/me/password");
         var html = await response.Content.ReadAsStringAsync();
@@ -1046,8 +1046,8 @@ public sealed partial class MeSurfaceTests
 
         Assert.Contains("Read the knowledge base", html, StringComparison.Ordinal);
 
-        // The host is the prominent line — N-14's reasoning about the consent page applies to every
-        // page that names a client — and the full id is there too, because that is what the form
+        // The host is the prominent line - N-14's reasoning about the consent page applies to every
+        // page that names a client - and the full id is there too, because that is what the form
         // posts back and what an operator would be asked for.
         Assert.Contains("<strong>claude.ai</strong>", html, StringComparison.Ordinal);
         Assert.Contains("https://claude.ai/oauth/client.json", html, StringComparison.Ordinal);
@@ -1120,7 +1120,7 @@ public sealed partial class MeSurfaceTests
     /// <b>Structural rather than checked.</b> <c>IConsentStore.RevokeAsync</c> is keyed on
     /// <c>(subject, client)</c> and the subject is the session's, so the id in the form cannot reach
     /// a record that is not the caller's however it is spelled. This asserts the wiring actually
-    /// passes the session's subject — the property is only as good as the argument.
+    /// passes the session's subject - the property is only as good as the argument.
     /// </remarks>
     [Fact]
     public async Task Another_accounts_client_id_in_the_form_withdraws_nothing()
@@ -1131,7 +1131,7 @@ public sealed partial class MeSurfaceTests
         await SeedConsentAsync(world, Theirs, "client-b", "docs:read");
 
         // The token comes from /me/password: this account has approved nothing, so /me/consents
-        // draws no per-approval form to read one from — which is the point, since the id being
+        // draws no per-approval form to read one from - which is the point, since the id being
         // posted belongs to somebody else.
         var response = await SubmitAsync(
             fixture, "/me/consents", [("client", "client-b")], tokenFrom: "/me/password");
@@ -1211,7 +1211,7 @@ public sealed partial class MeSurfaceTests
     /// <remarks>
     /// <b>Read off the routing table rather than listed by hand.</b> A page reachable while signed
     /// in but missing from <c>LoginReturnTargets</c> works perfectly until the session expires, and
-    /// then answers a 400 at <c>/login</c> — which is the worst moment to find out, and is what
+    /// then answers a 400 at <c>/login</c> - which is the worst moment to find out, and is what
     /// happened to <c>/me</c> itself before that check became a list.
     /// </remarks>
     [Fact]
@@ -1249,7 +1249,7 @@ public sealed partial class MeSurfaceTests
     /// </summary>
     /// <remarks>
     /// The gap this closes: <c>AccountRecovery.RequestEmailVerificationAsync</c> minted the token
-    /// and composed the message, the page redeemed it, and nothing called the first one — its only
+    /// and composed the message, the page redeemed it, and nothing called the first one - its only
     /// callers in the whole tree were three tests. A deployment could not produce the link, so the
     /// page could not be reached by anybody who had not written C# to get there.
     /// </remarks>
@@ -1292,7 +1292,7 @@ public sealed partial class MeSurfaceTests
     /// <remarks>
     /// <c>PasswordRecoveryEnabled</c> is refused at startup without an <c>INotificationSender</c>,
     /// so it is the server's own answer to "can this process send mail". Drawing the button without
-    /// it would mint a token and deliver nothing — the failure shape this server refuses to start
+    /// it would mint a token and deliver nothing - the failure shape this server refuses to start
     /// into, rebuilt one layer up.
     /// </remarks>
     [Fact]
@@ -1361,7 +1361,7 @@ public sealed partial class MeSurfaceTests
     /// Signed in is not exempt from the throttle.
     /// </summary>
     /// <remarks>
-    /// §3.1. The mail goes to an address the server chooses, so this cannot reach a stranger — but a
+    /// §3.1. The mail goes to an address the server chooses, so this cannot reach a stranger - but a
     /// held session is still a button that sends on every press, and the counter is what stops a
     /// stuck client filling somebody's inbox. Said rather than swallowed: a page that ignored the
     /// press would have the person pressing it again, which is the thing being bounded.
@@ -1407,7 +1407,7 @@ public sealed partial class MeSurfaceTests
     /// <remarks>
     /// These are state-changing forms on the origin that carries the session cookie, so without this
     /// any page on the internet could submit them. <c>UseAntiforgery</c> auto-validates only handlers
-    /// that bind form data, and these read <c>Request.Form</c> by hand — so the check is explicit and
+    /// that bind form data, and these read <c>Request.Form</c> by hand - so the check is explicit and
     /// this asserts it is actually there.
     /// </remarks>
     [Fact]

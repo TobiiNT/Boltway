@@ -11,7 +11,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// Found by mutation testing. Every hardening flag on this cookie could be turned off without a
 /// single test failing: <c>HttpOnly = true</c> to <c>false</c>, <c>Secure = true</c> to
-/// <c>false</c>, and the whole <c>CookieOptions</c> initializer replaced by <c>{}</c> — at both the
+/// <c>false</c>, and the whole <c>CookieOptions</c> initializer replaced by <c>{}</c> - at both the
 /// write site and the delete site. The suite drove the federated login flow end to end and never
 /// once looked at the <c>Set-Cookie</c> header it produced.
 /// </para>
@@ -19,14 +19,14 @@ namespace Boltway.AuthorizationServer.Tests;
 /// The cookie is named <c>__Host-boltway-external</c>, and that name is a promise. RFC 6265bis
 /// §4.1.3.2 lets a browser accept a <c>__Host-</c> cookie only when it is <c>Secure</c>, has
 /// <c>Path=/</c>, and carries no <c>Domain</c>. A real browser therefore rejects this cookie
-/// outright if <c>Secure</c> is dropped — the flow would break in the field while the test suite
+/// outright if <c>Secure</c> is dropped - the flow would break in the field while the test suite
 /// stayed green, because <see cref="System.Net.CookieContainer"/> does not enforce the prefix.
 /// That gap between what the tests tolerate and what a browser enforces is exactly why these
 /// assertions read the raw header rather than the client's cookie jar.
 /// </para>
 /// <para>
 /// What this file does <b>not</b> pin: <c>IsEssential</c>. It is not an attribute and never appears
-/// in <c>Set-Cookie</c> — it tells an ASP.NET Core cookie-consent policy that this cookie is exempt
+/// in <c>Set-Cookie</c> - it tells an ASP.NET Core cookie-consent policy that this cookie is exempt
 /// from consent suppression. Its mutant survives here and will keep surviving; killing it needs a
 /// host with a <c>CookiePolicy</c> configured, which this server does not add. Said out loud rather
 /// than left as an unexplained survivor.
@@ -100,7 +100,7 @@ public sealed partial class ExternalLoginFlowTests
     {
         // The delete site had its own copy of the options and its own surviving mutants. A deletion
         // whose attributes do not match the ones the cookie was written with does not delete it:
-        // the browser keeps the original, and the callback stays replayable — which is the one
+        // the browser keeps the original, and the callback stays replayable - which is the one
         // thing TakeAndClear exists to prevent.
         await using var server = await StartAsync();
 

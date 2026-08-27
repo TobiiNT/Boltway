@@ -16,7 +16,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Stores;
 /// <para>
 /// <b>Public, and in the contract assembly, because that is what makes it one definition.</b> It
 /// lived as an <see langword="internal"/> constant inside <c>Boltway.Storage.InMemory</c>, which
-/// grants <c>InternalsVisibleTo</c> to nobody — under a comment reading "one definition rather than
+/// grants <c>InternalsVisibleTo</c> to nobody - under a comment reading "one definition rather than
 /// one per store … two copies of that number would eventually differ". An operability review pointed
 /// out the obvious consequence: any SQL store, in this repo or a customer's, had no way to read it
 /// and would have to retype it, so the divergence the comment warned against was guaranteed by the
@@ -29,7 +29,7 @@ public static class GraceWindows
     /// <remarks>
     /// Five seconds. A known-tight number for a fleet, and the failure direction is unpleasant: a
     /// benign transport retry arriving from an instance whose clock is further out than this reads
-    /// as <c>ReplayedOutsideGrace</c>, which revokes the grant — a forced sign-out attributable to
+    /// as <c>ReplayedOutsideGrace</c>, which revokes the grant - a forced sign-out attributable to
     /// nothing the user or the client did. Measured: a node 6 s fast plus a 1 s-later retry lands
     /// 1 ms past the bound. Raising it widens the window in which a genuinely replayed credential is
     /// tolerated, so it is a real tradeoff rather than free headroom.
@@ -41,7 +41,7 @@ public static class GraceWindows
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The sweeper deletes on expiry, and a code is redeemed whenever consent finishes — often in
+    /// The sweeper deletes on expiry, and a code is redeemed whenever consent finishes - often in
     /// the last seconds of the minute it lives. The retry window starts at redemption rather than at
     /// issue, so it routinely outlives the code, and sweeping on expiry alone removes the row while
     /// the window it was written for is still open. That undoes N-07 one call later: a retry then
@@ -77,7 +77,7 @@ public interface IAuthorizationCodeStore
     /// <summary>Persist a newly issued code. <b>Add-only.</b></summary>
     /// <exception cref="InvalidOperationException">
     /// A code with this hash already exists. Overwriting would clear its redemption and make it
-    /// redeemable again, resetting N-07's replay protection — and a relational store's primary key
+    /// redeemable again, resetting N-07's replay protection - and a relational store's primary key
     /// throws here, so tolerating it would make two implementations disagree on identical input.
     /// </exception>
     Task StoreAsync(AuthorizationCodeRecord record, CancellationToken cancellationToken);
@@ -87,7 +87,7 @@ public interface IAuthorizationCodeStore
     /// </summary>
     /// <remarks>
     /// Returning redeemed rows is the point. N-07 requires a replayed code to be validated in full
-    /// — client binding, redirect URI, PKCE — <i>before</i> anything is revoked, and none of that
+    /// - client binding, redirect URI, PKCE - <i>before</i> anything is revoked, and none of that
     /// is possible against a row that was deleted on first use. The alternative, revoking on the
     /// mere fact of a second presentation, is a denial of service: an attacker who sniffed a code
     /// but holds no verifier could kill the legitimate client's tokens at will.
@@ -108,13 +108,13 @@ public interface IAuthorizationCodeStore
     /// <remarks>
     /// <para>
     /// The answer is the authority and it must come from the number of rows the update actually
-    /// changed — not from a preceding read. Two simultaneous redemptions of one code must produce
+    /// changed - not from a preceding read. Two simultaneous redemptions of one code must produce
     /// exactly one <see cref="CodeRedemption.Redeemed"/>, whatever the interleaving.
     /// </para>
     /// <para>
     /// Call this <b>last</b>, after every other check has passed, so
     /// <see cref="CodeRedemption.ReplayedOutsideGrace"/> means a presenter who holds the client
-    /// authentication and the verifier — the evidence §7.5.2 requires before revoking.
+    /// authentication and the verifier - the evidence §7.5.2 requires before revoking.
     /// </para>
     /// <para>
     /// <b>Expiry is deliberately not checked here, and must not be added.</b> Folding it in would
@@ -129,7 +129,7 @@ public interface IAuthorizationCodeStore
     /// <remarks>
     /// <b>A redeemed code must survive its expiry for long enough to answer a retry.</b> Codes live
     /// about a minute and are redeemed whenever consent finishes, so redemption in the last seconds
-    /// of that minute is ordinary — and the retry window opens at redemption, not at issue, so it
+    /// of that minute is ordinary - and the retry window opens at redemption, not at issue, so it
     /// routinely outlives the code. Sweeping on expiry alone therefore undoes
     /// <see cref="RedeemAsync"/> one call later: the retry presents a hash the store no longer
     /// knows, and an unknown hash is <see cref="CodeRedemption.ReplayedOutsideGrace"/>, which is the
@@ -144,14 +144,14 @@ public interface IAuthorizationCodeStore
 /// </summary>
 /// <remarks>
 /// <para>
-/// The conventional shape here would be a thin store — <c>Find</c>, <c>Update</c>, <c>Add</c> —
+/// The conventional shape here would be a thin store - <c>Find</c>, <c>Update</c>, <c>Add</c> -
 /// with the rotation logic in a service above it. That is rejected deliberately.
 /// </para>
 /// <para>
 /// The bug this design is guarding against is a race, and the race is only resolvable where the
 /// atomicity lives. With a thin store, every implementation has to be raced correctly by whoever
-/// wrote it, and the specific failure — two concurrent redemptions each minting a successor, so the
-/// family forks and reuse detection stops working — is a known CVE class rather than a
+/// wrote it, and the specific failure - two concurrent redemptions each minting a successor, so the
+/// family forks and reuse detection stops working - is a known CVE class rather than a
 /// hypothetical. Putting the decision behind a four-case result means a store <i>has</i> to answer
 /// the question the protocol asks.
 /// </para>
@@ -165,8 +165,8 @@ public interface IRefreshTokenStore
     /// <para>
     /// Needed because the client-binding check must happen <i>before</i> redemption, and redemption
     /// is the only other read. Without this the token endpoint has two choices, and both are wrong:
-    /// skip the binding check that RFC 6749 §6 requires — "ensure that the refresh token was issued
-    /// to the authenticated client" — or redeem first and check afterwards, which consumes a
+    /// skip the binding check that RFC 6749 §6 requires - "ensure that the refresh token was issued
+    /// to the authenticated client" - or redeem first and check afterwards, which consumes a
     /// legitimate user's token on a request made by the wrong client. The second is the same denial
     /// of service that N-07 exists to prevent on the authorization-code path, arriving by a
     /// different route.
@@ -181,7 +181,7 @@ public interface IRefreshTokenStore
     /// <summary>Persist the first refresh token of a family. <b>Add-only.</b></summary>
     /// <exception cref="InvalidOperationException">
     /// A token with this hash already exists. Overwriting would clear its consumption and let the
-    /// parent rotate a second time — two live successors with one predecessor, which is the family
+    /// parent rotate a second time - two live successors with one predecessor, which is the family
     /// fork this design exists to prevent.
     /// </exception>
     Task StoreAsync(RefreshTokenRecord record, CancellationToken cancellationToken);
@@ -205,7 +205,7 @@ public interface IRefreshTokenStore
     /// <b>The grace answer requires the successor to be unconsumed and unexpired.</b> An
     /// implementation that checks only that the successor <i>exists</i> lets an attacker walk the
     /// chain: replaying a stolen token returns the next one, whose own consumption is more recent,
-    /// so every subsequent hop is also inside the window — the walk reaches the live head and
+    /// so every subsequent hop is also inside the window - the walk reaches the live head and
     /// <see cref="RefreshRedemption.ReuseDetected"/> is never raised. A consumed successor means
     /// the chain has moved on, so the presentation is a genuine replay.
     /// </para>
@@ -263,13 +263,13 @@ public interface IRefreshTokenStore
     /// </para>
     /// <para>
     /// <b>Batched, because the caller that wants it holds a list.</b> The sessions page reads every
-    /// grant a person has and then wants this for each — one call per grant is the shape that is
+    /// grant a person has and then wants this for each - one call per grant is the shape that is
     /// fine with three sessions and is a page of round trips with thirty, discovered by whoever has
     /// the most.
     /// </para>
     /// <para>
     /// <b>Consumed and revoked rows count.</b> The question is when the grant last did something,
-    /// not whether the token from that moment is still usable — and every token but the newest in a
+    /// not whether the token from that moment is still usable - and every token but the newest in a
     /// live family is consumed by definition, so excluding them would report the wrong moment for
     /// every session that has ever rotated.
     /// </para>
@@ -299,7 +299,7 @@ public interface IGrantStore
     /// <see cref="ListForSubjectAsync"/>.</b> This answers "has this person approved from here
     /// before", and a device does not stop having been used because the session it was used for was
     /// ended. Reading the active list instead would call somebody's own laptop new the first time
-    /// they signed out of everything and reconnected — which is a false alarm delivered by mail, on
+    /// they signed out of everything and reconnected - which is a false alarm delivered by mail, on
     /// the one channel whose value is that its messages are rare.
     /// </para>
     /// <para>
@@ -325,7 +325,7 @@ public interface IGrantStore
     /// <remarks>
     /// RFC 7009 §2.1: revoking a refresh token SHOULD revoke the access tokens issued from it.
     /// Access tokens are self-contained JWTs, so "revoking" one means recording the grant id here
-    /// and having the resource server refuse tokens carrying it — which is why the access token
+    /// and having the resource server refuse tokens carrying it - which is why the access token
     /// carries a grant id at all.
     /// </remarks>
     /// <returns>
@@ -349,20 +349,20 @@ public interface IGrantStore
     /// <remarks>
     /// <para>
     /// <b>By subject, on the grants, and not by a subject column on the refresh rows.</b> The link
-    /// already exists in the schema — refresh rows carry a grant id and grants carry the subject —
+    /// already exists in the schema - refresh rows carry a grant id and grants carry the subject -
     /// so what was missing was a method, not a column. Denormalising the subject onto refresh rows
     /// would have been a second copy of a fact, kept in step by nothing.
     /// </para>
     /// <para>
     /// <b>A set operation rather than enumerate-then-revoke, and that is the security-relevant
     /// part.</b> Reading the grants and revoking them one at a time leaves a window in which a grant
-    /// created in between is missed — and the moment this is called is exactly the moment somebody
+    /// created in between is missed - and the moment this is called is exactly the moment somebody
     /// is responding to a compromise. One statement has no such window.
     /// </para>
     /// <para>
     /// <b>What this does and does not reach.</b> Refresh tokens stop working immediately: the
     /// refresh handler loads the grant and refuses when it is not active, so the whole chain dies
-    /// with it. <b>Access tokens already issued keep working until they expire</b> — they are signed
+    /// with it. <b>Access tokens already issued keep working until they expire</b> - they are signed
     /// rather than looked up, and <see cref="IsRevokedAsync"/> exists for a resource server to
     /// consult and, measured across this repository, nothing calls it. A caller telling somebody
     /// "you are signed out everywhere" is overstating it by one token lifetime.
@@ -383,19 +383,19 @@ public interface IGrantStore
     /// purpose.</b> That method revokes as one statement rather than enumerating, because the moment
     /// it is called is the moment somebody is responding to a compromise and a
     /// read-then-write-each-one leaves a window. This is the case where a <i>view</i> is the whole
-    /// requirement — <c>E-35</c>, a person looking at their own sessions — and a view has no window
+    /// requirement - <c>E-35</c>, a person looking at their own sessions - and a view has no window
     /// to leave. Two methods because they are two operations, not one method used two ways.
     /// </para>
     /// <para>
     /// <b>Active only.</b> A revoked grant is not a session, and rows are never deleted on
-    /// revocation — <see cref="IRefreshTokenStore.RedeemAsync"/> explains why — so returning
+    /// revocation - <see cref="IRefreshTokenStore.RedeemAsync"/> explains why - so returning
     /// everything would grow this list for the life of the account with entries whose only honest
     /// rendering is "ended". A caller wanting the history wants the audit log.
     /// </para>
     /// <para>
     /// <b>Newest first, and unpaged.</b> One row per (user, client, authorization): a person has
     /// tens of these, not thousands, and the surface that reads it acts on one account. If that ever
-    /// stops being true this gains a cursor the way <c>IUserStore.ListAsync</c> has one — keyset,
+    /// stops being true this gains a cursor the way <c>IUserStore.ListAsync</c> has one - keyset,
     /// never <c>OFFSET</c>.
     /// </para>
     /// </remarks>

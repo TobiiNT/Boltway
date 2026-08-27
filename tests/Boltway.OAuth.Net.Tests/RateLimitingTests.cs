@@ -20,13 +20,13 @@ internal sealed class MovableClock(DateTimeOffset start) : TimeProvider
 /// <remarks>
 /// <para>
 /// Every guard here has been broken on purpose and watched to fail. The controls are recorded in the
-/// commit message; the ones a reader can re-run are written as their own facts below — a limiter
+/// commit message; the ones a reader can re-run are written as their own facts below - a limiter
 /// that refuses everything passes every negative test, so each refusal is paired with the case that
 /// must still be admitted.
 /// </para>
 /// <para>
 /// Nothing here asserts anything about a fleet. These are per-process bounds, and a test with one
-/// limiter in one process could not tell the difference — which is exactly why the claim is made in
+/// limiter in one process could not tell the difference - which is exactly why the claim is made in
 /// prose on the types and not implied by a green test.
 /// </para>
 /// </remarks>
@@ -190,7 +190,7 @@ public sealed class KeyedRateLimiterTests
             Assert.True(limiter.Acquire("k").Allowed);
         }
 
-        // The first backoff again, not the second — the escalation went with the history.
+        // The first backoff again, not the second - the escalation went with the history.
         Assert.Equal(TimeSpan.FromSeconds(30), limiter.Acquire("k").RetryAfter);
     }
 
@@ -571,7 +571,7 @@ public sealed class OutboundHostBudgetTests
     /// <remarks>
     /// A limiter that refused everything would satisfy all four assertions above. The shipped
     /// default is sixty a minute per host, and the two live vendors publish two documents each on
-    /// two hosts — so this is the traffic a real deployment produces, driven against the real
+    /// two hosts - so this is the traffic a real deployment produces, driven against the real
     /// default rather than the tightened one the other tests use.
     /// </remarks>
     [Fact]

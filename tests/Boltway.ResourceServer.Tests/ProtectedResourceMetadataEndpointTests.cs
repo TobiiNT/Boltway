@@ -61,7 +61,7 @@ public sealed class ProtectedResourceMetadataEndpointTests
     {
         // C-27: Claude reads only the first entry and does not fall back to later ones. This server
         // pins exactly one ValidIssuer when it verifies a token, so a second entry would advertise
-        // an authorization server whose tokens this resource then refuses — a successful sign-in
+        // an authorization server whose tokens this resource then refuses - a successful sign-in
         // followed by a permanent 401, which is worse than not supporting several.
         await using var fixture = await ResourceServerFixture.StartAsync();
 
@@ -92,7 +92,7 @@ public sealed class ProtectedResourceMetadataEndpointTests
     {
         // Behavioural, not cosmetic. The MCP scope-selection strategy uses every scope in
         // scopes_supported when the challenge carries none, "omitting the scope parameter if
-        // scopes_supported is undefined" — so [] is defined, and a client that dutifully requests
+        // scopes_supported is undefined" - so [] is defined, and a client that dutifully requests
         // the empty set gets a token with no authority at all.
         await using var fixture = await ResourceServerFixture.StartAsync(o => o.ScopesSupported.Clear());
 
@@ -211,7 +211,7 @@ public sealed class ProtectedResourceMetadataEndpointTests
     }
 
     [Theory]
-    // One physical line carrying a list — the spelling RFC 9110 §13.1.2 permits and an HTTP client
+    // One physical line carrying a list - the spelling RFC 9110 §13.1.2 permits and an HTTP client
     // will not let a test send. See the remarks on CachedJsonResult.Matches.
     [InlineData(true, "\"stale\", \"the-tag\"")]
     [InlineData(true, "\"the-tag\",\"stale\"")]
@@ -256,7 +256,7 @@ public sealed class ProtectedResourceMetadataEndpointTests
     {
         // Written by the result rather than by RequireCors. RequireCors attaches metadata the CORS
         // middleware acts on, and a host that never calls UseCors() gets "contains CORS metadata,
-        // but a middleware was not found" — a 500 on the one document that has to work before
+        // but a middleware was not found" - a 500 on the one document that has to work before
         // anything else can.
         await using var fixture = await ResourceServerFixture.StartAsync();
 

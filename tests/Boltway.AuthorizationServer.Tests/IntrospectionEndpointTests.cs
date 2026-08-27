@@ -26,7 +26,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// Everything else here is the RFC's rules about not leaking while doing it.
 /// </para>
 /// <para>
-/// Driven through the real flow — authorize, exchange, introspect — rather than by minting a token
+/// Driven through the real flow - authorize, exchange, introspect - rather than by minting a token
 /// in the test. What is under test is whether this server recognises its own tokens, and a token
 /// this file constructed would prove only that it recognises tokens this file constructs.
 /// </para>
@@ -47,7 +47,7 @@ public sealed class IntrospectionEndpointTests
     /// <remarks>
     /// <b>Deliberate, and it is the library's constraint rather than a preference.</b> This is the
     /// only endpoint that asks <c>Microsoft.IdentityModel</c> to judge a token's expiry, and
-    /// <c>TokenValidationParameters.TimeProvider</c> is internal in 8.22.0 — so the library reads
+    /// <c>TokenValidationParameters.TimeProvider</c> is internal in 8.22.0 - so the library reads
     /// the system clock and cannot be told otherwise. The suite's default clock is a fixed date,
     /// which would make every token this fixture mints already expired by however long ago that
     /// date was, and every assertion below would fail for a reason that has nothing to do with
@@ -108,7 +108,7 @@ public sealed class IntrospectionEndpointTests
     /// </summary>
     /// <remarks>
     /// The whole argument for the endpoint in one test. The token is untouched and its signature is
-    /// as good as it was a second ago — a resource server checking it offline would still accept
+    /// as good as it was a second ago - a resource server checking it offline would still accept
     /// it, and that is exactly the gap. Asserted immediately after the revoke, with no clock
     /// movement, so nothing here is passing because the token expired.
     /// </remarks>
@@ -160,7 +160,7 @@ public sealed class IntrospectionEndpointTests
 
     /// <summary>A refresh token that has been rotated away is not active.</summary>
     /// <remarks>
-    /// Consumed rows are retained on purpose — reuse detection needs them — so "the store found it"
+    /// Consumed rows are retained on purpose - reuse detection needs them - so "the store found it"
     /// is not "it works", and this is the difference.
     /// </remarks>
     [Fact]
@@ -192,7 +192,7 @@ public sealed class IntrospectionEndpointTests
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // §2.2 — an unusable token is not an error
+    // §2.2 - an unusable token is not an error
     // ─────────────────────────────────────────────────────────────────────────
 
     [Theory]
@@ -203,7 +203,7 @@ public sealed class IntrospectionEndpointTests
     {
         // Three shapes: nonsense, a forged JWT, and something shaped like one of our refresh
         // tokens. All three are the same answer, so a caller holding a stolen token learns only
-        // that it does not work — not why, and not whether it was ever real.
+        // that it does not work - not why, and not whether it was ever real.
         await using var fixture = await StartAsync();
 
         var (status, body) = await IntrospectRawAsync(fixture, token);
@@ -213,7 +213,7 @@ public sealed class IntrospectionEndpointTests
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // §2.1 — authorization, and what it protects
+    // §2.1 - authorization, and what it protects
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -221,7 +221,7 @@ public sealed class IntrospectionEndpointTests
     /// </summary>
     /// <remarks>
     /// The order is the assertion. Client authentication runs before the <c>token</c> parameter is
-    /// read, so this request — which carries neither — is answered as an authentication failure.
+    /// read, so this request - which carries neither - is answered as an authentication failure.
     /// Reporting the missing parameter first would confirm to an unauthenticated stranger that the
     /// endpoint is live and takes it, which is the scanning §2.1 exists to prevent.
     /// </remarks>
@@ -276,9 +276,9 @@ public sealed class IntrospectionEndpointTests
     /// </summary>
     /// <remarks>
     /// <b>The logging half is why <c>RejectionLoggingTests</c> lists
-    /// <c>ReasonCode.TokenParameterMissing</c> as covered here.</b> That file takes A-09 literally —
+    /// <c>ReasonCode.TokenParameterMissing</c> as covered here.</b> That file takes A-09 literally -
     /// one structured line, the right reason, a correlation id, and that id on the response the
-    /// caller is holding — and its entry naming this test is worth only as much as the assertions
+    /// caller is holding - and its entry naming this test is worth only as much as the assertions
     /// below. So they are the same four.
     /// </remarks>
     [Fact]

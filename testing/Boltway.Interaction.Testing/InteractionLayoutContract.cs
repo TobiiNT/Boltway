@@ -9,7 +9,7 @@ namespace Boltway.Interaction.Testing;
 /// <para>
 /// Much shorter than <see cref="InteractionRendererContract"/>, and the difference in length is the
 /// whole argument for the seam. A layout cannot get N-14 wrong, because it never sees the client's
-/// hostname — it receives finished markup with all of that already in it. What is left to check is
+/// hostname - it receives finished markup with all of that already in it. What is left to check is
 /// that it returns a document, puts the markup in it, and does not add anything the page's own CSP
 /// will refuse.
 /// </para>
@@ -31,7 +31,7 @@ public abstract class InteractionLayoutContract
     /// The one rule. Everything the consent page is required to display is inside that string, so a
     /// layout that drops it, truncates it, or HTML-encodes it has removed the client hostname, the
     /// unverified-name notice, the redirect destination, the scope list and the form, all at once.
-    /// <c>DefaultInteractionRenderer</c> checks the same condition at render time — this is the
+    /// <c>DefaultInteractionRenderer</c> checks the same condition at render time - this is the
     /// check a layout author gets to run before deploying rather than after.
     /// </remarks>
     [Theory]
@@ -71,7 +71,7 @@ public abstract class InteractionLayoutContract
     /// </summary>
     /// <remarks>
     /// A layout is where a stylesheet link, a webfont or a header script would be added, so it is
-    /// where <c>default-src 'self'</c> is most likely to be broken — and broken silently, since the
+    /// where <c>default-src 'self'</c> is most likely to be broken - and broken silently, since the
     /// page still renders and only looks wrong. The body in the fixture carries nothing of its own,
     /// so anything this finds came from the shell.
     /// </remarks>
@@ -85,8 +85,8 @@ public abstract class InteractionLayoutContract
         var document = NewLayout().Wrap(Page(kind) with { Nonce = nonce });
 
         // The row that matters for a layout with inline content. A shell emitting a theme switcher
-        // or a critical-CSS block must nonce it with the value from the page — not one it made up,
-        // and not none — and must emit nothing inline at all when the deployment configured no
+        // or a critical-CSS block must nonce it with the value from the page - not one it made up,
+        // and not none - and must emit nothing inline at all when the deployment configured no
         // nonce, because the policy then has no script-src for it to satisfy.
         Assert.Empty(Markup.UnnoncedInlineBlocks(document, nonce));
 

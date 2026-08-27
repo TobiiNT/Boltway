@@ -14,7 +14,7 @@ namespace Boltway.Storage.Sqlite.Tests;
 /// shared cache, and shared cache is a different locking model from the one a deployment runs:
 /// SQLite documents it as locking at table granularity and raising <c>SQLITE_LOCKED</c>, which the
 /// busy handler is not invoked for. The concurrency tests here are about what happens when writers
-/// collide, so they have to collide the way they will in production. That was not measured — the
+/// collide, so they have to collide the way they will in production. That was not measured - the
 /// point is that it would be measuring the wrong thing, which is a reason not to find out the hard
 /// way. The contract's own remarks make the same argument about threads.
 /// </para>

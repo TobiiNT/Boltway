@@ -11,7 +11,7 @@ public sealed class RendererTests
     /// <remarks>
     /// The API sends <c>2026-08-13T08:00:31.0367474+00:00</c> and the page printed it verbatim,
     /// which made the widest column on the audit table seven digits of precision nobody uses. The
-    /// <c>UTC</c> suffix stays because this app is never told the reader's zone — a local-looking
+    /// <c>UTC</c> suffix stays because this app is never told the reader's zone - a local-looking
     /// time that is actually UTC is how an incident gets read an hour wrong.
     /// </remarks>
     [Fact]
@@ -52,7 +52,7 @@ public sealed class RendererTests
     /// </summary>
     /// <remarks>
     /// It is the third of the three things a stylesheet could not supply, and the only one that is
-    /// per-page rather than per-shell — so it is the piece a renderer written from scratch is most
+    /// per-page rather than per-shell - so it is the piece a renderer written from scratch is most
     /// likely to want unchanged.
     /// </remarks>
     [Fact]
@@ -121,7 +121,7 @@ public sealed class RendererTests
     /// </summary>
     /// <remarks>
     /// The <c>error_description</c> names the rule that was broken and is the authorization server's
-    /// sentence to translate, not this app's — a table here could only cover the refusals that
+    /// sentence to translate, not this app's - a table here could only cover the refusals that
     /// existed when it was written. So the surround is Vietnamese and the refusal may not be, which
     /// is the per-string fallback doing its job one level up.
     /// </remarks>
@@ -163,7 +163,7 @@ public sealed class RendererTests
     /// </summary>
     /// <remarks>
     /// The check that would have caught the two dead keys the moment they were added. It asserts
-    /// against <see cref="AdminText.Keys"/>, which is published for exactly this — a deployment
+    /// against <see cref="AdminText.Keys"/>, which is published for exactly this - a deployment
     /// comparing its file to the build.
     /// </remarks>
     [Fact]
@@ -176,7 +176,7 @@ public sealed class RendererTests
 
         // Both sides of every branch, because a key is only reachable on one of them. An account
         // with no password, one that cannot sign in, a role that does administer and one that does
-        // not, a page with a cursor and a refusal with nothing to say — each of those is a sentence
+        // not, a page with a cursor and a refusal with nothing to say - each of those is a sentence
         // that exists and that a one-fixture sweep would report as dead.
         var federatedAndDisabled = Render.Json(
             """
@@ -198,7 +198,7 @@ public sealed class RendererTests
 
             // Both service-account states, because they are two disjoint halves of the section and a
             // sweep over one of them reports the other's sentences as dead. The secret is rendered
-            // here too — it has its own warning, and that warning is only ever on screen at the same
+            // here too - it has its own warning, and that warning is only ever on screen at the same
             // moment as a live credential.
             renderer.RenderAccount(new AccountViewModel(
                 Render.Account("founder"), Render.Tokens, null, "ada")
@@ -226,9 +226,9 @@ public sealed class RendererTests
             renderer.RenderNewAccount(new NewAccountViewModel(Render.Tokens, null, "ada")),
 
             // Both halves again: a realm with roles carries every sentence about one, and a realm
-            // with none carries the sentence that says so — which no fixture holding a role reaches.
+            // with none carries the sentence that says so - which no fixture holding a role reaches.
             // Accounts and the truncation flag are on the populated call because the holder
-            // sentences — held-by, nobody, and the truncated caveat — live only there.
+            // sentences - held-by, nobody, and the truncated caveat - live only there.
             renderer.RenderRoles(new RolesViewModel(
                 Render.Json(
                     """
@@ -258,7 +258,7 @@ public sealed class RendererTests
                 Render.Refusal(HttpStatusCode.InternalServerError, null, null), Render.Tokens, "ada")),
 
             // Every notice, driven off the set the renderer matches against rather than a list
-            // written out here — a notice added to that set and to no endpoint is still a sentence
+            // written out here - a notice added to that set and to no endpoint is still a sentence
             // this build ships, and it should be swept like the rest. Each gets a value, because two
             // of them are a sentence with a hole in it and render nothing without one.
             string.Concat(AdminText.NoticeKeys.Select(key => renderer.RenderAccounts(
@@ -285,7 +285,7 @@ public sealed class RendererTests
     /// <para>
     /// What that cost: <c>Text</c> answers empty for a non-string, so roles rendered blank, the
     /// admin badge matched nobody, and the account form's role box came up empty. The form posts
-    /// every field it shows, so saving an unrelated change sent "clear the roles" — losing the
+    /// every field it shows, so saving an unrelated change sent "clear the roles" - losing the
     /// account's permissions in the direction that raises no error and shows an almost-empty
     /// knowledge base at the next sign-in.
     /// </para>
@@ -336,7 +336,7 @@ public sealed class RendererTests
     /// <remarks>
     /// The BFF and the authorization server are separate images, so during any rollout one is older
     /// than the other. The older one answers 404 for the endpoint, the BFF leaves the property
-    /// unset, and the account page has to be the page it was — a section rendered as an error would
+    /// unset, and the account page has to be the page it was - a section rendered as an error would
     /// make an upgrade look like a fault, on the page an operator reaches for when something is
     /// already wrong.
     /// </remarks>
@@ -379,7 +379,7 @@ public sealed class RendererTests
     /// <summary>The scopes the server publishes are offered as checkboxes, not typed.</summary>
     /// <remarks>
     /// Every checkbox is <c>name="scopes"</c>, which is what makes the form post the field once per
-    /// tick — and is the half the handler had to be taught to read.
+    /// tick - and is the half the handler had to be taught to read.
     /// </remarks>
     [Fact]
     public void Published_scopes_are_offered_rather_than_typed()
@@ -400,7 +400,7 @@ public sealed class RendererTests
         }
 
         // And the box is gone, rather than sitting beside the list as a second way to say the same
-        // thing — two controls posting one field is a form whose result depends on which one an
+        // thing - two controls posting one field is a form whose result depends on which one an
         // operator believed.
         Assert.DoesNotContain("<input id=\"scopes\"", page, StringComparison.Ordinal);
     }
@@ -440,7 +440,7 @@ public sealed class RendererTests
     /// <remarks>
     /// Both the unknown and the empty case, because they arrive differently and mean the same
     /// thing. Rendering zero checkboxes would state that the server issues no scopes at all, which
-    /// is a claim neither a discovery failure nor an absent <c>scopes_supported</c> supports — and
+    /// is a claim neither a discovery failure nor an absent <c>scopes_supported</c> supports - and
     /// it would leave an operator with a form that cannot be completed.
     /// </remarks>
     [Fact]
@@ -497,7 +497,7 @@ public sealed class RendererTests
     /// <para>
     /// Found by looking at the page rather than by reasoning about it. The deployment's stylesheet
     /// makes <c>h2</c> a small uppercase section label, so <c>&lt;h2&gt;founder&lt;/h2&gt;</c> put
-    /// <c>FOUNDER</c> on screen for a role whose id is <c>founder</c> — an ordinally matched string
+    /// <c>FOUNDER</c> on screen for a role whose id is <c>founder</c> - an ordinally matched string
     /// shown in a case that would not match it, on the one page where an operator reads an id to
     /// copy it.
     /// </para>
@@ -522,7 +522,7 @@ public sealed class RendererTests
     /// </summary>
     /// <remarks>
     /// A rule about the page rather than about any one role. Repeating it under each of three roles
-    /// produced the same paragraph three times, which is how a caveat stops being read — and the
+    /// produced the same paragraph three times, which is how a caveat stops being read - and the
     /// caveats on this page are the ones that matter.
     /// </remarks>
     [Fact]
@@ -567,7 +567,7 @@ public sealed class RendererTests
     /// The role that administers the directory is marked, on the page with the delete button.
     /// </summary>
     /// <remarks>
-    /// Deleting it is how a deployment locks itself out of its own admin UI — every holder loses
+    /// Deleting it is how a deployment locks itself out of its own admin UI - every holder loses
     /// <c>users:write</c> at once, including whoever pressed the button, and the page that could
     /// grant it back is the one they can no longer open.
     /// </remarks>
@@ -628,7 +628,7 @@ public sealed class RendererTests
     /// </summary>
     /// <remarks>
     /// A warning behind a disclosure triangle is a warning nobody reads. The row carries the
-    /// accounts list's own badge — one term for one concept — and the sentence it stands for is
+    /// accounts list's own badge - one term for one concept - and the sentence it stands for is
     /// still in the body, beside the button it is about.
     /// </remarks>
     [Fact]
@@ -671,7 +671,7 @@ public sealed class RendererTests
     }
 
     /// <summary>
-    /// Each role says who holds it — grouped with the same read the accounts list uses.
+    /// Each role says who holds it - grouped with the same read the accounts list uses.
     /// </summary>
     [Fact]
     public void A_role_names_its_holders()
@@ -684,7 +684,7 @@ public sealed class RendererTests
                 """),
             Render.Tokens, null, "ada")
         {
-            // grace holds both roles, so they must appear under both — the union rule, on the
+            // grace holds both roles, so they must appear under both - the union rule, on the
             // page that shows it.
             Accounts = Render.Json(
                 """
@@ -711,7 +711,7 @@ public sealed class RendererTests
     /// A role nobody holds says so in a sentence, and shows no count.
     /// </summary>
     /// <remarks>
-    /// The sentence sits in the body, next to the delete button — which is where "is this safe to
+    /// The sentence sits in the body, next to the delete button - which is where "is this safe to
     /// remove" is being decided.
     /// </remarks>
     [Fact]
@@ -762,12 +762,12 @@ public sealed class RendererTests
     }
 
     /// <summary>
-    /// With a vocabulary configured, permissions are ticked — and what the list does not name
+    /// With a vocabulary configured, permissions are ticked - and what the list does not name
     /// renders as a ticked checkbox too.
     /// </summary>
     /// <remarks>
     /// The union is the part that must never regress. If the checkboxes rendered only the
-    /// vocabulary, a held permission outside it would be stripped by the next unrelated save —
+    /// vocabulary, a held permission outside it would be stripped by the next unrelated save -
     /// the roles-cleared-on-save defect with a different field name. It used to ride in a
     /// free-text box beside the list; the ticked box is the same guarantee with one control,
     /// which is also why no text input renders in this mode at all.
@@ -787,7 +787,7 @@ public sealed class RendererTests
             "<input type=\"checkbox\" name=\"permissions\" value=\"docs_write\">",
             page, StringComparison.Ordinal);
 
-        // legacy_x is not in the vocabulary, so it is offered as a ticked box — not silently gone.
+        // legacy_x is not in the vocabulary, so it is offered as a ticked box - not silently gone.
         Assert.Contains(
             "<input type=\"checkbox\" name=\"permissions\" value=\"legacy_x\" checked>",
             page, StringComparison.Ordinal);
@@ -853,7 +853,7 @@ public sealed class RendererTests
     // it and the page printed it. That cost two things at once. Every write in a fully translated
     // console produced one English line, because a sentence written in Program.cs is the one string
     // on these pages an ADMIN_TEXT_FILE cannot reach. And the banner was whatever a link said it
-    // was — encoded, so never an injection, and still this app's own voice saying somebody else's
+    // was - encoded, so never an injection, and still this app's own voice saying somebody else's
     // words. It is a key now, matched against a closed set.
 
     /// <summary>A key becomes the sentence it names.</summary>
@@ -874,7 +874,7 @@ public sealed class RendererTests
     /// </summary>
     /// <remarks>
     /// The symptom this closes: a console translated end to end, and then a Vietnamese account page
-    /// answering every save with "Applied." — which is the case AdminText's own remarks describe the
+    /// answering every save with "Applied." - which is the case AdminText's own remarks describe the
     /// table as existing to prevent, arriving through the one channel that had been left out of it.
     /// </remarks>
     [Fact]
@@ -910,7 +910,7 @@ public sealed class RendererTests
     /// <remarks>
     /// The property the rest of it rests on. A link is the only thing that puts a value in this
     /// parameter, so echoing an unrecognised one back hands anybody a sentence in this app's own
-    /// voice, on the page an operator trusts most. Encoding it was never the answer to that — it
+    /// voice, on the page an operator trusts most. Encoding it was never the answer to that - it
     /// stops the markup and keeps the sentence.
     /// </remarks>
     [Fact]
@@ -941,7 +941,7 @@ public sealed class RendererTests
     /// <remarks>
     /// Why the check is <c>AdminText.NoticeKeys</c> and not <c>AdminText.Keys</c>, which is the
     /// obvious one and is too generous by every sentence on these pages. With it, a link could hoist
-    /// "this is the only time it is shown" over an account page with no credential on it — a warning
+    /// "this is the only time it is shown" over an account page with no credential on it - a warning
     /// about something that did not happen, in the console's own voice.
     /// </remarks>
     [Fact]

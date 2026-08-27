@@ -18,14 +18,14 @@ namespace Boltway.AuthorizationServer.Tests;
 /// This file exists because mutation testing found the whole method missing from the suite rather
 /// than any single assertion. <c>TestClientSecretStore</c> returned <see langword="null"/> for every
 /// client, under the summary "No client has a secret; everything in these tests is a public
-/// client" — so <c>SecretAsync</c> could only ever reach its "no secret is stored for this client"
+/// client" - so <c>SecretAsync</c> could only ever reach its "no secret is stored for this client"
 /// refusal. Stryker reported the <c>Authenticated(...)</c> branch as <c>NoCoverage</c>, and a
 /// cluster of guards on the road to it survived together:
 /// </para>
 /// <list type="bullet">
-/// <item>the strict-UTF-8 decode of the Basic payload — both <c>throwOnInvalidBytes</c> mutants</item>
+/// <item>the strict-UTF-8 decode of the Basic payload - both <c>throwOnInvalidBytes</c> mutants</item>
 /// <item><c>separator &lt; 0</c>, the <c>':'</c> split that separates id from secret</item>
-/// <item><c>separator + 1</c>, which cuts the secret out — mutating it to <c>separator - 1</c>
+/// <item><c>separator + 1</c>, which cuts the secret out - mutating it to <c>separator - 1</c>
 /// corrupts every secret read from a header, and nothing failed</item>
 /// <item><c>usedHeader</c>, which decides whether the result reports
 /// <c>client_secret_basic</c> or <c>client_secret_post</c></item>
@@ -62,7 +62,7 @@ public sealed class ClientSecretAuthenticationTests
             // A deployment offers the methods its clients use, and the same list is what the
             // discovery document advertises and what ClientAuthenticator enforces. Seeding a
             // client with a method and not offering it is a state no deployment can be in, so
-            // the fixture is held to the same thing — which is also what proves the arm works
+            // the fixture is held to the same thing - which is also what proves the arm works
             // for a deployment that does offer it.
             seed.ConfigureOptions = o =>
             {
@@ -112,7 +112,7 @@ public sealed class ClientSecretAuthenticationTests
             $"{Uri.EscapeDataString(clientId)}:{Uri.EscapeDataString(secret)}"));
 
     // ─────────────────────────────────────────────────────────────────────────
-    // §2.4.1 — client_secret_basic
+    // §2.4.1 - client_secret_basic
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -143,7 +143,7 @@ public sealed class ClientSecretAuthenticationTests
     public async Task A_basic_header_carrying_the_wrong_secret_is_refused()
     {
         // The control for the test above. Without it, an authenticator that accepted ANY Basic
-        // header would pass — and that is precisely the shape of the bug this file was written to
+        // header would pass - and that is precisely the shape of the bug this file was written to
         // make expressible.
         await using var fixture = await StartAsync(ClientAuthMethod.ClientSecretBasic);
 
@@ -179,7 +179,7 @@ public sealed class ClientSecretAuthenticationTests
 
         var code = await GetCodeAsync(fixture);
 
-        // The client id is a URL, so it already carries ':' and '/' — the characters that make the
+        // The client id is a URL, so it already carries ':' and '/' - the characters that make the
         // colon split ambiguous if the id is not encoded.
         Assert.Contains(":", ClientId, StringComparison.Ordinal);
         Assert.Contains("%3A", Uri.EscapeDataString(ClientId), StringComparison.Ordinal);
@@ -199,7 +199,7 @@ public sealed class ClientSecretAuthenticationTests
     {
         // The decoder is strict on purpose: the permissive one substitutes U+FFFD for every
         // undecodable byte, which makes two different secrets compare equal. 0xC3 0x28 is a
-        // truncated two-byte sequence — valid base64, invalid UTF-8.
+        // truncated two-byte sequence - valid base64, invalid UTF-8.
         await using var fixture = await StartAsync(ClientAuthMethod.ClientSecretBasic);
 
         var payload = new List<byte>();
@@ -223,10 +223,10 @@ public sealed class ClientSecretAuthenticationTests
         // this assertion is for. Relaxing throwOnInvalidBytes leaves the response byte-identical:
         // the permissive decoder folds 0xC3 0x28 to U+FFFD, the folded value still fails
         // OpaqueSecret.TryParse because U+FFFD is not in the base64url alphabet, and the client
-        // still gets invalid_client. A test that stopped at the line above passed under both — it
+        // still gets invalid_client. A test that stopped at the line above passed under both - it
         // was written that way first, and the control run proved it worthless.
         //
-        // So the real difference is the diagnosis. Strict refuses at the header — the credential
+        // So the real difference is the diagnosis. Strict refuses at the header - the credential
         // never parsed, and the server cannot say whose it was. Permissive invents a client id out
         // of replacement characters and then reports a failed secret comparison for it, sending
         // whoever reads the log looking for a client that was never named.
@@ -242,7 +242,7 @@ public sealed class ClientSecretAuthenticationTests
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // §2.4.2 — client_secret_post, and the binding between them
+    // §2.4.2 - client_secret_post, and the binding between them
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact]

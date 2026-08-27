@@ -4,8 +4,8 @@
 # `pinned-drafts.yml` next door watches the IETF for the same reason and this is its sibling, down
 # to the exit-code contract and the tracking issue. What differs is the input's speed. A working
 # group publishes a revision every few months; a vendor ships when it likes. The two captures in
-# `spec/` are fourteen days apart and the newer one exists *because* something moved — ChatGPT's
-# documents grew RFC 7591's singular `token_endpoint_auth_method` beside RFC 8414's plural — found
+# `spec/` are fourteen days apart and the newer one exists *because* something moved - ChatGPT's
+# documents grew RFC 7591's singular `token_endpoint_auth_method` beside RFC 8414's plural - found
 # by hand, at whatever moment somebody happened to look.
 #
 # **What is at stake is the most perishable thing this repository owns.** Nineteen `C-*` rows
@@ -24,7 +24,7 @@
 #
 # **Unreachable is not unchanged**, and the script's exit codes keep those apart: 1 is work owed and
 # files an issue, 2 is "nothing was measured" and is retried. A vendor's CDN having a bad minute
-# must never file a spec issue — that is how a signal gets trained out of its reader, and then the
+# must never file a spec issue - that is how a signal gets trained out of its reader, and then the
 # real one arrives into a channel somebody has learned to skip.
 #
 # **Known, not measured: GitHub disables a `schedule` trigger after 60 days of repository
@@ -39,7 +39,7 @@ on:
     # behind every other repository's `0 6 * * *`.
     - cron: '20 6 * * 1,4'
   workflow_dispatch:
-  # Also whenever the capture or the check itself changes — not to catch a vendor change, which is
+  # Also whenever the capture or the check itself changes - not to catch a vendor change, which is
   # the schedule's job, but so a re-capture that named a URL wrong is told immediately rather than
   # on the following Monday.
   pull_request:
@@ -69,7 +69,7 @@ jobs:
       issues: write
 
     steps:
-      # Pinned to a commit rather than a tag — a tag is a mutable pointer in somebody else's
+      # Pinned to a commit rather than a tag - a tag is a mutable pointer in somebody else's
       # repository. publish-packages.yml carries the argument; .github/dependabot.yml keeps it current.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -162,7 +162,7 @@ jobs:
           fi
 
       # The verdict, kept separate from the check so the issue above is filed even though this fails
-      # the job — and it does fail it. A vendor that could not be reached is not evidence that its
+      # the job - and it does fail it. A vendor that could not be reached is not evidence that its
       # document is unchanged, so a green here would be a green that established nothing.
       - name: Report
         run: |

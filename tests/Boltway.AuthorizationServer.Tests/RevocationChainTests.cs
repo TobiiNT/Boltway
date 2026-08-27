@@ -28,7 +28,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </para>
 /// <para>
 /// <b>So the check here is the real one, against the real endpoint.</b> No stub handler, no canned
-/// JSON — <c>IntrospectionRevocationCheck</c> is constructed with a handler onto the running test
+/// JSON - <c>IntrospectionRevocationCheck</c> is constructed with a handler onto the running test
 /// server and does its own HTTP, its own Basic authentication and its own parsing. A change to
 /// either side that breaks the other fails here and nowhere else.
 /// </para>
@@ -54,7 +54,7 @@ public sealed class RevocationChainTests
     /// </summary>
     /// <remarks>
     /// The gap this whole feature closes, end to end. The access token is a signed JWT whose
-    /// signature is exactly as valid after the revoke as before it — a resource server verifying it
+    /// signature is exactly as valid after the revoke as before it - a resource server verifying it
     /// offline would still accept it, which is why the offline answer is not the one that counts.
     /// </remarks>
     [Fact]
@@ -66,7 +66,7 @@ public sealed class RevocationChainTests
         var check = CheckAgainst(fixture, cacheLifetime: TimeSpan.Zero);
 
         // The control. Without it, a check that answered "revoked" to everything would pass the
-        // assertion below — including one that could not reach the server at all, which fails open
+        // assertion below - including one that could not reach the server at all, which fails open
         // and would answer false rather than true, but a broken credential is not the only way to
         // get a wrong answer for a wrong reason.
         Assert.False(await check.IsRevokedAsync(token, Anonymous, CancellationToken.None));
@@ -83,7 +83,7 @@ public sealed class RevocationChainTests
     /// <para>
     /// <b>This is the number a user-facing sentence has to be written from.</b> "Ending a session
     /// cuts access immediately" is false while any positive answer is still cached, and the honest
-    /// wording depends on how long that is — so the lag is asserted rather than assumed from
+    /// wording depends on how long that is - so the lag is asserted rather than assumed from
     /// reading the option's default.
     /// </para>
     /// <para>
@@ -107,7 +107,7 @@ public sealed class RevocationChainTests
         await RevokeEverythingFor(fixture, "user-1");
 
         // Still allowed: the grant is gone, and this resource server does not know yet. Not a
-        // defect — it is the trade the cache exists to make, and the reason the sentence on the
+        // defect - it is the trade the cache exists to make, and the reason the sentence on the
         // sessions page cannot say "immediately".
         Assert.False(await check.IsRevokedAsync(token, Anonymous, CancellationToken.None));
 
@@ -126,7 +126,7 @@ public sealed class RevocationChainTests
     /// <remarks>
     /// The failure that presents as somebody else's outage. Worth driving against the real
     /// authorization server rather than a stub, because the stub was told to answer
-    /// <c>invalid_client</c> and this one decides to — so this asserts that a real refusal of a real
+    /// <c>invalid_client</c> and this one decides to - so this asserts that a real refusal of a real
     /// bad secret still lands in the branch that names the credential.
     /// </remarks>
     [Fact]
@@ -155,7 +155,7 @@ public sealed class RevocationChainTests
             // Wall-clock, for the reason IntrospectionEndpointTests records: this is the one
             // endpoint that asks Microsoft.IdentityModel to judge expiry, and its TimeProvider is
             // internal in 8.22.0, so the library reads the system clock whatever the fixture says.
-            // The fixture clock still moves — it is what the cache expires against.
+            // The fixture clock still moves - it is what the cache expires against.
             seed.Now = now;
             seed.SignedInUser = new(SubjectId.FromStorage("user-1"), now.AddMinutes(-1));
 
@@ -178,8 +178,8 @@ public sealed class RevocationChainTests
     /// <summary>A real introspecting check, pointed at this fixture's real endpoint.</summary>
     /// <remarks>
     /// It authenticates as the same confidential client the flow used. A deployment would give the
-    /// resource server a client of its own — RFC 7662 §2.1 only requires that the caller be
-    /// authorized, not that it be a different principal — and registering a second one here would
+    /// resource server a client of its own - RFC 7662 §2.1 only requires that the caller be
+    /// authorized, not that it be a different principal - and registering a second one here would
     /// test the fixture's client registry rather than the seam.
     /// </remarks>
     private static IntrospectionRevocationCheck CheckAgainst(
@@ -205,7 +205,7 @@ public sealed class RevocationChainTests
             SubjectId.FromStorage(subject), fixture.Clock.GetUtcNow(), CancellationToken.None);
 
         // A revoke that revoked nothing would make every assertion after it pass for the wrong
-        // reason — the token would be refused because it was never granted.
+        // reason - the token would be refused because it was never granted.
         Assert.True(revoked > 0, "nothing was revoked, so the assertions that follow prove nothing");
     }
 

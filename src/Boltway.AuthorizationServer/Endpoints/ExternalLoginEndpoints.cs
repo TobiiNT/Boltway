@@ -36,7 +36,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// Not by email address, not by email address plus <c>email_verified</c>. The attack that rule is
 /// about is concrete: an attacker registers the victim's address at an upstream that does not verify
 /// it, signs in here, and the server hands them the victim's local account. Requiring
-/// <c>email_verified</c> does not fix it — that is a claim made by the upstream, about a check this
+/// <c>email_verified</c> does not fix it - that is a claim made by the upstream, about a check this
 /// server did not perform and cannot audit, and the entire reason to have a provider abstraction is
 /// that a future deployment will add an upstream whose verification nobody here has reviewed.
 /// </para>
@@ -44,7 +44,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// The structural half of that argument is worth more than the reasoning, and it has changed shape
 /// once, which is worth more than either. It used to be that <c>IUserStore</c> exposed
 /// <c>FindBySubjectAsync</c>, <c>FindByUsernameAsync</c> and <c>FindByExternalLoginAsync</c> and no
-/// method finding an account by email address at all — an absent method cannot be called from here
+/// method finding an account by email address at all - an absent method cannot be called from here
 /// or anywhere. That held until signing in with a verified address shipped, because the sign-in
 /// form needs precisely the lookup federation must not have.
 /// </para>
@@ -53,7 +53,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <c>StructuralRuleTests.Only_the_sign_in_form_resolves_an_account_by_address</c> reads the IL for
 /// callers of <c>FindByVerifiedEmailAsync</c> and fails on any that is not the sign-in form; this
 /// file is not on that allowlist and adding it turns the suite red. It is a narrower claim than the
-/// one it replaces and a stronger one to keep — the old rule would have passed a callback here that
+/// one it replaces and a stronger one to keep - the old rule would have passed a callback here that
 /// resolved by username, and this one names who may resolve by anything a stranger asserts.
 /// </para>
 /// <para>
@@ -61,7 +61,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// /external/{scheme}/link</c>, submitted from a page the account is already signed in to, with an
 /// antiforgery token, where the session that finishes the round trip must be the same subject that
 /// started it. The sufficient condition is that the person operating the browser has <i>already</i>
-/// authenticated as the local account — so linking adds an upstream credential to an account its
+/// authenticated as the local account - so linking adds an upstream credential to an account its
 /// owner is holding, rather than admitting an upstream credential to an account on the strength of a
 /// claim about it.
 /// </para>
@@ -117,11 +117,11 @@ public static class ExternalLoginEndpoints
         // Two different gates, and the difference is what each flow resumes.
         //
         // A sign-in lands where POST /login lands, and it is the *same list* rather than a rule
-        // that resembles it. This said "may only ever land back on /authorize — the same rule POST
+        // that resembles it. This said "may only ever land back on /authorize - the same rule POST
         // /login follows", and that stopped being true when /login learned to resume the
         // self-service pages: the two drifted, and the comment claiming they agreed is what kept
         // anybody from noticing. Measured, on the running deployment, once a bare GET /login began
-        // defaulting its returnUrl to /me — the sign-in page rendered a provider button whose own
+        // defaulting its returnUrl to /me - the sign-in page rendered a provider button whose own
         // endpoint answered 400, so "sign in with Google" from a hand-typed /login was an error
         // page. The list, not a second opinion about it.
         //
@@ -154,7 +154,7 @@ public static class ExternalLoginEndpoints
         {
             // Checked here as well as on the way back. Doing it only on the way back would send a
             // signed-out user all the way to the upstream, have them authenticate, and refuse them
-            // on return — which teaches people to click through an upstream consent screen for
+            // on return - which teaches people to click through an upstream consent screen for
             // nothing.
             var user = await services.GetRequiredService<IUserSession>().GetAsync(cancellationToken);
 
@@ -204,7 +204,7 @@ public static class ExternalLoginEndpoints
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // A provider that cannot reach its own discovery document throws here, because
-            // ExternalChallenge has no failure case — it is a validated redirect target. Caught and
+            // ExternalChallenge has no failure case - it is a validated redirect target. Caught and
             // turned into a logged rejection rather than left to the exception boundary, so it
             // carries a reason an operator can filter on instead of arriving as `server_error`.
             //
@@ -219,7 +219,7 @@ public static class ExternalLoginEndpoints
 
         // Written only once the challenge exists. Writing it first would leave a browser holding a
         // pending request for a round trip that never started, and the next genuine attempt would
-        // overwrite it anyway — but the ordering also means a failure here leaves no state at all,
+        // overwrite it anyway - but the ordering also means a failure here leaves no state at all,
         // which is the easier thing to reason about.
         services.GetRequiredService<ExternalLoginStateStore>().Write(http, pending);
 
@@ -252,7 +252,7 @@ public static class ExternalLoginEndpoints
 
         // The scheme in the path must be the one the round trip started with. Without this, a
         // pending request minted for provider A could be completed by pointing the browser at
-        // provider B's callback — and provider B would validate an ID token from B against a nonce
+        // provider B's callback - and provider B would validate an ID token from B against a nonce
         // A issued, which succeeds. Two upstreams is exactly when that becomes reachable, which is
         // why it is here now rather than when the second provider ships.
         if (!string.Equals(pending.Scheme, scheme, StringComparison.Ordinal))
@@ -274,7 +274,7 @@ public static class ExternalLoginEndpoints
         }
 
         // Only after `state` has matched. An `error` on an unbound callback is anybody's error, and
-        // acting on it — even to render a page — would let a stranger drive this endpoint's output.
+        // acting on it - even to render a page - would let a stranger drive this endpoint's output.
         if (http.Request.Query["error"].ToString() is { Length: > 0 } upstreamError)
         {
             return Refuse(
@@ -327,7 +327,7 @@ public static class ExternalLoginEndpoints
         var principal = ((ExternalLoginResult.Authenticated)result).Principal;
 
         // OIDC Core §3.1.3.7 rule 11. Done here rather than inside the provider so it happens once,
-        // identically, for every provider that will ever be added — the value it must equal is in
+        // identically, for every provider that will ever be added - the value it must equal is in
         // the cookie, which a provider cannot see by design.
         if (!ExternalLoginStateStore.NonceMatches(pending.Nonce, principal.Nonce))
         {
@@ -357,7 +357,7 @@ public static class ExternalLoginEndpoints
         var users = services.GetRequiredService<IUserStore>();
 
         // The one lookup. (issuer, subject), ordinal on both halves, and there is no fallback below
-        // it — no email, no username, no "close enough".
+        // it - no email, no username, no "close enough".
         var realm = services.GetRequiredService<AuthorizationServerOptions>().Realm;
 
         var account = await users.FindByExternalLoginAsync(
@@ -386,7 +386,7 @@ public static class ExternalLoginEndpoints
             if (account is not null)
             {
                 // The deployment's defaults, because a provisioned account is the "creator named no
-                // role" case every time — there is no creator. Without this, a deployment that
+                // role" case every time - there is no creator. Without this, a deployment that
                 // turned provisioning on had every sign-up land on the floor while its DEFAULT_ROLES
                 // said otherwise, and the two surfaces disagreed about what "by default" means.
                 var defaulted = await AssignDefaultRolesAsync(services, account.Subject, cancellationToken);
@@ -426,12 +426,12 @@ public static class ExternalLoginEndpoints
         await services.GetRequiredService<IUserSignIn>()
             .SignInAsync(http, new AuthenticatedUser(account.Subject, now));
 
-        // The same list POST /login returns to, not /authorize alone — the gate at the *start* of
+        // The same list POST /login returns to, not /authorize alone - the gate at the *start* of
         // this round trip was widened to it and this one was left behind, so a sign-in begun from a
         // hand-typed /login was allowed to leave, authenticated at Google, came back, signed the
         // user in, and was refused on the last line. Measured on the running deployment: the cookie
         // was set and the browser landed on "this page was opened without a valid authorization
-        // request", which is the worst shape a refusal can have — the side effect happened and the
+        // request", which is the worst shape a refusal can have - the side effect happened and the
         // page says nothing did.
         return Resume(http, pending, AuthorizationServerPaths.LoginReturnTargets);
     }
@@ -442,14 +442,14 @@ public static class ExternalLoginEndpoints
     /// <remarks>
     /// <para>
     /// <b>New, always.</b> Nothing here searches for an existing account to attach to, and the store
-    /// offers no way to search by the one field that would tempt someone — the email address. An
+    /// offers no way to search by the one field that would tempt someone - the email address. An
     /// upstream identity whose email matches an existing local account gets its own separate
     /// account, which is the correct answer: the two are the same person only if that person says
     /// so, from inside the account, through the link endpoint.
     /// </para>
     /// <para>
-    /// The username is the minted subject. It is never typed by anyone — a federated account has no
-    /// password form to type it into — and every other candidate is worse: the email address is the
+    /// The username is the minted subject. It is never typed by anyone - a federated account has no
+    /// password form to type it into - and every other candidate is worse: the email address is the
     /// value this whole design refuses to key on, and <c>{scheme}:{subject}</c> would collide with a
     /// local username somebody could choose. A ULID cannot collide with an account this server
     /// minted, and if a local account somehow holds that exact string, the store refuses the
@@ -499,7 +499,7 @@ public static class ExternalLoginEndpoints
         {
             // The stores are add-only and refuse a duplicate subject, a duplicate username, or an
             // upstream identity already linked elsewhere. All three mean somebody else got there
-            // first — two tabs, a double-click, two instances — and the honest answer is to refuse
+            // first - two tabs, a double-click, two instances - and the honest answer is to refuse
             // this attempt rather than to guess which existing row was meant.
             return null;
         }
@@ -510,7 +510,7 @@ public static class ExternalLoginEndpoints
     /// <summary>
     /// Give a provisioned account the deployment's default roles, when it declares any.
     /// </summary>
-    /// <returns>The ids assigned, space-joined for the audit detail — or null when none were.</returns>
+    /// <returns>The ids assigned, space-joined for the audit detail - or null when none were.</returns>
     /// <remarks>
     /// <para>
     /// The same <see cref="AccountDefaults"/> that <c>UserAdministration.CreateAsync</c> applies,
@@ -521,8 +521,8 @@ public static class ExternalLoginEndpoints
     /// <para>
     /// <b>A default naming a role the realm does not define costs the account the assignment, not
     /// the person their sign-in.</b> The store refuses such an assignment on purpose, but here the
-    /// caller is a stranger mid-OAuth who can fix nothing, so the refusal is logged at error —
-    /// naming the role — and the sign-in proceeds with the account holding nothing. The floor is
+    /// caller is a stranger mid-OAuth who can fix nothing, so the refusal is logged at error -
+    /// naming the role - and the sign-in proceeds with the account holding nothing. The floor is
     /// the direction this tree already fails in: <c>AdminRoleScopePolicy</c> narrows rather than
     /// refusing, and <c>IRoleStore</c> drops what it cannot resolve at claims time. The host's
     /// <c>migrate</c> verb checks DEFAULT_ROLES against the definitions on every deploy, so
@@ -569,7 +569,7 @@ public static class ExternalLoginEndpoints
         var user = await services.GetRequiredService<IUserSession>().GetAsync(cancellationToken);
 
         // The same subject that started it, not merely some subject. A session that changed between
-        // the two legs — a signed-out-and-in, or a shared browser — must not attach an upstream
+        // the two legs - a signed-out-and-in, or a shared browser - must not attach an upstream
         // identity to whoever happens to be signed in now.
         if (user is null || !string.Equals(user.Value.Subject.Value, pending.LinkSubject, StringComparison.Ordinal))
         {
@@ -640,7 +640,7 @@ public static class ExternalLoginEndpoints
     /// <remarks>
     /// The gate runs again here even though the value was gated before it was written. It cost one
     /// line and it removes the need to reason about whether the cookie could have been tampered with
-    /// — which it could not, being authenticated — and about whether some future change writes a
+    /// - which it could not, being authenticated - and about whether some future change writes a
     /// pending request from a path that did not gate. "Validated when it was written" is a claim
     /// about a request that is over.
     /// </remarks>
@@ -662,7 +662,7 @@ public static class ExternalLoginEndpoints
     /// <remarks>
     /// <para>
     /// <b>Linking adds a way into an account and left no trace.</b> Changing a password is recorded,
-    /// asking for a reset link is recorded, verifying an address is recorded — and granting a second
+    /// asking for a reset link is recorded, verifying an address is recorded - and granting a second
     /// credential that signs in forever was not. Noticed when a user linked Google, the page said
     /// nothing, and there was nowhere to look to find out whether it had happened. "Who attached
     /// this, and when" is exactly the question an audit trail exists for, and it could not be
@@ -672,7 +672,7 @@ public static class ExternalLoginEndpoints
     /// <b>The upstream issuer and subject go in the detail, and neither is a credential.</b> A
     /// subject is an opaque identifier the upstream asserts; holding it authenticates nothing,
     /// because reaching this code at all requires the upstream to have signed a token for it. It is
-    /// also the field that answers the question people actually ask — <i>which</i> Google account —
+    /// also the field that answers the question people actually ask - <i>which</i> Google account -
     /// which an operator otherwise cannot tell from a second one linked a minute later. Well inside
     /// the 256 characters the column holds.
     /// </para>
@@ -728,7 +728,7 @@ public static class ExternalLoginEndpoints
     /// <remarks>
     /// N-13: never from <c>Request.Host</c> or <c>Request.Scheme</c>, which an architecture rule
     /// enforces over IL across the whole solution. Behind a reverse proxy the scheme would be
-    /// <c>http</c>, and with host-header injection the host is the attacker's — and this value is
+    /// <c>http</c>, and with host-header injection the host is the attacker's - and this value is
     /// sent to the upstream as <c>redirect_uri</c>, where a wrong one either fails the exact-match
     /// check the upstream performs or, if the upstream is lax, delivers the code somewhere else.
     /// The issuer is path-less by configuration validation, so this concatenation cannot produce a
@@ -751,7 +751,7 @@ public static class ExternalLoginEndpoints
     /// Exhaustive over <see cref="ExternalFailureKind"/> with no default arm, so adding a member to
     /// that enum is a compile error here rather than a failure that silently renders as something
     /// else. <see cref="ExternalFailureKind.None"/> is the unset value and a provider returning it
-    /// is a provider bug — it maps to the same refusal as a rejected token, which fails closed.
+    /// is a provider bug - it maps to the same refusal as a rejected token, which fails closed.
     /// </remarks>
     private static (ReasonCode Reason, string Message) Map(ExternalFailureKind kind) => kind switch
     {
@@ -769,15 +769,15 @@ public static class ExternalLoginEndpoints
     /// </summary>
     /// <remarks>
     /// <para>
-    /// A-11 is a per-client requirement — "disable a connection for a client ⇒ the login page states
-    /// why" — so an availability decision has to be able to see the client. It is resolved through
+    /// A-11 is a per-client requirement - "disable a connection for a client ⇒ the login page states
+    /// why" - so an availability decision has to be able to see the client. It is resolved through
     /// the same <c>IClientResolver</c> chain the authorize pipeline uses, so a CIMD client resolves
     /// to the same record here as there, out of the same cache.
     /// </para>
     /// <para>
     /// Failure is not an error: this returns <see langword="null"/> and the provider decides. The
     /// browser arrived here from <c>/authorize</c>, which already resolved this client successfully,
-    /// so a failure means something changed in between — an evicted cache entry plus an unreachable
+    /// so a failure means something changed in between - an evicted cache entry plus an unreachable
     /// origin, or a spent outbound budget. Refusing the sign-in page for that would turn a transient
     /// upstream problem into "you cannot log in".
     /// </para>
@@ -823,14 +823,14 @@ public static class ExternalLoginEndpoints
     /// <para>
     /// HTML rather than a redirect, and never a redirect to the client. At every point this method
     /// is called from, either there is no validated redirect URI at all or the failure is about this
-    /// server's own sign-in rather than about the client's request — and the one thing a federation
+    /// server's own sign-in rather than about the client's request - and the one thing a federation
     /// failure must not do is hand a stranger a way to bounce a browser off this origin.
     /// </para>
     /// <para>
     /// <b>The <c>RequirementId</c> on the log line will read <c>X-02</c>, and that is the error
     /// table's row rather than a claim about federation.</b> These refusals are pre-redirect
     /// <c>invalid_request</c> answers at 400, which is the pair <c>OAuthErrors</c> holds under that
-    /// id, and no federation-specific row was added — a new <c>OAuthSurface</c> for it would be a
+    /// id, and no federation-specific row was added - a new <c>OAuthSurface</c> for it would be a
     /// change to a table two servers share. The field an operator filters federation refusals on is
     /// <c>Reason</c>, which is specific to each of them.
     /// </para>

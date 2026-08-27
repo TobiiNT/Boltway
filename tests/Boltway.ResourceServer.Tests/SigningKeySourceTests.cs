@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Boltway.ResourceServer.Tests;
 
 /// <summary>
-/// <c>SigningKeySource</c> — read on every validation, so a rotation can publish rather than mutate.
+/// <c>SigningKeySource</c> - read on every validation, so a rotation can publish rather than mutate.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -15,7 +15,7 @@ namespace Boltway.ResourceServer.Tests;
 /// <c>Rfc9068ValidationParameters</c> on every call. Nothing synchronised them. It could only be
 /// fixed there by publishing a new list, and it could only publish a new list if something here
 /// would read one. That type has since been deleted in favour of <c>JwksKeySource</c>, which
-/// publishes a snapshot — but this seam is why it could.
+/// publishes a snapshot - but this seam is why it could.
 /// </para>
 /// <para>
 /// So the property under test is not "a source works" but "the source is consulted again", which is
@@ -51,7 +51,7 @@ public sealed class SigningKeySourceTests
     }
 
     /// <summary>
-    /// With no source set, the list is still what verifies — so this is not a breaking change.
+    /// With no source set, the list is still what verifies - so this is not a breaking change.
     /// </summary>
     [Fact]
     public async Task The_list_is_still_used_when_no_source_is_set()

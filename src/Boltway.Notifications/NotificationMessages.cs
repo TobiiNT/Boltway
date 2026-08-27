@@ -14,7 +14,7 @@ namespace Boltway.Notifications;
 /// <para>
 /// <b>A closed hierarchy.</b> A sender written against these four handles every message this
 /// server will send, and adding a fifth is a compile error in every implementation rather than a
-/// message that silently goes nowhere — which is the failure mode of a string-keyed template lookup.
+/// message that silently goes nowhere - which is the failure mode of a string-keyed template lookup.
 /// <see cref="NewDeviceAuthorized"/> was the fourth, and it arrived that way: the switch in
 /// <c>NotificationText.Render</c> stopped compiling until it was handled.
 /// </para>
@@ -32,7 +32,7 @@ public abstract record NotificationMessage
     /// <summary>Whose account this is about.</summary>
     /// <remarks>
     /// The handle, not the subject: it is what the person recognises, and a ULID in an email is a
-    /// support call. Never used to look anything up — a sender that resolved it would be a second
+    /// support call. Never used to look anything up - a sender that resolved it would be a second
     /// path to the directory.
     /// </remarks>
     public required string Handle { get; init; }
@@ -53,7 +53,7 @@ public sealed record VerifyEmail(string Link, DateTimeOffset ExpiresAt) : Notifi
 /// <param name="ExpiresAt">When the link stops working.</param>
 /// <remarks>
 /// <b>Sent only to an address that is on an account.</b> The endpoint that triggers it answers
-/// identically whether or not one exists — <c>S-48</c> — so the absence of this message is the only
+/// identically whether or not one exists - <c>S-48</c> - so the absence of this message is the only
 /// difference between the two cases, and it is a difference only the mailbox owner can observe.
 /// </remarks>
 public sealed record ResetPassword(string Link, DateTimeOffset ExpiresAt) : NotificationMessage;
@@ -64,7 +64,7 @@ public sealed record ResetPassword(string Link, DateTimeOffset ExpiresAt) : Noti
 /// <remarks>
 /// <b>A notification, not a request, and the one message here that nobody asked for.</b> Telling
 /// somebody their password changed is how they find out it was not them. It is therefore sent on
-/// every route that changes a password — self-service, the reset link, and an operator's reset —
+/// every route that changes a password - self-service, the reset link, and an operator's reset -
 /// because the route that matters most is the one the account holder did not take.
 /// </remarks>
 public sealed record PasswordChanged(DateTimeOffset At, int SessionsRevoked) : NotificationMessage;
@@ -72,7 +72,7 @@ public sealed record PasswordChanged(DateTimeOffset At, int SessionsRevoked) : N
 /// <summary>An application was authorized from a device this account has not approved from before.</summary>
 /// <param name="At">When the approval happened.</param>
 /// <param name="ClientName">
-/// What to call the application. The client's display name, or its id when it has none — chosen by
+/// What to call the application. The client's display name, or its id when it has none - chosen by
 /// the server, because a sender resolving a client id would be a second path to the client store.
 /// </param>
 /// <param name="Device">
@@ -85,7 +85,7 @@ public sealed record PasswordChanged(DateTimeOffset At, int SessionsRevoked) : N
 /// <remarks>
 /// <para>
 /// <b><paramref name="Link"/> carries no token, unlike the other two messages here.</b> Theirs are
-/// credentials — the link <i>is</i> the proof — so they expire and burn on use. This one addresses a
+/// credentials - the link <i>is</i> the proof - so they expire and burn on use. This one addresses a
 /// page that asks who you are on arrival, so it grants nothing and can expire never. It is here for
 /// the plainer reason: this is the message read by somebody who has just learned they may be under
 /// attack, and "your sessions page" is a step at which people stop.
@@ -96,7 +96,7 @@ public sealed record PasswordChanged(DateTimeOffset At, int SessionsRevoked) : N
 /// <b>The second message nobody asked for, and it exists for the same reason as
 /// <see cref="PasswordChanged"/>:</b> somebody reading it who did not do this has learned that
 /// another party can complete a sign-in as them. That is the whole of it. Every other fact on the
-/// page — which scopes, which resources — is available to a person who goes and looks, and a person
+/// page - which scopes, which resources - is available to a person who goes and looks, and a person
 /// who has not been told has no reason to go and look.
 /// </para>
 /// <para>
@@ -108,7 +108,7 @@ public sealed record PasswordChanged(DateTimeOffset At, int SessionsRevoked) : N
 /// </para>
 /// <para>
 /// <b>The cost of that filter, stated rather than left to be discovered:</b> "new" is judged on the
-/// described device — <c>Chrome on macOS</c> — and not on the raw header, so a second machine
+/// described device - <c>Chrome on macOS</c> - and not on the raw header, so a second machine
 /// running the same browser and operating system as one already approved from produces no message.
 /// The alternative loses more: a raw header changes with every browser update, which would send a
 /// notice naming a device the reader recognises, and a notice that cries wolf about the reader's own
@@ -142,7 +142,7 @@ public interface INotificationSender
 /// <summary>The words. Separate from the sending, for the reason messages are typed at all.</summary>
 /// <remarks>
 /// A deployment overrides this to write its own subjects and bodies, in its own language, without
-/// also having to reimplement a transport. The shipped implementation is English and plain text —
+/// also having to reimplement a transport. The shipped implementation is English and plain text -
 /// enough to be correct, obviously not enough to be a product's voice, which is the signal to
 /// replace it.
 /// </remarks>

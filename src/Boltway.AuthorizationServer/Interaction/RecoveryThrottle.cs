@@ -40,7 +40,7 @@ public sealed class RecoveryThrottleOptions
 
     /// <summary>How many recovery requests one source may make in the window. Ten.</summary>
     /// <remarks>
-    /// A source is not a person — an office behind one address is several — but ten reset requests
+    /// A source is not a person - an office behind one address is several - but ten reset requests
     /// a quarter of an hour from one address is already far more than a workplace produces, and the
     /// thing being bounded is outbound mail somebody else pays for.
     /// </remarks>
@@ -76,7 +76,7 @@ public sealed class RecoveryThrottleOptions
 /// counted" is a step towards learning the address is registered.
 /// </para>
 /// <para>
-/// <b>All of it is per process</b> — <c>X-31</c>, restated because a throttle reads like a
+/// <b>All of it is per process</b> - <c>X-31</c>, restated because a throttle reads like a
 /// guarantee. A fleet of <i>n</i> replicas sends <i>n</i> times each number. Put a shared limiter in
 /// front, or accept the multiple knowingly.
 /// </para>
@@ -114,7 +114,7 @@ public sealed class RecoveryThrottle
     }
 
     /// <summary>Whether this request may proceed.</summary>
-    /// <param name="identifier">What the caller typed — a handle, an address, or nothing.</param>
+    /// <param name="identifier">What the caller typed - a handle, an address, or nothing.</param>
     /// <param name="http">The request, for the source bucket.</param>
     public LoginAdmission Admit(string? identifier, HttpContext http)
     {
@@ -150,7 +150,7 @@ public sealed class RecoveryThrottle
     /// The source bucket, defaulting to the sign-in throttle's rule.
     /// </summary>
     /// <remarks>
-    /// IPv6 per /64 rather than per address — a subscriber is routinely given a whole /64 — and IPv4
+    /// IPv6 per /64 rather than per address - a subscriber is routinely given a whole /64 - and IPv4
     /// per address. A request with no remote address shares one bucket, which is a configuration to
     /// fix rather than a mode to rely on.
     /// </remarks>

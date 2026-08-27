@@ -4,7 +4,7 @@
 # was in this release and who cut it" survives without a release note somewhere else. That is true
 # of the *content* and false of the *address*: `git show v0.2.0` is an answer you can read and not
 # one you can link, and it needs a clone to read at all. v0.1.0 and v0.2.0 put eighteen package ids
-# on nuget.org while https://github.com/TobiiNT/Boltway/releases was empty — the page a stranger
+# on nuget.org while https://github.com/TobiiNT/Boltway/releases was empty - the page a stranger
 # opens first to ask what shipped and when, answering that nothing ever had.
 #
 # So this reads the tag message back and publishes it as the release. One document, two surfaces,
@@ -67,7 +67,7 @@ jobs:
       # dependabot half that keeps a pin from rotting, is in publish-packages.yml.
       #
       # Full history and every tag, because the message this publishes is read out of the local
-      # clone. A shallow checkout that fetched no tags would not fail — it would find nothing, and
+      # clone. A shallow checkout that fetched no tags would not fail - it would find nothing, and
       # the checks below would refuse rather than publish an empty release, which is the right
       # outcome reached for the wrong reason and only if somebody remembers why.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -90,7 +90,7 @@ jobs:
 
           # A lightweight tag carries no message of its own, and `%(contents)` on one silently
           # returns the *commit* message it points at. That would publish a release whose notes are
-          # somebody's commit body — plausible enough at a glance to go unnoticed, and wrong. The
+          # somebody's commit body - plausible enough at a glance to go unnoticed, and wrong. The
           # object type is the only thing that separates the two, so it is what gets checked.
           if [ "$(git cat-file -t "$TAG")" != "tag" ]; then
             echo "::error::$TAG is a lightweight tag, so it has no message to publish. \`release\`"
@@ -121,7 +121,7 @@ jobs:
           #
           # And not `--generate-notes`, which is a list of merged pull request titles. That is a
           # different document from the one somebody wrote for this release, and it would disagree
-          # with both the tag and CHANGELOG.md — three descriptions of one release, assembled by
+          # with both the tag and CHANGELOG.md - three descriptions of one release, assembled by
           # three different rules.
           #
           # `--verify-tag` because without it `gh release create` *creates* a missing tag, from the

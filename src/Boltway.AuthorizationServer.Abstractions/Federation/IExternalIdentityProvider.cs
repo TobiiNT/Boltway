@@ -27,7 +27,7 @@ public readonly record struct ProviderAvailability
     /// </summary>
     /// <remarks>
     /// This string reaches an end user's screen. It is plain text and the renderer encodes it, like
-    /// every other string on a view model here — but it is written by whoever implemented the
+    /// every other string on a view model here - but it is written by whoever implemented the
     /// provider, so it should say what a person can act on and nothing about the deployment's
     /// internals.
     /// </remarks>
@@ -63,12 +63,12 @@ public readonly record struct ProviderAvailability
 /// <remarks>
 /// <para>
 /// <b>The nullable client is the honest part of this type.</b> A-11's acceptance criterion is
-/// per-client — "disable a connection for a client ⇒ the login page states why" — so an availability
+/// per-client - "disable a connection for a client ⇒ the login page states why" - so an availability
 /// decision that could not see the client would not satisfy it. The login page therefore resolves
 /// the client named in its <c>returnUrl</c> before asking. That resolution can fail for reasons that
 /// have nothing to do with this decision: the client's metadata document may be unreachable, or the
 /// outbound budget may be spent. When it does, this is <see langword="null"/> and a provider that
-/// restricts by client has to decide what to do with "I do not know who is asking" — which is a
+/// restricts by client has to decide what to do with "I do not know who is asking" - which is a
 /// question it should answer deliberately rather than one this type should answer for it by
 /// inventing a client record.
 /// </para>
@@ -77,7 +77,7 @@ public readonly record struct ProviderAvailability
 /// <c>GetAvailabilityAsync(ClientRecord client, …)</c> with a non-nullable client. That signature
 /// cannot be implemented on the login page as it exists, because the page renders before the
 /// authorization pipeline has run and the client may not resolve at all. A record type also leaves
-/// room to add what the page learns later — the requested scopes, the resources — without changing
+/// room to add what the page learns later - the requested scopes, the resources - without changing
 /// every implementation.
 /// </para>
 /// </remarks>
@@ -90,7 +90,7 @@ public sealed record ExternalProviderContext(ClientRecord? Client);
 /// The authorization server emits this as the <c>Location</c> of a <c>303</c>, so it is the one
 /// value in this file that decides where a user's browser goes next. It is validated on
 /// construction rather than at the endpoint: an absolute <c>https</c> URL with no fragment. That is
-/// not an open-redirect guard — the value comes from registered code and not from a request — it is
+/// not an open-redirect guard - the value comes from registered code and not from a request - it is
 /// a guard against a provider composing a relative or <c>javascript:</c> URL by accident, which
 /// would be a redirect to this server's own origin or worse.
 /// </remarks>
@@ -121,7 +121,7 @@ public sealed record ExternalChallenge
 /// <summary>Everything a provider needs to compose its authorization request.</summary>
 /// <param name="CallbackUrl">
 /// The absolute redirect URI this server will be at when the upstream sends the browser back.
-/// Computed from the configured issuer, never from the request's host — N-13.
+/// Computed from the configured issuer, never from the request's host - N-13.
 /// </param>
 /// <param name="State">An opaque CSPRNG value the server has bound to this browser.</param>
 /// <param name="Nonce">An opaque CSPRNG value the server will compare against the ID token's claim.</param>
@@ -169,7 +169,7 @@ public sealed record ExternalCallbackContext(
 /// An identity as an upstream asserts it.
 /// </summary>
 /// <param name="Issuer">
-/// The upstream issuer identifier — the <c>iss</c> of the ID token, which the provider has already
+/// The upstream issuer identifier - the <c>iss</c> of the ID token, which the provider has already
 /// checked against its configuration.
 /// </param>
 /// <param name="Subject">The subject as that provider knows it. Never used as this server's <c>sub</c>.</param>
@@ -222,7 +222,7 @@ public enum ExternalFailureKind
     /// </summary>
     /// <remarks>
     /// One member for all of them, matching how <c>AccessTokenRejected</c> works on the resource
-    /// server: which check failed goes in the detail, for the log, and never to the user — the
+    /// server: which check failed goes in the detail, for the log, and never to the user - the
     /// difference between "wrong key" and "wrong issuer" is a fact about this server's configuration
     /// and about whoever is impersonating the upstream.
     /// </remarks>
@@ -259,7 +259,7 @@ public abstract record ExternalLoginResult
 /// <c>state</c>, the <c>nonce</c> and the PKCE verifier; binds the <c>state</c> to the browser and
 /// compares it on the way back; compares the <c>nonce</c> against the signed claim; and decides
 /// which local account the result maps to. An implementer composes the authorization URL, exchanges
-/// the code, and <b>validates the ID token</b> — signature, algorithm, issuer, audience and
+/// the code, and <b>validates the ID token</b> - signature, algorithm, issuer, audience and
 /// lifetime. That last one cannot be moved into the server without the server knowing how to fetch
 /// and cache one provider's keys, which is exactly the thing that differs between providers.
 /// </para>
@@ -276,7 +276,7 @@ public interface IExternalIdentityProvider
     /// </summary>
     /// <remarks>
     /// Must be a short lower-case token of <c>[a-z0-9-]</c>. The server validates it at startup, so a
-    /// scheme that would need escaping in a path never reaches a route — A-18's rule applied to a
+    /// scheme that would need escaping in a path never reaches a route - A-18's rule applied to a
     /// value that becomes part of a URL.
     /// </remarks>
     string Scheme { get; }
@@ -285,7 +285,7 @@ public interface IExternalIdentityProvider
     string DisplayName { get; }
 
     /// <summary>
-    /// The <c>iss</c> this provider's tokens carry — how a stored link is recognised as this one.
+    /// The <c>iss</c> this provider's tokens carry - how a stored link is recognised as this one.
     /// </summary>
     /// <remarks>
     /// A link is stored as <c>(issuer, upstream subject)</c> and never as a scheme, because a
@@ -304,14 +304,14 @@ public interface IExternalIdentityProvider
     /// </summary>
     /// <param name="cancellationToken">Cancellation.</param>
     /// <returns>
-    /// An origin — scheme, host and port, no path — or <see langword="null"/> when it cannot be
+    /// An origin - scheme, host and port, no path - or <see langword="null"/> when it cannot be
     /// determined right now, in which case no button for this provider will work and the page says
     /// nothing about why.
     /// </returns>
     /// <remarks>
     /// <para>
     /// <b>Why a provider has to answer this before anyone clicks anything.</b> A provider button is
-    /// a form that posts here and is answered with a redirect to the upstream — and Chrome and
+    /// a form that posts here and is answered with a redirect to the upstream - and Chrome and
     /// Safari apply <c>form-action</c> to the redirect a submission follows, not only to its
     /// immediate target. Under the shipped <c>form-action 'self'</c> the browser blocks that
     /// navigation and reports nothing to the server: the page simply does not move. Measured on a
@@ -321,7 +321,7 @@ public interface IExternalIdentityProvider
     /// <para>
     /// A policy is a response header, so it is decided when the page is built rather than when the
     /// button is pressed. That is the whole reason this is a member here and not something the
-    /// start endpoint could work out for itself — by then the header has shipped.
+    /// start endpoint could work out for itself - by then the header has shipped.
     /// </para>
     /// <para>
     /// <b>Not defaulted, deliberately.</b> A default returning <see langword="null"/> would compile

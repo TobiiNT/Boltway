@@ -29,8 +29,8 @@ public sealed record IssuedTokens(
 /// <remarks>
 /// <para>
 /// One place, because the authorization-code path and the refresh path must produce
-/// <i>indistinguishable</i> tokens. A client that gets a differently-shaped token after a refresh —
-/// a missing claim, a different audience, an ID token that appears only on first issue — breaks
+/// <i>indistinguishable</i> tokens. A client that gets a differently-shaped token after a refresh -
+/// a missing claim, a different audience, an ID token that appears only on first issue - breaks
 /// hours after connecting, and the report is "it stopped working overnight".
 /// </para>
 /// <para>
@@ -60,7 +60,7 @@ public sealed class TokenIssuer(
     // Optional, and null is the shipped default: an access token that says nothing about the
     // subject beyond its identifier is the correct thing to hand a resource server that only needs
     // to know the request is authorised. A deployment whose resource servers record *who* did
-    // something registers one — see UserAccountClaims.
+    // something registers one - see UserAccountClaims.
     private readonly IAccessTokenClaims? _subjectClaims = subjectClaims;
 
     /// <summary>
@@ -98,7 +98,7 @@ public sealed class TokenIssuer(
 
                     // A family per code redemption. Reuse detection revokes a family, so scoping it
                     // to the grant instead would make one leaked token kill every session the user
-                    // has with that client — including the ones on other devices that did nothing
+                    // has with that client - including the ones on other devices that did nothing
                     // wrong.
                     FamilyId: Guid.NewGuid().ToString("N"),
                     Generation: 0,
@@ -118,7 +118,7 @@ public sealed class TokenIssuer(
     /// <remarks>
     /// Asynchronous because the claims mapper is. It was synchronous when nothing on this path
     /// reached a store, and keeping it that way would have meant blocking on the mapper here and
-    /// awaiting it on the code path — two ways of calling the same thing, which is how one of them
+    /// awaiting it on the code path - two ways of calling the same thing, which is how one of them
     /// ends up deadlocking on a synchronization context nobody remembered was there.
     /// </remarks>
     public Task<IssuedTokens> IssueForRefreshAsync(
@@ -136,7 +136,7 @@ public sealed class TokenIssuer(
             scope,
 
             // No nonce on a refresh. OIDC Core §12.2: the ID token from a refresh "MUST NOT have a
-            // nonce Claim" unless the original request carried one — and echoing a stale nonce is
+            // nonce Claim" unless the original request carried one - and echoing a stale nonce is
             // worse than omitting it, because the client's replay check compares against a value it
             // has long since discarded.
             nonce: null,
@@ -150,14 +150,14 @@ public sealed class TokenIssuer(
     /// <para>
     /// A third entry point rather than a flag on one of the others, because what it omits is the
     /// part that would be wrong to reach by accident. <c>refresh: null</c> is not an optimisation
-    /// here — RFC 6749 §4.4.3 says a refresh token SHOULD NOT be issued for this grant, and the
+    /// here - RFC 6749 §4.4.3 says a refresh token SHOULD NOT be issued for this grant, and the
     /// reason applies exactly: the client already holds a credential that mints access tokens
     /// whenever it likes, so a refresh token is a second long-lived secret protecting nothing.
     /// </para>
     /// <para>
     /// It still goes through <see cref="MintAsync"/>, which is the point of that method existing.
-    /// The access token a service account gets must be shaped exactly like the one a person gets —
-    /// same claims mapper, same audience handling, same lifetime — because a resource server that
+    /// The access token a service account gets must be shaped exactly like the one a person gets -
+    /// same claims mapper, same audience handling, same lifetime - because a resource server that
     /// had to tell them apart would be a resource server with two authorization paths, and the
     /// second one is always the one nobody tests.
     /// </para>
@@ -200,7 +200,7 @@ public sealed class TokenIssuer(
         // Here rather than in either caller, because this method exists to make the two paths
         // produce indistinguishable tokens. A mapper called only on the authorization-code path
         // would give a client a token carrying a name for an hour and then, after the first
-        // refresh, one without — the "it stopped working overnight" failure this class's remarks
+        // refresh, one without - the "it stopped working overnight" failure this class's remarks
         // are about, in the shape that is hardest to attribute.
         var extra = _subjectClaims is null
             ? null
@@ -219,8 +219,8 @@ public sealed class TokenIssuer(
                 JwtId: Guid.NewGuid().ToString("N"),
                 AuthTime: authTime,
 
-                // Not passed to the ID token below. The two go to different holders — an access
-                // token to the resource server, an ID token to the client — and a mapper written
+                // Not passed to the ID token below. The two go to different holders - an access
+                // token to the resource server, an ID token to the client - and a mapper written
                 // for one is not consent to release the same claims to the other. OIDC's own
                 // channel for that is the `profile`/`email` claims in an ID token or /userinfo,
                 // and neither is what this seam is.

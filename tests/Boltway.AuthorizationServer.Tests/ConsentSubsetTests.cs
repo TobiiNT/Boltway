@@ -11,8 +11,8 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// <para>
 /// <c>ConsentDecision.AlreadyGranted</c> is documented as "they already agreed to <b>at least this
-/// much</b>", so the comparison belongs to whoever answers. The natural first draft —
-/// <c>context.Existing is not null ? AlreadyGranted : Required</c> — does not make it, and a review
+/// much</b>", so the comparison belongs to whoever answers. The natural first draft -
+/// <c>context.Existing is not null ? AlreadyGranted : Required</c> - does not make it, and a review
 /// executed that draft: with a record covering <c>mcp:tools</c> on one resource and a request for
 /// <c>mcp:tools offline_access openid</c> on a <i>different</i> resource, the flow returned a code
 /// with no consent page, then an access token whose <c>aud</c> was a resource the user had never
@@ -21,7 +21,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// The check lives in <see cref="PublicClientReconsentGuard"/>, which the server composes at the one
 /// call site, so a customer's policy cannot skip it. These tests drive the guard directly because
-/// the escalation is a property of the decision, not of the transport — and because the shipped
+/// the escalation is a property of the decision, not of the transport - and because the shipped
 /// default policy always answers <c>Required</c>, so no HTTP-level test can reach it without
 /// substituting the very draft being guarded against.
 /// </para>
@@ -65,7 +65,7 @@ public sealed class ConsentSubsetTests
     /// </summary>
     /// <remarks>
     /// Without this, both tests above are satisfied by a guard that returns <c>Required</c>
-    /// unconditionally — which is safe, useless, and would mean standing consent never worked at
+    /// unconditionally - which is safe, useless, and would mean standing consent never worked at
     /// all.
     /// </remarks>
     [Fact]
@@ -85,7 +85,7 @@ public sealed class ConsentSubsetTests
     /// </summary>
     /// <remarks>
     /// OAuth 2.1 §1.4.1 makes scope values case-sensitive. A case-insensitive comparison here would
-    /// treat a record for <c>mcp:tools</c> as covering a request for <c>MCP:TOOLS</c> — which, if
+    /// treat a record for <c>mcp:tools</c> as covering a request for <c>MCP:TOOLS</c> - which, if
     /// the server also registered both, would grant one the user never approved.
     /// </remarks>
     [Fact]
@@ -106,7 +106,7 @@ public sealed class ConsentSubsetTests
     /// <remarks>
     /// An organisation that pre-approves its own first-party clients, or one whose consent lives in
     /// another system, legitimately answers <c>AlreadyGranted</c> with no local record. Refusing
-    /// that would break a real design and catch nothing — the draft this guard corrects returns
+    /// that would break a real design and catch nothing - the draft this guard corrects returns
     /// <c>Required</c> in exactly that case. The escalation needs a record covering <i>less</i> than
     /// the request, which is the condition the guard checks.
     /// </remarks>
@@ -129,7 +129,7 @@ public sealed class ConsentSubsetTests
         Assert.Equal(ConsentDecision.AlreadyGranted, decision);
     }
 
-    /// <summary>A public client is asked again regardless — RFC 8252 §8.6, the guard's first rule.</summary>
+    /// <summary>A public client is asked again regardless - RFC 8252 §8.6, the guard's first rule.</summary>
     [Fact]
     public async Task A_public_client_is_asked_again_even_inside_the_record()
     {

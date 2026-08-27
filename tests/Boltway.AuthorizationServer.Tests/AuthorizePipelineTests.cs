@@ -102,7 +102,7 @@ public sealed class AuthorizePipelineTests
     /// <remarks>
     /// <c>iss</c> is asserted on an <b>error</b> response on purpose. RFC 9207's mix-up defence
     /// works by letting the client see which server answered, and an error response is as useful to
-    /// that attack as a successful one — a client that saw
+    /// that attack as a successful one - a client that saw
     /// <c>authorization_response_iss_parameter_supported</c> and then a response without <c>iss</c>
     /// must reject it, so omitting it here would break the flow rather than merely weaken it.
     /// </remarks>
@@ -205,7 +205,7 @@ public sealed class AuthorizePipelineTests
     /// </summary>
     /// <remarks>
     /// RFC 7636 §4.3 says absent means <c>plain</c>, under which the challenge <i>is</i> the
-    /// verifier — so anyone who can read the authorization request can redeem the code. The
+    /// verifier - so anyone who can read the authorization request can redeem the code. The
     /// parameter an attacker can strip must not be the one that selects the weaker mode.
     /// </remarks>
     [Fact]
@@ -297,7 +297,7 @@ public sealed class AuthorizePipelineTests
     /// <remarks>
     /// Distinguishing them turns the authorize endpoint into an enumeration oracle over the
     /// customer's internal service topology. Asserting the <i>description</i> matches, not only the
-    /// code, is the point — a helpful "you may not access this resource" is the leak.
+    /// code, is the point - a helpful "you may not access this resource" is the leak.
     /// </remarks>
     [Fact]
     public async Task An_unknown_resource_and_a_forbidden_one_are_indistinguishable()
@@ -320,7 +320,7 @@ public sealed class AuthorizePipelineTests
     /// </summary>
     /// <remarks>
     /// A-02. Falling back to the default for a resource that failed to resolve would mint a token
-    /// for an audience the client did not ask for — and the client would use it, because it looks
+    /// for an audience the client did not ask for - and the client would use it, because it looks
     /// like success.
     /// </remarks>
     [Fact]
@@ -356,7 +356,7 @@ public sealed class AuthorizePipelineTests
     /// </summary>
     /// <remarks>
     /// None registered and several registered produce the same sentence, and the detail used to
-    /// carry only <c>client_id</c> — which pointed an operator at the client, the one party in the
+    /// carry only <c>client_id</c> - which pointed an operator at the client, the one party in the
     /// exchange that had done nothing wrong. Zero means register a resource; two means nominate
     /// one. The count is the smallest thing that tells them apart.
     /// </remarks>
@@ -371,7 +371,7 @@ public sealed class AuthorizePipelineTests
         Assert.Contains("registrations=2", redirect.Error.Rejection.PrivateDetail, StringComparison.Ordinal);
 
         // And in the log only. The client is told `invalid_target` and nothing about how many
-        // resources this server has — the count is an operator's diagnostic, not a topology hint
+        // resources this server has - the count is an operator's diagnostic, not a topology hint
         // for whoever can reach /authorize.
         Assert.DoesNotContain("registrations=", redirect.Error.Description, StringComparison.Ordinal);
     }
@@ -449,7 +449,7 @@ public sealed class AuthorizePipelineTests
     /// <remarks>
     /// The other half of the condition. <c>email</c> and <c>offline_access</c> are in the OIDC set,
     /// so a check written as "nothing outside <c>OidcOwnScopes</c>" alone would call
-    /// <c>scope=offline_access</c> a sign-in — a refresh token minted at the OIDC resource for a
+    /// <c>scope=offline_access</c> a sign-in - a refresh token minted at the OIDC resource for a
     /// request that never claimed to be authenticating anyone.
     /// </remarks>
     [Theory]
@@ -480,7 +480,7 @@ public sealed class AuthorizePipelineTests
     /// <remarks>
     /// A-02 one level down: the nomination is a default, and a default that could override a value
     /// the client actually sent would mint a token for an audience nobody asked for. The second
-    /// half — an unregistered resource on a sign-in is still <c>invalid_target</c> — is what stops
+    /// half - an unregistered resource on a sign-in is still <c>invalid_target</c> - is what stops
     /// the branch from becoming a fallback for a resolution that failed.
     /// </remarks>
     [Fact]
@@ -513,7 +513,7 @@ public sealed class AuthorizePipelineTests
     /// </summary>
     /// <remarks>
     /// <c>DefaultForOidcAsync</c> is a default interface member returning null, so every registry
-    /// written before it — including a customer's — is in this state without being recompiled. The
+    /// written before it - including a customer's - is in this state without being recompiled. The
     /// test is here to say that "nothing changes unless you nominate one" is a property of the
     /// pipeline and not of the shipped registry's constructor.
     /// </remarks>
@@ -538,7 +538,7 @@ public sealed class AuthorizePipelineTests
     /// </summary>
     /// <remarks>
     /// A-02's single-registration case is not superseded by this feature, and a sign-in on such a
-    /// server has to keep landing on the same audience as every other request — otherwise turning
+    /// server has to keep landing on the same audience as every other request - otherwise turning
     /// on an admin surface would silently move where existing OIDC tokens are valid.
     /// </remarks>
     [Fact]
@@ -677,7 +677,7 @@ public sealed class AuthorizePipelineTests
     /// </summary>
     /// <remarks>
     /// RFC 6749 §3.1.2.3. Picking one of several would let a client that later registered a second
-    /// URI receive codes at whichever this server happened to sort first — a change in behaviour
+    /// URI receive codes at whichever this server happened to sort first - a change in behaviour
     /// caused by a registration edit, with no request having changed.
     /// </remarks>
     [Fact]

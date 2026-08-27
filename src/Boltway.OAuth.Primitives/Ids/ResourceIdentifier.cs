@@ -10,7 +10,7 @@ namespace Boltway.OAuth.Primitives.Ids;
 /// <remarks>
 /// <para>
 /// N-01's chokepoint. There is no public constructor, and the one public factory
-/// (<see cref="TryRegister"/>) is the registration path — so within the authorization server the
+/// (<see cref="TryRegister"/>) is the registration path - so within the authorization server the
 /// only way to obtain one is <c>IResourceRegistry.ResolveAsync</c>, which returns
 /// <see langword="null"/> for a resource that is unknown or not permitted. "Accept the
 /// <c>resource</c> parameter and ignore it" and "stamp a default audience" therefore have no code
@@ -19,7 +19,7 @@ namespace Boltway.OAuth.Primitives.Ids;
 /// </para>
 /// <para>
 /// <b>What enforces that is a test, not the type.</b> <see cref="TryRegister"/> is public because it
-/// has to be — <c>IResourceRegistry</c> is a public interface a customer must be able to implement —
+/// has to be - <c>IResourceRegistry</c> is a public interface a customer must be able to implement -
 /// so the restriction on who may call it is an IL-level architecture rule over call sites
 /// (<c>Only_a_resource_registry_mints_a_resource_identifier</c>), which is a build gate rather than
 /// a property of the type system. Stated plainly because the previous version of this paragraph
@@ -45,8 +45,8 @@ public sealed class ResourceIdentifier : IEquatable<ResourceIdentifier>
     /// Exactly the registered string. This is what goes in <c>aud</c>, byte for byte.
     /// </summary>
     /// <remarks>
-    /// Never <c>new Uri(x).ToString()</c>. A resource identifier may carry a path — A-22 requires
-    /// it, because an MCP server lives at <c>https://mcp.example.com/mcp</c> — and comparing
+    /// Never <c>new Uri(x).ToString()</c>. A resource identifier may carry a path - A-22 requires
+    /// it, because an MCP server lives at <c>https://mcp.example.com/mcp</c> - and comparing
     /// <c>aud</c> to the request's <i>origin</i> instead of the full identifier is a shipped
     /// real-world bug that broke ChatGPT custom connectors.
     /// </remarks>
@@ -76,7 +76,7 @@ public sealed class ResourceIdentifier : IEquatable<ResourceIdentifier>
     /// <c>InternalsVisibleTo</c> granted to the assemblies that needed it. That was worse in two
     /// directions at once. First, the grant is per-assembly and indiscriminate: the one added for
     /// this method also exposed <c>RedirectMatch.Exact</c>, and a probe compiled that forged a
-    /// validated redirect — <c>internal</c> is a keyword, not a boundary. Second, and only found by
+    /// validated redirect - <c>internal</c> is a keyword, not a boundary. Second, and only found by
     /// an operability review that tried to build a host, the server assembly was never on the grant
     /// list, so <b>no assembly a customer could own was able to construct one</b>. The chokepoint
     /// was airtight in the wrong direction: <c>IResourceRegistry</c> is public and required, and
@@ -87,7 +87,7 @@ public sealed class ResourceIdentifier : IEquatable<ResourceIdentifier>
     /// So it is public again, and the invariant is held by the mechanism that actually held for
     /// <c>RedirectMatch.Exact</c>: an IL-level architecture test over call sites
     /// (<c>Only_a_resource_registry_mints_a_resource_identifier</c>). That rule can only see
-    /// assemblies in this solution, and that is the correct scope — the risk N-01 exists to stop is
+    /// assemblies in this solution, and that is the correct scope - the risk N-01 exists to stop is
     /// <i>this library</i> stamping a house default audience on the customer's behalf, silently and
     /// undetectably. A customer's own registry deciding which resources exist is not a threat, it is
     /// the definition of the role.
@@ -124,13 +124,13 @@ public sealed class ResourceIdentifier : IEquatable<ResourceIdentifier>
             return false;
         }
 
-        // Claude sends the RFC 8707 `resource` parameter in canonical form — scheme and host
-        // lowercased, a default port dropped, no trailing slash, the path kept — regardless of what
+        // Claude sends the RFC 8707 `resource` parameter in canonical form - scheme and host
+        // lowercased, a default port dropped, no trailing slash, the path kept - regardless of what
         // the user typed into the connector dialog, and its own documentation says to expect exactly
         // that. Everything downstream of this factory compares ordinally, on purpose: the registry
         // lookup, the `resource` echoed by protected-resource metadata, and the `aud` check on every
         // request. A registration that differs from its own canonical form therefore can never match
-        // a compliant client, and nothing reports the mismatch — discovery serves a document naming
+        // a compliant client, and nothing reports the mismatch - discovery serves a document naming
         // a resource no request will ever ask for, and the failure surfaces as `invalid_target` at
         // somebody's sign-in. Refused here instead, where the operator who wrote the string is the
         // one reading the message.
@@ -156,7 +156,7 @@ public sealed class ResourceIdentifier : IEquatable<ResourceIdentifier>
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Built to be <i>compared</i> with the configured string — never to replace it. Normalizing
+    /// Built to be <i>compared</i> with the configured string - never to replace it. Normalizing
     /// silently would move the mismatch instead of removing it: the operator's string still sits in
     /// the resource server's configuration and in every client dialog, and those comparisons are
     /// ordinal too. The one string has to be right everywhere, so the wrong one is refused with the
@@ -164,7 +164,7 @@ public sealed class ResourceIdentifier : IEquatable<ResourceIdentifier>
     /// </para>
     /// <para>
     /// Raw-string surgery, the same discipline as <c>RedirectUriParts</c>: <see cref="Uri"/> never
-    /// produces a compared byte (N-03 — its accessors percent-decode and resolve dot segments,
+    /// produces a compared byte (N-03 - its accessors percent-decode and resolve dot segments,
     /// mapping several distinct strings onto one). The transformations applied are exactly the ones
     /// clients document applying and no others, so an exotic identifier is compared as written
     /// rather than as this library guesses a client might rewrite it.
@@ -273,7 +273,7 @@ public readonly struct RequestedResource : IEquatable<RequestedResource>
     /// <summary>The raw request value.</summary>
     public string Value { get; }
 
-    /// <summary>Parse a <c>resource</c> parameter. Shape only — says nothing about registration.</summary>
+    /// <summary>Parse a <c>resource</c> parameter. Shape only - says nothing about registration.</summary>
     public static bool TryParse(string? raw, out RequestedResource resource)
     {
         resource = default;

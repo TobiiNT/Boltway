@@ -45,7 +45,7 @@ public sealed class ReviewRegressionTests
     /// </summary>
     /// <remarks>
     /// <see cref="ValidatedRedirect"/> was a <c>readonly struct</c>, and every struct has a public
-    /// parameterless constructor — so <c>AuthorizeRedirectError.Create(default, …)</c> compiled from
+    /// parameterless constructor - so <c>AuthorizeRedirectError.Create(default, …)</c> compiled from
     /// any assembly, with no <c>InternalsVisibleTo</c> needed, and produced an error pointing at a
     /// <see langword="null"/> target. As a class the forgery is <see langword="null"/> and this is
     /// what happens to it.
@@ -69,7 +69,7 @@ public sealed class ReviewRegressionTests
     /// <c>RedirectMatchFor</c> discarded the <c>TryParse</c> result and dereferenced its
     /// out-parameter. <see cref="RegisteredRedirectUri"/> is a public struct and
     /// <c>ClientRecord.RedirectUris</c> is unvalidated, so any resolver could supply a
-    /// <c>default</c> — and with <c>redirect_uri</c> omitted the request took the
+    /// <c>default</c> - and with <c>redirect_uri</c> omitted the request took the
     /// single-registration branch and threw out of <c>/authorize</c>, before the line where a
     /// <c>server_error</c> redirect would even be possible.
     /// </remarks>
@@ -90,7 +90,7 @@ public sealed class ReviewRegressionTests
     /// A requested URI that merely <b>starts with</b> a registered one is refused.
     /// </summary>
     /// <remarks>
-    /// A mutation making the matcher prefix-match — the single most dangerous change possible here —
+    /// A mutation making the matcher prefix-match - the single most dangerous change possible here -
     /// failed two rows in the primitives suite and <b>nothing</b> at pipeline level, because every
     /// "unregistered" URI in those tests altered or shortened the registered one instead of
     /// extending it. These two extend it, which is the shape an attacker actually controls: a
@@ -164,8 +164,8 @@ public sealed class ReviewRegressionTests
     /// </summary>
     /// <remarks>
     /// <b>These are the tests that hold the filter up.</b> The end-to-end case above passes even
-    /// with the filter removed — measured, a mutation that made <c>Safe</c> the identity function
-    /// failed nothing — because the pipeline also stopped echoing caller-controlled values, so no
+    /// with the filter removed - measured, a mutation that made <c>Safe</c> the identity function
+    /// failed nothing - because the pipeline also stopped echoing caller-controlled values, so no
     /// description it writes today contains one. That makes the filter defence in depth for the
     /// next description someone adds, and defence in depth still has to be tested where it lives.
     /// </remarks>
@@ -290,7 +290,7 @@ public sealed class ReviewRegressionTests
     /// <remarks>
     /// <c>ClientRecord.ResponseTypes</c> was populated and read by nothing, so a client declaring
     /// <c>"response_types": ["token"]</c> alongside <c>"grant_types": ["authorization_code"]</c> was
-    /// issued a code — honouring neither half of what it said about itself.
+    /// issued a code - honouring neither half of what it said about itself.
     /// </remarks>
     [Fact]
     public async Task A_client_that_did_not_declare_the_code_response_type_is_refused()
@@ -306,7 +306,7 @@ public sealed class ReviewRegressionTests
     /// <summary>A client that declared nothing is permitted. C-14.</summary>
     /// <remarks>
     /// The control for the test above. Treating an empty declaration as refusal would reject a
-    /// client whose metadata document simply says less than ours would like — and C-14 is explicit
+    /// client whose metadata document simply says less than ours would like - and C-14 is explicit
     /// that a client declaring a grant we have not enabled is not an error.
     /// </remarks>
     [Fact]
@@ -400,8 +400,8 @@ public sealed class ReviewRegressionTests
     /// A repeated parameter is refused <b>as repetition</b>, with a valid first value.
     /// </summary>
     /// <remarks>
-    /// The earlier version of this test used <c>["a", "b"]</c>, so for four of its ten rows — one of
-    /// them <c>redirect_uri</c>, the case its own remarks were about — a first-wins implementation
+    /// The earlier version of this test used <c>["a", "b"]</c>, so for four of its ten rows - one of
+    /// them <c>redirect_uri</c>, the case its own remarks were about - a first-wins implementation
     /// also produced <c>invalid_request</c>, for the unrelated reason that <c>"a"</c> is malformed.
     /// Measured: a first-wins mutation survived those four. Here the first value is the one a valid
     /// request carries, so first-wins would <i>succeed</i>, and the assertion is on the reason.
@@ -446,8 +446,8 @@ public sealed class ReviewRegressionTests
     /// <c>IReadOnlyList&lt;T&gt;</c> is not immutable, and the ring is captured once for the process
     /// lifetime while <c>PublishedKeys()</c> runs on every JWKS request. Measured against the
     /// aliasing version: clearing the caller's list emptied the JWKS, and mutating it during a poll
-    /// threw "Collection was modified". The obvious rotation implementation — keep a
-    /// <c>List</c> and add to it — is the unsafe one.
+    /// threw "Collection was modified". The obvious rotation implementation - keep a
+    /// <c>List</c> and add to it - is the unsafe one.
     /// </remarks>
     [Fact]
     public void The_key_ring_copies_the_keys_it_is_given()
@@ -472,7 +472,7 @@ public sealed class ReviewRegressionTests
     /// <remarks>
     /// It was assigned only on success and never reset, so setting <c>Issuer</c> to something
     /// invalid produced <c>TryValidate() == false</c> alongside a <c>ValidatedIssuer</c> that still
-    /// returned the previously-valid https URL — a property whose name asserted something it had
+    /// returned the previously-valid https URL - a property whose name asserted something it had
     /// stopped guaranteeing.
     /// </remarks>
     [Fact]
@@ -517,7 +517,7 @@ public sealed class ReviewRegressionTests
     /// <remarks>
     /// After registration the served bytes are fixed. A host adding a scope would create a
     /// divergence nothing detects: the options singleton would report a scope the published document
-    /// does not advertise, and the authorize pipeline — built from the same options — would accept
+    /// does not advertise, and the authorize pipeline - built from the same options - would accept
     /// one no client can discover.
     /// </remarks>
     [Fact]
@@ -590,7 +590,7 @@ public sealed class ReviewRegressionTests
 /// A separate fixture because it is the whole point: <c>RequireCors</c> attaches metadata the CORS
 /// <i>middleware</i> acts on, and ASP.NET Core throws <c>"contains CORS metadata, but a middleware
 /// was not found"</c> when it is absent. That was a 500 on every discovery document for any host
-/// that had not added <c>UseCors()</c> — and the main test fixture called it, so nothing saw it.
+/// that had not added <c>UseCors()</c> - and the main test fixture called it, so nothing saw it.
 /// </remarks>
 public sealed class DiscoveryWithoutCorsMiddlewareTests : IAsyncLifetime
 {
@@ -606,7 +606,7 @@ public sealed class DiscoveryWithoutCorsMiddlewareTests : IAsyncLifetime
                 {
                     // The minimum a host can do: routing, the seams the startup check requires,
                     // and the server. Still no AddCors, no UseCors, no authorization and no
-                    // fallback — which is the part this fixture is about, and it is unchanged. The
+                    // fallback - which is the part this fixture is about, and it is unchanged. The
                     // seam registrations are not a relaxation of it: MapBoltwayAuthorizationServer
                     // verifies the whole required list before it maps a route, so a host cannot get
                     // as far as serving a discovery document without them.

@@ -17,7 +17,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <para>
 /// <b>Why a proxy at all.</b> A client's <c>logo_uri</c> is a URL the client chose. Pointing an
 /// <c>&lt;img&gt;</c> at it would tell whoever hosts it who is looking at a consent page for which
-/// application and when — a disclosure the user never agreed to and cannot see. <c>N-14</c> says
+/// application and when - a disclosure the user never agreed to and cannot see. <c>N-14</c> says
 /// proxy rather than hotlink, and the page's <c>default-src 'self'</c> enforces it whether or not
 /// the renderer remembers.
 /// </para>
@@ -29,7 +29,7 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// </para>
 /// <para>
 /// <b>The rule that matters most here is the one about SVG.</b> An SVG can carry script, and script
-/// in a document served from this origin runs with this origin's cookies — the session that is
+/// in a document served from this origin runs with this origin's cookies - the session that is
 /// mid-authorization. In an <c>&lt;img&gt;</c> it would not execute, but nothing stops somebody
 /// opening this URL directly, and then it is a document. So the accepted set is raster only, the
 /// declared type has to match the bytes, and the response carries <c>nosniff</c> and a policy of
@@ -68,7 +68,7 @@ public static class ClientLogoEndpoint
     /// Raster only, and matched against the body rather than believed from the header. A host can
     /// declare <c>image/png</c> and serve anything; with <c>nosniff</c> on the way out a browser
     /// would refuse to render the mismatch rather than execute it, so this check is the second
-    /// line — but it is the one that turns "the browser declined to show a logo" into "this server
+    /// line - but it is the one that turns "the browser declined to show a logo" into "this server
     /// never stored it".
     /// </para>
     /// <para>
@@ -135,7 +135,7 @@ public static class ClientLogoEndpoint
 
         // The same walk /authorize makes, so a logo is only ever served for a client this server
         // would actually have shown a consent page for. It resolves rather than reading a store
-        // because the CIMD path has no store — A-08 — and the resolver's own cache means the usual
+        // because the CIMD path has no store - A-08 - and the resolver's own cache means the usual
         // case, an image request arriving moments after the page that names it, makes no outbound
         // request of its own.
         var client = await ResolveAsync(http.RequestServices, clientId, cancellationToken);
@@ -250,8 +250,8 @@ public static class ClientLogoEndpoint
     /// <remarks>
     /// <c>nosniff</c> so a browser renders it as the type declared here rather than as whatever it
     /// guesses, and a policy of its own so that a body that somehow reaches a document context
-    /// loads nothing and runs nothing. Neither is the primary control — the accepted-types check
-    /// is — and both are here because the primary control is the one that will be edited.
+    /// loads nothing and runs nothing. Neither is the primary control - the accepted-types check
+    /// is - and both are here because the primary control is the one that will be edited.
     /// </remarks>
     private static LogoResult Serve(Entry entry) => new(entry);
 

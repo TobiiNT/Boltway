@@ -17,7 +17,7 @@ public static class SqliteStorageServiceCollectionExtensions
     /// <returns>The collection, for chaining.</returns>
     /// <remarks>
     /// <para>
-    /// One call rather than seven, because seven is where a deployment forgets one — and the missing
+    /// One call rather than seven, because seven is where a deployment forgets one - and the missing
     /// piece would not be a store but <see cref="IRelationalStoreBehavior"/>, whose absence is the
     /// one that produces a race rather than a startup error.
     /// </para>
@@ -38,7 +38,7 @@ public static class SqliteStorageServiceCollectionExtensions
     /// rather than a tuning one.</b> Measured: <c>Microsoft.Data.Sqlite</c> does not clean a handle
     /// on its way back to the pool, so a connection returned while its <i>native</i> handle is
     /// inside a transaction comes back out still inside it, and the next <c>BEGIN IMMEDIATE</c>
-    /// fails with <c>SQLite Error 1: 'cannot start a transaction within a transaction'</c> — the
+    /// fails with <c>SQLite Error 1: 'cannot start a transaction within a transaction'</c> - the
     /// intermittent defect documented on <see cref="SqliteRelationalStoreBehavior"/>. Without a
     /// pool there is no handle to recycle and that mechanism cannot occur.
     /// </para>

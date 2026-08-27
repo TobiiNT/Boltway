@@ -10,7 +10,7 @@ namespace Boltway.Identity.Passwords;
 /// <b>Where the defaults come from.</b> OWASP's Password Storage Cheat Sheet gives five Argon2id
 /// configurations it treats as equivalent in strength, trading memory against iterations:
 /// <c>m=47104,t=1</c>, <c>m=19456,t=2</c>, <c>m=12288,t=3</c>, <c>m=9216,t=4</c> and
-/// <c>m=7168,t=5</c>, all at <c>p=1</c>. This takes the second — 19 MiB, two passes — read from the
+/// <c>m=7168,t=5</c>, all at <c>p=1</c>. This takes the second - 19 MiB, two passes - read from the
 /// 2025 revision of that page. RFC 9106 §4 recommends more (2 GiB or 64 MiB at <c>p=4</c>), and that
 /// recommendation is written for a machine dedicated to the hash; this server is a web process whose
 /// login endpoint may be hit concurrently, and memory is per <i>in-flight</i> hash. Nineteen MiB
@@ -31,7 +31,7 @@ namespace Boltway.Identity.Passwords;
 /// <see cref="Argon2idPasswordHasher.NeedsRehash"/>, and a caller that consults it can re-hash the
 /// plaintext it just verified. The right cadence is to re-read the cheat sheet's table roughly
 /// yearly and to re-measure on the target hardware, because the number that actually matters is
-/// wall-clock time per hash on the machine that runs it — aim for the region of 100 ms and no more
+/// wall-clock time per hash on the machine that runs it - aim for the region of 100 ms and no more
 /// than a login can afford.
 /// </para>
 /// </remarks>
@@ -43,7 +43,7 @@ public sealed record Argon2idParameters
     /// <remarks>
     /// This is not a style limit. <see cref="Argon2idPasswordHasher.Verify"/> takes its cost from the
     /// <i>stored</i> string, which is the only way a cost increase can avoid invalidating existing
-    /// passwords — and that makes a database column an input to an allocation. A row saying
+    /// passwords - and that makes a database column an input to an allocation. A row saying
     /// <c>m=16777216</c> would have the login endpoint try to allocate 16 GiB. The ceiling is what
     /// stops a corrupt or tampered row from being a denial of service, and it applies to configured
     /// parameters too so that the two can never disagree about what is representable.

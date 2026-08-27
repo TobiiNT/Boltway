@@ -50,7 +50,7 @@ namespace Boltway.AuthorizationServer.Diagnostics;
 /// </list>
 /// <para>
 /// Two things that rule does <b>not</b> cover, stated rather than implied. A host that maps its own
-/// endpoints alongside ours and returns its own 400 is outside this assembly — that is the
+/// endpoints alongside ours and returns its own 400 is outside this assembly - that is the
 /// customer's surface, not the protocol surface. And two <c>404</c>s are allowlisted by name: the
 /// well-known "this server publishes no document here" answers, which carry no OAuth error, no
 /// description and nothing request-derived, and which RFC 9728 §3.1 probing depends on.
@@ -64,7 +64,7 @@ internal abstract class RejectionResult : IResult
     /// <remarks>
     /// An operator filters on this to see every refusal the server made, and a per-type category
     /// would spread that across <c>AuthorizeEndpoint</c>, <c>TokenEndpoint</c>,
-    /// <c>InteractionEndpoints</c> and whatever is added next — so the filter that worked in
+    /// <c>InteractionEndpoints</c> and whatever is added next - so the filter that worked in
     /// staging silently stops covering a new endpoint. The surface is a property on the event
     /// instead, which is where something you want to group by belongs.
     /// </remarks>
@@ -92,7 +92,7 @@ internal abstract class RejectionResult : IResult
     /// Log it, stamp it, write it. In that order, and not overridable.
     /// </summary>
     /// <remarks>
-    /// The log comes first so that a client that disconnects mid-write still leaves a record —
+    /// The log comes first so that a client that disconnects mid-write still leaves a record -
     /// <c>WriteAsync</c> below can throw <see cref="OperationCanceledException"/>, and a rejection
     /// whose evidence depends on the caller staying connected is evidence about the wrong thing.
     /// </remarks>
@@ -100,12 +100,12 @@ internal abstract class RejectionResult : IResult
     {
         ArgumentNullException.ThrowIfNull(httpContext);
 
-        // X-31 and X-43 are the refusals with no OAuth error code — the table's `error` column for
-        // both is literally (none) — so neither can be looked up in a table keyed on
+        // X-31 and X-43 are the refusals with no OAuth error code - the table's `error` column for
+        // both is literally (none) - so neither can be looked up in a table keyed on
         // OAuthErrorCode. Handled here rather than by a separate IResult, which is what a first
         // merge of the rate-limiting work would have produced: a second writer, outside this
         // chokepoint, and therefore a refusal that is never logged. A burst of 429s is exactly what
-        // an operator most wants to see, and a burst of 503s means the database is gone — the two
+        // an operator most wants to see, and a burst of 503s means the database is gone - the two
         // refusals designed to arrive in bursts must not be the ones that go unrecorded.
         var spec = UntabledSpec ?? OAuthErrors.Resolve(Surface, Rejection.Error);
 
@@ -132,8 +132,8 @@ internal abstract class RejectionResult : IResult
     /// OAuth error response and still has to be recorded: a rejected username and password
     /// re-renders the sign-in form at <c>200</c> (E-20), deliberately, since a redirect would need
     /// the failure in a query parameter and that is a reflected value on the one page where
-    /// reflection matters. It is a rejection an operator very much wants — a burst of them is a
-    /// credential-stuffing run — so it comes through here with the status it actually returned.
+    /// reflection matters. It is a rejection an operator very much wants - a burst of them is a
+    /// credential-stuffing run - so it comes through here with the status it actually returned.
     /// </para>
     /// <para>
     /// Header before body, and before the caller writes anything, so the response has not started
@@ -157,7 +157,7 @@ internal abstract class RejectionResult : IResult
         // place every refusal in the server passes through. An instrument at each call site would
         // drift from the log the moment somebody added a rejection and forgot half of it, and the
         // whole value of `boltway.oauth.rejection` is that its total equals the number of
-        // Rejected lines. GetService, not GetRequiredService — metrics are optional, and a host
+        // Rejected lines. GetService, not GetRequiredService - metrics are optional, and a host
         // that has not registered them should not fail on the refusal path.
         httpContext.RequestServices.GetService<AuthorizationServerMetrics>()?.Rejection.Add(
             1,
@@ -170,7 +170,7 @@ internal abstract class RejectionResult : IResult
 
             // Keyed on the OAuth error, not on the HTTP status, and the difference was measured
             // rather than reasoned. `server_error` is the one code that means the fault is ours, and
-            // a first draft here read `status >= 500` — which is right for the HTML delivery and
+            // a first draft here read `status >= 500` - which is right for the HTML delivery and
             // wrong for the one that matters: once a redirect URI is validated, X-10 is delivered as
             // a `303` carrying `error=server_error`, so every crash after stage 3 logged at Warning.
             // The status describes how the answer travels; the code describes whose fault it is.
@@ -227,11 +227,11 @@ internal abstract class RejectionResult : IResult
     /// <para>
     /// <b>Null by default, so the table is consulted unless a subclass says otherwise.</b> It read
     /// <c>RetryAfter is null ? null : ThrottledSpec</c> for one release, which was exact while X-31
-    /// was the only refusal anywhere that carried a wait — "declaring a <c>Retry-After</c> is what
+    /// was the only refusal anywhere that carried a wait - "declaring a <c>Retry-After</c> is what
     /// makes a result a throttle". X-43 broke half of that and X-11 broke the rest: both carry a
     /// wait and neither is a rate limit, and one of them has a registered <c>error</c> that must
     /// come from the table. An implicit rule that has to be re-derived every time a refusal is
-    /// added is one that will eventually be re-derived wrongly, and the failure mode was silent —
+    /// added is one that will eventually be re-derived wrongly, and the failure mode was silent -
     /// a 429 answered during a database outage, with X-31 on the log line an operator reads.
     /// </para>
     /// <para>
@@ -243,7 +243,7 @@ internal abstract class RejectionResult : IResult
     /// <c>error</c> for, and inventing one would put a string on the wire that no client can be
     /// expected to parse. <c>OAuthErrors.Resolve</c> throwing on an unlisted pair is what keeps a
     /// real code from being smuggled onto a surface that must not emit it, and this seam does not
-    /// weaken that — it has no access to a code at all.
+    /// weaken that - it has no access to a code at all.
     /// </para>
     /// </remarks>
     protected virtual OAuthErrorSpec? UntabledSpec => null;
@@ -273,7 +273,7 @@ internal abstract class RejectionResult : IResult
     /// <para>
     /// <c>ErrorDelivery.Json</c> because that is the surface it answers on, even though the body is
     /// empty: the value describes where the refusal is delivered, and a 503 from <c>/token</c> is
-    /// still a JSON endpoint's answer. Nothing reads it to decide whether to write a body — the
+    /// still a JSON endpoint's answer. Nothing reads it to decide whether to write a body - the
     /// result type does that.
     /// </para>
     /// </remarks>
@@ -289,14 +289,14 @@ internal abstract class RejectionResult : IResult
     /// The status and the requirement are identical; only the delivery differs, and it differs
     /// because an empty body is a different quality of answer depending on who is reading. A
     /// resource server branches on <c>503</c> and needs nothing else. Somebody half way through
-    /// signing in gets their browser's own error page, which says nothing about coming back — and
+    /// signing in gets their browser's own error page, which says nothing about coming back - and
     /// on the one surface where the whole problem is a person being told the wrong thing about
     /// their credentials, that is not good enough.
     /// </para>
     /// <para>
     /// So this one renders, through the deployment's <c>IInteractionRenderer</c> like every other
     /// page here, and the sentence a person reads is chosen by
-    /// <c>InteractionText.ErrorSentenceFor</c> from the reason — which is why the reason travels
+    /// <c>InteractionText.ErrorSentenceFor</c> from the reason - which is why the reason travels
     /// rather than only the status.
     /// </para>
     /// </remarks>
@@ -315,7 +315,7 @@ internal abstract class RejectionResult : IResult
 /// </summary>
 /// <remarks>
 /// Deliberately a few hundred bytes of hand-built HTML rather than a view. It renders on a path
-/// where something has already gone wrong — including, at stage 0b, "the server threw" — so anything
+/// where something has already gone wrong - including, at stage 0b, "the server threw" - so anything
 /// it depends on is a second thing that can fail while handling the first. Everything interpolated
 /// has been through <c>ErrorText.Safe</c> and is HTML-encoded again here, because "already filtered"
 /// is a property of the current call sites rather than of the type.
@@ -332,17 +332,17 @@ internal sealed class RejectionHtmlResult(AuthorizeHtmlError error, OAuthSurface
     /// <remarks>
     /// <para>
     /// <b>Carrying no code is what makes a refusal untabled, and that is now the test.</b> It read
-    /// <c>Reason is RateLimited</c> for a release, and before that "is a <c>Retry-After</c> set" —
+    /// <c>Reason is RateLimited</c> for a release, and before that "is a <c>Retry-After</c> set" -
     /// each exact for the refusals that existed when it was written, and each a rule that had to be
     /// widened by hand the next time one was added. <see cref="OAuthErrorCode.None"/> means
     /// literally "there is no <c>error</c> member in this response", the table is keyed on a code,
-    /// and <c>The_none_code_is_not_in_the_table</c> asserts it can never hold one — so the two
+    /// and <c>The_none_code_is_not_in_the_table</c> asserts it can never hold one - so the two
     /// statements are the same statement, and asking the question this way cannot go stale.
     /// </para>
     /// <para>
     /// The reason then chooses between the untabled rows, because there are two and they mean
     /// opposite things: X-31 says the caller asked too often, X-43 says this server could not reach
-    /// what it needed. A refusal that <i>does</i> carry a code goes to the table — which is what
+    /// what it needed. A refusal that <i>does</i> carry a code goes to the table - which is what
     /// keeps X-11 at <c>/authorize</c> resolving as X-11, with <c>temporarily_unavailable</c> on the
     /// page, rather than being swallowed by the row below it.
     /// </para>
@@ -367,8 +367,8 @@ internal sealed class RejectionHtmlResult(AuthorizeHtmlError error, OAuthSurface
     /// <remarks>
     /// <para>
     /// <b>This page went through the renderer seam late, and the delay was the argument against
-    /// it:</b> it renders where something has already gone wrong — including, at stage 0b, "the
-    /// server threw" — so anything it depends on is a second thing that can fail while handling the
+    /// it:</b> it renders where something has already gone wrong - including, at stage 0b, "the
+    /// server threw" - so anything it depends on is a second thing that can fail while handling the
     /// first. That is a reason to catch, not a reason to leave two of the three pages themeable and
     /// say nothing. A customer implementing <c>IInteractionRenderer</c> restyled login and consent
     /// and found out about this one from a screenshot.
@@ -394,7 +394,7 @@ internal sealed class RejectionHtmlResult(AuthorizeHtmlError error, OAuthSurface
 
                     // Kept, and A-12 is why: the OAuth code and a safe description must be in the
                     // body so that `curl -D-` is a sufficient debugging tool. It is also the one
-                    // string on this page that cannot be translated — it is the `error_description`,
+                    // string on this page that cannot be translated - it is the `error_description`,
                     // and OAuth 2.1 §4.1.2.1 restricts it to %x20-21 / %x23-5B / %x5D-7E, which
                     // ErrorText.Safe enforces by dropping everything else.
                     Description = error.Description,
@@ -475,7 +475,7 @@ internal sealed class RejectionHtmlResult(AuthorizeHtmlError error, OAuthSurface
 /// <para>
 /// The <c>Location</c> is assembled here rather than by the caller, because <c>error</c> has to be
 /// the wire string from the table and the table is only read once, in the base class. It goes
-/// through <c>AuthorizeResults.Build</c> — see there for the three separate things concatenation
+/// through <c>AuthorizeResults.Build</c> - see there for the three separate things concatenation
 /// breaks.
 /// </para>
 /// </remarks>
@@ -492,7 +492,7 @@ internal sealed class RejectionRedirectResult(AuthorizeRedirectError error)
             // RFC 9207 §2 requires `iss` on every authorization response including the errors: an
             // error response is as useful to a mix-up attack as a successful one, and a client that
             // saw authorization_response_iss_parameter_supported and then a response without `iss`
-            // is required to reject it — so omitting it here would break the flow rather than
+            // is required to reject it - so omitting it here would break the flow rather than
             // merely weaken it.
             ["iss"] = error.Issuer.Value,
         };
@@ -541,7 +541,7 @@ internal sealed class RejectionJsonResult(
         // field, the authorization server MUST respond with an HTTP 401 … and include the
         // 'WWW-Authenticate' response header field matching the authentication scheme used by the
         // client." Expressed as the two conditions that produce the 401 rather than by comparing the
-        // status against 401 — the comparison is the same answer and it would put a bare status
+        // status against 401 - the comparison is the same answer and it would put a bare status
         // literal in this assembly, which the architecture rule reads as a second response writer.
         if (usedAuthorizationHeader && Rejection.Error is OAuthErrorCode.InvalidClient)
         {
@@ -566,11 +566,11 @@ internal sealed class RejectionJsonResult(
 /// <para>
 /// <b>No body, deliberately.</b> Every other rejection from <c>/token</c> is an OAuth JSON object
 /// because a client branches on its <c>error</c> member, and this refusal has no <c>error</c> to
-/// put there — see <see cref="RejectionResult.StoreUnavailableSpec"/>. <c>{"error":""}</c> is worse
+/// put there - see <see cref="RejectionResult.StoreUnavailableSpec"/>. <c>{"error":""}</c> is worse
 /// than nothing: it is a member the RFC says must be one of a closed set, holding a value that is
 /// in no set at all, and a client matching on it takes whichever branch its parser reaches first.
-/// The status is the signal, <c>Retry-After</c> is the instruction, and <c>X-Request-Id</c> — which
-/// the base class stamps before this runs — is what turns a report into a log line.
+/// The status is the signal, <c>Retry-After</c> is the instruction, and <c>X-Request-Id</c> - which
+/// the base class stamps before this runs - is what turns a report into a log line.
 /// </para>
 /// <para>
 /// <c>no-store</c> anyway, on a response that carries nothing worth storing. It costs one header
@@ -591,7 +591,7 @@ internal sealed class StoreUnavailableResult(
 
     /// <inheritdoc />
     /// <remarks>
-    /// Never zero and never negative — <c>StampRetryAfter</c> floors the header at one second, and
+    /// Never zero and never negative - <c>StampRetryAfter</c> floors the header at one second, and
     /// this floors the value it is given, so a misconfigured wait cannot become "retry immediately"
     /// against a dependency that is still down.
     /// </remarks>
@@ -620,7 +620,7 @@ internal sealed class StoreUnavailableResult(
 /// <remarks>
 /// <para>
 /// Source-generated rather than interpolated. The template is compiled once and the arguments are
-/// not boxed or formatted when the level is disabled — but the reason that matters here is not
+/// not boxed or formatted when the level is disabled - but the reason that matters here is not
 /// throughput, it is that every field below arrives at a log pipeline as a <b>named property</b>.
 /// <c>LogWarning($"rejected {reason}")</c> produces a string a human can read and nothing can index,
 /// so "how many <c>AccessTokenRejected</c> in the last hour, and did they all name the same
@@ -630,8 +630,8 @@ internal sealed class StoreUnavailableResult(
 /// <b><c>CorrelationId</c> is an explicit property even though ASP.NET Core's hosting log scope
 /// already carries the same value.</b> Three reasons it is not redundant. The scope is only emitted
 /// when the host turns <c>IncludeScopes</c> on, which is off by default in every shipped provider
-/// and is the host's configuration rather than this library's. Providers render it differently —
-/// Serilog surfaces it as <c>RequestId</c>, the console provider flattens it into a scope string —
+/// and is the host's configuration rather than this library's. Providers render it differently -
+/// Serilog surfaces it as <c>RequestId</c>, the console provider flattens it into a scope string -
 /// so a query that joins on it is provider-specific. And A-09 does not ask for the id in the log; it
 /// asks for it in the log <i>and</i> in the response, and the response half only works if the value
 /// written to the header is demonstrably the value written to the line. One property, read once,
@@ -640,7 +640,7 @@ internal sealed class StoreUnavailableResult(
 /// <para>
 /// There is a second, identical declaration in <c>Boltway.ResourceServer</c>, and it is a
 /// copy rather than a shared type. The two assemblies share only <c>Boltway.OAuth.Primitives</c>,
-/// which is BCL-only by design — adding <c>Microsoft.Extensions.Logging.Abstractions</c> there to
+/// which is BCL-only by design - adding <c>Microsoft.Extensions.Logging.Abstractions</c> there to
 /// save one duplicated attribute would falsify the property that assembly exists to hold. The
 /// message template and every property name are kept identical so one query returns both halves of
 /// a failed connection; a test in each suite asserts the property set.
@@ -660,7 +660,7 @@ internal static partial class RejectionLog
 
         // The two enums are passed as enums rather than as their ToString(). It reads as a detail
         // and it is not one: formatting them at the call site runs whether or not the level is
-        // enabled — CA1873, which is an error here — and a provider that captures structured values
+        // enabled - CA1873, which is an error here - and a provider that captures structured values
         // gets a scalar it can filter on instead of a string it has to match.
         OAuthSurface surface,
         string correlationId,
@@ -669,7 +669,7 @@ internal static partial class RejectionLog
         int status,
         string error,
 
-        // The public half of the refusal — what a client is told, and what the HTML page used to
+        // The public half of the refusal - what a client is told, and what the HTML page used to
         // show. It is here because the page stopped showing it: /error now renders a localized
         // sentence chosen by what the reader can do, so this line is where the exact English
         // survives. Without it, removing the sentence from the page would have destroyed the only

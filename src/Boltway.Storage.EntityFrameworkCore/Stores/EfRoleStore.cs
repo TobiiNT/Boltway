@@ -8,7 +8,7 @@ namespace Boltway.Storage.EntityFrameworkCore.Stores;
 /// <summary>Role definitions, in a relational database.</summary>
 /// <remarks>
 /// The permissions are one space-separated column. Splitting on whitespace is safe in both
-/// directions because <see cref="RoleDefinition"/> refuses a permission carrying any — the round
+/// directions because <see cref="RoleDefinition"/> refuses a permission carrying any - the round
 /// trip cannot turn one permission into two, and cannot lose one either.
 /// </remarks>
 internal sealed class EfRoleStore(
@@ -189,7 +189,7 @@ internal sealed class EfRoleStore(
         var realmValue = realm.OrDefault.Value;
 
         // Explicit rather than left to the cascade. SQLite enforces a REFERENCES clause only with
-        // `PRAGMA foreign_keys` on, which is set per connection — so a cascade is a property of how
+        // `PRAGMA foreign_keys` on, which is set per connection - so a cascade is a property of how
         // the connection was opened, and this store would otherwise behave differently on two
         // providers for a reason no reader of this method could see.
         await context.UserRoles

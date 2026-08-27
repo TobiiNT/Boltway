@@ -12,14 +12,14 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The endpoint exists so that the consent page never hotlinks a client's <c>logo_uri</c> — that
+/// The endpoint exists so that the consent page never hotlinks a client's <c>logo_uri</c> - that
 /// would tell whoever hosts the image who is looking at a consent page for which application and
 /// when. Re-serving somebody else's bytes from this origin buys that privacy and takes on a
 /// different risk, and these tests are about the second half.
 /// </para>
 /// <para>
 /// <b>The SVG row is the one to keep.</b> An SVG can carry script; served from this origin and
-/// opened directly it is a document, and that script runs with this origin's cookies — the session
+/// opened directly it is a document, and that script runs with this origin's cookies - the session
 /// that is part-way through an authorization. Every other refusal here is hygiene next to that one.
 /// </para>
 /// </remarks>
@@ -127,7 +127,7 @@ public sealed class ClientLogoEndpointTests
     /// </summary>
     /// <remarks>
     /// WAV and AVI open with the same four bytes as WebP, so a prefix check alone accepts them. Not
-    /// dangerous in the way an SVG is — it is the case that shows the magic check is a real check
+    /// dangerous in the way an SVG is - it is the case that shows the magic check is a real check
     /// rather than four bytes that happened to line up.
     /// </remarks>
     [Fact]
@@ -146,7 +146,7 @@ public sealed class ClientLogoEndpointTests
     /// <remarks>
     /// A client with no logo, an identifier nothing resolves, and a logo host that failed all answer
     /// identically. The alternative is an endpoint that reports on other people's infrastructure to
-    /// anonymous callers — "this client_id exists and its CDN is down" is a fact about somebody
+    /// anonymous callers - "this client_id exists and its CDN is down" is a fact about somebody
     /// else's deployment, handed to whoever asks.
     /// </remarks>
     [Fact]
@@ -187,7 +187,7 @@ public sealed class ClientLogoEndpointTests
     /// <remarks>
     /// The proxy exists to stop a logo host learning who is looking at which consent page and when.
     /// Fetching per view would hand that host the same timing signal from this server's address
-    /// instead of the user's — quieter, and the same disclosure.
+    /// instead of the user's - quieter, and the same disclosure.
     /// </remarks>
     [Fact]
     public async Task A_cached_logo_is_not_fetched_again()

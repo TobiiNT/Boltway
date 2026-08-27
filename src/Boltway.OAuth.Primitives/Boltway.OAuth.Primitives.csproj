@@ -38,7 +38,7 @@
     BannedSymbols.txt bans the normalizing members of System.Uri project-wide.
 
     RFC 3986 6.2.1 requires redirect_uri comparison to be Simple String Comparison
-    — ordinal, on the raw string. System.Uri is a normalizing type, and each banned
+    - ordinal, on the raw string. System.Uri is a normalizing type, and each banned
     member returns a value that has been through at least one normalization:
     AbsoluteUri and ToString() lowercase the host and elide the default port (so
     https://claude.ai:443/cb becomes equal to https://claude.ai/cb); AbsolutePath
@@ -51,7 +51,7 @@
     banned: they are how the value objects parse once at construction and freeze the
     result into strings, so the matcher never has to parse anything.
 
-    Note the file format has no comment syntax. A leading '#' is not a comment — the
+    Note the file format has no comment syntax. A leading '#' is not a comment - the
     line is parsed as a symbol, and a file of prose produces a pile of duplicate
     empty-symbol errors (RS0031). The per-symbol message after the semicolon is the
     documentation, and it is what the developer sees in the build error.
@@ -67,7 +67,7 @@
     assembly EVERY internal member of this one, including the members whose inaccessibility someone
     is relying on. That is not a hypothetical: a grant added so one assembly could mint a
     ResourceIdentifier also handed it RedirectMatch.Exact, and a probe compiled that forged a
-    validated redirect to an arbitrary address — the exact capability the authorize pipeline's stage
+    validated redirect to an arbitrary address - the exact capability the authorize pipeline's stage
     ordering exists to withhold.
 
     Two things changed after that, and both are load-bearing:
@@ -78,7 +78,7 @@
          Boltway.AuthorizationServer entry below is safe to add today and was not before.
 
       2. ResourceIdentifier.TryRegister is public again. Making it internal did close the forgery,
-         and it also made IResourceRegistry — public, required, with no shipped implementation —
+         and it also made IResourceRegistry - public, required, with no shipped implementation -
          impossible to implement from any assembly a customer could own. Every test passed the whole
          time, because the only implementations lived in assemblies on this list. See
          tests/Boltway.PublicApi.Tests, which exists to hold exactly that blind spot open.
@@ -95,7 +95,7 @@
 
     <!--
       For OpaqueSecret.FromDerivedMaterial, which RefreshTokenDeriver calls. It was public, and a
-      review measured that it would mint a valid refresh token — or a registration access token —
+      review measured that it would mint a valid refresh token - or a registration access token -
       from the SHA-256 of an email address. Its 32-byte check enforces wire indistinguishability and
       says nothing at all about unguessability, so as public API it was an unbacked promise.
     -->

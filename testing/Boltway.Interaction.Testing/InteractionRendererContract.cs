@@ -12,21 +12,21 @@ namespace Boltway.Interaction.Testing;
 /// A store that loses a grant produces a failing request; a consent page missing the client hostname
 /// produces a page that looks finished and has quietly dropped the only mitigation there is against
 /// a client calling itself Claude from someone else's origin. Nothing fails, nobody is told, and the
-/// requirement it breaks — N-14 — is a MUST in the MCP specification.
+/// requirement it breaks - N-14 - is a MUST in the MCP specification.
 /// </para>
 /// <para>
 /// <b>What this suite refuses to assert:</b> wording. Every check below is either a value the
 /// <i>server</i> put on the view model, a structural property of the markup, or a difference between
 /// two renders. None of them pins a sentence, because a renderer that says
-/// "chưa được xác minh" instead of "is not verified" is translated, not broken — and a contract that
+/// "chưa được xác minh" instead of "is not verified" is translated, not broken - and a contract that
 /// fails it would be teaching customers to fork the suite, which defeats the point of shipping one.
 /// </para>
 /// <para>
 /// The differential checks are the interesting half. "Did the renderer warn about a loopback
 /// redirect" cannot be asked of wording, but it can be asked of two renders that differ only in
 /// <see cref="ConsentViewModel.RedirectsToThisDevice"/>: if the output is identical, the flag was
-/// ignored. That catches the real defect — a renderer built against an older model, or a template
-/// where the warning was dropped in a redesign — without owning anybody's prose.
+/// ignored. That catches the real defect - a renderer built against an older model, or a template
+/// where the warning was dropped in a redesign - without owning anybody's prose.
 /// </para>
 /// </remarks>
 public abstract class InteractionRendererContract
@@ -39,8 +39,8 @@ public abstract class InteractionRendererContract
     /// something about it.
     /// </summary>
     /// <remarks>
-    /// Twenty characters. Low enough that a terse or translated warning passes — "Không xác minh
-    /// được" is 21 — and high enough that wrapping a value in punctuation does not. The number is
+    /// Twenty characters. Low enough that a terse or translated warning passes - "Không xác minh
+    /// được" is 21 - and high enough that wrapping a value in punctuation does not. The number is
     /// arbitrary in the way a threshold has to be; what is not arbitrary is that <i>some</i> floor
     /// exists, because the defect being caught is a renderer that prints an attacker-chosen name
     /// with nothing next to it.
@@ -48,9 +48,9 @@ public abstract class InteractionRendererContract
     private const int Qualification = 20;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // N-14 — who is asking, and where the code goes
+    // N-14 - who is asking, and where the code goes
     // ─────────────────────────────────────────────────────────────────────────
-    /// <summary>N-14: the host of the <c>client_id</c> URL appears — the relying party's real identity.</summary>
+    /// <summary>N-14: the host of the <c>client_id</c> URL appears - the relying party's real identity.</summary>
 
     [Fact]
     public void Consent_shows_the_host_of_the_client_id()
@@ -66,7 +66,7 @@ public abstract class InteractionRendererContract
     /// <remarks>
     /// Order is the requirement, not merely presence. A page led by "Claude" with the real host in
     /// small print underneath displays every field N-14 asks for and is still the phishing surface
-    /// N-14 exists to prevent — the shipped renderer's own comment calls reversing them "the whole
+    /// N-14 exists to prevent - the shipped renderer's own comment calls reversing them "the whole
     /// attack". The fixture is that attack: a document at <c>evil.example</c> claiming the name
     /// <c>Claude</c>.
     /// </remarks>
@@ -91,8 +91,8 @@ public abstract class InteractionRendererContract
     /// <remarks>
     /// <para>
     /// The same rule as the one above, applied to the half a reader is least able to doubt. A logo
-    /// is exactly as self-asserted as the name — anyone can put an image at their own URL, the same
-    /// way anyone can publish <c>{"client_name":"Claude"}</c> — but a familiar mark reads as proof
+    /// is exactly as self-asserted as the name - anyone can put an image at their own URL, the same
+    /// way anyone can publish <c>{"client_name":"Claude"}</c> - but a familiar mark reads as proof
     /// in a way a familiar word does not, so a page that leads with one has done the attacker's
     /// work in the most convincing form available. The fixture is that page: <c>evil.example</c>
     /// serving Claude's name and Claude's mark.
@@ -100,8 +100,8 @@ public abstract class InteractionRendererContract
     /// <para>
     /// Asserted on the markup rather than the text, because an image contributes no text and
     /// <see cref="Markup.Text"/> would find nothing to order. That also means this is the one
-    /// N-14 assertion a renderer can pass while showing the reader something different — a
-    /// stylesheet can move an image anywhere — which is why the shipped theme keeps it inline in
+    /// N-14 assertion a renderer can pass while showing the reader something different - a
+    /// stylesheet can move an image anywhere - which is why the shipped theme keeps it inline in
     /// the paragraph and why that is written down beside the rule rather than only here.
     /// </para>
     /// </remarks>
@@ -182,7 +182,7 @@ public abstract class InteractionRendererContract
     /// Loopback and private-use schemes both. For neither did a domain owner prove anything: any
     /// process can bind a loopback port, and RFC 8252 §8.4 says any application can register a
     /// private-use scheme. The user is the only party who knows whether they started this, so the
-    /// page has to ask them — and a renderer that ignores the flag renders the same page either way,
+    /// page has to ask them - and a renderer that ignores the flag renders the same page either way,
     /// which is what this measures.
     /// </remarks>
     [Fact]
@@ -202,7 +202,7 @@ public abstract class InteractionRendererContract
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // A-14 — what is being asked for
+    // A-14 - what is being asked for
     // ─────────────────────────────────────────────────────────────────────────
     /// <summary>A-14: a configured scope description is rendered as configured, never reworded.</summary>
 
@@ -231,7 +231,7 @@ public abstract class InteractionRendererContract
         var undescribed = Markup.Text(renderer.RenderConsent(
             Consent() with { Scopes = [new ConsentScope("docs:read", string.Empty, false)] }));
 
-        // The same scope, described with its own name — so the two renders carry identical text
+        // The same scope, described with its own name - so the two renders carry identical text
         // except for whatever the renderer adds to say the description is missing.
         var described = Markup.Text(renderer.RenderConsent(
             Consent() with { Scopes = [new ConsentScope("docs:read", "docs:read", true)] }));
@@ -256,7 +256,7 @@ public abstract class InteractionRendererContract
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // The wire contract — field names the endpoints read
+    // The wire contract - field names the endpoints read
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -266,7 +266,7 @@ public abstract class InteractionRendererContract
     /// <c>PostConsentAsync</c> reads <c>form["decision"]</c> and compares it to <c>"approve"</c>
     /// ordinally; everything else is a denial. So a renderer that names the control <c>action</c>,
     /// or spells the value <c>Approve</c>, produces a page whose Approve button denies. It fails
-    /// closed, which is why nothing catches it — no error, no log line, just a user who cannot
+    /// closed, which is why nothing catches it - no error, no log line, just a user who cannot
     /// connect and a server that believes they declined.
     /// </remarks>
     [Fact]
@@ -298,7 +298,7 @@ public abstract class InteractionRendererContract
     /// <b>A link or a form, because the property is a way out and not an element.</b> This asserted
     /// <c>href</c> alone until the shipped renderer stopped drawing one: a link goes to the
     /// confirmation page, so signing out took two presses on two pages, and somebody pressed once,
-    /// read the question, left, and believed they had signed out. Measured in production — the
+    /// read the question, left, and believed they had signed out. Measured in production - the
     /// <c>GET</c> was there and no <c>POST</c> followed it.
     /// </para>
     /// <para>
@@ -325,7 +325,7 @@ public abstract class InteractionRendererContract
     /// </summary>
     /// <remarks>
     /// The page said an address was "not verified" and offered nothing to do about it, because
-    /// nothing in the server could send the link — <c>E-41</c> had a page to land on and no endpoint
+    /// nothing in the server could send the link - <c>E-41</c> had a page to land on and no endpoint
     /// that could send you there. A renderer that draws the qualification and drops the button
     /// rebuilds that dead end in the theme layer.
     /// </remarks>
@@ -343,7 +343,7 @@ public abstract class InteractionRendererContract
     /// </summary>
     /// <remarks>
     /// A form that posts without one is refused by the endpoint, so a renderer that draws the
-    /// button and forgets the field ships a control that always fails — and fails at the point where
+    /// button and forgets the field ships a control that always fails - and fails at the point where
     /// the person has already decided to press it.
     /// </remarks>
     [Fact]
@@ -388,7 +388,7 @@ public abstract class InteractionRendererContract
     /// <remarks>
     /// Differential, like the consent warnings, and for the reason this suite states up front: the
     /// sentence is the renderer's to translate. What is measured is that the notice reaches the page
-    /// at all — a renderer built against the older model ignores the field and renders the same page
+    /// at all - a renderer built against the older model ignores the field and renders the same page
     /// whether or not a link is in flight.
     /// </remarks>
     [Fact]
@@ -413,7 +413,7 @@ public abstract class InteractionRendererContract
     /// </summary>
     /// <remarks>
     /// Nobody has opened it yet. A renderer that swapped the "not verified" qualification for the
-    /// sent notice would be asserting something no one has done — so the unverified case must still
+    /// sent notice would be asserting something no one has done - so the unverified case must still
     /// read differently from the verified one while the notice is showing.
     /// </remarks>
     [Fact]
@@ -439,7 +439,7 @@ public abstract class InteractionRendererContract
     /// </summary>
     /// <remarks>
     /// A page that ignores a press looks broken, and the next thing the person does is press it
-    /// again — which is what the throttle exists to stop. Two renders that differ only in the notice
+    /// again - which is what the throttle exists to stop. Two renders that differ only in the notice
     /// must not be identical, or the distinction was dropped.
     /// </remarks>
     [Fact]
@@ -463,8 +463,8 @@ public abstract class InteractionRendererContract
 
     /// <summary>The way out does not depend on how the person signs in.</summary>
     /// <remarks>
-    /// The password link is absent for a federated account — deliberately, since there is nothing
-    /// here to change — and the sign-out link sits beside it. Asserting the federated case
+    /// The password link is absent for a federated account - deliberately, since there is nothing
+    /// here to change - and the sign-out link sits beside it. Asserting the federated case
     /// separately is what stops a future edit from folding the two together and taking the exit
     /// away from exactly the accounts that never had a password to begin with.
     /// </remarks>
@@ -481,7 +481,7 @@ public abstract class InteractionRendererContract
     /// <summary>No sign-out link when the deployment routes no sign-out page.</summary>
     /// <remarks>
     /// <c>/logout</c> exists only when <c>EndSessionEnabled</c> is set, so a renderer that draws
-    /// the link from a constant instead of from the model offers a 404 — and it does it on the page
+    /// the link from a constant instead of from the model offers a 404 - and it does it on the page
     /// a person opens to find out what they are allowed to do. Found by loading the running sample,
     /// whose self-service pages are on and whose end-session page is not; every renderer unit test
     /// had passed, because none of them could see the routing table.
@@ -532,7 +532,7 @@ public abstract class InteractionRendererContract
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // A-10 / A-11 — every sign-in method, available or not
+    // A-10 / A-11 - every sign-in method, available or not
     // ─────────────────────────────────────────────────────────────────────────
     /// <summary>A-11: every configured provider appears, available or not.</summary>
 
@@ -576,7 +576,7 @@ public abstract class InteractionRendererContract
     /// </summary>
     /// <remarks>
     /// Startup validation refuses this shape, so it is reachable only when a host registers a
-    /// provider list that then answers empty. A blank page is the worst available answer to it — the
+    /// provider list that then answers empty. A blank page is the worst available answer to it - the
     /// user cannot tell a misconfigured server from a broken browser.
     /// </remarks>
     [Fact]
@@ -594,14 +594,14 @@ public abstract class InteractionRendererContract
     /// <para>
     /// Differential, and it used to pin the sentence: the model carried the prose and this asserted
     /// it arrived verbatim. That was the assertion this suite says in its own header it will not
-    /// make — and it had a cost beyond tidiness. Prose on the model is prose the endpoint chose, so
+    /// make - and it had a cost beyond tidiness. Prose on the model is prose the endpoint chose, so
     /// no renderer could translate it, and a Vietnamese deployment served
     /// <i>"That username and password did not match."</i> under a heading reading "Đăng nhập".
     /// Measured on a running server.
     /// </para>
     /// <para>
     /// What has to be true is that the flag reached the page. A renderer that ignores it renders
-    /// the same page either way, which is what the length difference measures — and it holds for a
+    /// the same page either way, which is what the length difference measures - and it holds for a
     /// renderer whose wording is in any language.
     /// </para>
     /// </remarks>
@@ -629,13 +629,13 @@ public abstract class InteractionRendererContract
     /// <para>
     /// Differential, like the two sign-out states, and for the reason that class of assertion
     /// exists: what has to be true is that the flag reached the page. A renderer that ignores it
-    /// draws the same thing twice, and both halves of that are defects — a link to a route that is
+    /// draws the same thing twice, and both halves of that are defects - a link to a route that is
     /// not mapped when recovery is off, or, with it on, a deployment that has configured mail,
     /// tokens and three pages that nobody in a browser can reach.
     /// </para>
     /// <para>
     /// The path is asserted rather than the wording, because the wording is a translation and the
-    /// path is a constant. It is checked only on the enabled half — <c>N-06</c>'s routed-or-absent
+    /// path is a constant. It is checked only on the enabled half - <c>N-06</c>'s routed-or-absent
     /// rule is what makes the disabled half's absence the requirement.
     /// </para>
     /// </remarks>
@@ -674,7 +674,7 @@ public abstract class InteractionRendererContract
     /// Differential, like the loopback warning, and for the same reason: what has to be true is that
     /// the state reached the page, and that cannot be asked of wording. A renderer built against an
     /// older model, or a template where one branch was lost in a redesign, produces identical
-    /// output for both — and the visible symptom is a "sign out?" form on a page that has already
+    /// output for both - and the visible symptom is a "sign out?" form on a page that has already
     /// signed you out, or worse, the reverse.
     /// </para>
     /// <para>
@@ -705,7 +705,7 @@ public abstract class InteractionRendererContract
     /// </summary>
     /// <remarks>
     /// The client name is the obvious one and the provider's display name is the one that gets
-    /// forgotten, because it reads as configuration rather than as input — it is configuration that
+    /// forgotten, because it reads as configuration rather than as input - it is configuration that
     /// a federation provider can supply.
     /// </remarks>
     [Fact]
@@ -733,7 +733,7 @@ public abstract class InteractionRendererContract
     /// <remarks>
     /// The regression this is here for was measured, not imagined: the model builder encoded the
     /// client name and the renderer encoded it again, so <c>Café</c> displayed as <c>Caf&amp;#233;</c>
-    /// and <c>Acme &amp; "Claude"</c> as <c>Acme &amp;amp; &amp;quot;Claude&amp;quot;</c> — mojibake
+    /// and <c>Acme &amp; "Claude"</c> as <c>Acme &amp;amp; &amp;quot;Claude&amp;quot;</c> - mojibake
     /// on the one page whose whole job is to be read carefully. It also quietly quadrupled the
     /// length cap, since each <c>&lt;</c> became six rendered characters.
     /// </remarks>
@@ -748,7 +748,7 @@ public abstract class InteractionRendererContract
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // N-15 — what the CSP on these pages will actually execute
+    // N-15 - what the CSP on these pages will actually execute
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -758,7 +758,7 @@ public abstract class InteractionRendererContract
     /// <para>
     /// The authorization pages ship <c>default-src 'self'; form-action 'self'; frame-ancestors
     /// 'none'; base-uri 'none'; object-src 'none'</c>, with no <c>style-src</c> or <c>script-src</c>
-    /// override — so both inherit <c>'self'</c>, and an inline style, an inline script, an
+    /// override - so both inherit <c>'self'</c>, and an inline style, an inline script, an
     /// <c>onclick</c>, a <c>data:</c> image and a CDN stylesheet are all refused by the browser.
     /// </para>
     /// <para>
@@ -829,7 +829,7 @@ public abstract class InteractionRendererContract
         Nonce = null,
     };
 
-    /// <summary>Local passwords plus one available provider and one that is not — A-11's shape.</summary>
+    /// <summary>Local passwords plus one available provider and one that is not - A-11's shape.</summary>
     protected static LoginViewModel Login() => new()
     {
         ReturnUrl = ReturnUrl,

@@ -20,7 +20,7 @@ public sealed class ClientAssertionOptions
     /// <remarks>
     /// <para>
     /// Five minutes. RFC 7523 §3 requires an <c>exp</c> and says nothing about how far out it may
-    /// be, so a client is free to mint one valid for a year — and a year-long assertion is a bearer
+    /// be, so a client is free to mint one valid for a year - and a year-long assertion is a bearer
     /// credential in everything but name, since anyone who captures it can authenticate as that
     /// client until it expires.
     /// </para>
@@ -51,8 +51,8 @@ public sealed class ClientAssertionOptions
 /// <para>
 /// <b>Why this exists, dated.</b> On 2026-08-17 both of ChatGPT's live client documents were
 /// measured declaring <c>token_endpoint_auth_method: private_key_jwt</c> beside a plural offering
-/// <c>none</c>. This server prefers <c>none</c> and therefore still connects — that is what
-/// <c>The_live_chatgpt_document_is_a_public_client</c> pins — so this is not a lockout fix. It is
+/// <c>none</c>. This server prefers <c>none</c> and therefore still connects - that is what
+/// <c>The_live_chatgpt_document_is_a_public_client</c> pins - so this is not a lockout fix. It is
 /// the difference between serving a client the weaker of the two methods it offered and serving it
 /// the one it named first. LESSONS #8 is what happens when the plural is the only thing read.
 /// </para>
@@ -60,8 +60,8 @@ public sealed class ClientAssertionOptions
 /// <b>Two audiences are accepted and the reason is interop, not laxity.</b> RFC 7523 §3 asks for a
 /// value identifying the authorization server; OIDC Core §9 says the token endpoint URL and notes
 /// that a server "MAY accept" its issuer identifier. Real clients send one or the other. Accepting
-/// both costs nothing here because there is exactly one endpoint that takes assertions — the
-/// cross-endpoint replay a broad audience would open needs a second one to replay to — and refusing
+/// both costs nothing here because there is exactly one endpoint that takes assertions - the
+/// cross-endpoint replay a broad audience would open needs a second one to replay to - and refusing
 /// one spelling produces a failure the client cannot diagnose from an <c>invalid_client</c>.
 /// <b>Which spelling ChatGPT actually sends has not been measured</b>; no assertion from it has been
 /// captured, and this is the honest reason both are accepted rather than a preference.
@@ -70,7 +70,7 @@ public sealed class ClientAssertionOptions
 /// <b>A <c>jti</c> is required, which is stricter than the RFC.</b> §3 makes it optional and the
 /// replay check a MAY. Without one there is no way to tell a second presentation from a first, so
 /// accepting an assertion that carries none means accepting a credential whose reuse this server
-/// cannot detect — silently, on the endpoint where reuse is the point.
+/// cannot detect - silently, on the endpoint where reuse is the point.
 /// </para>
 /// </remarks>
 public sealed class ClientAssertionAuthenticator(
@@ -137,7 +137,7 @@ public sealed class ClientAssertionAuthenticator(
         {
             // The one failure worth a second attempt: the client signed with a key published after
             // this cache was filled. Every other failure is about the assertion rather than the key
-            // set, and refetching for those would make the token endpoint an amplifier — an
+            // set, and refetching for those would make the token endpoint an amplifier - an
             // attacker-shaped assertion naming a random `kid` costs nothing to produce.
             var refreshed = await _keys.GetAsync(client, refreshBecauseKeyUnknown: true, cancellationToken);
 
@@ -198,7 +198,7 @@ public sealed class ClientAssertionAuthenticator(
         }
 
         // Last, and after every other check, so a replay row is never written for an assertion that
-        // was going to be refused anyway — otherwise a malformed assertion burns the identifier a
+        // was going to be refused anyway - otherwise a malformed assertion burns the identifier a
         // later valid one would use, and the client sees a replay it did not make.
         if (!await _replays.TryClaimAsync(client.ClientId, jwtId, expiresAt, cancellationToken))
         {

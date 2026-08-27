@@ -4,7 +4,7 @@
     The rules that `internal` cannot keep.
 
     Every rule here is enforced by reading compiled IL with Mono.Cecil, and that choice is the
-    point. `internal` is scoped per assembly and InternalsVisibleTo widens it silently — one grant
+    point. `internal` is scoped per assembly and InternalsVisibleTo widens it silently - one grant
     added for one reason hands over every internal member in the assembly, including the ones whose
     inaccessibility was load-bearing. A Cecil scan sees what the compiler actually emitted, so it is
     unaffected by who was granted what.
@@ -40,7 +40,7 @@
     <!--
       Referenced only so its assembly lands beside the test binary and the IL rules can see it.
       Il.AssemblyNames discovers what is in that directory, so an unreferenced project is silently
-      unscanned — measured: an unguarded HttpClient planted in Storage.InMemory broke no rule.
+      unscanned - measured: an unguarded HttpClient planted in Storage.InMemory broke no rule.
       Every_project_with_code_is_scanned is what stops the next one being missed.
     -->
     <ProjectReference Include="..\..\src\Boltway.Storage.InMemory\Boltway.Storage.InMemory.csproj" />
@@ -49,7 +49,7 @@
     <!--
       Same reason again, and Every_project_with_code_is_scanned is what asked for these two lines:
       both projects were a .csproj and nothing else until the durable stores were written, and the
-      moment they held a single .cs file that test failed naming them. Which is the guard working —
+      moment they held a single .cs file that test failed naming them. Which is the guard working -
       an unscanned assembly makes every ban in StructuralRuleTests report green over it.
     -->
     <ProjectReference Include="..\..\src\Boltway.Storage.EntityFrameworkCore\Boltway.Storage.EntityFrameworkCore.csproj" />
@@ -71,7 +71,7 @@
     <!--
       A fourth and fifth, and Every_project_with_code_is_scanned asked for these the same way it
       asked for the three above: it went red naming both the moment the federation projects held
-      code. Two of these rules matter here specifically —
+      code. Two of these rules matter here specifically -
       Only_the_guarded_fetcher_touches_system_net_http, because a relying party is the obvious place
       for somebody to reach for an HttpClient, and Token_validation_parameters_have_one_construction_site,
       because validating an upstream ID token is the obvious place for a second one.
@@ -87,7 +87,7 @@
 
       Which is the argument for the one-tree layout rather than a detail of it: a project that sits
       outside the scan is not a project the scan approved, and nothing anywhere said so. It carries an
-      HttpClient-shaped job — fetching a key set over the network — so
+      HttpClient-shaped job - fetching a key set over the network - so
       Only_the_guarded_fetcher_touches_system_net_http is the ban that most wanted to see it.
     -->
     <ProjectReference Include="..\..\src\Boltway.Mcp\Boltway.Mcp.csproj" />

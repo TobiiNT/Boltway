@@ -58,7 +58,7 @@ internal static class Build
     /// <remarks>
     /// Deliberately no test-only factory in the shipping assembly. <c>ResourceIdentifier</c>'s
     /// factory is internal to Primitives so that N-01 has no public bypass, and this test project
-    /// reaches one the same way production code does — by validating configuration.
+    /// reaches one the same way production code does - by validating configuration.
     /// </remarks>
     public static ProtectedResource Resolve(string canonical, string issuer = Issuer)
     {
@@ -85,7 +85,7 @@ internal static class Build
 /// <para>
 /// The <c>kid</c> matters more than it looks. The verifier runs with
 /// <c>TryAllIssuerSigningKeys = false</c>, so it considers only keys whose identifier matches the
-/// token's <c>kid</c> header — an unlabelled key matches nothing and every signature check fails
+/// token's <c>kid</c> header - an unlabelled key matches nothing and every signature check fails
 /// with a message that reads like a missing key rather than an unnamed one.
 /// </para>
 /// </remarks>
@@ -142,14 +142,14 @@ internal static class Mint
     /// An ID token for the same user, signed by the same key.
     /// </summary>
     /// <param name="audience">
-    /// The <c>aud</c>, as a client identifier — which is what an ID token's audience is (N-10).
+    /// The <c>aud</c>, as a client identifier - which is what an ID token's audience is (N-10).
     /// </param>
     /// <param name="issuer">The <c>iss</c>.</param>
     /// <remarks>
     /// <para>
     /// The audience is a parameter, and that is the difference between a test of N-09 and a test
     /// that looks like one. <b>Measured:</b> with the audience fixed at an ordinary client id, this
-    /// token is refused because its <c>aud</c> is not the resource — so unpinning
+    /// token is refused because its <c>aud</c> is not the resource - so unpinning
     /// <c>ValidTypes</c> entirely left the test green, and the <c>typ</c> check it claimed to prove
     /// was never exercised.
     /// </para>
@@ -158,7 +158,7 @@ internal static class Mint
     /// carry <b>this resource's identifier</b> in <c>aud</c>. A CIMD client identifier is a URL, so
     /// such a token is constructible; and once it exists, <c>typ</c> is the only thing between it
     /// and a validated access token. That is what RFC 9068 §5 means by cross-JWT confusion, and it
-    /// is what <c>ValidTypes</c> — unset by default in the library — is the whole defence against.
+    /// is what <c>ValidTypes</c> - unset by default in the library - is the whole defence against.
     /// </para>
     /// </remarks>
     internal static string IdToken(string audience, string issuer = Build.Issuer)
@@ -181,7 +181,7 @@ internal static class Mint
     /// <remarks>
     /// The descriptor path cannot produce one: <c>AccessTokenDescriptor</c> requires a
     /// <see cref="ResourceIdentifier"/>, and <c>TryRegister</c> refuses any string that is not in
-    /// canonical form — so a Boltway issuer can no longer mint a token whose audience is, say,
+    /// canonical form - so a Boltway issuer can no longer mint a token whose audience is, say,
     /// this resource with a trailing slash. The token that can still arrive is a foreign one, whose
     /// <c>aud</c> is whatever its issuer wrote. This is that token, signed by the key the fixture
     /// trusts and shaped correctly everywhere else, so the audience comparison is the one check
@@ -287,7 +287,7 @@ internal sealed class ResourceServerFixture : IAsyncDisposable
                         configure?.Invoke(options);
                     });
 
-                    // For the seams a deployment supplies rather than configures — today that is
+                    // For the seams a deployment supplies rather than configures - today that is
                     // IAccessTokenRevocationCheck, which is absent unless somebody registers one.
                     configureServices?.Invoke(services);
                 })
@@ -336,8 +336,8 @@ internal sealed class ResourceServerFixture : IAsyncDisposable
         var client = host.GetTestClient();
 
         // https, because a resource identifier must be. Nothing here depends on the request's host
-        // — the resource identifier comes from configuration and is never rebuilt from the request
-        // — but a fixture on http would be exercising a deployment shape this server refuses.
+        // - the resource identifier comes from configuration and is never rebuilt from the request
+        // - but a fixture on http would be exercising a deployment shape this server refuses.
         client.BaseAddress = new Uri("https://mcp.example.com");
 
         return new ResourceServerFixture(host, client) { Logs = sink };

@@ -17,13 +17,13 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// <b>Almost every assertion here is that the response is an empty 200</b>, which reads like a test
 /// suite with nothing to say until the reason is stated: §2.2 makes the answer identical for a token
-/// that was revoked, one that never existed, one already dead and — X-39 — one belonging to somebody
+/// that was revoked, one that never existed, one already dead and - X-39 - one belonging to somebody
 /// else. The endpoint's whole security property is that those four are indistinguishable, so the
 /// tests that matter are the pairs: the same 200 in both cases, and a <i>different</i> observable
 /// effect on the token afterwards.
 /// </para>
 /// <para>
-/// Driven through the real flow — authorize, exchange, revoke, then try to use what was revoked —
+/// Driven through the real flow - authorize, exchange, revoke, then try to use what was revoked -
 /// for the reason <c>IntrospectionEndpointTests</c> gives: a token this file constructed would prove
 /// only that the server recognises tokens this file constructs.
 /// </para>
@@ -285,7 +285,7 @@ public sealed class RevocationEndpointTests
     /// and 400 rather than 401. Both look inverted and both are right: there is no client id
     /// anywhere in the request, so there is no client to have failed authentication (§3.2.4's
     /// missing-parameter clause), and RFC 6749 §5.2 reserves 401 for a client that authenticated by
-    /// a method the server can challenge — a blanket 401 with <c>WWW-Authenticate</c> would name a
+    /// a method the server can challenge - a blanket 401 with <c>WWW-Authenticate</c> would name a
     /// scheme the caller never used. The wrong-secret case below is the one that is a 401, and the
     /// two are asserted together so neither can drift into the other.
     /// </para>
@@ -307,12 +307,12 @@ public sealed class RevocationEndpointTests
         Assert.Equal(withToken.Error, withoutToken.Error);
         Assert.Equal(withToken.Description, withoutToken.Description);
 
-        // And what it does say is about the missing client id, never about `token` — the endpoint's
+        // And what it does say is about the missing client id, never about `token` - the endpoint's
         // own parameters stay unmentioned to a caller who has not authenticated.
         Assert.DoesNotContain("token", withoutToken.Description!, StringComparison.OrdinalIgnoreCase);
 
         // A client that did present credentials by a challengeable method gets the 401 that tells it
-        // to try again — and a description that still says nothing about this endpoint's parameters.
+        // to try again - and a description that still says nothing about this endpoint's parameters.
         var wrongSecret = await AttemptAsync(
             fixture,
             withToken: true,
@@ -364,7 +364,7 @@ public sealed class RevocationEndpointTests
     /// <remarks>
     /// <c>no-store</c> is not ceremony on an empty body: a cached 200 on a shared proxy answers the
     /// <i>next</i> revocation without it reaching this server, so a real revocation silently does
-    /// nothing. The absent content type is the other half — announcing <c>application/json</c> over
+    /// nothing. The absent content type is the other half - announcing <c>application/json</c> over
     /// zero bytes gives a client a parse error where it should see a success.
     /// </remarks>
     [Fact]
@@ -394,7 +394,7 @@ public sealed class RevocationEndpointTests
     /// <summary>A GET is 405, not 404: the route exists and refuses the method. §2.1 specifies POST.</summary>
     /// <remarks>
     /// This is also why <c>MetadataHonestyTests</c>'s sweep, which probes with GET, does not read a
-    /// POST-only endpoint as unrouted — it treats only 404 that way.
+    /// POST-only endpoint as unrouted - it treats only 404 that way.
     /// </remarks>
     [Fact]
     public async Task A_get_is_refused_by_routing()
@@ -410,7 +410,7 @@ public sealed class RevocationEndpointTests
     /// With the flag off the path 404s and the document does not name it.
     /// </summary>
     /// <remarks>
-    /// One flag, both halves — the pairing <c>MetadataHonestyTests</c> exists to protect. Asserted
+    /// One flag, both halves - the pairing <c>MetadataHonestyTests</c> exists to protect. Asserted
     /// here as well as there because that suite proves the two agree, and this proves what they
     /// agree on.
     /// </remarks>
@@ -569,7 +569,7 @@ public sealed class RevocationEndpointTests
 
     /// <summary>
     /// RFC 6749 §2.3.1: both halves are form-urlencoded before the base64, and the client id here is
-    /// a URL — so an unescaped one carries a colon and the server splits on the wrong one.
+    /// a URL - so an unescaped one carries a colon and the server splits on the wrong one.
     /// </summary>
     private static string BasicOf(string clientId, string secret) =>
         Convert.ToBase64String(Encoding.UTF8.GetBytes(

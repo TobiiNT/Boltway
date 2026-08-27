@@ -47,7 +47,7 @@ public sealed class AdminRoleScopePolicyTests
     /// The case this class exists for.
     /// </summary>
     /// <remarks>
-    /// The roles below are deliberately ordinary ones — the kind a deployment hands to most of its
+    /// The roles below are deliberately ordinary ones - the kind a deployment hands to most of its
     /// directory. A policy tested only against obviously-wrong roles passes and still leaves
     /// `users:write` with everybody who was given a plausible one.
     /// </remarks>
@@ -75,7 +75,7 @@ public sealed class AdminRoleScopePolicyTests
     /// </summary>
     /// <remarks>
     /// <c>roles:write</c> redefines what every holder of a role may do, so it is an administrative
-    /// scope in full standing — a policy that stripped only the users pair would let any account
+    /// scope in full standing - a policy that stripped only the users pair would let any account
     /// consent its way into rewriting the vocabulary the users pair protects.
     /// </remarks>
     [Fact]
@@ -131,7 +131,7 @@ public sealed class AdminRoleScopePolicyTests
     /// </summary>
     /// <remarks>
     /// An empty set withholds the administrative scopes from everybody, which is a deployment locked
-    /// out of its own directory — and quietly, because nothing fails until somebody tries to sign
+    /// out of its own directory - and quietly, because nothing fails until somebody tries to sign
     /// in to the admin UI and is simply not granted anything.
     /// </remarks>
     [Fact]

@@ -14,7 +14,7 @@ namespace Boltway.OAuth.Primitives.Http;
 /// </code>
 /// <para>
 /// A fetcher that compares the header to <c>"application/json"</c> by string equality therefore
-/// accepts every Claude document and rejects every ChatGPT one — and the resulting failure surfaces
+/// accepts every Claude document and rejects every ChatGPT one - and the resulting failure surfaces
 /// as <c>invalid_client</c>, which reads as the client's fault. RFC 9110 §8.3 has said all along
 /// that parameters are part of the field and not part of the media type; this is the type that
 /// makes the code agree.
@@ -42,7 +42,7 @@ public readonly struct MediaType : IEquatable<MediaType>
     /// <summary>Whether this is any flavour of JSON, including <c>+json</c> structured suffixes.</summary>
     /// <remarks>
     /// RFC 6839 requires a non-empty base before a <c>+json</c> structured suffix, so
-    /// <c>application/+json</c> is not JSON — it is malformed.
+    /// <c>application/+json</c> is not JSON - it is malformed.
     /// </remarks>
     public bool IsJson =>
         string.Equals(Type, "application", StringComparison.Ordinal)
@@ -93,7 +93,7 @@ public readonly struct MediaType : IEquatable<MediaType>
     /// </summary>
     /// <remarks>
     /// <para>
-    /// Without this, a parsed media type could carry anything the splitter did not eat — including
+    /// Without this, a parsed media type could carry anything the splitter did not eat - including
     /// CR and LF. <c>Content-Type</c> is attacker-controlled on every <c>/token</c> and
     /// <c>/register</c> request, so the moment a 415 body, a log line or a diagnostic header
     /// interpolated the parsed value, that was log injection or response splitting, out of the very

@@ -40,7 +40,7 @@ internal static class FormBody
     /// <b>An empty value is dropped rather than kept.</b> RFC 6749 §3.1 says parameters "sent
     /// without a value MUST be treated as if they were omitted", and it is why every caller tests
     /// for <c>string.IsNullOrEmpty</c> rather than for null. Note that <c>/authorize</c> treats an
-    /// empty <c>redirect_uri</c> as malformed while this treats an empty parameter as absent — the
+    /// empty <c>redirect_uri</c> as malformed while this treats an empty parameter as absent - the
     /// asymmetry is the specification's, not an inconsistency here.
     /// </para>
     /// </remarks>
@@ -76,7 +76,7 @@ internal static class FormBody
         catch (InvalidOperationException ex)
         {
             // Request.Form throws rather than returning empty on a body it cannot parse. Caught so
-            // a malformed body is an OAuth error rather than a 500 — which the client would read as
+            // a malformed body is an OAuth error rather than a 500 - which the client would read as
             // "the server is broken" rather than "my request was".
             //
             // The exception's own message goes to the log and not to the client. It names the

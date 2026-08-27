@@ -12,8 +12,8 @@ namespace Boltway.AuthorizationServer.Abstractions.Users;
 /// never compares one to a constant. <c>founder</c>, <c>tier-2</c>, <c>read_ledgers</c> are all the
 /// same to it. Knowing what a role or a permission <i>means</i> is the resource server's job, and a
 /// library that shipped a vocabulary would be shipping one customer's org chart to every other
-/// customer. That rule is older than this type — it is why <c>UserAccount</c> carried a bare string
-/// for a year — and moving roles into a table does not relax it. The table holds names; it does not
+/// customer. That rule is older than this type - it is why <c>UserAccount</c> carried a bare string
+/// for a year - and moving roles into a table does not relax it. The table holds names; it does not
 /// know what they are for.
 /// </para>
 /// <para>
@@ -21,7 +21,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Users;
 /// written into every token issued while it was assigned, and a deployment's own configuration is
 /// likely to name it too. Changing it is therefore not a rename, it is an invalidation of everything
 /// already issued. The name is read by people and by nothing else, so it can be reworded or
-/// translated freely — which is the only reason a role can be renamed at all.
+/// translated freely - which is the only reason a role can be renamed at all.
 /// </para>
 /// </remarks>
 public sealed record RoleDefinition
@@ -39,12 +39,12 @@ public sealed record RoleDefinition
     /// <summary>Define a role.</summary>
     /// <param name="id">
     /// What a token carries and what a resource server matches on, exactly. Non-blank, at most
-    /// <see cref="MaxIdLength"/> characters, and carrying no whitespace — it is compared ordinally
+    /// <see cref="MaxIdLength"/> characters, and carrying no whitespace - it is compared ordinally
     /// against a claim value, and a leading space is a difference nobody can see.
     /// </param>
     /// <param name="name">
     /// What to call it in a sentence. Non-blank and at most <see cref="MaxNameLength"/> characters,
-    /// and free to carry spaces — nothing matches on a name, which is the reason it is its own field.
+    /// and free to carry spaces - nothing matches on a name, which is the reason it is its own field.
     /// </param>
     /// <param name="permissions">
     /// What the role stands for, in the resource server's vocabulary. Stored space-separated, the
@@ -116,8 +116,8 @@ public sealed record RoleDefinition
     /// <remarks>
     /// <b>Whitespace is allowed here and refused for the other two, which is the whole point of the
     /// split.</b> A name is stored in its own column and nothing matches on it, so <c>Nhà phân tích</c>
-    /// is exactly what it is for. Applying the token rule to all three fields — which this type did
-    /// until a test wrote a two-word name — made the editable half unable to hold the kind of value
+    /// is exactly what it is for. Applying the token rule to all three fields - which this type did
+    /// until a test wrote a two-word name - made the editable half unable to hold the kind of value
     /// it exists to hold.
     /// </remarks>
     private static string Readable(string value, string parameter, int maxLength)
@@ -147,7 +147,7 @@ public sealed record RoleDefinition
 /// <para>
 /// <b>Nothing here enforces that an assigned role exists.</b> A directory that has been rolled back
 /// to an older image, or restored from a backup taken before a role was defined, holds assignments
-/// naming a definition it cannot find — and refusing to issue a token in that case would turn a
+/// naming a definition it cannot find - and refusing to issue a token in that case would turn a
 /// tidy-up into an outage on a path that has nothing to do with it. The claims mapper drops what it
 /// cannot resolve and the account still signs in, holding less. That is the same decision
 /// <c>UserAccountClaims</c> already makes for an account deleted mid-grant.
@@ -187,7 +187,7 @@ public interface IRoleStore
     /// <remarks>
     /// Add-only, the same shape as <see cref="IUserStore.StoreAsync"/>. An upsert here would let a
     /// caller who meant to create one silently replace the permissions of a role somebody is
-    /// already holding — and every token issued under it would keep saying what it used to mean.
+    /// already holding - and every token issued under it would keep saying what it used to mean.
     /// </remarks>
     /// <param name="role">The role.</param>
     /// <param name="cancellationToken">Cancels the write.</param>
@@ -210,7 +210,7 @@ public interface IRoleStore
     /// </summary>
     /// <remarks>
     /// Replaces rather than merges, so that taking a permission away is expressible. Tokens already
-    /// issued carry the old set until they expire — the same caveat every role change has had, and
+    /// issued carry the old set until they expire - the same caveat every role change has had, and
     /// the reason <c>revoke-sessions</c> exists.
     /// </remarks>
     /// <param name="realm">The directory.</param>
@@ -225,7 +225,7 @@ public interface IRoleStore
     /// </summary>
     /// <remarks>
     /// The assignments go with it, because the alternative is rows naming a definition nobody can
-    /// read — which is indistinguishable from the rolled-back-image case this interface tolerates,
+    /// read - which is indistinguishable from the rolled-back-image case this interface tolerates,
     /// and would make that case impossible to tell from a bug. Accounts holding only this role are
     /// left holding none, which is the least-privileged answer rather than an error.
     /// </remarks>

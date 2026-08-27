@@ -51,13 +51,13 @@ internal sealed class CountingPasswordHasher(IPasswordHasher inner) : IPasswordH
 /// Until this file existed, <c>POST /login</c> had never been executed: it resolves
 /// <c>IUserStore</c> and <c>IPasswordHasher</c> from the container and no implementation of either
 /// existed anywhere in the repository, not even a test double. Every request to it threw. The route
-/// was mapped, the antiforgery check was written, the 303 was correct — and none of that was
+/// was mapped, the antiforgery check was written, the 303 was correct - and none of that was
 /// reachable, so the endpoint's only demonstrated behaviour was that it could not be used.
 /// </para>
 /// <para>
 /// The fixture here differs from every other one in this assembly in one deliberate way: it does not
 /// seed a signed-in user. <see cref="TestUserSession"/> hands a session over for free, which is what
-/// lets the other flow tests start at <c>/authorize</c> — and it would make this file pass with the
+/// lets the other flow tests start at <c>/authorize</c> - and it would make this file pass with the
 /// login endpoint deleted. The session has to come from the cookie the endpoint sets, or nothing is
 /// being tested.
 /// </para>
@@ -110,7 +110,7 @@ public sealed partial class LoginFlowTests
         var users = new InMemoryUserStore(roles);
 
         // Minted, not written by hand. This is the point of A-18 landing in code: the subject the
-        // whole flow carries — into the cookie, into the grant, into `sub` — is a ULID because
+        // whole flow carries - into the cookie, into the grant, into `sub` - is a ULID because
         // something produced one, not because a comment says so.
         var subjects = new UlidSubjectIdFactory(TimeProvider.System);
         var subject = subjects.Mint();
@@ -136,7 +136,7 @@ public sealed partial class LoginFlowTests
             seed.ScopeDescriptions["mcp:tools"] = "Use the tools this server provides";
 
             // Belt and braces, and the braces are what matter: the IUserSession registration below
-            // replaces TestUserSession outright, so this line alone changes nothing. Measured —
+            // replaces TestUserSession outright, so this line alone changes nothing. Measured -
             // putting a seeded user back here left all twelve tests green, because the seeded
             // session was no longer being read. It stays so that the fixture is not describing a
             // signed-in user that nothing consults.
@@ -157,7 +157,7 @@ public sealed partial class LoginFlowTests
 
                         // Lax, not Strict, and the shipped CookieUserSession comment says why: the
                         // browser reaches /authorize by a top-level cross-site navigation from
-                        // claude.ai, and a Strict cookie is not sent on it — so every user would
+                        // claude.ai, and a Strict cookie is not sent on it - so every user would
                         // look signed out on every connect.
                         o.Cookie.SameSite = SameSiteMode.Lax;
                     });
@@ -230,8 +230,8 @@ public sealed partial class LoginFlowTests
     /// </summary>
     /// <remarks>
     /// The end-to-end path this repository did not have. Every other flow test starts with a session
-    /// already established, so the two hops in the middle — the redirect to <c>/login</c> and the
-    /// POST that satisfies it — were the only part of the sequence nothing exercised.
+    /// already established, so the two hops in the middle - the redirect to <c>/login</c> and the
+    /// POST that satisfies it - were the only part of the sequence nothing exercised.
     /// </remarks>
     [Fact]
     public async Task An_anonymous_browser_signs_in_and_completes_the_authorization()
@@ -247,7 +247,7 @@ public sealed partial class LoginFlowTests
         Assert.StartsWith("/login?returnUrl=", loginUrl, StringComparison.Ordinal);
 
         // ── the credentials POST. 303, so the browser re-issues as GET and the password is not
-        //    re-sent to the Location — RFC 9700 §4.12.
+        //    re-sent to the Location - RFC 9700 §4.12.
         var signedIn = await PostLoginAsync(server, Username, Password, loginUrl);
 
         Assert.Equal(HttpStatusCode.SeeOther, signedIn.StatusCode);
@@ -292,7 +292,7 @@ public sealed partial class LoginFlowTests
 
         Assert.Equal(HttpStatusCode.OK, tokens.StatusCode);
 
-        // The `sub` in the issued token is the subject that was minted for this account — read out
+        // The `sub` in the issued token is the subject that was minted for this account - read out
         // of the token rather than inferred. A-18's charset promise is about what this server
         // emits, so the check belongs on the value it emitted, at the end of the path it travelled:
         // password → cookie → authorize → grant → access token.
@@ -369,7 +369,7 @@ public sealed partial class LoginFlowTests
     /// <remarks>
     /// <para>
     /// The pair that was missing. <c>A_disabled_account_cannot_sign_in_with_the_right_password</c>
-    /// proves the endpoint honours <c>DisabledAt</c>, using a fixture that seeds it directly — which
+    /// proves the endpoint honours <c>DisabledAt</c>, using a fixture that seeds it directly - which
     /// it had to, because nothing could set the field. That made the rule enforced and unsettable.
     /// </para>
     /// <para>
@@ -434,7 +434,7 @@ public sealed partial class LoginFlowTests
     public async Task A_login_post_without_an_antiforgery_token_is_refused()
     {
         // Same reasoning as the consent POST: UseAntiforgery() auto-validates only handlers that
-        // BIND form data, and this one reads Request.Form by hand — so without the explicit check
+        // BIND form data, and this one reads Request.Form by hand - so without the explicit check
         // the middleware would skip it silently.
         await using var server = await StartAsync();
 
@@ -483,7 +483,7 @@ public sealed partial class LoginFlowTests
     /// <para>
     /// The antiforgery token is masked afresh on every response, so two renders of one page are
     /// never literally byte-identical. It is replaced with a placeholder before comparing, and that
-    /// substitution is the one difference this test tolerates — a fact worth stating plainly,
+    /// substitution is the one difference this test tolerates - a fact worth stating plainly,
     /// because "byte-identical" with an unstated exemption is how a real difference hides.
     /// </para>
     /// </remarks>
@@ -520,7 +520,7 @@ public sealed partial class LoginFlowTests
     /// This is the assertion that makes the endpoint's <c>DummyHash</c> defence real rather than
     /// decorative. Identical <i>responses</i> are not enough: if the unknown-username path returned
     /// without hashing, it would return in microseconds where the known path takes tens of
-    /// milliseconds, and that difference is the same oracle a distinct error message would be —
+    /// milliseconds, and that difference is the same oracle a distinct error message would be -
     /// measured in milliseconds instead of words.
     /// </para>
     /// <para>
@@ -546,8 +546,8 @@ public sealed partial class LoginFlowTests
     /// </summary>
     /// <remarks>
     /// The federation-only shape: the row exists, <c>PasswordHash</c> is <see langword="null"/>. It
-    /// is a second, narrower oracle — it distinguishes "this person signs in with Google" from
-    /// "this person has a password here" — and it survives a fix aimed only at the unknown-username
+    /// is a second, narrower oracle - it distinguishes "this person signs in with Google" from
+    /// "this person has a password here" - and it survives a fix aimed only at the unknown-username
     /// case, because the account genuinely was found.
     /// </remarks>
     [Fact]
@@ -571,12 +571,12 @@ public sealed partial class LoginFlowTests
     /// The one refusal in this server that is not an OAuth error response: the form is re-rendered
     /// at <c>200</c>, deliberately, because a redirect would need the failure in a query parameter
     /// and that is a reflected value on the one page where reflection matters. A-09 says <i>every</i>
-    /// path, and this is the path an operator is most often asked about — a burst of these is a
+    /// path, and this is the path an operator is most often asked about - a burst of these is a
     /// credential-stuffing run, and before this change there was nothing to count.
     /// </para>
     /// <para>
-    /// The username goes to the log and never back to the page. Which of the three causes it was —
-    /// no such account, a disabled one, a wrong password — does not, in either place: separating
+    /// The username goes to the log and never back to the page. Which of the three causes it was -
+    /// no such account, a disabled one, a wrong password - does not, in either place: separating
     /// them in a file the operator reads would recreate the username oracle that the equalised hash
     /// timing above exists to remove, for anyone who can read logs.
     /// </para>
@@ -613,7 +613,7 @@ public sealed partial class LoginFlowTests
     // ─────────────────────────────────────────────────────────────────────────
     // No timing assertion is committed here, and that is a decision rather than an omission.
     //
-    // A wall-clock comparison of the two failure paths was run by hand — at the shipped cost, and
+    // A wall-clock comparison of the two failure paths was run by hand - at the shipped cost, and
     // again with the DummyHash call removed as a control. The numbers are in the commit message. It
     // is not committed as a test because the threshold that would catch a missing hash is tighter
     // than the noise floor of a shared runner, and a security test that fails for unrelated reasons

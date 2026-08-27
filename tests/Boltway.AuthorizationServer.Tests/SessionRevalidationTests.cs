@@ -22,7 +22,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <b>Driven through the real cookie pipeline, and that is the point of the file.</b> The mechanism
 /// is three pieces that each look fine alone: a column, a validator, and one line in the host's
 /// <c>AddCookie</c>. Unit-testing the validator would prove the middle piece and leave the two that
-/// actually fail — a stamp nobody writes, a callback nobody wires — passing. So these sign in over
+/// actually fail - a stamp nobody writes, a callback nobody wires - passing. So these sign in over
 /// HTTP, keep the cookie the browser would keep, and ask whether the next request is still signed in.
 /// </para>
 /// <para>
@@ -40,7 +40,7 @@ public sealed partial class SessionRevalidationTests
     /// <summary>A cookie from before the stamp is refused, and the browser is signed out.</summary>
     /// <remarks>
     /// The whole feature, in one test. Before this, the second request was a 200 with the account
-    /// page on it — for fourteen days, sliding forward on every use.
+    /// page on it - for fourteen days, sliding forward on every use.
     /// </remarks>
     [Fact]
     public async Task A_session_from_before_the_stamp_is_refused()
@@ -81,7 +81,7 @@ public sealed partial class SessionRevalidationTests
     /// <remarks>
     /// Null is not zero. Every account that existed before the column has null in it, and reading
     /// that as "the beginning of time" would sign the whole deployment out on the deploy that added
-    /// this — spending every user's trust to buy nothing, since none of those sessions were
+    /// this - spending every user's trust to buy nothing, since none of those sessions were
     /// suspected of anything.
     /// </remarks>
     [Fact]
@@ -134,7 +134,7 @@ public sealed partial class SessionRevalidationTests
     /// <b>Written from a real confusion rather than from the spec.</b> This control was a link to
     /// the confirmation page, so pressing it ended nothing until a second press on a second page.
     /// Somebody pressed it, read the question, went to another site two seconds later, and reported
-    /// that signing out had not worked — measured in production: <c>GET /logout -&gt; 200</c> with no
+    /// that signing out had not worked - measured in production: <c>GET /logout -&gt; 200</c> with no
     /// <c>POST</c> anywhere after it, and the next request still carrying a live session.
     /// </para>
     /// <para>
@@ -151,7 +151,7 @@ public sealed partial class SessionRevalidationTests
         var page = await world.Client.GetStringAsync(new Uri("/me", UriKind.Relative));
 
         // A form, not a link. The old shape would leave this assertion passing only by accident,
-        // since /me carries other forms — so the action is asserted too.
+        // since /me carries other forms - so the action is asserted too.
         Assert.Contains("action=\"/logout\"", page, StringComparison.Ordinal);
 
         var token = AntiforgeryField().Match(page);
@@ -179,7 +179,7 @@ public sealed partial class SessionRevalidationTests
     /// <remarks>
     /// The end-to-end claim the mail and the sessions page both make. It is asserted through the
     /// real password route rather than by calling the store, because the defect it guards against is
-    /// a route that forgets to stamp — which a store-level test cannot see.
+    /// a route that forgets to stamp - which a store-level test cannot see.
     /// </remarks>
     [Fact]
     public async Task Changing_the_password_ends_the_sessions_that_predate_it()
@@ -201,7 +201,7 @@ public sealed partial class SessionRevalidationTests
             ]));
 
         // The page it renders, not the status code. A refused change re-renders this form as a 200
-        // with a complaint on it, so a status assertion passes on exactly the case worth catching —
+        // with a complaint on it, so a status assertion passes on exactly the case worth catching -
         // and then the stamp assertion below fails for a reason nobody would look for here.
         var body = await changed.Content.ReadAsStringAsync();
 
@@ -213,7 +213,7 @@ public sealed partial class SessionRevalidationTests
         Assert.NotNull(stamped!.SessionsValidFrom);
 
         // The clock has not moved, so this session's auth_time equals the stamp rather than
-        // preceding it — the tie case above, and the reason the browser that made the change is
+        // preceding it - the tie case above, and the reason the browser that made the change is
         // still signed in. What the stamp ends is every *other* browser, which is the intent: a
         // person changing their password is not asking to be thrown out of the page they are on.
         Assert.Equal(HttpStatusCode.OK, (await world.GetAccountAsync()).StatusCode);

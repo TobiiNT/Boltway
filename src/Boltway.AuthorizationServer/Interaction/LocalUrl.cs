@@ -8,7 +8,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// N-11 and the design both name <c>Url.IsLocalUrl</c>. That method cannot be called from here:
 /// its implementation is <c>Microsoft.AspNetCore.Internal.SharedUrlHelper</c>, which is
 /// <see langword="internal"/> in every assembly that carries it, and the only public entry point is
-/// MVC's <c>IUrlHelper</c> instance method — which needs <c>AddMvcCore</c>, an
+/// MVC's <c>IUrlHelper</c> instance method - which needs <c>AddMvcCore</c>, an
 /// <c>IUrlHelperFactory</c> and an <c>ActionContext</c>. This project is minimal-API with a bare
 /// framework reference, and taking an MVC dependency for one predicate is a worse trade than
 /// writing the predicate. <c>Results.LocalRedirect</c> is not an escape hatch either: it emits 302,
@@ -16,14 +16,14 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// </para>
 /// <para>
 /// This is <b>stricter</b> than the framework's version in one way that matters. That one accepts
-/// <c>~/…</c>, which is MVC content-root syntax and not a valid <c>Location</c> — emitted raw, a
+/// <c>~/…</c>, which is MVC content-root syntax and not a valid <c>Location</c> - emitted raw, a
 /// browser resolves it relative to the current path and the user lands on <c>/~/consent</c>. Here a
 /// value must begin with a single <c>/</c>.
 /// </para>
 /// <para>
 /// What it defends: <c>/login</c> and <c>/consent</c> are pages on the one origin the user has been
 /// taught to type a password into. A <c>returnUrl</c> of <c>//evil.example</c> turns that login page
-/// into a redirector to a pixel-perfect copy, where none of this server's headers apply — and the
+/// into a redirector to a pixel-perfect copy, where none of this server's headers apply - and the
 /// user got there from a URL on a domain they trust. RFC 9700 §2.1: servers "MUST NOT expose URLs
 /// that forward the user's browser to arbitrary URIs obtained from a query parameter".
 /// </para>
@@ -62,7 +62,7 @@ public static class LocalUrl
 
         // Control characters, TAB, CR and LF included. The WHATWG URL parser strips them before
         // resolving, so "/\t/evil.example" is a scheme-relative URL that does not look like one to
-        // a naive check — and CR or LF in a value destined for a Location header is response
+        // a naive check - and CR or LF in a value destined for a Location header is response
         // splitting.
         foreach (var c in url.AsSpan(1))
         {
@@ -83,7 +83,7 @@ public static class LocalUrl
     /// <remarks>
     /// "Local" is not the same question as "the page you meant". <c>/logout?post_logout_redirect_uri=…</c>
     /// is perfectly local and is not somewhere a consent page should hand a user. The interaction
-    /// endpoints resume exactly one thing — the authorization request — so they check for exactly
+    /// endpoints resume exactly one thing - the authorization request - so they check for exactly
     /// that path rather than for local-ness alone.
     /// </remarks>
     public static bool IsLocalPathTo(string? url, string expectedPath)
@@ -104,8 +104,8 @@ public static class LocalUrl
     /// <remarks>
     /// <para>
     /// The sign-in page used to resume exactly one thing, so <see cref="IsLocalPathTo"/> took one
-    /// path. It now resumes two kinds of thing — an authorization request, or a self-service page a
-    /// person was sent to <c>/login</c> from — and this is the widening that allows the second
+    /// path. It now resumes two kinds of thing - an authorization request, or a self-service page a
+    /// person was sent to <c>/login</c> from - and this is the widening that allows the second
     /// without allowing anything else.
     /// </para>
     /// <para>

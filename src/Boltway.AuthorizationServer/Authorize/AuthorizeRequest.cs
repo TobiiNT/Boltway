@@ -10,8 +10,8 @@ namespace Boltway.AuthorizationServer.Authorize;
 /// </summary>
 /// <remarks>
 /// Every field starts unset and is filled by exactly one stage. The ordering guarantee does not
-/// come from this type — it comes from <see cref="ValidatedRedirect"/> being unconstructible before
-/// stage 3 — but keeping the accumulation explicit means a stage reading something a later stage
+/// come from this type - it comes from <see cref="ValidatedRedirect"/> being unconstructible before
+/// stage 3 - but keeping the accumulation explicit means a stage reading something a later stage
 /// sets is a null, not a silently wrong value.
 /// </remarks>
 public sealed class AuthorizeContext
@@ -39,7 +39,7 @@ public sealed class AuthorizeContext
     /// </summary>
     /// <remarks>
     /// Carried for the stages after validation that need to render a response, <b>not</b> as the
-    /// route by which the validation stages reach it — those take it as a parameter, so that a
+    /// route by which the validation stages reach it - those take it as a parameter, so that a
     /// stage hoisted above stage 3 fails to compile rather than dereferencing a null here.
     /// </remarks>
     public ValidatedRedirect? Redirect { get; set; }
@@ -56,7 +56,7 @@ public sealed class AuthorizeContext
     /// <summary>The OIDC nonce, if the client sent one. Set by stage 8.</summary>
     public string? Nonce { get; set; }
 
-    /// <summary>Whether the request asked for OIDC at all — the <c>openid</c> scope.</summary>
+    /// <summary>Whether the request asked for OIDC at all - the <c>openid</c> scope.</summary>
     public bool IsOidc { get; set; }
 
     /// <summary>
@@ -66,7 +66,7 @@ public sealed class AuthorizeContext
     /// Carried rather than validated-and-dropped. Stage 9 needs <c>login</c> to force
     /// re-authentication and stage 10 needs <c>consent</c> to force re-consent, and if the value
     /// did not survive stage 8 those stages would have to re-read and re-validate
-    /// <see cref="Parameters"/> — which is exactly the "a stage reading something a later stage
+    /// <see cref="Parameters"/> - which is exactly the "a stage reading something a later stage
     /// sets" that this type exists to prevent.
     /// </remarks>
     public IReadOnlyList<string> Prompt { get; set; } = [];
@@ -91,7 +91,7 @@ public sealed class AuthorizeContext
     /// <c>HttpRequest</c> is a stage that could start depending on one.
     /// </para>
     /// <para>
-    /// It ends up on the grant, so it says which device approved. Nothing updates it afterwards —
+    /// It ends up on the grant, so it says which device approved. Nothing updates it afterwards -
     /// see <c>ApprovingDevice</c> for why that is the question worth answering and why no address
     /// is recorded beside it.
     /// </para>

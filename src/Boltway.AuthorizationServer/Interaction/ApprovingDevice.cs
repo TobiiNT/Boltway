@@ -9,7 +9,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// <remarks>
 /// <para>
 /// <b>What this is for.</b> A person looking at their own sessions sees a list of client names, and
-/// two grants for the same client are indistinguishable — which is exactly the moment somebody is
+/// two grants for the same client are indistinguishable - which is exactly the moment somebody is
 /// asking whether one of them is theirs. The <c>User-Agent</c> presented at <c>/authorize</c> is the
 /// browser the consent screen was clicked in, so it names the machine that approved.
 /// </para>
@@ -21,7 +21,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// </para>
 /// <para>
 /// <b>Read once, at <c>/authorize</c>, and never updated.</b> A refresh does not touch it. The
-/// alternative — restamping on every rotation — is a database write on the hot path of every
+/// alternative - restamping on every rotation - is a database write on the hot path of every
 /// refresh, and it would answer a different question than the one the page asks: this says which
 /// device <i>approved</i>, which is the decision a person is being asked to recognise.
 /// </para>
@@ -39,8 +39,8 @@ public static class ApprovingDevice
     /// </summary>
     /// <remarks>
     /// A header is caller-controlled and has no length limit of its own, so something has to bound
-    /// what reaches a column. 256 covers every real browser's header with room to spare — the
-    /// longest in ordinary use run to about 180 — and the value is only ever displayed and compared
+    /// what reaches a column. 256 covers every real browser's header with room to spare - the
+    /// longest in ordinary use run to about 180 - and the value is only ever displayed and compared
     /// by eye, so a truncated tail costs nothing that matters.
     /// </remarks>
     public const int MaxLength = 256;
@@ -74,7 +74,7 @@ public static class ApprovingDevice
     /// <para>
     /// <b>Deliberately small, and it falls back to the header rather than to a guess.</b> Every
     /// user-agent library in existence is a pile of heuristics over a string that has been lying
-    /// about itself since 1994 — every browser still claims to be Mozilla — so this recognises the
+    /// about itself since 1994 - every browser still claims to be Mozilla - so this recognises the
     /// handful of families a person actually signs in from and gets out of the way otherwise. A raw
     /// header is ugly and true; "Unknown device" would be neither.
     /// </para>
@@ -113,7 +113,7 @@ public static class ApprovingDevice
     /// <para>
     /// <b>So what is removed is the structure, not the content.</b> A header carrying
     /// <c>\n\nThis was you, ignore this message.</c> would otherwise arrive looking like another
-    /// paragraph of the sentence this deployment wrote, under this deployment's name — and the one
+    /// paragraph of the sentence this deployment wrote, under this deployment's name - and the one
     /// party who can choose that header is the one the message is reporting on. Every control
     /// character goes, runs of whitespace collapse to one space, and what is left is a single line
     /// that can only ever be read as the value of the field it is printed beside.

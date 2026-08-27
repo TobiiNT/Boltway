@@ -4,7 +4,7 @@
     The interaction contracts, as something a customer can reference.
 
     They lived in Boltway.Interaction.Tests, which was already `IsPackable=true` with the right
-    reason written on it — "a contract nobody outside this repository can run is a contract only this
+    reason written on it - "a contract nobody outside this repository can run is a contract only this
     repository is held to." What it produced was not usable. Measured on the packed output:
 
       * dependencies included Microsoft.NET.Test.Sdk, xunit.runner.visualstudio and
@@ -12,7 +12,7 @@
         collector into the customer's project;
       * the assembly shipped a runtimeconfig.json, because it was packaged as an executable test
         project rather than as a library;
-      * and it carried this repository's own concrete tests — DefaultInteractionLayoutTests, the
+      * and it carried this repository's own concrete tests - DefaultInteractionLayoutTests, the
         themed-renderer suite, and the sabotage suite with its deliberately broken renderer. A
         customer running `dotnet test` would have run Boltway's tests inside their own suite
         and read the results as being about their renderer.
@@ -21,7 +21,7 @@
     The derivations and the sabotage suite stay next door, where they are this repository's tests
     rather than anybody's contract.
 
-    No test runner here on purpose. This assembly is never executed by itself — a customer's own
+    No test runner here on purpose. This assembly is never executed by itself - a customer's own
     test project supplies the runner, and adding one would put a second copy in their build.
   -->
 
@@ -66,7 +66,7 @@
   <!--
     The shipped assembly only, and deliberately no InternalsVisibleTo grant: this project is
     compiled against exactly what a customer has. If a contract ever needs an internal type to
-    express an assertion, that type belongs on the public surface instead — the customer writing the
+    express an assertion, that type belongs on the public surface instead - the customer writing the
     renderer needs it just as much as the contract does.
   -->
   <ItemGroup>

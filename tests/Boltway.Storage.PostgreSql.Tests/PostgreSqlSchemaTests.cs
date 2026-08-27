@@ -10,8 +10,8 @@ namespace Boltway.Storage.PostgreSql.Tests;
 /// </summary>
 /// <remarks>
 /// The PostgreSQL counterpart of <c>SqliteSchemaTests</c>. Two of these have no SQLite twin, because
-/// they pin decisions where this provider could plausibly have diverged and deliberately did not —
-/// <c>bytea</c> for digests and <c>bigint</c> for instants — and one replaces a SQLite test that has
+/// they pin decisions where this provider could plausibly have diverged and deliberately did not -
+/// <c>bytea</c> for digests and <c>bigint</c> for instants - and one replaces a SQLite test that has
 /// no meaning here: SQLite ignores <c>REFERENCES</c> unless a per-connection pragma is set, so the
 /// SQLite suite reads the pragma back; PostgreSQL always enforces one, so the equivalent measurement
 /// is to break it and watch the server refuse.
@@ -62,12 +62,12 @@ public sealed class PostgreSqlSchemaTests(PostgresDatabase database) : IClassFix
         // `bytea` rather than a hex or base64 `text`: a digest compared as text is compared under a
         // collation, and the primary key of the two tables replay protection depends on is not a
         // place to introduce a collation. bytea has neither a collation nor a length limit, which is
-        // why HasMaxLength(32) leaves no trace here — the 32 bytes are guaranteed by Sha256Hash,
+        // why HasMaxLength(32) leaves no trace here - the 32 bytes are guaranteed by Sha256Hash,
         // which cannot produce another length, and re-checked by StoredValues.ToHash on the way back.
         //
         // `bigint` UTC ticks rather than `timestamptz`, which is the type a PostgreSQL schema would
         // normally use. timestamptz holds microseconds and a .NET tick is 100 ns, so the round trip
-        // is lossy — measured through Npgsql against this server rather than reasoned about: 200
+        // is lossy - measured through Npgsql against this server rather than reasoned about: 200
         // values of DateTimeOffset.UtcNow written to a timestamptz column and read back came out
         // bit-identical 18 times, and written to a bigint of UtcTicks, 200 times.
         // ConsentStoreContract's `Assert.Equal(now, found.GrantedAt)` compares exactly that, so a
@@ -100,7 +100,7 @@ public sealed class PostgreSqlSchemaTests(PostgresDatabase database) : IClassFix
         // The SQLite suite reads `PRAGMA foreign_keys` back because SQLite ignores REFERENCES
         // clauses unless it is on. PostgreSQL has no such switch, so the question worth asking here
         // is not whether enforcement is enabled but whether the constraint reached the database at
-        // all — which is checked by breaking it, from raw SQL, underneath the store that has its own
+        // all - which is checked by breaking it, from raw SQL, underneath the store that has its own
         // check for the same thing.
         var exception = Assert.Throws<PostgresException>(() => Execute(
             "INSERT INTO external_logins (upstream_issuer, upstream_subject, subject) "
@@ -116,8 +116,8 @@ public sealed class PostgreSqlSchemaTests(PostgresDatabase database) : IClassFix
         // that this "makes the answer the same on every provider". On PostgreSQL that sentence holds
         // only while the column's collation is deterministic: under a non-deterministic ICU
         // collation `=` folds case itself, and UserStoreContract's
-        // An_upstream_subject_is_matched_ordinally — which requires 'abcDEF' and 'ABCdef' to be two
-        // different upstream identities — would be false of the database rather than of the code.
+        // An_upstream_subject_is_matched_ordinally - which requires 'abcDEF' and 'ABCdef' to be two
+        // different upstream identities - would be false of the database rather than of the code.
         //
         // A property of the database a deployment creates, not of anything this package ships, so it
         // is measured rather than assumed. A deployment that creates its database with

@@ -10,7 +10,7 @@ public sealed class MediaTypeTests
     [Theory]
     // Measured live 2026-08-03. claude.ai serves the bare type; chatgpt.com adds a charset. A
     // fetcher comparing the header to "application/json" by equality accepts every Claude document
-    // and rejects every ChatGPT one, and the failure surfaces as invalid_client — which reads as
+    // and rejects every ChatGPT one, and the failure surfaces as invalid_client - which reads as
     // the client's fault.
     [InlineData("application/json")]
     [InlineData("application/json; charset=utf-8")]
@@ -71,7 +71,7 @@ public sealed class MediaTypeTests
     [Theory]
     // Content-Type is attacker-controlled on every /token and /register request. Without tchar
     // validation these all parsed, and the parsed value flowing into a 415 body, a log line or a
-    // diagnostic header is log injection or response splitting — out of the very type whose job is
+    // diagnostic header is log injection or response splitting - out of the very type whose job is
     // to be the trusted parse of that header.
     [InlineData("application/json\r\nX-Injected: yes")]
     [InlineData("application/json\0; charset=x")]

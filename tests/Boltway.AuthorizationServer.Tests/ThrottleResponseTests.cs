@@ -21,7 +21,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The body shape is the one this surface already uses — the HTML error page on our own origin —
+/// The body shape is the one this surface already uses - the HTML error page on our own origin -
 /// because both endpoints here are reached by a browser. X-31's row gives <c>json</c> for its
 /// delivery and that row is written for the registration endpoints, which this server does not
 /// route: <c>RegistrationProfile.DynamicRegistration</c> is refused at startup.
@@ -104,7 +104,7 @@ public sealed partial class ThrottleResponseTests
     /// </summary>
     /// <remarks>
     /// A limiter that refused everything would satisfy the test above. Fifty authorizations at the
-    /// shipped defaults, one fetch, fifty redirects into the flow — which is also the C-29 argument:
+    /// shipped defaults, one fetch, fifty redirects into the flow - which is also the C-29 argument:
     /// a limit that trips on ordinary vendor traffic is worse than no limit.
     /// </remarks>
     [Fact]
@@ -151,7 +151,7 @@ public sealed partial class ThrottleResponseTests
     /// </summary>
     /// <remarks>
     /// Both halves matter. The status is what a client sees; the hash count is what the server
-    /// spends, and it is the number the whole exercise is about — a refusal that still paid 19 MiB
+    /// spends, and it is the number the whole exercise is about - a refusal that still paid 19 MiB
     /// and 95 ms would be a slower way to be flooded.
     /// </remarks>
     [Fact]
@@ -215,7 +215,7 @@ public sealed partial class ThrottleResponseTests
     /// The control for both budgets: an ordinary sign-in, and a few fumbled ones, are untouched.
     /// </summary>
     /// <remarks>
-    /// At the shipped numbers — ten a quarter of an hour per username, thirty per source — someone
+    /// At the shipped numbers - ten a quarter of an hour per username, thirty per source - someone
     /// who mistypes their password four times still signs in on the fifth attempt. A limiter that
     /// refused that would be worse than none.
     /// </remarks>
@@ -238,12 +238,12 @@ public sealed partial class ThrottleResponseTests
     /// <remarks>
     /// The second half is the one worth a test. Resetting the source counter on success would hand
     /// an attacker who holds one valid credential a reset button: run to the limit, sign in once,
-    /// run again. The account counter is different — the proof that the attempts were this user's
+    /// run again. The account counter is different - the proof that the attempts were this user's
     /// own is the password they just got right.
     /// <para>
     /// The attempts after the success use fresh usernames on purpose, so each has its own untouched
     /// account budget and the only counter that can refuse is the source one. Written the obvious
-    /// way first — all attempts on the same username — this test passed with the source counter
+    /// way first - all attempts on the same username - this test passed with the source counter
     /// reset as well, because the account budget was doing the refusing.
     /// </para>
     /// </remarks>
@@ -256,7 +256,7 @@ public sealed partial class ThrottleResponseTests
             o.MaxAttemptsPerClient = 8;
         });
 
-        // Two failures, then the right password. The account budget is now clear — three more
+        // Two failures, then the right password. The account budget is now clear - three more
         // attempts on this username would be allowed.
         _ = await PostLoginAsync(server, Username, "wrong");
         _ = await PostLoginAsync(server, Username, "wrong");

@@ -21,14 +21,14 @@ public sealed partial class ExternalLoginFlowTests
     /// <c>user is null || !string.Equals(user.Value.Subject.Value, pending.LinkSubject, Ordinal)</c>,
     /// and mutating <c>||</c> to <c>&amp;&amp;</c> survived. Under the mutant a session that exists
     /// but belongs to somebody else evaluates <c>false &amp;&amp; true</c>, the guard does not fire,
-    /// and the upstream identity is attached to whoever holds the browser at the end — a shared
+    /// and the upstream identity is attached to whoever holds the browser at the end - a shared
     /// machine, or a sign-out and sign-in between the two legs. That is an account takeover with no
     /// password involved.
     /// </para>
     /// <para>
     /// It survived for a reason worth writing down, because on paper the case looked covered.
     /// <c>Linking_without_a_session_is_refused_before_the_browser_leaves</c> asserts exactly this
-    /// <c>ReasonCode</c> — but it refuses at <c>POST /external/{scheme}/link</c>, before the browser
+    /// <c>ReasonCode</c> - but it refuses at <c>POST /external/{scheme}/link</c>, before the browser
     /// ever leaves, so it never reaches the callback where this line lives. A grep for the reason
     /// code said "covered"; the mutant said otherwise, and the mutant was right.
     /// </para>

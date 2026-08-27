@@ -16,8 +16,8 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// A mutation pass over the token endpoint removed eleven guards and the suite stayed green for
-/// eight of them. Each is a real behaviour the server gets right — every one was confirmed correct
-/// by probing the endpoint directly — so these are test gaps rather than live defects. Two of them
+/// eight of them. Each is a real behaviour the server gets right - every one was confirmed correct
+/// by probing the endpoint directly - so these are test gaps rather than live defects. Two of them
 /// were unkillable by construction: the fixture registered exactly one client, so no test could
 /// present client A's credential as client B.
 /// </remarks>
@@ -58,7 +58,7 @@ public sealed class TokenGuardTests
         JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync()).RootElement.GetProperty("error").GetString()!;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Client binding — unkillable before the fixture had two clients
+    // Client binding - unkillable before the fixture had two clients
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>A code issued to one client cannot be redeemed by another.</summary>
@@ -86,7 +86,7 @@ public sealed class TokenGuardTests
 
     /// <summary>And the rightful client can still redeem it afterwards.</summary>
     /// <remarks>
-    /// The half that matters. A cross-client attempt must not consume the code — otherwise anyone
+    /// The half that matters. A cross-client attempt must not consume the code - otherwise anyone
     /// who observes a code can burn it, which is a denial of service needing no credentials at all.
     /// </remarks>
     [Fact]
@@ -180,11 +180,11 @@ public sealed class TokenGuardTests
     /// <summary>A token request cannot widen beyond the grant's resources.</summary>
     /// <remarks>
     /// RFC 8707 §2.2 permits narrowing to a subset and nothing more. <c>invalid_target</c>, never
-    /// <c>invalid_grant</c> — a client reads the latter as "the credential is dead".
+    /// <c>invalid_grant</c> - a client reads the latter as "the credential is dead".
     /// <para>
     /// The resource named here is <b>registered</b> and merely outside this grant. Naming an
     /// unregistered one would pass without the narrowing check at all, since the registry refuses it
-    /// on its own — measured, that is exactly why the mutation removing the check survived.
+    /// on its own - measured, that is exactly why the mutation removing the check survived.
     /// </para>
     /// </remarks>
     [Fact]
@@ -237,7 +237,7 @@ public sealed class TokenGuardTests
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Client authentication — an area with no coverage at all before
+    // Client authentication - an area with no coverage at all before
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -246,8 +246,8 @@ public sealed class TokenGuardTests
     /// <remarks>
     /// OAuth 2.1 §2.4: a client "MUST NOT use more than one authentication method in each request to
     /// prevent a conflict of which authentication mechanism is authoritative". §3.2.4 names the case
-    /// under <c>invalid_request</c> — "utilizes more than one mechanism for authenticating the
-    /// client" — and the count runs before anything is validated, because a server that validates
+    /// under <c>invalid_request</c> - "utilizes more than one mechanism for authenticating the
+    /// client" - and the count runs before anything is validated, because a server that validates
     /// first has already picked one.
     /// </remarks>
     [Fact]
@@ -267,7 +267,7 @@ public sealed class TokenGuardTests
 
         Assert.Equal("invalid_request", await ErrorOf(response));
 
-        // A 400, so no challenge — the failure is the request's shape, not the credential.
+        // A 400, so no challenge - the failure is the request's shape, not the credential.
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.False(response.Headers.Contains("WWW-Authenticate"));
     }
@@ -285,7 +285,7 @@ public sealed class TokenGuardTests
     /// method the client registered.
     /// </para>
     /// <para>
-    /// It survived because <c>client_assertion</c> appeared nowhere in this assembly — measured with
+    /// It survived because <c>client_assertion</c> appeared nowhere in this assembly - measured with
     /// a grep, zero hits across 573 tests. The third operand of that sum had never been set, so the
     /// guard had only ever been exercised two ways out of the three it covers. The row without
     /// <c>client_assertion</c> is kept as the control: it passes under the mutant, which is what
@@ -293,7 +293,7 @@ public sealed class TokenGuardTests
     /// </para>
     /// <para>
     /// <c>private_key_jwt</c> is not implemented and not offered, so this is conformance rather than
-    /// a way in — both credentials would still have to be valid for the same client. §2.4's rule
+    /// a way in - both credentials would still have to be valid for the same client. §2.4's rule
     /// exists so that a server never has to decide which of two presented mechanisms is
     /// authoritative, and the count runs before anything is validated for exactly that reason.
     /// </para>
@@ -447,7 +447,7 @@ public sealed class TokenGuardTests
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // X-20 — specified, mapped in the error table, and never emitted
+    // X-20 - specified, mapped in the error table, and never emitted
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -550,7 +550,7 @@ public sealed class TokenGuardTests
     /// <remarks>
     /// OIDC defines <c>max_age=0</c> as "always re-authenticate", meaning once per request. Measured
     /// before the freshness floor: any elapsed time exceeds zero, so a user who had authenticated
-    /// microseconds earlier was already stale — /authorize sent them to /login, the parameter
+    /// microseconds earlier was already stale - /authorize sent them to /login, the parameter
     /// survived in the returnUrl, and they arrived back stale again. Under <c>prompt=none</c> it was
     /// a <c>login_required</c> nothing could satisfy.
     /// </remarks>
@@ -558,7 +558,7 @@ public sealed class TokenGuardTests
     public async Task Max_age_zero_is_satisfied_by_a_fresh_authentication()
     {
         // The state the browser is in when it comes back from /login: authenticated just now. That
-        // is the round trip the loop happens on — the parameter that asked for a login survives in
+        // is the round trip the loop happens on - the parameter that asked for a login survives in
         // the returnUrl and has to be satisfied by the login it caused.
         await using var fixture = await FlowFixture.StartAsync(JustAuthenticated);
 
@@ -596,7 +596,7 @@ public sealed class TokenGuardTests
     /// </summary>
     /// <remarks>
     /// The control. Without it, "max_age=0 does not loop" would pass equally against a server that
-    /// ignores <c>max_age</c> altogether — which is the mutation that used to survive.
+    /// ignores <c>max_age</c> altogether - which is the mutation that used to survive.
     /// </remarks>
     [Fact]
     public async Task An_old_session_with_max_age_is_sent_to_login()
@@ -615,7 +615,7 @@ public sealed class TokenGuardTests
     /// <c>none</c> combined with another prompt value is refused before anything acts on either.
     /// </summary>
     /// <remarks>
-    /// OIDC Core §3.1.2.1 — the combination asks for "do not interact" and "definitely interact" at
+    /// OIDC Core §3.1.2.1 - the combination asks for "do not interact" and "definitely interact" at
     /// once. Worth its own test because it is what makes X-14 unreachable: a branch answering
     /// <c>account_selection_required</c> for <c>none select_account</c> was written, and measured to
     /// be dead, because this refusal happens first.

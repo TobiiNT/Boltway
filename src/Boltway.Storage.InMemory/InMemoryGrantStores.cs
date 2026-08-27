@@ -27,7 +27,7 @@ public sealed class InMemoryAuthorizationCodeStore : IAuthorizationCodeStore
         lock (_gate)
         {
             // Add-only. An upsert would let a re-store of an already-redeemed code clear its
-            // RedeemedAt and make it redeemable again, resetting N-07's replay protection — and a
+            // RedeemedAt and make it redeemable again, resetting N-07's replay protection - and a
             // relational store's primary key would throw here, so tolerating it would make two
             // implementations disagree on identical input.
             if (!_codes.TryAdd(record.CodeHash, record))
@@ -59,7 +59,7 @@ public sealed class InMemoryAuthorizationCodeStore : IAuthorizationCodeStore
         // RedeemedAt and the write must not interleave, or two concurrent redemptions both see null
         // and both redeem.
         //
-        // Expiry is deliberately NOT checked — see the interface remarks. Folding it in would send
+        // Expiry is deliberately NOT checked - see the interface remarks. Folding it in would send
         // an expired code down the revoke path, which is the denial of service N-07 exists to
         // prevent.
         lock (_gate)
@@ -92,7 +92,7 @@ public sealed class InMemoryAuthorizationCodeStore : IAuthorizationCodeStore
     public Task<int> DeleteExpiredAsync(DateTimeOffset now, CancellationToken cancellationToken)
     {
         // Under the same lock as redemption. Without it, a sweep interleaved with a redemption
-        // reported a row deleted that the redemption then wrote back — measured at 166 in 5000 —
+        // reported a row deleted that the redemption then wrote back - measured at 166 in 5000 -
         // so the row survived and the returned count was a lie.
         lock (_gate)
         {
@@ -175,7 +175,7 @@ public sealed class InMemoryRefreshTokenStore : IRefreshTokenStore
         ArgumentNullException.ThrowIfNull(successor);
 
         // One critical section covering the whole decision, mirroring the transaction the
-        // relational store opens. Splitting it — read, decide, write — is precisely the race that
+        // relational store opens. Splitting it - read, decide, write - is precisely the race that
         // forks a family: two callers both see an unconsumed token and both mint a successor.
         lock (_gate)
         {
@@ -244,7 +244,7 @@ public sealed class InMemoryRefreshTokenStore : IRefreshTokenStore
 
         // Bounded on BOTH sides. `now` is supplied by the caller and this server runs several
         // instances, so a fast clock on one of them stamped a ConsumedAt in the future and turned a
-        // 45-second window into a 60-minute one — measured. A negative age of any magnitude used to
+        // 45-second window into a 60-minute one - measured. A negative age of any magnitude used to
         // pass, which made clock skew an unbounded skeleton key.
         var withinWindow = age >= -GraceWindows.MaxClockSkew && age <= graceWindow;
 
@@ -255,7 +255,7 @@ public sealed class InMemoryRefreshTokenStore : IRefreshTokenStore
             && alreadyIssued.ExpiresAt > now)
         {
             // Hand back the successor that exists. Minting another would fork the family, and after
-            // a fork there is no single chain against which a replay is anomalous — reuse detection
+            // a fork there is no single chain against which a replay is anomalous - reuse detection
             // stops working from that point on.
             return new RefreshRedemption.ReplayedWithinGrace(alreadyIssued);
         }
@@ -267,7 +267,7 @@ public sealed class InMemoryRefreshTokenStore : IRefreshTokenStore
     public Task<int> RevokeFamilyAsync(string familyId, DateTimeOffset now, CancellationToken cancellationToken)
     {
         // Under the same lock as rotation. Without it a redemption in flight returned Rotated for a
-        // family being revoked — measured at 36 in 3000 — so the caller minted an access token and
+        // family being revoked - measured at 36 in 3000 - so the caller minted an access token and
         // a successor for a family it had just killed on reuse detection.
         lock (_gate)
         {
@@ -318,7 +318,7 @@ public sealed class InMemoryRefreshTokenStore : IRefreshTokenStore
             {
                 // Consumed and revoked rows count. Every token but the newest in a live family is
                 // consumed by definition, so skipping them would report the wrong moment for every
-                // session that has ever rotated — which is every session older than half an hour.
+                // session that has ever rotated - which is every session older than half an hour.
                 if (wanted.Contains(record.GrantId)
                     && (!latest.TryGetValue(record.GrantId, out var seen) || record.IssuedAt > seen))
                 {
@@ -382,7 +382,7 @@ public sealed class InMemoryGrantStore : IGrantStore
         var revoked = 0;
 
         // A snapshot of the keys, then a compare-and-swap per grant. Enumerating the dictionary
-        // while updating it is safe for `ConcurrentDictionary` — unlike `List<T>` — but the same
+        // while updating it is safe for `ConcurrentDictionary` - unlike `List<T>` - but the same
         // CAS the single-grant revoke uses is what makes the count "how many this call transitioned"
         // rather than "how many looked unrevoked when we read them".
         //
@@ -416,7 +416,7 @@ public sealed class InMemoryGrantStore : IGrantStore
         // `ConcurrentDictionary.Values` is a snapshot, so this cannot throw part-way through the way
         // enumerating a `List<T>` under a concurrent write would. A grant revoked while the snapshot
         // is being filtered may still appear, which is what a listing means: it is the state at a
-        // moment, and the alternative — locking the store for a read — buys a freshness no caller
+        // moment, and the alternative - locking the store for a read - buys a freshness no caller
         // can use, since the answer is stale by the time it reaches the wire regardless.
         IReadOnlyList<GrantRecord> grants =
         [

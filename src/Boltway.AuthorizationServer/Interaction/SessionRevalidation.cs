@@ -24,7 +24,7 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// <para>
 /// <b>It compares <c>auth_time</c>, not the ticket's issue time, and the difference is the whole
 /// mechanism.</b> With sliding expiration the cookie handler rewrites <c>IssuedUtc</c> on every
-/// renewal, so a session in daily use climbs forward and would never fall behind a stamp — the
+/// renewal, so a session in daily use climbs forward and would never fall behind a stamp - the
 /// sessions this is for are exactly the ones being used. <c>CookieUserSignIn</c> writes
 /// <c>auth_time</c> once, as a claim, and claims survive renewal.
 /// </para>
@@ -49,7 +49,7 @@ public sealed partial class SessionRevalidation(
     /// In the ticket rather than in memory on the server: a deployment behind two instances would
     /// otherwise re-check on every hop between them, and a restart would re-check everything at
     /// once. The value is a moment this server wrote and only this server reads, in a cookie the
-    /// browser cannot forge — the data protection key that signs the ticket covers it.
+    /// browser cannot forge - the data protection key that signs the ticket covers it.
     /// </remarks>
     private const string CheckedAt = "boltway.session.checked";
 
@@ -149,7 +149,7 @@ public sealed partial class SessionRevalidation(
     /// <para>
     /// <b>An unreadable or absent marker means due now.</b> A ticket written before this feature has
     /// none, and a ticket carrying something unparseable is not one to extend the benefit of the
-    /// doubt to — both are answered by checking rather than by trusting.
+    /// doubt to - both are answered by checking rather than by trusting.
     /// </para>
     /// </remarks>
     private bool IsDue(CookieValidatePrincipalContext context, DateTimeOffset now)

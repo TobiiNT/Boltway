@@ -24,7 +24,7 @@ public readonly record struct ResumedAuthorization(AuthorizeContext? Context, IR
 /// <remarks>
 /// <para>
 /// The consent page holds a URL, not a decision. Everything about the request is re-derived from it
-/// on every hop — client resolution, exact redirect matching, PKCE, scope, <c>resource</c> — by
+/// on every hop - client resolution, exact redirect matching, PKCE, scope, <c>resource</c> - by
 /// running the same <see cref="AuthorizePipeline"/> the authorization endpoint runs. So a user who
 /// edits the scope in the form they are about to submit is editing a value that is then thrown away
 /// and re-read from the URL, and a request whose client was disabled while the page was open is
@@ -33,7 +33,7 @@ public readonly record struct ResumedAuthorization(AuthorizeContext? Context, IR
 /// <para>
 /// <see cref="CompleteAsync"/> is stages 11 and 12, shared by the authorization endpoint and the
 /// consent POST. One code path, so a code issued after an explicit approval and one issued to a
-/// client with standing consent are identical by construction — and so the architecture rule
+/// client with standing consent are identical by construction - and so the architecture rule
 /// limiting who may build a redirect response does not need a second entry.
 /// </para>
 /// </remarks>
@@ -67,7 +67,7 @@ public static class AuthorizeResumption
             Now = services.GetRequiredService<TimeProvider>().GetUtcNow(),
 
             // Read again here rather than carried through the return URL. This is the request that
-            // finishes the authorization — the browser is the same one, and a value round-tripped
+            // finishes the authorization - the browser is the same one, and a value round-tripped
             // through a query string is one a person could edit.
             UserAgent = ApprovingDevice.Read(http.Request),
         };
@@ -93,7 +93,7 @@ public static class AuthorizeResumption
         // comment claiming `max_age` staleness was covered.
         //
         // What that cost, measured: a session authenticated an hour earlier, and
-        // `/authorize?…&max_age=60` correctly redirecting to /login — while posting the same
+        // `/authorize?…&max_age=60` correctly redirecting to /login - while posting the same
         // returnUrl straight to /consent returned an authorization code stamped with the hour-old
         // auth_time. Same for `prompt=login`. Both reachable two ways: a crafted /consent link, and
         // the plain race the comment already described, where the session goes stale between the GET
@@ -106,8 +106,8 @@ public static class AuthorizeResumption
             // mid-flow and has done nothing wrong; a session that expired while they read the
             // consent page is the ordinary case, not an attack. They sign in and land back here.
             //
-            // No loop: whatever made this stale — `prompt=login`, `select_account`, an elapsed
-            // `max_age` — is satisfied by the authentication that follows, and the freshness floor
+            // No loop: whatever made this stale - `prompt=login`, `select_account`, an elapsed
+            // `max_age` - is satisfied by the authentication that follows, and the freshness floor
             // inside MustReauthenticate is what guarantees that even for `max_age=0`.
             var login = AuthorizationServerPaths.Login
                 + "?returnUrl=" + Uri.EscapeDataString(returnUrl);
@@ -119,8 +119,8 @@ public static class AuthorizeResumption
         context.AuthTime = user.Value.AuthenticatedAt;
 
         // The same entitlement filter the endpoint applies, through the same helper. This path is
-        // where the endpoint's checks have historically failed to be repeated — the comment below
-        // records two of them — and an entitlement filter that ran only at /authorize would be a
+        // where the endpoint's checks have historically failed to be repeated - the comment below
+        // records two of them - and an entitlement filter that ran only at /authorize would be a
         // third, reachable by posting the consent form for a scope the account may not hold.
         var entitled = await ScopeEntitlement.FilterAsync(
             services, context.Subject.Value, context.Scope, cancellationToken);
@@ -144,15 +144,15 @@ public static class AuthorizeResumption
         // ───────── stage 10: consent policy ─────────
         //
         // Only the refusal half. `ConsentDecision.Required` is the normal reason to be on this page
-        // at all, and the user answering it is the whole point of the POST — re-deciding that here
+        // at all, and the user answering it is the whole point of the POST - re-deciding that here
         // would be a loop. `Denied` is different: it is the policy saying this authorization must
         // not happen, whatever the user clicks.
         //
         // This ran nowhere on the resumption path. Measured: with a policy answering `Denied`,
-        // /authorize correctly redirected with `access_denied` — and GET /consent on the same
+        // /authorize correctly redirected with `access_denied` - and GET /consent on the same
         // returnUrl rendered a full approve form, and POST approve issued a code. Any deployment
-        // using this seam as an authorization control — a client blocklist, a per-tenant allowlist,
-        // a risk engine — had a bypass reachable by any signed-in user typing one URL. The shipped
+        // using this seam as an authorization control - a client blocklist, a per-tenant allowlist,
+        // a risk engine - had a bypass reachable by any signed-in user typing one URL. The shipped
         // policy never returns `Denied` on its own, so the exposure was proportional to a customer
         // using the seam; the seam is documented for exactly this.
         var configuredPolicy = services.GetRequiredService<IConsentPolicy>();
@@ -193,7 +193,7 @@ public static class AuthorizeResumption
     /// <remarks>
     /// By redirect, not HTML: the client asked a question and <c>access_denied</c> is the answer,
     /// carried with <c>state</c> verbatim and the RFC 9207 <c>iss</c> like every other authorization
-    /// response. The residual is accepted deliberately — a user who clicks Deny is still sent to the
+    /// response. The residual is accepted deliberately - a user who clicks Deny is still sent to the
     /// client's registered address, and the only real mitigation for that is stage 3's exact match,
     /// not an interstitial that would break both vendors.
     /// </remarks>

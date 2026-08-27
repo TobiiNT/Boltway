@@ -37,7 +37,7 @@ public sealed class RedirectReviewRegressionTests
     {
         // System.Uri TRIMS leading and trailing whitespace, including CR, LF and TAB, and then
         // validates what is left. So every one of these parsed cleanly, passed every rule, and
-        // matched — while RedirectMatch.RequestedValue, documented as "the value to actually
+        // matched - while RedirectMatch.RequestedValue, documented as "the value to actually
         // redirect to", still carried the CRLF. That value goes in a Location header: response
         // splitting on the authorization server's own origin.
         Assert.False(Reaches("http://127.0.0.1/callback", requested));
@@ -72,7 +72,7 @@ public sealed class RedirectReviewRegressionTests
     public void The_loopback_path_comparison_is_on_raw_bytes(string requested)
     {
         // The loopback branch took its path from Uri.GetComponents(Path, UriEscaped), which
-        // resolves dot segments and percent-decodes unreserved characters — so all eight of these
+        // resolves dot segments and percent-decodes unreserved characters - so all eight of these
         // arrived as "callback" and matched a registration containing none of them. The file's own
         // doc comment claimed "%2e%2e must not become ..", and it did.
         Assert.False(Reaches("http://127.0.0.1/callback", requested));
@@ -87,7 +87,7 @@ public sealed class RedirectReviewRegressionTests
     [Fact]
     public void The_equivalent_https_cases_were_already_safe_and_stay_safe()
     {
-        // These passed before the fix too — the https path never consulted a Uri-derived value.
+        // These passed before the fix too - the https path never consulted a Uri-derived value.
         // They are here so the property is asserted for both kinds rather than inferred for one.
         Assert.False(Reaches("https://claude.ai/cb", "https://claude.ai/a/%2e%2e/cb"));
         Assert.False(Reaches("https://claude.ai/cb", "https://claude.ai/%63b"));
@@ -100,7 +100,7 @@ public sealed class RedirectReviewRegressionTests
     {
         // Both types are public structs, so default(T) is constructible by anyone and Value is
         // null despite the non-nullable declaration. string.Equals(null, null, Ordinal) is true,
-        // so this returned a successful Exact match — and a successful match is the capability
+        // so this returned a successful Exact match - and a successful match is the capability
         // token that authorizes redirecting at all.
         Assert.False(RedirectUriMatcher.Match(default, [default]).Matched);
     }
@@ -162,7 +162,7 @@ public sealed class RedirectReviewRegressionTests
     // The canonical-sextet regression that used to sit here has moved to PkceTests, under
     // A_challenge_in_the_alphabet_that_is_not_canonical_base64url_is_refused. It was the one PKCE
     // test in a file about redirect URIs, so a reader asking "is canonicality checked?" looked in
-    // PkceTests, found nothing, and wrote it a second time — which is how this note came to exist.
+    // PkceTests, found nothing, and wrote it a second time - which is how this note came to exist.
 
     // ---------------------------------------------------------------- finding 6 (low)
 
@@ -180,7 +180,7 @@ public sealed class RedirectReviewRegressionTests
     public void A_public_suffix_scheme_is_accepted_and_that_is_deliberate()
     {
         // `co.uk:/cb` has two non-empty labels, so it registers. Reversed it is `uk.co`, which is
-        // not a name anyone meaningfully controls — but telling that apart from `com.example`
+        // not a name anyone meaningfully controls - but telling that apart from `com.example`
         // (equally two labels, and a perfectly legitimate reversed domain) needs a public-suffix
         // list, which is a network dependency and a maintenance burden for no security gain here:
         // private-use schemes are matched EXACTLY, so a loose classification widens nothing. The

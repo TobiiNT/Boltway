@@ -14,7 +14,7 @@ namespace Boltway.OAuth.Tokens;
 /// This type builds each JWK <b>field by field from the public parameters</b> rather than asking a
 /// library to serialize a key object. That is the difference between a JWKS document and an
 /// incident: a serializer handed a private key writes the private members too, and for RSA those
-/// are <c>d</c>, <c>p</c>, <c>q</c>, <c>dp</c>, <c>dq</c> and <c>qi</c> — publishing any of them at
+/// are <c>d</c>, <c>p</c>, <c>q</c>, <c>dp</c>, <c>dq</c> and <c>qi</c> - publishing any of them at
 /// a public, cacheable, CORS-enabled endpoint hands over the ability to mint tokens as this server.
 /// </para>
 /// <para>

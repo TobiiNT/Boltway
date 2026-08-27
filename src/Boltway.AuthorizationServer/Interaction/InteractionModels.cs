@@ -9,12 +9,12 @@ namespace Boltway.AuthorizationServer.Interaction;
 /// </param>
 /// <param name="HasDescription">
 /// Whether a description was configured. When it is <see langword="false"/> the page shows the raw
-/// scope and a configuration warning — A-14 requires exactly that rather than a guess.
+/// scope and a configuration warning - A-14 requires exactly that rather than a guess.
 /// </param>
 /// <remarks>
 /// A-14: consent renders each scope's configured description verbatim and <b>never derives consent
 /// text by parsing the scope name</b>. The field failure that rule comes from is a screen that
-/// assumed <c>action:resource</c> and rendered "read: story your read" — nonsense presented to a
+/// assumed <c>action:resource</c> and rendered "read: story your read" - nonsense presented to a
 /// user as the thing they are agreeing to.
 /// </remarks>
 public sealed record ConsentScope(string Name, string Description, bool HasDescription);
@@ -24,7 +24,7 @@ public sealed record ConsentScope(string Name, string Description, bool HasDescr
 /// </summary>
 /// <remarks>
 /// N-14's fields are produced here so that a customer's template can only fail to <i>display</i>
-/// them — it cannot compute them wrongly. That is the difference between a security requirement and
+/// them - it cannot compute them wrongly. That is the difference between a security requirement and
 /// a styling suggestion.
 /// </remarks>
 public sealed record ConsentViewModel
@@ -45,7 +45,7 @@ public sealed record ConsentViewModel
     /// </summary>
     /// <remarks>
     /// Defeats the attack CIMD structurally cannot: an attacker presents the legitimate client's
-    /// metadata URL, binds any loopback port, and harvests the code — the server sees a genuine
+    /// metadata URL, binds any loopback port, and harvests the code - the server sees a genuine
     /// client document and the user sees a genuine client name. The only thing that differs, and the
     /// only thing that can be shown, is where the code is about to be sent.
     /// </remarks>
@@ -61,7 +61,7 @@ public sealed record ConsentViewModel
     /// <para>
     /// This was <c>LoopbackOnly</c> and tested only <c>RedirectKind.Loopback</c>, so a
     /// native app using a private-use scheme (RFC 8252 §7.1, <c>com.example.app:/oauth</c>) got no
-    /// warning — and, because <c>Uri.Host</c> is empty for those, no destination either. A review
+    /// warning - and, because <c>Uri.Host</c> is empty for those, no destination either. A review
     /// measured a consent page telling that user the code would be sent to nowhere in particular.
     /// Both kinds carry the same risk and RFC 8252 §8.4 says so explicitly of private-use schemes:
     /// another application can register the same scheme, and the operating system does not
@@ -91,7 +91,7 @@ public sealed record ConsentViewModel
     /// </para>
     /// <para>
     /// <b>It is a claim, exactly like <see cref="ClientName"/>, and it is set only when that one
-    /// is.</b> Anyone can publish a logo at their own URL — that is the same sentence as
+    /// is.</b> Anyone can publish a logo at their own URL - that is the same sentence as
     /// <c>{"client_name":"Claude"}</c>, in a form that is much harder to be sceptical of, because a
     /// familiar mark reads as proof in a way a familiar word does not. So it never appears without
     /// the name it belongs to, which is what carries
@@ -101,7 +101,7 @@ public sealed record ConsentViewModel
     /// <para>
     /// <b>Non-null here is not "there is a logo".</b> It is "there was a <c>logo_uri</c>, and this
     /// is where to ask". The endpoint answers 404 for a host that is down, a body that is not an
-    /// image, and an image type this server will not re-serve — so the page must read correctly with
+    /// image, and an image type this server will not re-serve - so the page must read correctly with
     /// the image missing, which is why the <c>alt</c> is empty and nothing is laid out around it.
     /// </para>
     /// </remarks>
@@ -143,7 +143,7 @@ public sealed record ConsentViewModel
 /// A-11 is the reason <paramref name="DisabledReason"/> is on the model at all: a configured method
 /// that is unavailable renders as a <b>disabled control with a stated reason</b>, and never silently
 /// vanishes. A renderer that drops the reason is failing to display something the server computed,
-/// which is the same class of mistake as dropping the client hostname from the consent page — and
+/// which is the same class of mistake as dropping the client hostname from the consent page - and
 /// the same mitigation applies, which is that it is not a decision the template gets to make.
 /// </remarks>
 public sealed record LoginProviderOption(
@@ -154,7 +154,7 @@ public sealed record LoginProviderOption(
 /// The N-14 property, applied to this page: every field here is computed server-side, so a
 /// customer's renderer can fail to <i>display</i> a sign-in method and cannot invent one, cannot
 /// enable a disabled one, and cannot point its form somewhere else. The three fields added for
-/// federated sign-in are <c>required</c> for that reason — a renderer built against the older shape
+/// federated sign-in are <c>required</c> for that reason - a renderer built against the older shape
 /// does not silently lose the buttons, it fails to compile.
 /// </remarks>
 public sealed record LoginViewModel
@@ -167,12 +167,12 @@ public sealed record LoginViewModel
     /// <para>
     /// <b>A bool, and the type is the rule.</b> A message distinguishing "no such user" from "wrong
     /// password" turns the login form into a username oracle, and so does a response time that
-    /// distinguishes them — the password hasher runs either way for that reason. A richer type here
+    /// distinguishes them - the password hasher runs either way for that reason. A richer type here
     /// would be somewhere to put the distinction; a bool cannot express one.
     /// </para>
     /// <para>
     /// It carried the sentence itself until a Vietnamese deployment rendered
-    /// <i>"That username and password did not match."</i> under a heading reading "Đăng nhập" —
+    /// <i>"That username and password did not match."</i> under a heading reading "Đăng nhập" -
     /// measured on a running server. An endpoint that hands a renderer prose has decided the
     /// wording on the renderer's behalf, so no <see cref="IInteractionRenderer"/> could translate
     /// it and no translation file had a key for it. The renderer owns the words here as it does
@@ -202,7 +202,7 @@ public sealed record LoginViewModel
     /// Every configured upstream sign-in method, available or not. A-10 and A-11.
     /// </summary>
     /// <remarks>
-    /// Every one, in registration order, including the ones that are disabled — that is A-11, and it
+    /// Every one, in registration order, including the ones that are disabled - that is A-11, and it
     /// is why this list is not filtered before it reaches the model. A-10 is the other half: nothing
     /// here consults a per-client allow-list before deciding what to put in the list, so a
     /// configured provider is offered to every client unless a provider itself says otherwise, with
@@ -218,12 +218,12 @@ public sealed record LoginViewModel
     /// <para>
     /// <b>Routed-or-absent, the same rule <c>N-06</c> applies to the metadata document.</b> It is
     /// false when <c>PasswordRecoveryEnabled</c> is off, and <c>/forgot</c> is not routed in that
-    /// case — so a page drawing the link unconditionally would send somebody who has forgotten their
+    /// case - so a page drawing the link unconditionally would send somebody who has forgotten their
     /// password to a 404, which is the worst moment available to hand a person a dead end.
     /// </para>
     /// <para>
     /// <b><c>required</c>, like the three federation fields and for the reason given there.</b> A
-    /// renderer built against the older shape does not quietly lose the link — it fails to compile,
+    /// renderer built against the older shape does not quietly lose the link - it fails to compile,
     /// once, which is when the author can do something about it. This library has now shipped five
     /// capabilities that existed and could not be reached from a deployment; the cost of finding out
     /// is the whole argument for spending a compile error here.
@@ -239,7 +239,7 @@ public sealed record LoginViewModel
     /// Put it on an inline <c>&lt;script&gt;</c> or <c>&lt;style&gt;</c> as
     /// <c>nonce="…"</c> and the browser runs it; leave it off and the browser refuses, whatever the
     /// element says. <see langword="null"/> means <c>InteractionOptions.UseContentSecurityPolicyNonce</c>
-    /// is off and the page must have no inline content at all — the policy then has no
+    /// is off and the page must have no inline content at all - the policy then has no
     /// <c>script-src</c>, so <c>default-src 'self'</c> governs and nothing inline runs.
     /// </para>
     /// <para>
@@ -250,7 +250,7 @@ public sealed record LoginViewModel
     /// </para>
     /// <para>
     /// <b>Required rather than optional, though most renderers will ignore it.</b> The failure it
-    /// prevents is not a missing security field — it is a renderer author writing an inline script,
+    /// prevents is not a missing security field - it is a renderer author writing an inline script,
     /// watching the browser refuse it, and having nothing to point at. A compile error puts the
     /// property in front of them once, which is exactly when it is useful.
     /// </para>
@@ -269,7 +269,7 @@ public sealed record LoginViewModel
 /// </para>
 /// <para>
 /// The shipped implementation is hand-written HTML with no Razor and no separate UI package. What
-/// it must respect is the CSP this server sends — <c>default-src 'self'</c> with no
+/// it must respect is the CSP this server sends - <c>default-src 'self'</c> with no
 /// <c>style-src</c> or <c>script-src</c>, so both fall back to <c>'self'</c> and inline styles,
 /// inline scripts and <c>data:</c> images are all blocked. A template that looks fine in isolation
 /// and renders unstyled behind these headers is the predictable first surprise.
@@ -297,7 +297,7 @@ public interface IInteractionRenderer
     /// default member has no dependency injection and therefore cannot reach the layout this
     /// deployment registered. That is a visible difference, on purpose: an implementation that has
     /// not written this page gets one that plainly does not match the others, which is the signal to
-    /// write it. A deployment that replaced only <see cref="IInteractionLayout"/> never lands here —
+    /// write it. A deployment that replaced only <see cref="IInteractionLayout"/> never lands here -
     /// it is still using <see cref="DefaultInteractionRenderer"/>, which overrides this and wraps
     /// with the registered layout.
     /// </para>
@@ -312,7 +312,7 @@ public interface IInteractionRenderer
     /// </para>
     /// <para>
     /// <b>This page is allowed to fail, and the caller expects it to.</b> It renders where something
-    /// has already gone wrong — including "the server threw" — so the endpoint calls this inside a
+    /// has already gone wrong - including "the server threw" - so the endpoint calls this inside a
     /// <c>try</c> and writes a built-in document if it throws. An implementation does not need to be
     /// defensive on its own account; it needs to know that being the second failure in a row is a
     /// state the server plans for rather than one it will crash in.
@@ -382,7 +382,7 @@ public enum ForgotPasswordState
     /// </summary>
     /// <remarks>
     /// Distinguished from <see cref="Sent"/> rather than folded into it, because the alternative is
-    /// telling somebody mail is on its way when the server has decided not to send it — and that
+    /// telling somebody mail is on its way when the server has decided not to send it - and that
     /// person then waits for something that will not arrive instead of trying again later. It is the
     /// same answer <c>E-39</c> gives a programmatic caller, which is where the trade was weighed:
     /// the counter is keyed on the submitted string precisely so it cannot separate a real
@@ -403,8 +403,8 @@ public enum ForgotPasswordState
 /// them and the link should not be drawn at all.
 /// </param>
 /// <remarks>
-/// <b>The submitted identifier is not carried back into the page.</b> Not for secrecy — the person
-/// typed it — but because the field is an email address on a page that may be reached from a shared
+/// <b>The submitted identifier is not carried back into the page.</b> Not for secrecy - the person
+/// typed it - but because the field is an email address on a page that may be reached from a shared
 /// machine, and because redrawing it would tempt a renderer into showing "we looked for X", which is
 /// one sentence away from saying whether X was found.
 /// </remarks>
@@ -432,7 +432,7 @@ public enum ResetPasswordState
     /// </summary>
     /// <remarks>
     /// One state for all three, said plainly. §7.3: that is <b>not</b> the oracle <c>S-48</c> is
-    /// about — a token is 256 bits of CSPRNG output, so there is nothing to enumerate — and a person
+    /// about - a token is 256 bits of CSPRNG output, so there is nothing to enumerate - and a person
     /// who is not told their link has expired clicks it again rather than asking for a new one.
     /// </remarks>
     Expired,
@@ -457,7 +457,7 @@ public enum ResetPasswordState
 /// <remarks>
 /// <b>The token travels in a hidden field rather than in the form's action.</b> A query string is
 /// written to access logs, kept in browser history and sent in <c>Referer</c> to anything the page
-/// loads — and this one is a live credential for the account. It arrives in the URL because a link
+/// loads - and this one is a live credential for the account. It arrives in the URL because a link
 /// in an email has nowhere else to put it; it does not have to stay there.
 /// </remarks>
 public sealed record ResetPasswordPageModel(
@@ -475,7 +475,7 @@ public sealed record ResetPasswordPageModel(
 /// <param name="Nonce">The CSP nonce for this response, when the deployment has them on.</param>
 /// <remarks>
 /// <b>No form and no button: the link itself is the action.</b> A confirmation step would be the
-/// right shape for something destructive, and this is the opposite — the worst outcome of following
+/// right shape for something destructive, and this is the opposite - the worst outcome of following
 /// a verification link is that an address somebody already controls is marked as theirs.
 /// </remarks>
 public sealed record VerifyEmailPageModel(bool Verified, string? Email, string? Nonce);
@@ -486,7 +486,7 @@ public sealed record VerifyEmailPageModel(bool Verified, string? Email, string? 
 /// <remarks>
 /// <b>No password hash and no session count.</b> The first for the reason no surface here carries
 /// one; the second because a number that is wrong by the time it renders invites a reader to trust
-/// it — <c>/me/sessions</c> is one click away and is the page that knows.
+/// it - <c>/me/sessions</c> is one click away and is the page that knows.
 /// </remarks>
 /// <summary>
 /// One upstream provider this account may be linked to, as <c>/me</c> must present it.
@@ -501,7 +501,7 @@ public sealed record VerifyEmailPageModel(bool Verified, string? Email, string? 
 /// The page could offer to connect a provider and could not say whether connecting had already
 /// happened, so a user pressed the button, the round trip succeeded, the page came back
 /// identical, and nothing anywhere told them it had worked. Closing it needed
-/// <c>IUserStore.ListExternalLoginsAsync</c> — a method every implementation has to grow, which is
+/// <c>IUserStore.ListExternalLoginsAsync</c> - a method every implementation has to grow, which is
 /// why it was a limitation for a day rather than a line.
 /// </para>
 /// <para>
@@ -516,7 +516,7 @@ public sealed record AccountProviderLink(string Scheme, string DisplayName, stri
 /// <param name="Email">Their address, if the directory has one.</param>
 /// <param name="EmailVerified">Whether it has been proven.</param>
 /// <param name="Roles">What their tokens claim, if anything. Every one the account holds, in id order.</param>
-/// <param name="HasPassword">Whether a password exists here at all — not what it is.</param>
+/// <param name="HasPassword">Whether a password exists here at all - not what it is.</param>
 /// <param name="Nonce">The CSP nonce for this response, when the deployment has them on.</param>
 /// <param name="Providers">
 /// The upstream providers configured here, or empty when there are none. Empty is the ordinary case
@@ -528,7 +528,7 @@ public sealed record AccountProviderLink(string Scheme, string DisplayName, stri
 /// Where "sign out" points, and <see langword="null"/> for a deployment that has not enabled the
 /// end-session page. Nullable rather than a constant path for the reason the whole page is built
 /// on: <c>/logout</c> is only routed when <c>EndSessionEnabled</c> is set, so a renderer that
-/// always drew the link would send anyone who trusted it to a 404 — on the one page whose job is
+/// always drew the link would send anyone who trusted it to a 404 - on the one page whose job is
 /// to tell a person what they can do about their own account.
 /// </param>
 /// <param name="VerifyEmailUrl">
@@ -540,7 +540,7 @@ public sealed record AccountProviderLink(string Scheme, string DisplayName, stri
 /// </param>
 /// <param name="VerificationNotice">
 /// What to say about the last press of that button, if there was one. Distinct from
-/// <paramref name="EmailVerified"/>, which stays false until somebody opens the link — the two
+/// <paramref name="EmailVerified"/>, which stays false until somebody opens the link - the two
 /// together are what let the page say "check your mail" rather than repeating the offer.
 /// </param>
 public sealed record AccountPageModel(
@@ -568,14 +568,14 @@ public enum EmailVerificationNotice
     /// <summary>Nothing was asked for, so nothing is said.</summary>
     None = 0,
 
-    /// <summary>A link is on its way. Not "the address is confirmed" — nobody has opened it yet.</summary>
+    /// <summary>A link is on its way. Not "the address is confirmed" - nobody has opened it yet.</summary>
     Sent,
 
     /// <summary>
     /// Asked too often. Said rather than swallowed.
     /// </summary>
     /// <remarks>
-    /// A page that ignores a press looks broken, and the person's next move is to press it again —
+    /// A page that ignores a press looks broken, and the person's next move is to press it again -
     /// which is the thing the throttle is there to stop.
     /// </remarks>
     TooSoon,
@@ -617,7 +617,7 @@ public enum ChangePasswordProblem
 /// <remarks>
 /// <b>The form is redrawn on every refusal, and it is always empty.</b> Repopulating a password
 /// field means the value is in the HTML of a page that a proxy may cache and a browser will keep in
-/// history — and the person retyping it is the only cost of not doing so.
+/// history - and the person retyping it is the only cost of not doing so.
 /// </remarks>
 public sealed record ChangePasswordPageModel(
     ChangePasswordProblem Problem,
@@ -642,7 +642,7 @@ public sealed record ChangePasswordPageModel(
 /// <b>Deliberately the same shape as <see cref="ConsentLine"/>, minus the id.</b> This carried a
 /// wire scope string for a release, and the result was measured on a Vietnamese deployment: the
 /// approvals page read "Đọc cơ sở tri thức của công ty" and the sessions page read
-/// <c>email docs:read docs:write offline_access openid</c> — the same permissions, to the same person,
+/// <c>email docs:read docs:write offline_access openid</c> - the same permissions, to the same person,
 /// on two pages one click apart. The person deciding whether to end a session is making the same
 /// judgement they made on the consent page, so they need the same words, and
 /// <see cref="ConsentModelBuilder.Describe"/> is now the single place either page gets them.
@@ -672,7 +672,7 @@ public sealed record ChangePasswordPageModel(
 /// <paramref name="ClientHost"/> beside it and for the same reason: a themed renderer is then a
 /// function of its model and can be tested without a server. <c>ApprovingDevice.Describe</c> does
 /// the describing, and it falls back to the raw header rather than inventing a name. Null on every
-/// grant older than the column, and on any browser that sent no header — rendered as nothing,
+/// grant older than the column, and on any browser that sent no header - rendered as nothing,
 /// because a row reading "unknown device" says less than a row that does not mention one.
 /// </para>
 /// </remarks>
@@ -709,7 +709,7 @@ public sealed record SessionLine(
 /// <remarks>
 /// <para>
 /// <b>The list does not mark which one the reader is using.</b> Working that out means matching the
-/// browser's cookie session against a grant, and the two are different things — a person signed in
+/// browser's cookie session against a grant, and the two are different things - a person signed in
 /// here may hold no grant at all. Guessing would put "this device" against the wrong row, which is
 /// worse than not saying.
 /// </para>
@@ -718,14 +718,14 @@ public sealed record SessionLine(
 /// control on this page ends one session, which a reader can undo by approving again; this one ends
 /// all of them, including the application they are reading the page in. The confirmation is drawn
 /// on this page rather than on one of its own so that the list of what is about to be cut is still
-/// in front of them while they answer — a separate page would ask the question with the evidence
+/// in front of them while they answer - a separate page would ask the question with the evidence
 /// out of sight.
 /// </para>
 /// <para>
 /// <b><paramref name="AccessTokenLifetime"/> is on the model rather than read by the renderer</b>,
 /// for the reason every other value here is: the renderer is a seam a deployment replaces, and a
 /// replacement that had to fetch the options itself to say a true sentence is one that will say a
-/// false one instead. It is the configured value, not a constant — see
+/// false one instead. It is the configured value, not a constant - see
 /// <see cref="InteractionText.SessionsTokens"/> for what a constant cost.
 /// </para>
 /// </remarks>
@@ -755,13 +755,13 @@ public sealed record SessionsPageModel(
 /// <b>The scopes are <see cref="ConsentScope"/>s, not a wire string, and that is the point of the
 /// page.</b> A person agreed to "Read every account"; showing them <c>users:read</c> here asks them
 /// to re-derive what they agreed to from a token nobody promised was readable. A-14 applies for the
-/// same reason it applies on the consent page — the description is configured or it is absent, and
+/// same reason it applies on the consent page - the description is configured or it is absent, and
 /// an absent one renders as the raw scope with a warning rather than as a guess.
 /// </para>
 /// <para>
 /// <b><paramref name="ClientHost"/> is computed here rather than left to the renderer</b>, the same
 /// way <c>ConsentViewModel.ClientHost</c> is: it is the client's real identity, an IDN A-label, and
-/// a template deriving it with <c>new Uri(id).Host</c> would render the Unicode form — which is the
+/// a template deriving it with <c>new Uri(id).Host</c> would render the Unicode form - which is the
 /// homograph N-14's display requirement exists to defeat.
 /// </para>
 /// </remarks>
@@ -782,8 +782,8 @@ public sealed record ConsentLine(
 /// <param name="Nonce">The CSP nonce for this response, when the deployment has them on.</param>
 /// <remarks>
 /// <b>Withdrawing an approval is not ending a session, and the page must say which one it did.</b>
-/// <c>E-38</c> settles the behaviour — the approval is forgotten so the next authorization asks
-/// again, and access already granted keeps working — and a page that performed that silently would
+/// <c>E-38</c> settles the behaviour - the approval is forgotten so the next authorization asks
+/// again, and access already granted keeps working - and a page that performed that silently would
 /// leave a person believing they had cut something off. The list and <c>/me/sessions</c> are two
 /// different questions about the same client, and the honest answer here links to the other.
 /// </remarks>
@@ -822,7 +822,7 @@ public sealed record ErrorViewModel
     /// <para>
     /// <b>Not localizable, and the reason is a spec rule rather than an omission.</b> This is the
     /// <c>error_description</c>, and OAuth 2.1 §4.1.2.1 restricts it to
-    /// <c>%x20-21 / %x23-5B / %x5D-7E</c> — <c>ErrorText.Safe</c> drops everything else, so a
+    /// <c>%x20-21 / %x23-5B / %x5D-7E</c> - <c>ErrorText.Safe</c> drops everything else, so a
     /// Vietnamese sentence put here would arrive as its ASCII fragments. It is written for whoever
     /// is integrating a client, and <c>A-12</c> says it must be in the body so that <c>curl -D-</c>
     /// is a sufficient debugging tool.
@@ -830,7 +830,7 @@ public sealed record ErrorViewModel
     /// <para>
     /// <b>Which is why it is not the sentence a user reads.</b> That is <see cref="Guidance"/>. A
     /// renderer shows both: the guidance first and prominently, this subordinate to it and marked as
-    /// the developer's half — see <see cref="InteractionText.ErrorDeveloperDetail"/>.
+    /// the developer's half - see <see cref="InteractionText.ErrorDeveloperDetail"/>.
     /// </para>
     /// </remarks>
     public required string Description { get; init; }
@@ -841,7 +841,7 @@ public sealed record ErrorViewModel
     /// <remarks>
     /// <para>
     /// Chosen by <see cref="InteractionText.ErrorSentenceFor"/> from the refusal's reason code, and
-    /// already resolved through the deployment's localizer — so a renderer displays it and does not
+    /// already resolved through the deployment's localizer - so a renderer displays it and does not
     /// have to know the mapping exists.
     /// </para>
     /// <para>
@@ -853,7 +853,7 @@ public sealed record ErrorViewModel
     /// <para>
     /// <b><c>required</c>, like <c>LoginViewModel</c>'s fields and for the same reason.</b> A
     /// renderer written against the older shape does not quietly show a page whose only sentence is
-    /// in a language its readers do not use — it fails to compile, once.
+    /// in a language its readers do not use - it fails to compile, once.
     /// </para>
     /// </remarks>
     public required string Guidance { get; init; }
@@ -871,7 +871,7 @@ public enum LogoutState
     /// <summary>There is a session, and the user has not yet said to end it.</summary>
     ConfirmationNeeded,
 
-    /// <summary>There is no session — either it has just been ended, or there never was one.</summary>
+    /// <summary>There is no session - either it has just been ended, or there never was one.</summary>
     SignedOut,
 }
 
@@ -881,7 +881,7 @@ public enum LogoutState
 /// <remarks>
 /// <para>
 /// <b>Two states, one page, and the confirmation is not politeness.</b> A <c>GET</c> that ends a
-/// session is a session-ending link anybody can put in an <c>&lt;img&gt;</c> tag — logout CSRF,
+/// session is a session-ending link anybody can put in an <c>&lt;img&gt;</c> tag - logout CSRF,
 /// which is a denial of service against a person rather than against a server, and the reason OIDC
 /// RP-Initiated Logout says the provider SHOULD ask. So the <c>GET</c> draws a form and the
 /// <c>POST</c> carries an antiforgery token like the other two on this origin.
@@ -890,7 +890,7 @@ public enum LogoutState
 /// <b>There is no return URL and no <c>post_logout_redirect_uri</c>.</b> A redirect target supplied
 /// by the caller is an open redirector on the issuer's own hostname unless it is matched against
 /// something registered, and nothing here registers one yet. The specification permits refusing to
-/// redirect — it is a MUST NOT unless the URI has been validated — so the page ends the session and
+/// redirect - it is a MUST NOT unless the URI has been validated - so the page ends the session and
 /// says so, rather than sending the browser somewhere it was told to.
 /// </para>
 /// </remarks>
@@ -914,7 +914,7 @@ public sealed record LogoutViewModel
     /// <remarks>
     /// <para>
     /// Measured on a running deployment: this page had no link of any kind, <c>/</c> answered
-    /// <c>404</c> and <c>/login</c> answered <c>400</c>, so signing out was a one-way door — the
+    /// <c>404</c> and <c>/login</c> answered <c>400</c>, so signing out was a one-way door - the
     /// two URLs a person would then type were both dead ends, on the server that holds their
     /// account.
     /// </para>
@@ -941,7 +941,7 @@ internal static class ConsentModelBuilder
     /// <para>
     /// <b>One function, because three pages describe scopes and they must not describe them
     /// differently.</b> The consent page asks for a decision, <c>/me/consents</c> shows the decision
-    /// that was made, and <c>/me/sessions</c> shows what it is currently granting — the same
+    /// that was made, and <c>/me/sessions</c> shows what it is currently granting - the same
     /// permissions three times, to the same person. This existed as three copies for exactly as
     /// long as it took to notice that one of them was rendering the wire scope.
     /// </para>
@@ -975,7 +975,7 @@ internal static class ConsentModelBuilder
     /// <para>
     /// A private-use-scheme redirect (RFC 8252 §7.1, <c>com.example.app:/oauth2redirect</c>) has no
     /// authority component, so <c>Uri.Host</c> is the empty string. That rendered as
-    /// <c>the code will be sent to &lt;strong&gt;&lt;/strong&gt;</c> — measured — and since
+    /// <c>the code will be sent to &lt;strong&gt;&lt;/strong&gt;</c> - measured - and since
     /// <c>LoopbackOnly</c> is false for that kind, the client class got no destination and no
     /// warning at all. This field is described as "the only thing that can be shown" against an
     /// attack CIMD structurally cannot prevent, and for native apps it was showing nothing.
@@ -998,20 +998,20 @@ internal static class ConsentModelBuilder
 
         // IdnHost, not Host. `Uri.Host` returns the Unicode form, and a review reproduced the
         // consequence end to end: the client_id line rendered `xn--80ak6aa92e.com` while the
-        // redirect line rendered `аррӏе.com` — one origin, two alphabets, the second reading as
+        // redirect line rendered `аррӏе.com` - one origin, two alphabets, the second reading as
         // apple.com to any human. `ClientIdentifier.TryParseFromRequest` bans everything outside
         // %x20-7E so the client_id side is always an A-label, and U-17's same-origin check compares
         // `IdnHost`, so the two spellings are the same origin and that guard never fires.
         //
         // A-labels for everything is the only self-consistent choice here. N-14 names this display
         // as the mitigation for a self-asserted client name, and a mitigation rendered in a script
-        // the attacker chose is not one — browsers show punycode in the address bar for this exact
+        // the attacker chose is not one - browsers show punycode in the address bar for this exact
         // reason.
         return string.IsNullOrEmpty(parsed.IdnHost) ? parsed.Scheme : parsed.IdnHost;
     }
 
     /// <summary>
-    /// The self-asserted name, capped. <b>Plain text — the renderer encodes.</b>
+    /// The self-asserted name, capped. <b>Plain text - the renderer encodes.</b>
     /// </summary>
     /// <remarks>
     /// <para>
@@ -1019,17 +1019,17 @@ internal static class ConsentModelBuilder
     /// to. The shipped renderer encodes every value it writes, so the name was encoded twice, and a
     /// review measured the result: <c>Acme &amp; "Claude" &lt;b&gt;Inc&lt;/b&gt;</c> displayed
     /// literally as <c>Acme &amp;amp; &amp;quot;Claude&amp;quot; …</c>, and <c>Café</c> as
-    /// <c>Caf&amp;#233;</c> — mojibake on the one page whose entire job is to be read carefully.
+    /// <c>Caf&amp;#233;</c> - mojibake on the one page whose entire job is to be read carefully.
     /// </para>
     /// <para>
     /// It also broke the cap. <see cref="MaxClientNameLength"/> is applied to the raw name, but
     /// double-encoding expands each <c>&lt;</c> to six rendered characters, so a 64-character name
-    /// of angle brackets displayed as ~256 — roughly four times what the cap intends, against a
+    /// of angle brackets displayed as ~256 - roughly four times what the cap intends, against a
     /// rationale that is specifically about a name long enough to push the hostname off the screen.
     /// </para>
     /// <para>
     /// Pre-encoding one field was the worse trade in the end: it made the model inconsistent, so a
-    /// custom renderer doing the obviously correct thing — encode everything — corrupts exactly this
+    /// custom renderer doing the obviously correct thing - encode everything - corrupts exactly this
     /// field and nothing else. Every string on the model is now plain text, uniformly, which is a
     /// contract a renderer can follow without knowing which fields are special.
     /// </para>
@@ -1053,13 +1053,13 @@ internal static class ConsentModelBuilder
     /// <para>
     /// <b>Null unless the client published both a logo and a name</b>, and the name is the reason.
     /// The logo is a self-assertion, and the only sentence on the page that says so is the one
-    /// attached to the name — so a logo without a name would be the strongest claim on the page
+    /// attached to the name - so a logo without a name would be the strongest claim on the page
     /// with no caveat anywhere near it. Refusing to draw it is cheaper than inventing a second
     /// caveat for a case almost no client is in.
     /// </para>
     /// <para>
     /// The <c>client_id</c> is escaped as a query value here rather than at the renderer, because
-    /// every other string on the model is plain text that the renderer encodes for HTML — and a URL
+    /// every other string on the model is plain text that the renderer encodes for HTML - and a URL
     /// needs percent-encoding, which is a different operation. Doing both is how <c>&amp;</c> in a
     /// CIMD identifier becomes <c>&amp;amp;</c> in a query string and the endpoint sees a different
     /// client. This one value is therefore URL-ready and HTML-unsafe, the same as any other

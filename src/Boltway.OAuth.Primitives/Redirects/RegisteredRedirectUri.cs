@@ -51,7 +51,7 @@ public readonly struct RegisteredRedirectUri : IEquatable<RegisteredRedirectUri>
             return false;
         }
 
-        // Normalize FIRST, then parse the normalized form — one parse, and the thing validated is
+        // Normalize FIRST, then parse the normalized form - one parse, and the thing validated is
         // the thing stored.
         //
         // Parsing before normalizing looks equivalent and is not. Host classification is ordinal,

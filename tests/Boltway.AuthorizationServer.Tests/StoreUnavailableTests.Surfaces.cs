@@ -21,7 +21,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <remarks>
 /// <para>
 /// <c>/token</c> shed first and was the only one for a day. The others read stores too and turned a
-/// database outage into a <c>500</c> — or, at <c>/authorize</c>, into <c>server_error</c>, which is
+/// database outage into a <c>500</c> - or, at <c>/authorize</c>, into <c>server_error</c>, which is
 /// the same message in OAuth's own words. What is asserted here is one behaviour per surface plus
 /// the negative direction on each, because a load-shed that also swallows defects is worse than the
 /// bug it replaced.
@@ -31,7 +31,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// everywhere would prove the endpoints share a catch; breaking the store each one actually reads
 /// proves each reaches it. <c>/introspect</c> loses its token store, <c>/userinfo</c> its
 /// directory, and <c>/authorize</c> loses the client resolver in one test and the code store in the
-/// other — which is what puts it on either side of the line where a redirect becomes safe.
+/// other - which is what puts it on either side of the line where a redirect becomes safe.
 /// </para>
 /// </remarks>
 public sealed partial class StoreUnavailableTests
@@ -105,7 +105,7 @@ public sealed partial class StoreUnavailableTests
     /// <c>{"active": false}</c> the answer to everything unusable, which is exactly why it must not
     /// be the answer to "the lookup failed": it is a definite statement built from no information,
     /// and a resource server acting on it drops a live session. <c>true</c> is worse in the other
-    /// direction — it reports a token whose grant may have been revoked as good, on the endpoint
+    /// direction - it reports a token whose grant may have been revoked as good, on the endpoint
     /// whose whole purpose is consulting the denylist.
     /// </remarks>
     [Fact]
@@ -154,13 +154,13 @@ public sealed partial class StoreUnavailableTests
     /// <para>
     /// The negative direction for this surface. RFC 7662 §2.1 requires client authentication "to
     /// prevent token scanning attacks", and a shed that ran ahead of it would answer 503 to anyone
-    /// at all — turning an outage into a free probe for whether the endpoint is live and what it
+    /// at all - turning an outage into a free probe for whether the endpoint is live and what it
     /// takes. The shed is a <c>catch</c> around the handler, so it can only fire on a path the
     /// handler reached; this is what says the ordering survived.
     /// </para>
     /// <para>
     /// <c>invalid_request</c> rather than <c>invalid_client</c>, because this caller presented no
-    /// credential at all rather than a wrong one — measured, not assumed. Which of the two comes
+    /// credential at all rather than a wrong one - measured, not assumed. Which of the two comes
     /// back is not the point and is pinned only so that a change to it is noticed here rather than
     /// by a client.
     /// </para>
@@ -266,7 +266,7 @@ public sealed partial class StoreUnavailableTests
     /// </summary>
     /// <remarks>
     /// The whole reason this surface needed the row. <c>invalid_token</c> is the nearest RFC 6750
-    /// code and every conforming client treats it as "discard this and start again" — so answering
+    /// code and every conforming client treats it as "discard this and start again" - so answering
     /// it would spend a re-authorization, per session, on an outage measured in seconds. 401 is the
     /// specific wrong answer, so it is the one asserted against by name.
     /// </remarks>
@@ -313,7 +313,7 @@ public sealed partial class StoreUnavailableTests
 
     /// <summary>A client store that cannot be reached.</summary>
     /// <remarks>
-    /// <c>CanResolve</c> claims everything, which is what a resolver backed by a database does —
+    /// <c>CanResolve</c> claims everything, which is what a resolver backed by a database does -
     /// a stored client id is a plain string and the only way to know whether it exists is to look.
     /// That is also why this failure lands before validation: there is no redirect URI to trust
     /// until the client behind it has been read.
@@ -345,12 +345,12 @@ public sealed partial class StoreUnavailableTests
     /// <para>
     /// <b>Not a redirect, and that is the security half of the assertion.</b> Reading the client is
     /// what validates the redirect URI, so a store that is down leaves the one in the query string
-    /// unproven — sending the user to it would be the open redirector §4.1.2.1 forbids, with
+    /// unproven - sending the user to it would be the open redirector §4.1.2.1 forbids, with
     /// <c>state</c> attached.
     /// </para>
     /// <para>
     /// <b>503 rather than the 500 <c>server_error</c> would have carried</b>, and the code says the
-    /// same thing to a machine: this request can succeed, shortly. Both halves matter — a status
+    /// same thing to a machine: this request can succeed, shortly. Both halves matter - a status
     /// without the code leaves a client guessing, and the code at 500 contradicts itself.
     /// </para>
     /// </remarks>
@@ -381,7 +381,7 @@ public sealed partial class StoreUnavailableTests
     /// <summary>X-11, at last emitted by something.</summary>
     /// <remarks>
     /// The row has been in <c>OAuthErrors</c> since before this server had anything that could
-    /// produce it, described as "dependency down, load shedding" — and a dependency going down
+    /// produce it, described as "dependency down, load shedding" - and a dependency going down
     /// produced X-10 instead. This is the line that says it does not any more.
     /// </remarks>
     [Fact]
@@ -403,7 +403,7 @@ public sealed partial class StoreUnavailableTests
         Assert.Equal("temporarily_unavailable", line.Property("Error"));
 
         // Not 429 and not X-31. Until this change the writer chose the row by asking whether a
-        // Retry-After was set, so this refusal — which sets one — would have been answered as a
+        // Retry-After was set, so this refusal - which sets one - would have been answered as a
         // rate limit, and an operator reading the log during a database outage would have seen a
         // throttle. Nothing would have failed.
         Assert.Equal("503", line.Property("Status"));
@@ -434,7 +434,7 @@ public sealed partial class StoreUnavailableTests
     /// <remarks>
     /// <para>
     /// The client is validated, consent is already granted, and the store fails while minting the
-    /// code — so <c>context.Redirect</c> is set and the boundary may use it. The client learns
+    /// code - so <c>context.Redirect</c> is set and the boundary may use it. The client learns
     /// <c>temporarily_unavailable</c> where its own retry logic reads, rather than
     /// <c>server_error</c>, which tells it to stop.
     /// </para>
@@ -478,7 +478,7 @@ public sealed partial class StoreUnavailableTests
     /// <remarks>
     /// The negative direction, on the surface where getting it wrong is quietest: both codes travel
     /// the same 303 and a client following it sees a working redirect either way. A defect
-    /// re-labelled "come back shortly" is one every client retries and no operator is paged for —
+    /// re-labelled "come back shortly" is one every client retries and no operator is paged for -
     /// and the log level moves with the code, so it would also stop being an Error line.
     /// </remarks>
     [Fact]

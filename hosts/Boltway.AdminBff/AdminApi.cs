@@ -26,7 +26,7 @@ public sealed record AdminResult(
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Every call carries a bearer token and nothing else — <c>N-17</c> from the client's side.</b>
+/// <b>Every call carries a bearer token and nothing else - <c>N-17</c> from the client's side.</b>
 /// The browser's cookie authenticates the operator to <i>this</i> app, on this app's hostname; the
 /// admin API never sees it. That is what makes the BFF shape leave the rule intact rather than
 /// bending it.
@@ -38,7 +38,7 @@ public sealed record AdminResult(
 /// </para>
 /// <para>
 /// <b>Refusals are returned rather than thrown.</b> A 403 from the admin API is an ordinary answer
-/// — an operator whose entitlement has been narrowed — and turning it into an exception would make
+/// - an operator whose entitlement has been narrowed - and turning it into an exception would make
 /// the page that renders it an error page rather than one that says which permission is missing.
 /// </para>
 /// </remarks>

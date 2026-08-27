@@ -53,7 +53,7 @@ internal sealed class UpstreamBehaviour
     /// <summary>Sign with a key under a <c>kid</c> the published JWKS does not carry.</summary>
     /// <remarks>
     /// What an upstream mid-rotation looks like, and also what an attacker sending a random
-    /// <c>kid</c> looks like — which is why the refetch it provokes has a floor under it.
+    /// <c>kid</c> looks like - which is why the refetch it provokes has a floor under it.
     /// </remarks>
     public bool SignWithUnknownKid { get; set; }
 
@@ -116,15 +116,15 @@ internal sealed class UpstreamBehaviour
 /// <para>
 /// Serving discovery, JWKS and a token endpoint, and signing ID tokens with an RSA key generated
 /// when it starts. There is no network access to Google here and there must not be one: an upstream
-/// this suite controls is also the only way to produce the failures that matter — a token signed
-/// with the wrong key, <c>alg: none</c>, a wrong <c>iss</c>, an expired token — which are exactly
+/// this suite controls is also the only way to produce the failures that matter - a token signed
+/// with the wrong key, <c>alg: none</c>, a wrong <c>iss</c>, an expired token - which are exactly
 /// the cases a live provider will never send.
 /// </para>
 /// <para>
 /// It is reached through the shipped <c>UpstreamEndpointClient</c>, over real TLS, with the real
 /// address check and the real byte caps. The two concessions are that the certificate is trusted
 /// through the transport's internal test seam, and that <c>upstream.example</c> resolves to loopback
-/// through an injected resolver — both of which keep the URL a genuine <c>https</c> URL with a name,
+/// through an injected resolver - both of which keep the URL a genuine <c>https</c> URL with a name,
 /// which is what the client's own guards are written against.
 /// </para>
 /// </remarks>
@@ -198,7 +198,7 @@ internal sealed class FakeUpstreamProvider : IAsyncDisposable
     /// </summary>
     /// <remarks>
     /// A name rather than an address literal in the URL, because the transport pins TLS to the URL's
-    /// host and the certificate carries that name — and because a literal would exercise a different
+    /// host and the certificate carries that name - and because a literal would exercise a different
     /// path through <c>DnsAddressResolver</c> than a deployment ever takes.
     /// </remarks>
     public static IAddressResolver Resolver { get; } = new LoopbackResolver();
@@ -392,7 +392,7 @@ internal sealed class FakeUpstreamProvider : IAsyncDisposable
         {
             // Hand-built, because no library will produce one: `alg: none` is the token that says
             // "trust me". A verifier with RequireSignedTokens off, or with ValidAlgorithms unset,
-            // accepts it — which is the whole reason both are pinned.
+            // accepts it - which is the whole reason both are pinned.
             var header = new JsonObject { ["alg"] = "none", ["typ"] = "JWT" }.ToJsonString();
 
             return Base64Url.Encode(Encoding.UTF8.GetBytes(header))

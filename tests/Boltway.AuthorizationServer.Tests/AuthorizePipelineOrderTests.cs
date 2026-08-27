@@ -67,21 +67,21 @@ public sealed class AuthorizePipelineOrderTests
     /// three mutators per <c>??</c>: remove-left, remove-right, and <i>left-to-right</i>, which
     /// <b>swaps</b> the operands rather than deleting one. A row with a single violation kills the
     /// two removals and leaves the swap alive, because the swapped chain finds nothing in the later
-    /// stages and falls back to the operand it was supposed to have run first — the same answer, by
+    /// stages and falls back to the operand it was supposed to have run first - the same answer, by
     /// a different route. The first version of the first row did exactly that, and the re-measured
     /// run is what found it.
     /// </para>
     /// <para>
     /// This is not cosmetic. OAuth clients branch on the error code, and a client told
     /// <c>invalid_scope</c> when its real problem is a missing <c>code_challenge</c> will go and
-    /// edit the wrong thing. It is also the property the file's own header claims — "the ordering
-    /// property first" — and the ordering above the redirect gate is enforced structurally by
+    /// edit the wrong thing. It is also the property the file's own header claims - "the ordering
+    /// property first" - and the ordering above the redirect gate is enforced structurally by
     /// passing <c>redirect</c> as an argument, while the ordering <i>below</i> it was enforced by
     /// nothing at all.
     /// </para>
     /// </remarks>
     [Theory]
-    // response_type before pkce. The challenge is removed as well as the response type broken —
+    // response_type before pkce. The challenge is removed as well as the response type broken -
     // passing null here would leave a VALID challenge, so only one stage would fail and the row
     // would prove nothing about order. That was the first version, and the re-run caught it: with
     // one violation the swapped chain finds nothing in the later stages and falls back to
@@ -117,7 +117,7 @@ public sealed class AuthorizePipelineOrderTests
     /// </summary>
     /// <remarks>
     /// Without this, a row could pass because the <i>later</i> violation was not a violation at all
-    /// — the request would fail one stage, the assertion would hold, and the ordering would be
+    /// - the request would fail one stage, the assertion would hold, and the ordering would be
     /// untested while looking tested.
     /// </remarks>
     [Theory]
@@ -204,7 +204,7 @@ public sealed class AuthorizePipelineOrderTests
     /// <remarks>
     /// <c>!AllowedScopes.IsEmpty &amp;&amp; requested.Except(AllowedScopes).Count &gt; 0</c> mutated
     /// to <c>&gt;= 0</c> survived. Under the mutant <b>every</b> client with a non-empty allow-list
-    /// is refused every request, because the count is always at least zero — so the survival says
+    /// is refused every request, because the count is always at least zero - so the survival says
     /// no test had ever given a client an allow-list and then asked for something on it. The
     /// narrowing had only ever been proven to refuse, never to permit.
     /// </remarks>
@@ -233,7 +233,7 @@ public sealed class AuthorizePipelineOrderTests
     /// The resource-count limit is inclusive: exactly the maximum is allowed.
     /// </summary>
     /// <remarks>
-    /// <c>raw.Count &gt; MaxResourceValues</c> mutated to <c>&gt;=</c> survived — the classic
+    /// <c>raw.Count &gt; MaxResourceValues</c> mutated to <c>&gt;=</c> survived - the classic
     /// off-by-one, and the classic reason: no test had ever sent exactly the boundary. A limit
     /// documented as "at most 16" that refuses the sixteenth is a different limit.
     /// </remarks>
@@ -265,7 +265,7 @@ public sealed class AuthorizePipelineOrderTests
     //           no request can reach with a null context. Testing it would pin the exception type
     //           of a programming error, not a behaviour any client observes.
     //
-    // lines 153, 451  Ternaries choosing between two private log detail strings —
+    // lines 153, 451  Ternaries choosing between two private log detail strings -
     //           "client_id absent" versus "client_id={raw}". A-09's contract is the ReasonCode and
     //           the correlation id, both already asserted in RejectionLoggingTests; the detail text
     //           is not a contract with anybody. Six survivors, all diagnostic.

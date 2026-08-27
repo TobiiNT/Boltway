@@ -10,7 +10,7 @@ namespace Boltway.ResourceServer.Diagnostics;
 /// <b>This meter exists for one question: how often does revocation fail open?</b>
 /// <see cref="Revocation.IntrospectionRevocationCheck"/> answers "not revoked" whenever it cannot
 /// reach the authorization server, and writes a warning saying so. That was defensible on the
-/// argument that the warning makes it visible — but a warning is only visible to somebody reading
+/// argument that the warning makes it visible - but a warning is only visible to somebody reading
 /// logs, and nobody reads logs to discover a question they have not thought to ask. Until this
 /// meter, "is revocation working" was <i>assumed</i>, and the deployment had chosen fail-open
 /// precisely because it accepted a risk it could not then measure.
@@ -60,7 +60,7 @@ public sealed class ResourceServerMetrics : IDisposable
     /// <remarks>
     /// <para>
     /// <b><c>cached</c> is a separate outcome from <c>live</c> on purpose, and the alert depends on
-    /// it.</b> The number worth alerting on is not fail-opens over all decisions — cache hits
+    /// it.</b> The number worth alerting on is not fail-opens over all decisions - cache hits
     /// dominate that denominator and would dilute any threshold into uselessness. It is fail-opens
     /// over the decisions where this actually asked: <c>failed_open / (live + revoked +
     /// failed_open)</c>. Folding cache hits into <c>live</c> would make that ratio unrecoverable

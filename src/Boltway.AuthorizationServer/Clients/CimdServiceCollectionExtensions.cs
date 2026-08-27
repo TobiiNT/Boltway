@@ -16,14 +16,14 @@ public static class CimdServiceCollectionExtensions
     /// <para>
     /// <b>Order is behaviour, not style.</b> <c>GetServices&lt;IClientResolver&gt;()</c> returns
     /// registrations in the order they were added, and the pipeline takes the first resolver that
-    /// answers. This one makes an outbound request, so it belongs last — which it is, provided the
+    /// answers. This one makes an outbound request, so it belongs last - which it is, provided the
     /// host registers its pre-registered and dynamic resolvers <i>before</i> calling
     /// <c>AddBoltwayAuthorizationServer</c>. A host that registers one afterwards puts it
     /// behind CIMD, and nothing here can detect that.
     /// </para>
     /// <para>
-    /// <c>TryAddEnumerable</c> rather than <c>AddSingleton</c>, so calling this twice — directly and
-    /// again through the CIMD profile — registers one resolver rather than two clients' worth of
+    /// <c>TryAddEnumerable</c> rather than <c>AddSingleton</c>, so calling this twice - directly and
+    /// again through the CIMD profile - registers one resolver rather than two clients' worth of
     /// duplicate outbound fetches.
     /// </para>
     /// <para>
@@ -70,7 +70,7 @@ public static class CimdServiceCollectionExtensions
     /// refuses to start a non-development host with this set, so the dangerous configuration cannot
     /// reach production by being forgotten in a config file." No such validation existed. A review
     /// measured the consequence on a real <c>Production</c> host: one anonymous
-    /// <c>GET /authorize?client_id=https://127.0.0.1:&lt;port&gt;/c</c> — no session, no cookie —
+    /// <c>GET /authorize?client_id=https://127.0.0.1:&lt;port&gt;/c</c> - no session, no cookie -
     /// opened a TCP connection, and <c>https://169.254.169.254/latest/meta-data/</c> was fetched.
     /// The flag does not merely relax loopback; it short-circuits the whole RFC 6890 check.
     /// </para>
@@ -82,7 +82,7 @@ public static class CimdServiceCollectionExtensions
     /// <para>
     /// <b>What this does and does not cover.</b> It covers the DI path, which is how a deployment
     /// gets a fetcher. It cannot cover a caller who constructs <see cref="SafeHttpFetcher"/> itself
-    /// — the test suite does exactly that, deliberately, and must keep being able to. So this is a
+    /// - the test suite does exactly that, deliberately, and must keep being able to. So this is a
     /// guard on the configuration surface an operator actually touches, not a proof about the type.
     /// </para>
     /// <para>

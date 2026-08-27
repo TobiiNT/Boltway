@@ -14,7 +14,7 @@ namespace Boltway.AuthorizationServer.Clients;
 /// <param name="RedirectUris">Where a code may be sent. Matched exactly, never by prefix.</param>
 /// <param name="SecretHash">
 /// SHA-256 of the secret, or <see langword="null"/> for a public client. <b>The plaintext is never
-/// held</b> — the same rule every other credential here follows.
+/// held</b> - the same rule every other credential here follows.
 /// </param>
 public sealed record ConfiguredClient(
     ClientIdentifier ClientId,
@@ -30,7 +30,7 @@ public sealed record ConfiguredClient(
     /// </summary>
     /// <remarks>
     /// Setting it makes this a service account, which is a different kind of client rather than an
-    /// ordinary one with an extra field — see <see cref="GrantTypes"/>.
+    /// ordinary one with an extra field - see <see cref="GrantTypes"/>.
     /// </remarks>
     public SubjectId? Owner { get; init; }
 
@@ -40,7 +40,7 @@ public sealed record ConfiguredClient(
     /// <remarks>
     /// Required for a service account and meaningless without one. <c>ClientCredentialsGrant</c>
     /// refuses an empty set rather than reading it as "everything the server permits", which is what
-    /// empty means for a client a human authorizes — there is no human here to see what it turned
+    /// empty means for a client a human authorizes - there is no human here to see what it turned
     /// into.
     /// </remarks>
     public ScopeSet Scopes { get; init; } = ScopeSet.Empty;
@@ -53,7 +53,7 @@ public sealed record ConfiguredClient(
     /// <b>The two sets do not overlap, and that is the design.</b> A client that names an owner acts
     /// as that account and does so without a browser; a client that does not acts for whoever signs
     /// in through it. A client offering both would be one that a human can authorize *and* that
-    /// holds a standing credential for somebody else's account — two different answers to "who is
+    /// holds a standing credential for somebody else's account - two different answers to "who is
     /// this token for", selected by which endpoint the caller happened to use.
     /// </para>
     /// <para>
@@ -82,14 +82,14 @@ public sealed record ConfiguredClient(
 /// </para>
 /// <para>
 /// <b>It does not replace CIMD, it sits beside it.</b> Both resolvers are registered and the
-/// pipeline tries each in turn, so a deployment can serve Claude — which identifies itself by a
-/// metadata URL — and its own admin UI, which cannot, since a confidential client's secret has no
+/// pipeline tries each in turn, so a deployment can serve Claude - which identifies itself by a
+/// metadata URL - and its own admin UI, which cannot, since a confidential client's secret has no
 /// business in a document served over the public internet.
 /// </para>
 /// <para>
 /// <b><c>CanResolve</c> is the shape test that keeps the two apart.</b> A configured id is a plain
 /// string, so this resolver claims anything it was given and declines everything else rather than
-/// answering authoritatively for identifiers it has never heard of — which would stop the CIMD
+/// answering authoritatively for identifiers it has never heard of - which would stop the CIMD
 /// resolver from ever being asked.
 /// </para>
 /// </remarks>
@@ -104,7 +104,7 @@ public sealed class ConfiguredClientResolver(IReadOnlyDictionary<string, Configu
     /// Fixed rather than configurable, and only <c>code</c> is ever honoured. The grant list used to
     /// be fixed here beside it for the same reason; it moved to <see cref="ConfiguredClient"/> when
     /// a service account became a thing a deployment can configure, because it is no longer the same
-    /// answer for every client — see <c>ConfiguredClient.GrantTypes</c>. It is still derived rather
+    /// answer for every client - see <c>ConfiguredClient.GrantTypes</c>. It is still derived rather
     /// than typed, which is the half that mattered.
     /// </remarks>
     private static readonly string[] Responses = ["code"];

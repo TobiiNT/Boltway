@@ -35,8 +35,8 @@ internal readonly record struct Resolved<T>(T? Value, string? Detail)
 /// <para>
 /// <b>Keys</b> change on the upstream's schedule, which nobody tells us about. So there are two
 /// triggers: an expiry, and a token naming a <c>kid</c> the cache has not seen. The second is
-/// necessary — an upstream that signs with a key before we have refetched would otherwise fail every
-/// sign-in until the hour was up — and it is also attacker-reachable, because a callback carrying
+/// necessary - an upstream that signs with a key before we have refetched would otherwise fail every
+/// sign-in until the hour was up - and it is also attacker-reachable, because a callback carrying
 /// any syntactically valid JWT can name a random <c>kid</c>. That is what
 /// <see cref="OidcProviderOptions.JwksMinimumRefreshInterval"/> bounds.
 /// </para>
@@ -252,8 +252,8 @@ internal sealed class UpstreamMetadataCache : IDisposable
             }
 
             // OIDC Discovery §4.3, and it is checked before anything else in the document is read.
-            // Every other member names a URL this server is about to send a request — and in one
-            // case a credential — to, so "is this document about the issuer we asked about" has to
+            // Every other member names a URL this server is about to send a request - and in one
+            // case a credential - to, so "is this document about the issuer we asked about" has to
             // be settled first.
             var declared = Member(root, "issuer");
 

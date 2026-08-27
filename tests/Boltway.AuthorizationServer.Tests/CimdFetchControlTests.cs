@@ -13,7 +13,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// </summary>
 /// <remarks>
 /// Separate from <c>StubFetcher</c> because that one is synchronous and records into a plain
-/// <see cref="List{T}"/>, which is not safe to drive from sixty-four threads — a test that raced it
+/// <see cref="List{T}"/>, which is not safe to drive from sixty-four threads - a test that raced it
 /// would fail for the harness's reasons rather than the server's.
 /// </remarks>
 internal sealed class ConcurrentStubFetcher : ISafeHttpFetcher
@@ -47,7 +47,7 @@ internal sealed class ConcurrentStubFetcher : ISafeHttpFetcher
     /// <remarks>
     /// For the tests that need a fetch to still be in flight while they assert something about the
     /// callers waiting on it. <see cref="Delay"/> cannot do that job: a delay is a bet that the test
-    /// finishes its setup before the clock runs out, and on a loaded runner it loses — the fetch
+    /// finishes its setup before the clock runs out, and on a loaded runner it loses - the fetch
     /// completes, the caller returns normally, and the assertion that a cancellation was observed
     /// fails with no defect present. A gate has no clock in it.
     /// </remarks>
@@ -167,7 +167,7 @@ public sealed class CimdFetchControlTests
     /// </summary>
     /// <remarks>
     /// The measurement this exists for: fifty resolutions used to be fifty fetches, because §5.2
-    /// forbids caching the error — which is precisely what makes each request a fresh probe.
+    /// forbids caching the error - which is precisely what makes each request a fresh probe.
     /// </remarks>
     [Fact]
     public async Task Fifty_resolutions_of_a_failing_client_id_make_three_fetches()
@@ -198,7 +198,7 @@ public sealed class CimdFetchControlTests
     /// <remarks>
     /// The distinction the specification draws, made checkable. A cached error would still be served
     /// after the origin recovered. Here the cooldown elapses, one real fetch happens, the origin now
-    /// answers 200 — and the client resolves. Nothing of the 503 survived.
+    /// answers 200 - and the client resolves. Nothing of the 503 survived.
     /// </remarks>
     [Fact]
     public async Task The_breaker_refuses_to_fetch_rather_than_remembering_the_error()
@@ -259,7 +259,7 @@ public sealed class CimdFetchControlTests
 
         // Stale-serve off, so this measures the breaker's count and nothing else. With it on the
         // later failures are answered from the entry the success cached, which is correct behaviour
-        // and makes the count invisible — measured, this test read "resolved" for that reason.
+        // and makes the count invisible - measured, this test read "resolved" for that reason.
         var options = Options();
         options.StaleTolerance = TimeSpan.Zero;
 
@@ -290,7 +290,7 @@ public sealed class CimdFetchControlTests
     /// </summary>
     /// <remarks>
     /// The breaker catches a failing identifier. This catches one that resolves and is being asked
-    /// for far faster than any cache lifetime allows — which needs the origin to keep answering with
+    /// for far faster than any cache lifetime allows - which needs the origin to keep answering with
     /// something uncacheable, and is the case the breaker's consecutive-failure count would miss.
     /// </remarks>
     [Fact]
@@ -342,7 +342,7 @@ public sealed class CimdFetchControlTests
     /// The control: two different <c>client_id</c> values are not collapsed into one another.
     /// </summary>
     /// <remarks>
-    /// A single-flight table keyed on something too coarse — the host, say — would serve one
+    /// A single-flight table keyed on something too coarse - the host, say - would serve one
     /// client's document to another, which is the CIMD self-reference check defeated from inside.
     /// </remarks>
     [Fact]
@@ -371,7 +371,7 @@ public sealed class CimdFetchControlTests
     /// <remarks>
     /// The risk in coalescing is that the in-flight table quietly becomes a place where a failure
     /// lives after it has been decided. Two sequential failing resolutions must therefore be two
-    /// fetches, below the breaker's threshold — and they are, because the entry is removed before
+    /// fetches, below the breaker's threshold - and they are, because the entry is removed before
     /// the shared task can be observed as completed.
     /// </remarks>
     [Fact]
@@ -392,21 +392,21 @@ public sealed class CimdFetchControlTests
     /// <remarks>
     /// The classic single-flight defect. Whoever happens to start the shared work would otherwise
     /// own its cancellation token, so the first browser to navigate away aborts the authorization of
-    /// everyone queued behind it — a failure that only appears under concurrency and reads as a
+    /// everyone queued behind it - a failure that only appears under concurrency and reads as a
     /// flaky server.
     /// <para>
     /// <b>Gated rather than timed, because the timed version failed on CI with no defect present.</b>
     /// It gave the leaver a 150 ms fetch and 30 ms to start it, then cancelled. On a runner whose
     /// thread pool is saturated by the rest of the suite, the continuation after a 30 ms delay can
-    /// be scheduled well past 150 ms — so the fetch had already completed, the leaver returned a
+    /// be scheduled well past 150 ms - so the fetch had already completed, the leaver returned a
     /// resolution, and the run failed on <c>Assert.ThrowsAny() Failure: No exception was thrown</c>.
     /// Both sleeps are gone: the fetch cannot finish until this test releases it, and the stayer
     /// signals that its thread is running rather than being assumed to have started.
     /// </para>
     /// <para>
     /// <c>Calls == 1</c> is the assertion that says they shared one fetch, and it is new. Without it
-    /// a stayer that started its own second fetch — which is what the defect being guarded against
-    /// produces, since it removes the in-flight entry — would still see a document and still see no
+    /// a stayer that started its own second fetch - which is what the defect being guarded against
+    /// produces, since it removes the in-flight entry - would still see a document and still see no
     /// cancellation, and the test would pass.
     /// </para>
     /// </remarks>
@@ -652,8 +652,8 @@ public sealed class CimdFetchControlTests
     /// </summary>
     /// <remarks>
     /// The measurement: with admission refused at the cap, a client connecting after 1024 attacker
-    /// documents with <c>max-age=86400</c> was re-fetched on every authorization — ten resolutions,
-    /// ten fetches — for as long as the fillers lived. Now it is fetched once.
+    /// documents with <c>max-age=86400</c> was re-fetched on every authorization - ten resolutions,
+    /// ten fetches - for as long as the fillers lived. Now it is fetched once.
     /// </remarks>
     [Fact]
     public async Task A_client_arriving_after_a_cache_fill_is_still_cached()
@@ -699,7 +699,7 @@ public sealed class CimdFetchControlTests
     /// </para>
     /// <para>
     /// <b>What this does not claim.</b> An entry that is <i>not</i> being used during a fill is
-    /// evicted — that is the cost of the change and it is measured: a client resolved once before a
+    /// evicted - that is the cost of the change and it is measured: a client resolved once before a
     /// 1024-document fill and not used during it is re-fetched afterwards, where the old
     /// refuse-admission policy would have kept it. One fetch, against a day of them for everyone
     /// else.

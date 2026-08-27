@@ -31,7 +31,7 @@ namespace Boltway.ResourceServer.DependencyInjection;
 /// loop, its own parse and its own key-diffing. Two implementations of one thing agree for about a
 /// month; these two had already stopped. The refresher hardcoded <c>/.well-known/jwks.json</c>
 /// rather than reading <c>jwks_uri</c> out of the discovery document, so it could not follow an
-/// authorization server that published its key set anywhere else — including this repository's own,
+/// authorization server that published its key set anywhere else - including this repository's own,
 /// whose path is configurable. It also had no backoff, so a dead issuer was re-fetched on every
 /// tick forever.
 /// </para>
@@ -46,7 +46,7 @@ namespace Boltway.ResourceServer.DependencyInjection;
 /// opposite-looking rule one layer down. They are about two different moments: fail loudly at
 /// startup, before anything is served; absorb quietly at lookup, because throwing there returns 500
 /// to a caller holding a perfectly good token. <see cref="JwksKeySource.RefreshAsync"/> exists for
-/// exactly this — its own remarks call it the startup call, because unlike <c>CurrentKeys</c> it
+/// exactly this - its own remarks call it the startup call, because unlike <c>CurrentKeys</c> it
 /// reports a failure rather than absorbing it.
 /// </para>
 /// </remarks>
@@ -87,7 +87,7 @@ public static class JwksSigningKeysExtensions
         // TryAdd, and registering it here at all is the point. The refresher this replaced took an
         // IHttpClientFactory and registered its own named client, so wiring it was self-contained.
         // Moving to the guarded client without registering it left AddJwksSigningKeys depending on
-        // a service only Boltway.Federation.Oidc registers — so a connector that used this and not
+        // a service only Boltway.Federation.Oidc registers - so a connector that used this and not
         // federation got an unresolvable dependency at startup. TryAdd rather than Add so a
         // deployment that already configured the transport keeps its own.
         services.TryAddSingleton(new UpstreamEndpointClientOptions());
@@ -122,7 +122,7 @@ public static class JwksSigningKeysExtensions
 /// <remarks>
 /// Nothing keeps fetching on a timer. <see cref="JwksKeySource.CurrentKeys"/> starts a background
 /// refresh itself when its snapshot goes stale, so freshness is driven by traffic rather than by a
-/// clock — a connector nobody is calling does not need current keys, and one that is being called
+/// clock - a connector nobody is calling does not need current keys, and one that is being called
 /// refreshes on the request that notices. That also removes the failure mode the timer had, where a
 /// dead issuer was re-fetched every tick with no backoff.
 /// </remarks>
@@ -134,7 +134,7 @@ internal sealed partial class JwksSigningKeyPrimer(
     /// Source-generated rather than a direct <c>LogInformation</c> call, because CA1873 is an error
     /// here and boxing an <see langword="int"/> into the <c>params object?[]</c> trips it. The
     /// generated overload takes the argument by its own type and formats nothing when the level is
-    /// disabled — which is what the rule is asking for rather than a guard around the call.
+    /// disabled - which is what the rule is asking for rather than a guard around the call.
     /// </summary>
     private static partial class Log
     {

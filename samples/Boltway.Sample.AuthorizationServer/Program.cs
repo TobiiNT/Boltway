@@ -1,8 +1,8 @@
 // A runnable Boltway authorization server.
 //
-// It is a development sample. Five things in it are deliberately not what a deployment does — the
+// It is a development sample. Five things in it are deliberately not what a deployment does - the
 // signing key, the stores, the refresh derivation key, the loopback exemption for CIMD fetches, and
-// the seeded user — and each is marked DEV: below with what the real answer is. Nothing here is
+// the seeded user - and each is marked DEV: below with what the real answer is. Nothing here is
 // production-ready, and the point of saying so at each site rather than once at the top is that a
 // reader who copies one block out of context still sees it.
 //
@@ -62,12 +62,12 @@ builder.Services.AddSingleton(new SigningKeyRing(
 //
 // There are two durable alternatives now, and this sample deliberately does not use either:
 // AddBoltwaySqliteStores(connectionString) and AddBoltwayPostgreSqlStores(connectionString)
-// register the same five stores over EF Core. Neither creates or migrates the database — that is a
-// `dotnet ef database update` deploy step — and a sample that needed one before it would run is a
+// register the same five stores over EF Core. Neither creates or migrates the database - that is a
+// `dotnet ef database update` deploy step - and a sample that needed one before it would run is a
 // sample nobody runs. Swap the line below for one of those when persistence matters.
 builder.Services.AddBoltwayInMemoryStores();
 
-// Not part of AddBoltwayInMemoryStores — it registers the four grant/consent stores only.
+// Not part of AddBoltwayInMemoryStores - it registers the four grant/consent stores only.
 // Users are a separate decision because a deployment that authenticates against its own directory
 // implements IUserStore against that and never uses this one.
 builder.Services.AddSingleton<IUserStore, InMemoryUserStore>();
@@ -84,7 +84,7 @@ builder.Services
     .AddCookie(options =>
     {
         // Lax, not Strict. The browser reaches /authorize by a top-level cross-site navigation
-        // from claude.ai or chatgpt.com, and a Strict cookie is not sent on that navigation — so
+        // from claude.ai or chatgpt.com, and a Strict cookie is not sent on that navigation - so
         // every user would look signed out on every connect. (The antiforgery cookie the server
         // registers stays Strict; it is only ever needed on a same-site form POST.)
         options.Cookie.SameSite = SameSiteMode.Lax;
@@ -93,7 +93,7 @@ builder.Services
     });
 
 // Which resources this server will issue tokens for, and what each one's scopes are. Left with the
-// default requireResourceParameter: true, so an /authorize request must name a resource — with one
+// default requireResourceParameter: true, so an /authorize request must name a resource - with one
 // resource registered the registry could default to it, and the point of not doing that here is
 // that the sample exercises the RFC 8707 path a real MCP client takes.
 builder.Services.AddSingleton<IResourceRegistry>(ConfiguredResourceRegistry.Create(
@@ -105,13 +105,13 @@ builder.Services.AddSingleton<IResourceRegistry>(ConfiguredResourceRegistry.Crea
 // The CIMD resolver fetches the client's metadata document over HTTP, and its fetcher refuses
 // loopback and private addresses (RFC 6890) because /authorize would otherwise be an
 // unauthenticated port scanner. This sample serves its demo client's document from itself, on
-// localhost, so it has to lift that check — which AddCimdClientResolver permits only when
+// localhost, so it has to lift that check - which AddCimdClientResolver permits only when
 // IHostEnvironment.IsDevelopment().
 //
 // The `if` is load-bearing, and this is the measurement rather than caution. Registering these
 // options unconditionally and starting with ASPNETCORE_ENVIRONMENT=Production does NOT fail at
 // startup: the host binds, logs "Now listening on", and serves both discovery documents. The guard
-// lives inside the ISafeHttpFetcher factory, which nothing resolves until the first /authorize —
+// lives inside the ISafeHttpFetcher factory, which nothing resolves until the first /authorize -
 // so the refusal arrives as a server_error on the first real client instead of at deploy time.
 //
 // DEV: a deployment does not register this at all. Real clients publish their documents on the
@@ -132,7 +132,7 @@ builder.Services.AddBoltwayAuthorizationServer(options =>
     options.ScopesSupported.Add("offline_access");
     options.ScopesSupported.Add("stories.read");
 
-    // Shown on the consent page verbatim — the page never derives text by parsing a scope name.
+    // Shown on the consent page verbatim - the page never derives text by parsing a scope name.
     // Omitting one is not an error: validation collects it into ScopesWithoutDescriptions for the
     // doctor to report, and the page falls back to the raw scope plus a note that none is set.
     options.ScopeDescriptions["openid"] = "Confirm who you are.";
@@ -142,7 +142,7 @@ builder.Services.AddBoltwayAuthorizationServer(options =>
     // DEV: 32 random bytes per process. Refresh tokens are derived from this, so a restart or a
     // second replica computes different successors and every outstanding refresh token stops
     // working. It must be stable across restarts and shared between instances, and it is worth as
-    // much as every refresh token this server will ever issue — so it belongs wherever the signing
+    // much as every refresh token this server will ever issue - so it belongs wherever the signing
     // keys live, not in a config file.
     options.RefreshTokenDerivationKey = RandomNumberGenerator.GetBytes(32);
 });
@@ -175,7 +175,7 @@ app.MapGet(DemoClientPath, () => Results.Content(
     new JsonObject
     {
         // CIMD §4: the document must name the URL it was fetched from, compared as a raw string.
-        // That self-reference is the whole security model — without it, anyone who can host a JSON
+        // That self-reference is the whole security model - without it, anyone who can host a JSON
         // file could publish a document claiming any client_id.
         ["client_id"] = Issuer + DemoClientPath,
         ["client_name"] = "Boltway sample CLI",
@@ -188,7 +188,7 @@ app.MapGet(DemoClientPath, () => Results.Content(
         ["response_types"] = new JsonArray("code"),
 
         // A public client. CIMD §4.1 forbids every shared-secret method, so this or private_key_jwt
-        // are the only two a document can declare — and private_key_jwt is not implemented here.
+        // are the only two a document can declare - and private_key_jwt is not implemented here.
         ["token_endpoint_auth_method"] = "none",
     }.ToJsonString(),
     // Must be JSON: the resolver refuses a document served as anything else.

@@ -145,7 +145,7 @@ internal sealed class EfAuthorizationCodeStore(
         // A redeemed row outlives its expiry by RedeemedRetention, because the retry window it was
         // written for outlives it too: a code lives about a minute and is redeemed whenever consent
         // finishes, so the window routinely starts in the last seconds of the code's life. Deleting
-        // on expiry alone undoes the redemption one call later — the retry then presents a hash the
+        // on expiry alone undoes the redemption one call later - the retry then presents a hash the
         // store has no memory of, and an unknown hash is ReplayedOutsideGrace, the answer a caller
         // revokes on. The constant is read from GraceWindows rather than retyped here.
         var retentionCutoff = StoredValues.ToTicks(now - GraceWindows.RedeemedRetention);

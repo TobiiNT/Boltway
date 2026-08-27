@@ -40,7 +40,7 @@ namespace Boltway.Storage.PostgreSql.Tests;
 /// exactly one of the <c>New…Store</c> methods, so emptying on each call is invisible to them. A test
 /// added later that took a code store and a refresh store and expected both to see the same database
 /// would find the first one's rows gone. It would <i>fail</i>, loudly, on an assertion about a row
-/// that is not there — not pass quietly — which is why this is worth the speed rather than being a
+/// that is not there - not pass quietly - which is why this is worth the speed rather than being a
 /// trap.
 /// </para>
 /// </remarks>
@@ -69,7 +69,7 @@ public sealed class PostgresDatabase : IDisposable
     /// and <c>postgres</c> is the one every server has. <b>Setting it is not optional and leaving it
     /// out does not mean "the default":</b> Npgsql defaults the database to the <i>username</i>, so
     /// an unset one produced <c>3D000: database "boltway" does not exist</c>. That was a real
-    /// bug twice in this file — once on the create, where it read as "no server is running", and
+    /// bug twice in this file - once on the create, where it read as "no server is running", and
     /// once on the drop, where a <c>catch (NpgsqlException)</c> swallowed it and left 46 test
     /// databases behind across five green runs before anyone counted them. One property now, because
     /// two copies is how the second one stayed wrong.
@@ -150,7 +150,7 @@ public sealed class PostgresDatabase : IDisposable
         }
 
         // WITH (FORCE) terminates anything still attached. Without it a connection this fixture does
-        // not know about — EF's, on a context a test leaked — leaves the database behind.
+        // not know about - EF's, on a context a test leaked - leaves the database behind.
         //
         // NOT wrapped in a catch, deliberately, and the first draft was. "A leftover test database is
         // not worth failing a green run over" is true and it is also how this method spent five green
@@ -179,7 +179,7 @@ public sealed class PostgresDatabase : IDisposable
     /// One <c>TRUNCATE</c> naming all of them, rather than a <c>DELETE</c> each: PostgreSQL refuses
     /// to truncate a table another table references unless that table is in the same statement, so
     /// listing all of them is what makes the <c>external_logins</c> → <c>users</c> foreign key a
-    /// non-issue. <c>CASCADE</c> is deliberately <i>not</i> used — with it, a table outside this
+    /// non-issue. <c>CASCADE</c> is deliberately <i>not</i> used - with it, a table outside this
     /// model that referenced one of these would be silently emptied too; without it, that situation
     /// fails the statement and says so.
     /// </remarks>

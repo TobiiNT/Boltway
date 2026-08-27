@@ -172,7 +172,7 @@ public sealed class SecretTests
     {
         // Two properties that pull in opposite directions, and both are required.
         //
-        // An uninitialised digest must never authenticate — that is the safety property, and it
+        // An uninitialised digest must never authenticate - that is the safety property, and it
         // lives on Matches. But Equals must stay reflexive, because object.Equals's contract says
         // so and every hash-based collection depends on it: a non-reflexive Equals means a
         // Dictionary cannot find a key it just stored and a HashSet accepts the same value twice.
@@ -201,7 +201,7 @@ public sealed class SecretTests
     [Fact]
     public void A_secret_is_not_comparable_as_plaintext_and_is_not_a_hash_key()
     {
-        // ValueType.Equals would compare the plaintext with string.Equals — variable-time, and
+        // ValueType.Equals would compare the plaintext with string.Equals - variable-time, and
         // reachable through HashSet or List.Contains without anyone writing a comparison.
         var secret = OpaqueSecret.Generate(TokenPurpose.RefreshToken);
 
@@ -213,8 +213,8 @@ public sealed class SecretTests
     public void The_persisted_hash_format_is_frozen()
     {
         // The digest is the ONLY persisted form of every refresh token, client secret and
-        // registration access token. Any later edit to OfString — a salt, a domain-separation
-        // prefix, an encoding change — invalidates every row in production simultaneously, and
+        // registration access token. Any later edit to OfString - a salt, a domain-separation
+        // prefix, an encoding change - invalidates every row in production simultaneously, and
         // every other test here would still pass, because they all hash and compare within one
         // process. This vector is what makes such a change fail loudly.
         Assert.Equal(
@@ -230,7 +230,7 @@ public sealed class SecretTests
         // mutation testing found: flipping throwOnInvalidBytes to false survived the whole suite.
         // Encoding.UTF8 replaces every lone surrogate with U+FFFD, so "\uD800", "\uDC00" and
         // "�" hash identically. This overload keys the CIMD cache by client_id, so a
-        // collision is two distinct clients sharing one cache entry — one of them served the
+        // collision is two distinct clients sharing one cache entry - one of them served the
         // other's redirect URIs.
         //
         // Throwing is right rather than harsh: ill-formed UTF-16 cannot occur in a well-formed
@@ -238,7 +238,7 @@ public sealed class SecretTests
         //
         // A Fact and not a Theory, and that is not a style choice. Written first with
         // [InlineData("\uD800")] both rows passed the ill-formed string through xUnit's data
-        // serializer, which round-trips through UTF-8 and hands the test U+FFFD — already
+        // serializer, which round-trips through UTF-8 and hands the test U+FFFD - already
         // repaired, so OfString had nothing to refuse and the test reported the guard missing when
         // it was present. The literal has to be constructed inside the test body.
         var highSurrogateAlone = new string((char)0xD800, 1);

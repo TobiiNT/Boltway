@@ -10,11 +10,11 @@
  *
  * ── Why it is mostly element selectors ───────────────────────────────────────
  *
- * The markup carries a `bw-` class on each block a sheet has to find — the shell and its two
+ * The markup carries a `bw-` class on each block a sheet has to find - the shell and its two
  * boxes, the brand lines, the three consent paragraphs, the scope and resource lists, the
  * decision and sign-in forms, the divider and the asides. Inside those blocks it is a heading, a
  * paragraph, a list or a control, so that is what this file selects on. Six classes are hooked
- * here; the rest exist for a deployment's own sheet, and are a contract for that reason — see
+ * here; the rest exist for a deployment's own sheet, and are a contract for that reason - see
  * *the rendered markup is part of the surface too* in CLAUDE.md before renaming one.
  *
  * `button[value="approve"]` is the one attribute hook used, and it is safe for a specific
@@ -25,11 +25,11 @@
  *
  * `.bw-warning` is the class that shows why naming a block beats matching its shape. It exists
  * because this file needed it: the first attempt used `p:has(> strong:first-child)`, on the
- * reasoning that the two cautions — the "this code goes to your own device" warning on consent,
- * and the failed-sign-in message on login — are the only paragraphs opening with a <strong>. That
+ * reasoning that the two cautions - the "this code goes to your own device" warning on consent,
+ * and the failed-sign-in message on login - are the only paragraphs opening with a <strong>. That
  * was measured wrong on the first render: `:first-child` counts elements and ignores the leading
  * text node, so the two paragraphs naming the client host and the redirect host matched too, and
- * the page came back with three warning boxes. Three is the same as none — it drowns the one N-14
+ * the page came back with three warning boxes. Three is the same as none - it drowns the one N-14
  * actually asks for.
  */
 
@@ -71,7 +71,7 @@ body {
   background: var(--page);
 }
 
-/* The shell is two boxes — a brand panel and the server's markup — and this sheet stacks them
+/* The shell is two boxes - a brand panel and the server's markup - and this sheet stacks them
    rather than splitting them, which is what a neutral default should do: a panel down one side is
    a design decision, and this file's whole job is to make none. The measure that used to be on
    `body` is here, so the pages read exactly as wide as they did.
@@ -227,8 +227,8 @@ button:hover:not(:disabled) {
   border-color: var(--muted);
 }
 
-/* Approve, and the sign-in submit. `value="approve"` is a wire contract — see the note at the
-   top — and `form > button` with no value is the single submit on each sign-in form. */
+/* Approve, and the sign-in submit. `value="approve"` is a wire contract - see the note at the
+   top - and `form > button` with no value is the single submit on each sign-in form. */
 button[value="approve"],
 form > button[type="submit"]:not([name]) {
   color: var(--accent-ink);
@@ -237,7 +237,7 @@ form > button[type="submit"]:not([name]) {
 }
 
 /* A-11: a configured-but-unavailable provider renders disabled with its reason beside it. It has
-   to stay legible — a control faded to the point of being unreadable is the vanishing this rule
+   to stay legible - a control faded to the point of being unreadable is the vanishing this rule
    exists to prevent, achieved with opacity. */
 button:disabled {
   cursor: not-allowed;

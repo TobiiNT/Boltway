@@ -12,8 +12,8 @@ namespace Boltway.OAuth.Net.Tests;
 /// Fetches that actually complete, against real listeners.
 /// </summary>
 /// <remarks>
-/// The original SSRF suite never completed a single fetch — every case was refused at the address
-/// check — so <c>TooLarge</c>, <c>Timeout</c>, <c>Redirected</c> and <c>NotOk</c> were all
+/// The original SSRF suite never completed a single fetch - every case was refused at the address
+/// check - so <c>TooLarge</c>, <c>Timeout</c>, <c>Redirected</c> and <c>NotOk</c> were all
 /// unreachable, including the two N-05 itself names. Worse, the test asserting the TOCTOU property
 /// resolved to a blocked address, so <c>SendAsync</c> was never called and <c>ConnectCallback</c>
 /// never ran: it passed with the callback deleted and <c>AllowAutoRedirect</c> back on, which is to
@@ -136,7 +136,7 @@ public sealed class LiveFetchTests : IDisposable
 
         // keep-alive, deliberately. With "Connection: close" the server hangs up after every
         // response, so HttpClient's pool never reuses anything and the connect-pinning test passes
-        // whether or not pooling is disabled — which is to say it proves nothing.
+        // whether or not pooling is disabled - which is to say it proves nothing.
         head.Append("Connection: keep-alive\r\n\r\n");
 
         return [.. Encoding.UTF8.GetBytes(head.ToString()), .. bytes];
@@ -151,7 +151,7 @@ public sealed class LiveFetchTests : IDisposable
     /// </param>
     /// <remarks>
     /// <para>
-    /// This file was flaky against the production budgets — measured at 4 failures in ~8
+    /// This file was flaky against the production budgets - measured at 4 failures in ~8
     /// full-solution runs, always <c>FetchOutcome.Timeout</c> where <c>Ok</c> was expected, and
     /// never once when this project ran alone. Nothing is wrong with the fetcher: a real TLS
     /// handshake against a loopback listener does not reliably complete on a machine running five
@@ -166,7 +166,7 @@ public sealed class LiveFetchTests : IDisposable
     /// </para>
     /// <para>
     /// Raising them does not weaken anything, because the production numbers are not what these
-    /// tests assert — they assert redirect refusal, address pinning, byte caps and status handling,
+    /// tests assert - they assert redirect refusal, address pinning, byte caps and status handling,
     /// all budget-independent. <c>A_slow_response_is_a_timeout</c> passes its own 400 ms and is the
     /// one test that would notice, which is what keeps this from hiding a regression.
     /// </para>
@@ -203,7 +203,7 @@ public sealed class LiveFetchTests : IDisposable
         // The test the review asked for, and it failed before PooledConnectionLifetime was set to
         // zero. ConnectCallback runs once per CONNECTION and its InitialRequestMessage is the
         // request that opened it, so with pooling on, the second fetch reused a connection
-        // validated for the first — measured as three fetches to .1/.2/.2 all served by .1.
+        // validated for the first - measured as three fetches to .1/.2/.2 all served by .1.
         // Both listeners share ONE port on two loopback addresses, because that is the condition
         // the bug needed: HttpClient's pool is keyed on (scheme, host, port), so a second fetch to
         // the same key reuses the first connection regardless of which address was validated.
@@ -380,7 +380,7 @@ public sealed class LiveFetchTests : IDisposable
     /// RFC 9111 §5.2.2.10. The numbers are deliberately far apart and the assertion is the smaller
     /// one: reading <c>max-age</c> here holds an origin's document for an hour it asked shared caches
     /// to hold for a minute, which is an hour of acting on a redirect URI or a key it has replaced.
-    /// This read <c>CacheControl?.MaxAge</c> — the private-cache directive — until it was measured
+    /// This read <c>CacheControl?.MaxAge</c> - the private-cache directive - until it was measured
     /// against better-auth's documented behaviour and found to be the wrong member.
     /// </remarks>
     [Fact]
@@ -398,7 +398,7 @@ public sealed class LiveFetchTests : IDisposable
     /// <summary>With no <c>s-maxage</c>, <c>max-age</c> is what there is.</summary>
     /// <remarks>
     /// The control for the test above. Without it, a transport that read <c>s-maxage</c> and
-    /// discarded <c>max-age</c> entirely would pass — and would then report "said nothing" for the
+    /// discarded <c>max-age</c> entirely would pass - and would then report "said nothing" for the
     /// overwhelmingly common header, dropping every origin onto the caller's floor.
     /// </remarks>
     [Fact]
@@ -419,7 +419,7 @@ public sealed class LiveFetchTests : IDisposable
     /// caller falls back to its own floor, so a document published with a day's <c>Expires</c> and
     /// no <c>Cache-Control</c> was refetched on that floor instead. Measured against the response's
     /// own <c>Date</c> where it sends one, so the answer does not import clock skew between the two
-    /// machines — which is why this listener sends both and the assertion is exact.
+    /// machines - which is why this listener sends both and the assertion is exact.
     /// </remarks>
     [Fact]
     public async Task Expires_is_the_fallback_and_is_measured_from_the_responses_own_date()

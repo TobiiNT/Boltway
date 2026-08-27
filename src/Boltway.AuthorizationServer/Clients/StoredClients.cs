@@ -13,13 +13,13 @@ namespace Boltway.AuthorizationServer.Clients;
 /// <remarks>
 /// <para>
 /// The third resolver, beside the configured one and the CIMD one. It exists because a service
-/// account is created at runtime — the whole point of it being in a table rather than in an
+/// account is created at runtime - the whole point of it being in a table rather than in an
 /// environment variable is that making one does not mean editing a deploy.
 /// </para>
 /// <para>
 /// <b><c>CanResolve</c> claims everything, and that is why order matters.</b> A stored id is a plain
 /// string with no shape to test, exactly like a configured one, so this resolver cannot decline by
-/// inspection — it declines by not finding a row. Registered after the configured resolver and
+/// inspection - it declines by not finding a row. Registered after the configured resolver and
 /// before CIMD: configuration wins over the table so a deployment can always override what is
 /// stored, and both win over an outbound fetch that was never going to find a non-URL identifier.
 /// </para>
@@ -70,7 +70,7 @@ public sealed class StoredClientResolver(IClientStore clients) : IClientResolver
 /// An adapter rather than a second store, so there is one row and no way for two sources to
 /// disagree about whether a client exists. It is here rather than in the storage package because
 /// <see cref="IClientSecretStore"/> belongs to the authorization server, and storage must not
-/// reference it — the dependency only goes one way.
+/// reference it - the dependency only goes one way.
 /// </remarks>
 /// <param name="clients">The store.</param>
 public sealed class StoredClientSecretStore(IClientStore clients) : IClientSecretStore
@@ -90,13 +90,13 @@ public sealed class StoredClientSecretStore(IClientStore clients) : IClientSecre
 /// <see cref="ClientAuthenticator"/> takes one secret store, and each source of clients answers
 /// only for its own: <c>ConfiguredClientSecretStore</c> knows the configured entries and nothing
 /// else, <see cref="StoredClientSecretStore"/> knows the table and nothing else. Before this type,
-/// registering the second replaced the first — so turning stored clients on took away the
+/// registering the second replaced the first - so turning stored clients on took away the
 /// configured confidential clients' ability to authenticate; on the deployment that found this,
 /// two first-party clients that had authenticated fine the moment before. Resolvers already chain;
 /// secrets now chain the same way.
 /// </para>
 /// <para>
-/// The order is the resolvers' order — configured first — though in any sane deployment the id
+/// The order is the resolvers' order - configured first - though in any sane deployment the id
 /// spaces do not overlap. If one ever does, the earlier registration answering is the same rule
 /// client resolution applies, so the two lookups cannot disagree about which client an id means.
 /// </para>
@@ -137,7 +137,7 @@ public static class StoredClientServiceCollectionExtensions
     /// </para>
     /// <para>
     /// <b>The secret store this registers chains onto whatever was registered before it.</b> This
-    /// paragraph used to say the opposite — that this registration simply wins — and the sentence
+    /// paragraph used to say the opposite - that this registration simply wins - and the sentence
     /// beside it admitted the consequence without drawing it: a store that answers only for the
     /// table, winning outright, is the configured confidential clients losing their secrets. On
     /// the deployment that found this, those clients are the admin UI and Grafana, so "turn on
@@ -153,7 +153,7 @@ public static class StoredClientServiceCollectionExtensions
             sp => new StoredClientResolver(sp.GetRequiredService<IClientStore>()));
 
         // Captured now, because by resolution time this call's own registration is the one
-        // GetRequiredService returns — the previous descriptor is only reachable from here.
+        // GetRequiredService returns - the previous descriptor is only reachable from here.
         var prior = services.LastOrDefault(
             d => !d.IsKeyedService && d.ServiceType == typeof(IClientSecretStore));
 

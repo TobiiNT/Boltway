@@ -20,14 +20,14 @@ namespace Boltway.AuthorizationServer.Tests;
 /// <para>
 /// Found by signing out on a running deployment and trying to sign back in. Measured, in this
 /// order: <c>/logout</c> answered <c>200</c> with no link of any kind, <c>/</c> answered
-/// <c>404</c> with an empty body, and <c>/login</c> answered <c>400</c> — <i>"This page was opened
+/// <c>404</c> with an empty body, and <c>/login</c> answered <c>400</c> - <i>"This page was opened
 /// without a valid authorization request."</i> So signing out was a one-way door, and the two URLs
 /// a person would then type were both dead ends.
 /// </para>
 /// <para>
 /// The whole suite was green while that was true, and the reason is worth keeping: every login test
 /// starts from <c>/authorize</c>, because that is the flow the specification describes. Nothing
-/// arrived at the page the way a person does — which is also how the recovery pages shipped
+/// arrived at the page the way a person does - which is also how the recovery pages shipped
 /// pointing at a bare <c>/login</c> a day earlier. Two defects, one blind spot.
 /// </para>
 /// </remarks>
@@ -56,7 +56,7 @@ public sealed partial class BareSignInTests
     /// </summary>
     /// <remarks>
     /// A deployment can route password recovery, or nothing but <c>/authorize</c>, without routing
-    /// the self-service pages — and then <c>/me</c> is a <c>404</c>. Signing somebody in and
+    /// the self-service pages - and then <c>/me</c> is a <c>404</c>. Signing somebody in and
     /// dropping them on a missing page is a worse answer than declining to start, so the default is
     /// routed-or-absent in exactly the way the "go to sign in" link is.
     /// </remarks>
@@ -97,7 +97,7 @@ public sealed partial class BareSignInTests
     /// </summary>
     /// <remarks>
     /// The <c>POST</c> reads its <c>returnUrl</c> from the form, so defaulting on the <c>GET</c>
-    /// alone would have rendered a page whose own submission answered <c>400</c> — the same dead
+    /// alone would have rendered a page whose own submission answered <c>400</c> - the same dead
     /// end moved to the far side of the password field, where it costs an attempt as well. Asserted
     /// end to end rather than by reading the handler: the page is fetched, the form is submitted as
     /// the browser would submit it, and the destination is the one the person asked for.

@@ -23,7 +23,7 @@ namespace Boltway.AuthorizationServer.Tests;
 /// Two rules shape almost every assertion here. <c>S-48</c>: asking for a reset says the same thing
 /// whether or not the account exists, so most of these tests are about what the server does
 /// <i>not</i> say. <c>S-47</c>: a link is single use, expiring, and dead the moment the password
-/// changes by any route — so the rest are about links that must stop working.
+/// changes by any route - so the rest are about links that must stop working.
 /// </remarks>
 public sealed partial class RecoverySurfaceTests
 {
@@ -131,7 +131,7 @@ public sealed partial class RecoverySurfaceTests
     /// Turning them on without a sender is refused at startup, not at the first request.
     /// </summary>
     /// <remarks>
-    /// The endpoints would answer 202, mint a link, and deliver nothing — every signal saying it
+    /// The endpoints would answer 202, mint a link, and deliver nothing - every signal saying it
     /// worked, and the only thing that does not happen being the one the caller is waiting for.
     /// </remarks>
     [Fact]
@@ -149,7 +149,7 @@ public sealed partial class RecoverySurfaceTests
     /// </summary>
     /// <remarks>
     /// <b>The gap this pair closes.</b> The flow worked before it and nothing pointed at it, so a
-    /// deployment that turned recovery on had to tell people the URL by hand — the fifth time in
+    /// deployment that turned recovery on had to tell people the URL by hand - the fifth time in
     /// this library that a capability existed and no deployment could reach it. The negative half
     /// matters as much: <c>/forgot</c> is not routed with recovery off, so an unconditional link
     /// would hand a 404 to the one person least able to recover from it.
@@ -186,7 +186,7 @@ public sealed partial class RecoverySurfaceTests
     /// </summary>
     /// <remarks>
     /// The browser half of the assertion this file exists for. <c>E-39</c> answers JSON, so this
-    /// page calls <see cref="AccountRecovery"/> in process rather than posting to it — which means
+    /// page calls <see cref="AccountRecovery"/> in process rather than posting to it - which means
     /// <c>S-48</c> has to hold on a second code path, and this is what says it does.
     /// </remarks>
     [Fact]
@@ -206,7 +206,7 @@ public sealed partial class RecoverySurfaceTests
         Assert.Contains("is on its way", knownHtml, StringComparison.Ordinal);
         Assert.Equal(knownHtml, await unknown.Content.ReadAsStringAsync());
 
-        // The submitted identifier is not echoed back — the field the page would be tempted to
+        // The submitted identifier is not echoed back - the field the page would be tempted to
         // repopulate is an email address, and a page saying "we looked for X" is one sentence from
         // saying whether X was found.
         Assert.DoesNotContain(Address, knownHtml, StringComparison.Ordinal);
@@ -221,8 +221,8 @@ public sealed partial class RecoverySurfaceTests
     /// The link the page mails works, end to end.
     /// </summary>
     /// <remarks>
-    /// The two halves are wired by different code — the page calls the service, the link lands on
-    /// <c>/reset</c> — and a test of each separately would pass with the mail pointing at a route
+    /// The two halves are wired by different code - the page calls the service, the link lands on
+    /// <c>/reset</c> - and a test of each separately would pass with the mail pointing at a route
     /// that does not exist. §7.3 is that failure in the abstract; this is it in a request.
     /// </remarks>
     [Fact]
@@ -263,7 +263,7 @@ public sealed partial class RecoverySurfaceTests
     /// A form post without the antiforgery token sends nothing.
     /// </summary>
     /// <remarks>
-    /// <c>E-39</c> has no antiforgery — it has no cookie to protect — and this page is on the origin
+    /// <c>E-39</c> has no antiforgery - it has no cookie to protect - and this page is on the origin
     /// that carries the session cookie, where every other form has one. A forged request here is not
     /// an escalation; being the page that is the exception is how the next one comes to skip it.
     /// </remarks>
@@ -312,7 +312,7 @@ public sealed partial class RecoverySurfaceTests
         Assert.DoesNotContain("is on its way", html, StringComparison.Ordinal);
 
         // Retry-After on the page too, so a person reads the sentence and a client reads the header
-        // — the JSON endpoint already sets it, and two surfaces disagreeing about a number neither
+        // - the JSON endpoint already sets it, and two surfaces disagreeing about a number neither
         // is guessing at is a defect nobody would look for.
         Assert.NotNull(refused.Headers.RetryAfter);
 
@@ -344,8 +344,8 @@ public sealed partial class RecoverySurfaceTests
     /// A known and an unknown identifier get the same status and the same bytes. <c>S-48</c>.
     /// </summary>
     /// <remarks>
-    /// <b>The assertion this file exists for.</b> Any difference — a 404, a different sentence, a
-    /// different field — turns this endpoint into a way to test which addresses are registered here,
+    /// <b>The assertion this file exists for.</b> Any difference - a 404, a different sentence, a
+    /// different field - turns this endpoint into a way to test which addresses are registered here,
     /// at whatever rate the throttle allows.
     /// </remarks>
     [Fact]
@@ -513,7 +513,7 @@ public sealed partial class RecoverySurfaceTests
     /// </summary>
     /// <remarks>
     /// The clause an implementation forgets, and the one that matters most: a reset link that still
-    /// works after the password has changed is a second key, held by whoever asked for it — which on
+    /// works after the password has changed is a second key, held by whoever asked for it - which on
     /// this path may be the attacker whose access is the reason it was changed.
     /// </remarks>
     [Fact]
@@ -527,7 +527,7 @@ public sealed partial class RecoverySurfaceTests
 
         var token = TokenFrom(world.Mail.Sent[0]);
 
-        // The operator's route, in process — the CLI's verb, and the one least likely to be
+        // The operator's route, in process - the CLI's verb, and the one least likely to be
         // remembered when this rule is being implemented.
         await fixture.Services.CreateScope().ServiceProvider
             .GetRequiredService<UserAdministration>()
@@ -544,7 +544,7 @@ public sealed partial class RecoverySurfaceTests
     /// <remarks>
     /// The token arrives in the URL because an email link has nowhere else to put it, and it does
     /// not stay there: a query string is written to access logs, kept in browser history, and sent
-    /// in <c>Referer</c> — and this one is a live credential for the account.
+    /// in <c>Referer</c> - and this one is a live credential for the account.
     /// </remarks>
     [Fact]
     public async Task The_reset_page_carries_the_token_in_a_hidden_field_and_redeems_it()
@@ -613,14 +613,14 @@ public sealed partial class RecoverySurfaceTests
     /// <remarks>
     /// <para>
     /// <b>Deliberate, and a real cost worth stating.</b> The page cannot tell a live link from a
-    /// dead one without redeeming it, and <c>IUserTokenStore</c> has no read that does not consume —
+    /// dead one without redeeming it, and <c>IUserTokenStore</c> has no read that does not consume -
     /// on purpose, because a peek plus an act is two statements, and two concurrent presentations of
     /// one link would both pass the peek. So a person following a dead link types a password before
     /// being told, which is worse than being told immediately and much better than an email client's
     /// URL prefetch silently destroying the reset it was delivering.
     /// </para>
     /// <para>
-    /// The refusal, when it comes, says the same thing for expired, used and never-issued. §7.3 —
+    /// The refusal, when it comes, says the same thing for expired, used and never-issued. §7.3 -
     /// not the oracle <c>S-48</c> is about, because a token is 256 bits of CSPRNG output and there
     /// is nothing to enumerate.
     /// </para>
@@ -695,7 +695,7 @@ public sealed partial class RecoverySurfaceTests
     /// <remarks>
     /// The link proves control of the mailbox it was sent to and of nothing else. Somebody who asks
     /// for one, changes their address, then clicks the old link must not end up with the new address
-    /// marked verified — that would be a way to have any address confirmed by proving control of a
+    /// marked verified - that would be a way to have any address confirmed by proving control of a
     /// different one.
     /// </remarks>
     [Fact]
@@ -726,7 +726,7 @@ public sealed partial class RecoverySurfaceTests
     /// <remarks>
     /// The reason the purpose is stored on the token rather than inferred from which endpoint is
     /// asking. A verification mail goes to an address somebody typed, sometimes before anyone has
-    /// proven it is theirs — so a link from it that could set the password would be a takeover
+    /// proven it is theirs - so a link from it that could set the password would be a takeover
     /// primitive.
     /// </remarks>
     [Fact]

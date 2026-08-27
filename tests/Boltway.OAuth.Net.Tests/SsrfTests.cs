@@ -4,7 +4,7 @@ using Boltway.OAuth.Net;
 namespace Boltway.OAuth.Net.Tests;
 
 /// <summary>
-/// N-05. The URLs this server fetches are attacker-supplied by design — a CIMD
+/// N-05. The URLs this server fetches are attacker-supplied by design - a CIMD
 /// <c>client_id</c> <i>is</i> a URL sent by whoever starts an authorization flow.
 /// </summary>
 public sealed class SsrfTests
@@ -70,7 +70,7 @@ public sealed class SsrfTests
     [InlineData("fd00::1")]
     [InlineData("ff02::1")]         // multicast
     [InlineData("::")]
-    [InlineData("64:ff9b::1")]      // NAT64 — translates to an IPv4 destination
+    [InlineData("64:ff9b::1")]      // NAT64 - translates to an IPv4 destination
     [InlineData("2001:db8::1")]     // documentation
     public async Task An_ipv6_special_use_address_is_refused(string address)
     {
@@ -215,7 +215,7 @@ public sealed class SsrfTests
             new SafeFetchRequest(url, FetchPurpose.ClientIdMetadataDocument), CancellationToken.None);
 
         // It gets past the address check and fails at the transport instead, because nothing is
-        // listening — which is the proof that the check is what was bypassed.
+        // listening - which is the proof that the check is what was bypassed.
         Assert.IsNotType<FetchOutcome.Blocked>(outcome);
     }
 

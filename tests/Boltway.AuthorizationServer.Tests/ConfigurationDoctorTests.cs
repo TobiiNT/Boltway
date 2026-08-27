@@ -26,7 +26,7 @@ public sealed class ConfigurationDoctorTests
     /// </summary>
     /// <remarks>
     /// The distinction this whole enum exists for. A check that could not run, rendered green, is a
-    /// claim nobody made — and from that point on it is indistinguishable in every summary from a
+    /// claim nobody made - and from that point on it is indistinguishable in every summary from a
     /// check that actually ran.
     /// </remarks>
     [Fact]
@@ -42,8 +42,8 @@ public sealed class ConfigurationDoctorTests
 
     /// <summary>An absent key ring is NotMeasured, not a failure and not a pass.</summary>
     /// <remarks>
-    /// Failing would be wrong — a caller that did not supply a ring has not told the doctor
-    /// anything about its keys — and passing would be a lie about the one thing that makes every
+    /// Failing would be wrong - a caller that did not supply a ring has not told the doctor
+    /// anything about its keys - and passing would be a lie about the one thing that makes every
     /// token verifiable.
     /// </remarks>
     [Fact]
@@ -71,7 +71,7 @@ public sealed class ConfigurationDoctorTests
     /// <remarks>
     /// The ring refuses to fall back to a pending key, and this is the check that surfaces the
     /// refusal at startup rather than at the first token request. Signing with a key nobody has
-    /// fetched produces tokens that fail verification everywhere — a quieter failure than not
+    /// fetched produces tokens that fail verification everywhere - a quieter failure than not
     /// issuing one.
     /// </remarks>
     [Fact]
@@ -112,7 +112,7 @@ public sealed class ConfigurationDoctorTests
     /// </summary>
     /// <remarks>
     /// Without it the test above passes against a doctor that stopped checking the ring at all,
-    /// which is the same page with a worse failure — every token signed by a key nothing verifies.
+    /// which is the same page with a worse failure - every token signed by a key nothing verifies.
     /// </remarks>
     [Fact]
     public void An_ec_only_ring_still_fails_an_rs256_deployment()
@@ -130,7 +130,7 @@ public sealed class ConfigurationDoctorTests
     /// A scope with no description is reported, because nothing else can tell you.
     /// </summary>
     /// <remarks>
-    /// <c>ScopesWithoutDescriptions</c> was computed by validation and read by nothing — three
+    /// <c>ScopesWithoutDescriptions</c> was computed by validation and read by nothing - three
     /// references in the repository: the property, the assignment, and a sample comment promising
     /// "the doctor" would report it. Warn rather than Fail is <c>A-14</c> holding: an undescribed
     /// scope renders as its bare name plus a note saying so, because inventing text by parsing a
@@ -178,7 +178,7 @@ public sealed class ConfigurationDoctorTests
     /// <summary>The profile check names the mechanism in use.</summary>
     /// <remarks>
     /// One profile rather than a theory over two, because dynamic registration is refused by options
-    /// validation while <c>/register</c> is not routed — advertising <c>registration_endpoint</c>
+    /// validation while <c>/register</c> is not routed - advertising <c>registration_endpoint</c>
     /// against a 404 is N-06 reached through configuration. See
     /// <c>MetadataTests.The_dynamic_registration_profile_is_refused_while_register_is_not_routed</c>.
     /// When DCR ships, this becomes a theory again and that test inverts.

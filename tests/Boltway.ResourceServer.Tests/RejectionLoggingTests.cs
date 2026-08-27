@@ -14,8 +14,8 @@ namespace Boltway.ResourceServer.Tests;
 /// Nine rejection classes, zero log lines, and no correlation id in any response at all. The worst
 /// of it was <c>invalid_token</c>: an unparseable JWT, a signature that does not verify, a
 /// <c>kid</c> naming no configured key, an <c>iss</c> mismatch and a <c>typ</c> that is not
-/// <c>at+jwt</c> all rendered the same <c>"The access token is not valid."</c> — correctly, since
-/// none of it is the client's business — while the discriminating
+/// <c>at+jwt</c> all rendered the same <c>"The access token is not valid."</c> - correctly, since
+/// none of it is the client's business - while the discriminating
 /// <c>SecurityTokenException</c> was computed inside the validator and dropped. A customer who
 /// rotated a signing key and forgot <c>ProtectedResourceOptions.SigningKeys</c> got an undiagnosable
 /// wall of 401s, with the library's own answer, <c>IDX10500: No security keys were provided</c>,
@@ -133,7 +133,7 @@ public sealed class RejectionLoggingTests
 
             // "Exactly one" measured the way an operator would measure it: grep the id and count.
             // The event-id filter above cannot see a second line about the same refusal written
-            // under a different event, and that is not a hypothetical — the authorize endpoint used
+            // under a different event, and that is not a hypothetical - the authorize endpoint used
             // to log X-10 itself, so restoring that line would produce two lines for one refusal and
             // leave the event-id count at one.
             var mentioning = fixture.Logs.Mentioning(correlationId);
@@ -157,7 +157,7 @@ public sealed class RejectionLoggingTests
     /// </summary>
     /// <remarks>
     /// The resource server's six are all reachable over HTTP, so unlike the authorization server's
-    /// list there is no excused set here — and saying so is the point: an empty escape hatch is
+    /// list there is no excused set here - and saying so is the point: an empty escape hatch is
     /// worth more than a populated one.
     /// </remarks>
     [Fact]
@@ -188,13 +188,13 @@ public sealed class RejectionLoggingTests
     /// apart, and check the operator can.
     /// </para>
     /// <para>
-    /// <b>Three, not four</b>, and the shortfall is recorded rather than rounded up — see the
+    /// <b>Three, not four</b>, and the shortfall is recorded rather than rounded up - see the
     /// comment at the assertion. Two of the four are one message inside
     /// <c>Microsoft.IdentityModel</c> itself.
     /// </para>
     /// <para>
     /// The assertions are on the library's <c>IDXnnnnn</c> codes rather than on prose, because those
-    /// codes are the stable, searchable part — <c>IDX10500</c> is what somebody types into a search
+    /// codes are the stable, searchable part - <c>IDX10500</c> is what somebody types into a search
     /// box at 2am, and it is exactly what was being thrown away.
     /// </para>
     /// </remarks>
@@ -235,8 +235,8 @@ public sealed class RejectionLoggingTests
             Assert.False(string.IsNullOrEmpty(detail), $"{name}: the line carries no detail at all.");
 
             // `validator=` and not `validator=SecurityToken`, measured. "aaaa.bbbb.cccc" comes back
-            // as an ArgumentException rather than a SecurityTokenException — the library does not
-            // reach its own exception hierarchy for a string that is not a JWT — which is why
+            // as an ArgumentException rather than a SecurityTokenException - the library does not
+            // reach its own exception hierarchy for a string that is not a JWT - which is why
             // Classify's `_ => Rejected` default is doing real work rather than being a formality,
             // and why this assertion is about the shape of the field instead of about one type.
             Assert.Contains("validator=", detail, StringComparison.Ordinal);
@@ -251,8 +251,8 @@ public sealed class RejectionLoggingTests
         //
         // Two of the four collapse, and it is worth being precise about where: a token whose `kid`
         // names no configured key and a server with no keys configured at all produce the SAME
-        // message — "IDX10500: Signature validation failed. No security keys were provided to
-        // validate the signature." — because the verifier runs with TryAllIssuerSigningKeys = false,
+        // message - "IDX10500: Signature validation failed. No security keys were provided to
+        // validate the signature." - because the verifier runs with TryAllIssuerSigningKeys = false,
         // so an unmatched `kid` selects an empty key set and is indistinguishable from an empty
         // configuration. That is the library's message, not something this code drops; both cases
         // now reach the log, and the remedy for both is the same line of configuration.
@@ -263,7 +263,7 @@ public sealed class RejectionLoggingTests
 
         Assert.Equal(3, distinct.Count);
 
-        // The one a rotated signing key produces — the field report this work started from.
+        // The one a rotated signing key produces - the field report this work started from.
         Assert.Contains(distinct, d => d.Contains("IDX10500", StringComparison.Ordinal));
 
         // And the one that names both issuers, which is the whole of that diagnosis.
@@ -310,8 +310,8 @@ public sealed class RejectionLoggingTests
     /// The access token the caller presented never appears in a log line.
     /// </summary>
     /// <remarks>
-    /// The temptation is strongest on the branch where the token did not validate — "it is not a
-    /// real token, so it is not a real secret" — and it is wrong for the commonest cause of that
+    /// The temptation is strongest on the branch where the token did not validate - "it is not a
+    /// real token, so it is not a real secret" - and it is wrong for the commonest cause of that
     /// branch, which is a perfectly good token for the wrong audience or a stale one that is still
     /// live at the issuer. The sweep is over the whole captured event, at Trace, from every
     /// category.
