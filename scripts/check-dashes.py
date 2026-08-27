@@ -31,7 +31,11 @@ import re
 import subprocess
 import sys
 
-DASH = "—"
+# By codepoint, so this file does not contain the character it bans. Written as a literal, the
+# constant counted itself: every run reported one more string-literal em-dash than the repository
+# has, forever, and the one extra was this line. A checker that cannot come up clean about itself
+# is a checker whose number nobody can reconcile.
+DASH = chr(0x2014)
 
 SKIP_PREFIX = ("spec/", "docs/archive/")
 SKIP_FILE = ("docs/examples/translations.vi.json",)
