@@ -10,7 +10,7 @@ sentence about what a deployment does instead. **This is that.**
 
 A server that comes up with a freshly generated signing key looks healthy, passes its probe,
 is sent traffic, and issues tokens no resource server can verify. The user is told to sign in
-again — forever, for a problem signing in cannot fix, in a session that worked a minute ago.
+again - forever, for a problem signing in cannot fix, in a session that worked a minute ago.
 
 So every required setting is checked before the host binds a port, and there is no in-memory
 store option: that would let a misconfigured deployment start and lose every grant on the next
@@ -20,73 +20,73 @@ scale event, which is a data-loss bug wearing a default's clothing.
 
 | | |
 | --- | --- |
-| `ISSUER` | **required.** The public https URL. Every token carries it as `iss` and every resource server compares it ordinally — changing it invalidates everything outstanding. |
-| `FORWARDED_HOPS` | How many proxies stand in front, for `X-Forwarded-For`. `1` if unset; behind a CDN *and* a reverse proxy it is `2`. A value that does not parse is refused rather than clamped — see below, because getting it wrong is silent. |
+| `ISSUER` | **required.** The public https URL. Every token carries it as `iss` and every resource server compares it ordinally - changing it invalidates everything outstanding. |
+| `FORWARDED_HOPS` | How many proxies stand in front, for `X-Forwarded-For`. `1` if unset; behind a CDN *and* a reverse proxy it is `2`. A value that does not parse is refused rather than clamped - see below, because getting it wrong is silent. |
 | `SIGNING_KEYS` | **required.** The JSON key ring. See below. |
 | `REFRESH_TOKEN_DERIVATION_KEY` | **required.** 32 random bytes, base64. Every refresh token is derived from it, so a value that differs between restarts or replicas silently breaks all of them. |
-| `RESOURCES` | **required.** `{"https://connector.example.com/mcp":{"name":"…","scopes":"docs:read docs:write email"}}`. The URL is the audience, compared byte for byte. Add `email` to a resource's scopes to release the caller's address to it — see below. |
-| `CLIENTS` | Clients registered by hand: `{"<client_id>":{"name":"…","redirectUris":"https://app.example.com/signin-oidc","secretSha256":"…"}}`. Optional — a client identifying itself by a metadata URL needs no entry. **This is where the admin UI is registered**, and where a resource server that calls `/introspect` (`"introspectionOnly":true`) or a service account (`"owner":"<subject>"`, `"scopes":"…"`) is. `secretSha256` is base64 of SHA-256 of the secret, so it is not itself a credential; mint the pair with `new-client-secret`. See below. |
+| `RESOURCES` | **required.** `{"https://connector.example.com/mcp":{"name":"…","scopes":"docs:read docs:write email"}}`. The URL is the audience, compared byte for byte. Add `email` to a resource's scopes to release the caller's address to it - see below. |
+| `CLIENTS` | Clients registered by hand: `{"<client_id>":{"name":"…","redirectUris":"https://app.example.com/signin-oidc","secretSha256":"…"}}`. Optional - a client identifying itself by a metadata URL needs no entry. **This is where the admin UI is registered**, and where a resource server that calls `/introspect` (`"introspectionOnly":true`) or a service account (`"owner":"<subject>"`, `"scopes":"…"`) is. `secretSha256` is base64 of SHA-256 of the secret, so it is not itself a credential; mint the pair with `new-client-secret`. See below. |
 | `DATABASE_URL` | Postgres. A `postgres://` URL is accepted and converted. |
-| `SQLITE_PATH` | A file. **Development only** — see below. One of these two is required. |
-| `SCOPE_DESCRIPTIONS` | `{"docs:read":"Read the knowledge base."}` — shown verbatim on the consent page. |
-| `SEED_ROLES` | `{"member":{"name":"Member","permissions":"docs_read"}}` — the roles a deployment declares. Created **only** by the `migrate` command, create-if-absent: a deploy over a live directory changes no role anybody has since edited. Set and defining nothing is refused. |
-| `DEFAULT_ROLES` | Role ids, space separated, held by an account created without one. Unset, such an account holds none. Every id must be one the realm defines — `migrate` checks that after seeding, so a typo fails a deploy rather than the first account creation. Set and naming nothing is refused. |
-| `ACCESS_TOKEN_LIFETIME` | `30m` if unset. A count and a unit — `30s`, `15m`, `24h`, `30d` — and anything else is refused, because `TimeSpan.Parse` reads a bare `30` as thirty *days*. Validated against the library's own floor and ceiling. |
+| `SQLITE_PATH` | A file. **Development only** - see below. One of these two is required. |
+| `SCOPE_DESCRIPTIONS` | `{"docs:read":"Read the knowledge base."}` - shown verbatim on the consent page. |
+| `SEED_ROLES` | `{"member":{"name":"Member","permissions":"docs_read"}}` - the roles a deployment declares. Created **only** by the `migrate` command, create-if-absent: a deploy over a live directory changes no role anybody has since edited. Set and defining nothing is refused. |
+| `DEFAULT_ROLES` | Role ids, space separated, held by an account created without one. Unset, such an account holds none. Every id must be one the realm defines - `migrate` checks that after seeding, so a typo fails a deploy rather than the first account creation. Set and naming nothing is refused. |
+| `ACCESS_TOKEN_LIFETIME` | `30m` if unset. A count and a unit - `30s`, `15m`, `24h`, `30d` - and anything else is refused, because `TimeSpan.Parse` reads a bare `30` as thirty *days*. Validated against the library's own floor and ceiling. |
 | `REFRESH_TOKEN_LIFETIME` | `30d` if unset. Same spelling. Must exceed the access-token lifetime. |
 | `AUTH_CODE_LIFETIME` | `1m` if unset. Same spelling. OAuth 2.1 §4.1.2 recommends 10 minutes as the maximum. |
 | `SESSION_REVALIDATION` | `5m` if unset. How stale a signed-in session may be before the cookie handler re-reads the account. Same spelling; zero or less means every request. |
 | `REAUTH_FRESHNESS` | `5m` if unset. How recently a user must have authenticated for `prompt=login` and `max_age` to count as satisfied. Same spelling. It has to exceed the time somebody spends on the consent page, which also elapses. |
 | `GOOGLE_CLIENT_ID` · `GOOGLE_CLIENT_SECRET` | Optional. Turns on "Sign in with Google". |
-| `EXTERNAL_UNKNOWN_IDENTITY` | `refuse` (default) or `provision`. See below — the default matters. |
+| `EXTERNAL_UNKNOWN_IDENTITY` | `refuse` (default) or `provision`. See below - the default matters. |
 | `END_SESSION` | `true` (default) or `false`. Routes `/logout` and publishes `end_session_endpoint`; the two move together. See below. |
-| `INTROSPECTION` | `true` or `false` (default). Routes `/introspect` and advertises it, so a resource server can ask whether a token still stands rather than waiting for it to expire. RFC 7662 §2.1 requires the endpoint to be authorized, so this flag on its own gives nobody anything — it needs a `CLIENTS` entry with `introspectionOnly` for the resource server to authenticate as. |
-| `REVOCATION` | `true` or `false` (default). Routes `/revoke` and advertises it (RFC 7009). Confidential clients only — `none` is never advertised for it, because an endpoint that accepted an unauthenticated caller would revoke on anyone's say-so. Revoking either token type revokes the grant behind it. |
+| `INTROSPECTION` | `true` or `false` (default). Routes `/introspect` and advertises it, so a resource server can ask whether a token still stands rather than waiting for it to expire. RFC 7662 §2.1 requires the endpoint to be authorized, so this flag on its own gives nobody anything - it needs a `CLIENTS` entry with `introspectionOnly` for the resource server to authenticate as. |
+| `REVOCATION` | `true` or `false` (default). Routes `/revoke` and advertises it (RFC 7009). Confidential clients only - `none` is never advertised for it, because an endpoint that accepted an unauthenticated caller would revoke on anyone's say-so. Revoking either token type revokes the grant behind it. |
 | `USERINFO` | `true` (default) or `false`. Routes `/userinfo`. It is the one endpoint here that discloses only what the caller's own access token already carries, which is why it is the only surface on by default; the variable exists so a deployment that wants it gone has a way to say so. |
 | `ADMIN_API` | `true` or `false` (default). Routes `/admin/*` and advertises `users:read`, `users:write`, `roles:read` and `roles:write`. See below. |
-| `ADMIN_ROLES` | **Required when `ADMIN_API=true`** — the host refuses to start without it, naming the variable. The roles whose accounts may hold the administrative scopes, comma or space separated, matched ordinally and exactly. Unset with the admin API on, the answer to "who may administer the directory" is *anyone who can sign in*. Read by [`Boltway.AdminBff`](../Boltway.AdminBff/README.md) too, and the two are kept in step by hand. |
+| `ADMIN_ROLES` | **Required when `ADMIN_API=true`** - the host refuses to start without it, naming the variable. The roles whose accounts may hold the administrative scopes, comma or space separated, matched ordinally and exactly. Unset with the admin API on, the answer to "who may administer the directory" is *anyone who can sign in*. Read by [`Boltway.AdminBff`](../Boltway.AdminBff/README.md) too, and the two are kept in step by hand. |
 | `ADMIN_RESOURCE` | An override, not a setting to fill in. The admin API's resource URL is derived as `ISSUER` + `/admin` and registered with the scopes actually served; set this only for the deployment that puts the admin API on its own hostname (§1.4), and set the BFF's copy with it. |
 | `SELF_SERVICE` | `true` or `false` (default). Routes `/account/*` and advertises `users:self`. See below. |
-| `SELF_SERVICE_PAGES` | `true` or `false` (default). Routes `/me/*` — the browser pages. Advertises nothing; they use the session cookie. See below. |
+| `SELF_SERVICE_PAGES` | `true` or `false` (default). Routes `/me/*` - the browser pages. Advertises nothing; they use the session cookie. See below. |
 | `PASSWORD_RECOVERY` | `true` or `false` (default). Routes the reset-by-email flows, `E-39`–`E-44`. **Refused at startup without a sender.** See below. |
 | `SMTP_HOST` | Setting it registers the SMTP sender. Unset means this image sends no mail at all. |
-| `SMTP_PORT` | 587 by default — submission with STARTTLS. 25 is blocked outbound by most providers; 465 is implicit TLS, which this client does. |
+| `SMTP_PORT` | 587 by default - submission with STARTTLS. 25 is blocked outbound by most providers; 465 is implicit TLS, which this client does. |
 | `SMTP_SECURITY` | `auto` (default), `starttls`, `implicit` or `none`. `auto` reads the port, so a deployment that named its port has already answered this. **`none` sends `SMTP_PASSWORD` in the clear.** See below. |
 | `SMTP_USERNAME` · `SMTP_PASSWORD` | Optional, for a server that wants authentication. |
 | `SMTP_FROM` | **Required when `SMTP_HOST` is set.** The address mail comes from. |
 | `SMTP_FROM_NAME` | Optional display name beside it. |
-| `LOG_FORMAT` | `json` (default), `cloud-logging` or `simple`. Anything that is none of the three is refused at startup rather than resolved to the default — see below. |
+| `LOG_FORMAT` | `json` (default), `cloud-logging` or `simple`. Anything that is none of the three is refused at startup rather than resolved to the default - see below. |
 | `GOOGLE_CLOUD_PROJECT` | Optional, and **read only under `LOG_FORMAT=cloud-logging`**. Adds `logging.googleapis.com/trace` to every line, which is what makes a log entry click through to its request. Omitted rather than guessed when unset. |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | Optional. Unset means no exporter is created at all. Set, it exports traces, metrics **and logs** — see below. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Optional. Unset means no exporter is created at all. Set, it exports traces, metrics **and logs** - see below. |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | Optional, read by the exporter itself. `grpc` by default; set `http/protobuf` to match an endpoint given to you as an `https://` base URL. |
-| `OTEL_EXPORTER_OTLP_HEADERS` | Optional, read by the exporter itself. `Authorization=Basic <base64>` for a gateway that authenticates. **A credential — store it the way you store `SIGNING_KEYS`.** |
-| `UI_PRODUCT_NAME` | Optional. Appended to each page's `<title>`. Deliberately not a heading — see below. |
+| `OTEL_EXPORTER_OTLP_HEADERS` | Optional, read by the exporter itself. `Authorization=Basic <base64>` for a gateway that authenticates. **A credential - store it the way you store `SIGNING_KEYS`.** |
+| `UI_PRODUCT_NAME` | Optional. Appended to each page's `<title>`. Deliberately not a heading - see below. |
 | `UI_STYLESHEETS` | Space-separated absolute paths on this origin. Defaults to `/css/authorization.css`, the sheet in this image; set it to `""` for the bare unstyled pages. |
 | `UI_LOGO_PATH` | Optional. An absolute path on this origin, shown above the page. |
 | `UI_CSP_NONCE` | `true` adds a per-response nonce to `script-src` and `style-src`. Only needed by a replacement layout with inline script or style; the pages this image serves have neither. |
 | `UI_PROVIDERS_FIRST` | `true` puts the federated buttons above the password form. It reorders the markup rather than the stylesheet, so the tab order moves with them. |
-| `UI_DEFAULT_LOCALE` | The language the pages are served in when nothing else applies. `en` if unset. **Setting it on its own advertises that language and still serves English words** — it is the translations that supply the words. |
-| `UI_TRANSLATIONS_FILE` | Path to a JSON object of culture → key → sentence, the keys being the constants on `InteractionText`. Partial on purpose: anything left out falls back to English one string at a time. Prefer this to the variable — a translation is a document, and it is reviewed in a diff. |
+| `UI_DEFAULT_LOCALE` | The language the pages are served in when nothing else applies. `en` if unset. **Setting it on its own advertises that language and still serves English words** - it is the translations that supply the words. |
+| `UI_TRANSLATIONS_FILE` | Path to a JSON object of culture → key → sentence, the keys being the constants on `InteractionText`. Partial on purpose: anything left out falls back to English one string at a time. Prefer this to the variable - a translation is a document, and it is reviewed in a diff. |
 | `UI_TRANSLATIONS` | The same JSON inline, for a deployment with nowhere to mount a file. **Setting this and `UI_TRANSLATIONS_FILE` together is refused at startup**, rather than one of them silently winning. |
-| `NOTIFICATION_TEXT_FILE` | Path to a JSON object of property → sentence for the mail this server sends, the keys being the properties of `NotificationText`. Partial per property. One set per deployment rather than one per recipient — [`docs/LOCALIZATION.md`](../../docs/LOCALIZATION.md) says why. |
-| `NOTIFICATION_TEXT` | The same JSON inline. **Setting this and `NOTIFICATION_TEXT_FILE` together is refused at startup**, and so is a sentence carrying a placeholder the message does not supply — that one would otherwise surface as a reset mail that silently never arrives. |
+| `NOTIFICATION_TEXT_FILE` | Path to a JSON object of property → sentence for the mail this server sends, the keys being the properties of `NotificationText`. Partial per property. One set per deployment rather than one per recipient - [`docs/LOCALIZATION.md`](../../docs/LOCALIZATION.md) says why. |
+| `NOTIFICATION_TEXT` | The same JSON inline. **Setting this and `NOTIFICATION_TEXT_FILE` together is refused at startup**, and so is a sentence carrying a placeholder the message does not supply - that one would otherwise surface as a reset mail that silently never arrives. |
 | `BUILD_SHA` | The commit the image was built from, baked in by the `Dockerfile`'s build arg and returned by `/health`. Omitted rather than guessed when the image was built without it: a health endpoint inventing a version is worse than one that says it does not know. |
-| `BUILD_NUMBER` | The ordered half of `BUILD_SHA` — commits behind it on the first-parent chain. A sha identifies a build and orders nothing, so "prod serves 1230, main built 1234" needs this. A value that is not a whole number is omitted under the same rule. |
+| `BUILD_NUMBER` | The ordered half of `BUILD_SHA` - commits behind it on the first-parent chain. A sha identifies a build and orders nothing, so "prod serves 1230, main built 1234" needs this. A value that is not a whole number is omitted under the same rule. |
 
 ### The two account surfaces, and why each is a separate setting
 
-`ADMIN_API` serves `/admin/*` — list, create, patch, reset a password, end somebody's sessions,
+`ADMIN_API` serves `/admin/*` - list, create, patch, reset a password, end somebody's sessions,
 anonymise, and read the audit log. `SELF_SERVICE` serves `/account/*`, where a person reaches their
 own account and nothing else.
 
 **Both default to off, and both were unreachable before they were settings.** The endpoints were
 built and routed behind flags in the library, and this image set neither and offered nothing that
-could — the same defect `END_SESSION` turned out to be, found by looking for a second instance of
+could - the same defect `END_SESSION` turned out to be, found by looking for a second instance of
 it. An endpoint nothing can turn on is an endpoint nobody has.
 
 **Two settings rather than one**, because they are two decisions. The admin API is the highest-value
 target in the system: a flaw there is not a leaked document, it is the directory, and a deployment
 that manages accounts over ssh should not serve one at all. The self-service surface reaches exactly
-one account — the caller's — and a deployment can reasonably want it while wanting no admin API.
+one account - the caller's - and a deployment can reasonably want it while wanting no admin API.
 One flag would make that combination impossible.
 
 Turning either on also advertises the scopes it authorizes on, because a routed endpoint whose scope
@@ -96,14 +96,14 @@ holding. Startup refuses that configuration rather than serving it.
 
 `SELF_SERVICE_PAGES` serves the third surface: `/me`, `/me/password`, `/me/sessions` and
 `/me/consents`, which are the pages a person uses in a browser. They are cookie-authenticated with
-antiforgery and **refuse a bearer token**, which is the mirror image of the other two — `N-17` read
+antiforgery and **refuse a bearer token**, which is the mirror image of the other two - `N-17` read
 literally would mean a person changing their own password has to run an OAuth client, and the way
 out is a third prefix rather than a softened rule. They advertise no scope, because there is no
 token involved.
 
 They are drawn through `IInteractionRenderer`, so a deployment that replaced the look of `/login`
 and `/consent` gets these in the same look. A deployment that replaced the renderer *before* these
-existed keeps compiling and gets the library's unthemed pages for the ones it has not written —
+existed keeps compiling and gets the library's unthemed pages for the ones it has not written -
 they are default interface members.
 
 **Every string on every page is translatable except one.** `/error` shows the OAuth
@@ -114,7 +114,7 @@ is above it, translated, and chosen by what they can actually do about the refus
 
 `/me/consents` and `/me/sessions` both describe what a client may do with the same
 `SCOPE_DESCRIPTIONS` the consent page used, because a person agreed to "Read the knowledge base" and
-would not recognise `docs:read` as the same decision — and because they are two views of one
+would not recognise `docs:read` as the same decision - and because they are two views of one
 authorization, a click apart. A scope with no description configured is shown raw and flagged on
 every one of the three, which is `A-14` and is decided in one function rather than by each page.
 
@@ -125,13 +125,13 @@ Each page says so and links to the other.
 
 ### `PASSWORD_RECOVERY` needs somewhere for the mail to go, and is refused without it
 
-It routes seven things at once — `POST /account/password/forgot`, `/account/password/reset` and
+It routes seven things at once - `POST /account/password/forgot`, `/account/password/reset` and
 `/account/email/verify`, plus the `/reset` and `/verify-email` pages those links actually land on
 and the `/forgot` page a person asks from. Endpoints and pages ship together because `E-40` and
 `E-41` on their own are a design that mails somebody a URL answering 405.
 
 `/forgot` is also what the sign-in page's "I have forgotten my password" link points at, and that
-link appears **only when this flag is on** — the page is not routed otherwise, so an unconditional
+link appears **only when this flag is on** - the page is not routed otherwise, so an unconditional
 link would hand a 404 to the one person least able to recover from it. `E-39` answers JSON and is
 for a caller driving the flow programmatically; the page calls the same service in process, holds
 to the same `S-48` rule (one answer, whether or not an account matched) and is charged against the
@@ -145,7 +145,7 @@ sending through an API registers its own before `AddBoltwayAuthorizationServer` 
 `SMTP_HOST` unset.
 
 `SMTP_FROM` is required alongside `SMTP_HOST` and has no default this image could invent. Prefer a
-real, deliverable address to `no-reply@` — the reply to a password-reset mail is usually somebody
+real, deliverable address to `no-reply@` - the reply to a password-reset mail is usually somebody
 saying "this was not me", which is the most useful message a deployment can receive and the one
 `no-reply` throws away.
 
@@ -156,7 +156,7 @@ again is asking it to repeat itself into a second setting that can disagree with
 only for a server on a port that says nothing about its mechanism, or for a sidecar that wants
 `none`.
 
-The setting it replaced was `SMTP_STARTTLS`, and **that name is read by nothing now** — a compose
+The setting it replaced was `SMTP_STARTTLS`, and **that name is read by nothing now** - a compose
 file still carrying it configures nothing and is not warned about, because it is an environment
 variable this image never looks up. It had no setting that reached a provider offering implicit TLS
 and nothing else: on, you got STARTTLS on any port; off, you got plaintext. `SMTP_STARTTLS=false`
@@ -165,7 +165,7 @@ value here that puts `SMTP_PASSWORD` on the wire in the clear.
 
 **The words are English and plain text, and that is a placeholder.** `DefaultNotificationRenderer`
 has no branding and no signature, because a library cannot supply a product's voice. Register an
-`INotificationRenderer` to replace it — separate from the sender, so writing your own subjects does
+`INotificationRenderer` to replace it - separate from the sender, so writing your own subjects does
 not mean reimplementing a transport. Plain text is not a simplification either: a reset mail is what
 a phishing kit imitates, and a visible URL is one a person can read before following it.
 
@@ -173,7 +173,7 @@ a phishing kit imitates, and a visible URL is one a person can read before follo
 identically whether or not the account exists and does the same work either way (`S-48`), so the
 endpoint is not a way to test which addresses are registered. A link is single-use, expires in 15
 minutes, and **dies the moment the password changes by any route** including the CLI's
-`set-password` (`S-47`). Redeeming one revokes every session, unconditionally — somebody resetting
+`set-password` (`S-47`). Redeeming one revokes every session, unconditionally - somebody resetting
 through email is usually doing it because they lost control of something. And the endpoints are rate
 limited per submitted identifier and per source, because `E-39` sends mail to an address the caller
 chooses; like every limit here that is **per process**.
@@ -189,14 +189,14 @@ on by default because it discloses only what the caller's own token already carr
 here and off in the library because this image is the one a person signs in and out of.
 
 `RevocationEnabled` was the one with no variable, so `/revoke` could not be turned on from this
-image at all — the same shape as the defect below: a capability the library has that a deployment
+image at all - the same shape as the defect below: a capability the library has that a deployment
 running the container cannot reach. `REVOCATION` is that variable, and `USERINFO` is its mirror,
 because the only way to turn `/userinfo` *off* was also to stop using this image. Neither had a
 route, and an endpoint nothing can enable is an endpoint nobody has, whatever the library does.
 
 It had to become a setting for a plainer reason: **nothing in this image set the flag and there
 was no setting to set it with**, so the endpoint was unreachable from every deployment of it. The
-symptom was quiet — `/logout` answered 404 and `end_session_endpoint` was absent, which is a
+symptom was quiet - `/logout` answered 404 and `end_session_endpoint` was absent, which is a
 consistent pair and reads as a server that simply does not do sign-out. One deployment met it by
 translating the six sign-out strings into Vietnamese and finding no page to put them on.
 
@@ -209,7 +209,7 @@ front proxy or a client depends on the endpoint being absent.
 These settings are the lowest of Boltway's three UI tiers, and the one to reach for
 first: nothing here can touch the part of the consent page that says which host is asking and
 where the authorization code will be sent, so a deployment gets its own look without acquiring
-N-14. The two tiers above — `IInteractionLayout` and `IInteractionRenderer` — need code, and
+N-14. The two tiers above - `IInteractionLayout` and `IInteractionRenderer` - need code, and
 the repository `README.md` covers what each of them costs.
 
 **Every path must be an absolute path on this origin**, and a URL anywhere else is refused at
@@ -223,14 +223,14 @@ the page itself has to remain the client's hostname, which is what N-14 is about
 
 The stylesheet lives at `/app/wwwroot/css/authorization.css` in the image. A deployment with its
 own design mounts a volume over `/app/wwwroot/css` and points `UI_STYLESHEETS` at what it put
-there — no rebuild and no fork.
+there - no rebuild and no fork.
 
 ### `SQLITE_PATH` is for development, and the host says so at startup
 
 It used to read "a file, for a single instance". That was an offer this repository cannot keep: a
 single instance still serves concurrent requests, and **the SQLite provider does not currently meet
 the concurrent-redemption requirement.** Under concurrent load a redemption intermittently fails
-with `SQLite Error 1: 'cannot start a transaction within a transaction'` — measured, reproducible in
+with `SQLite Error 1: 'cannot start a transaction within a transaction'` - measured, reproducible in
 roughly a third of runs of the storage contract, one worker in sixteen, and undiagnosed. It is
 written up on `SqliteRelationalStoreBehavior`, where the two mechanisms once recorded as ruled out
 are corrected.
@@ -249,7 +249,7 @@ stands in front of this server rather than about this image. One if unset, which
 and nothing else; behind a CDN *and* a proxy it is `2`.
 
 Set too low, every request is attributed to the proxy's neighbour rather than to the client, and the
-**per-source login limit degrades to per-deployment** — one person's failed sign-ins throttle
+**per-source login limit degrades to per-deployment** - one person's failed sign-ins throttle
 everybody's. Set too high, a header the client supplied is believed. Neither shows up as an error,
 which is why a value that does not parse is refused at startup rather than clamped to the default: a
 number somebody typed is a topology they meant to describe.
@@ -257,7 +257,7 @@ number somebody typed is a topology they meant to describe.
 ### Logs
 
 Every line is JSON, with each of the log's named properties as its own field. A refusal arrives as
-`Reason`, `Surface`, `CorrelationId`, `RequirementId`, `Status` and `Error` — so *"how many
+`Reason`, `Surface`, `CorrelationId`, `RequirementId`, `Status` and `Error` - so *"how many
 `AccessTokenRejected` in the last hour, and did they all name the same `kid`"* is a query rather
 than a grep, which is what `RejectionResult` was built for and what a console provider that
 flattens it into a sentence undoes at the last step.
@@ -267,12 +267,12 @@ flattens it into a sentence undoes at the last step.
 | | |
 | --- | --- |
 | `json` | The framework's own `AddJsonConsole`. Structured, vendor-neutral, and right everywhere. The level is `LogLevel` and the text is `Message`. |
-| `cloud-logging` | The same fields under Google Cloud Logging's names — `severity`, `message`, and `logging.googleapis.com/trace` when `GOOGLE_CLOUD_PROJECT` is set. |
+| `cloud-logging` | The same fields under Google Cloud Logging's names - `severity`, `message`, and `logging.googleapis.com/trace` when `GOOGLE_CLOUD_PROJECT` is set. |
 | `simple` | The framework's human-readable console, for a terminal. Not structured. |
 
 **The names are not interchangeable, which is why this is a setting and not a guess.** Cloud
 Logging reads `severity` and `message`; hand it `LogLevel` and `Message` and it takes the structure
-and drops the severity — every line arrives at DEFAULT, and a page of errors reads like a page of
+and drops the severity - every line arrives at DEFAULT, and a page of errors reads like a page of
 chatter. That is why `cloud-logging` exists. It is not the default because the field names it emits
 are one vendor's, in an image this README offers to every deployment: installed unconditionally, a
 deployment running anything else got a payload shaped for a product it does not run, and no way
@@ -295,24 +295,24 @@ minute, which is how observability becomes the thing being diagnosed.
 
 Set it and three signals leave the process:
 
-- **Traces** — ASP.NET Core instrumentation, `/health` filtered out. Nothing hand-rolled:
+- **Traces** - ASP.NET Core instrumentation, `/health` filtered out. Nothing hand-rolled:
   `DESIGN.md` says "no custom tracing… no trace viewer or sampling policy".
-- **Metrics** — ASP.NET Core's own `http.server.request.duration`, plus the `Boltway.Auth`
+- **Metrics** - ASP.NET Core's own `http.server.request.duration`, plus the `Boltway.Auth`
   and `Boltway.Storage` meters. Two meters because
   `Boltway.Storage.EntityFrameworkCore` cannot reference the authorization server; the
   dependency runs the other way, and that is what lets storage be replaced.
-- **Logs** — every `ILogger` record, alongside the JSON already going to stdout.
+- **Logs** - every `ILogger` record, alongside the JSON already going to stdout.
 
 **The logs are new, and they turn on for a deployment that has set nothing but this one
-variable.** `UseOtlpExporter` enables all three signals, and logs — unlike metrics and traces —
+variable.** `UseOtlpExporter` enables all three signals, and logs - unlike metrics and traces -
 need no source or meter enabled first, so records start leaving the moment the endpoint is set.
 That is deliberate: Docker deletes a container's logs along with the container, so on a
 compose host every deploy takes with it the evidence of whatever it was fixing. If you want the
-other two signals and not this one, the endpoint variable is not the knob — use per-signal
+other two signals and not this one, the endpoint variable is not the knob - use per-signal
 `OTEL_EXPORTER_OTLP_*_ENDPOINT` variables and change this block back to per-signal exporters.
 
-`IncludeFormattedMessage` is set, and it has to be. It is `false` by default — measured against
-1.17.0 — and false means the exported body is the message template, `realm {Realm}`, with the
+`IncludeFormattedMessage` is set, and it has to be. It is `false` by default - measured against
+1.17.0 - and false means the exported body is the message template, `realm {Realm}`, with the
 values only in the attributes beside it.
 
 #### Pointing it at a vendor
@@ -330,21 +330,21 @@ The protocol is not optional decoration. The .NET exporter defaults to **gRPC**,
 base URL pasted in on its own is sent to the wrong transport.
 
 `UseOtlpExporter` appends `/v1/traces`, `/v1/metrics` and `/v1/logs` to that base URL. The
-per-signal `AddOtlpExporter` does not — upstream's README: *"the full URL MUST be provided,
-including the signal-specific path v1/{signal}"* — which is why this host uses the former.
+per-signal `AddOtlpExporter` does not - upstream's README: *"the full URL MUST be provided,
+including the signal-specific path v1/{signal}"* - which is why this host uses the former.
 Measured against a listener recording what it was called with: one base URL plus
 `http/protobuf` produced POSTs to all three paths, each carrying the `Authorization` header.
 
 Google's Telemetry API accepts OTLP at `https://telemetry.googleapis.com`, and per their
 documentation an in-process exporter must attach Application Default Credentials to reach it.
-**That auth header is not wired here** — `OTEL_EXPORTER_OTLP_HEADERS` carries a static header, not
-a refreshed ADC token — so pointing this variable straight at Google still needs a collector
+**That auth header is not wired here** - `OTEL_EXPORTER_OTLP_HEADERS` carries a static header, not
+a refreshed ADC token - so pointing this variable straight at Google still needs a collector
 configured with `googleclientauth`. Any gateway authenticated by a static header works as-is.
 
 ### `/userinfo`, and what it is for
 
 Advertised and routed together, on by default. An OIDC client that is not a resource server has no
-business reading an access token — it is not the audience — so a client that needs to know who
+business reading an access token - it is not the audience - so a client that needs to know who
 signed in has two channels: the ID token, and this.
 
 The ID token deliberately carries neither the address nor the role, because a client "has no
@@ -354,32 +354,32 @@ carries the role, so nothing is disclosed the caller was not already holding.
 
 | claim | when |
 | --- | --- |
-| `sub` | always — OIDC Core §5.3.2 |
+| `sub` | always - OIDC Core §5.3.2 |
 | `preferred_username` | always, if the account has a handle |
 | `email`, `email_verified` | with `email` |
-| `role` | always, if the account holds any — a JSON array, one element or several |
+| `role` | always, if the account holds any - a JSON array, one element or several |
 
 Neither `preferred_username` nor `role` is behind a scope, and that matches the access token,
 which already releases the handle ungated and gates only the address. The asymmetry is deliberate: an address is personal data the
 subject consents to release, while a role is what a client needs in order to decide what this person
 may do at all. Behind a scope, a client that forgot to ask gets a login that succeeds and grants
-nothing — which reaches a person as "my account is broken" rather than as a missing scope.
+nothing - which reaches a person as "my account is broken" rather than as a missing scope.
 
 Everything is read **from the directory, not from the token**. A token is a snapshot up to half an
 hour old, so a demotion would otherwise reach a client at the next token expiry rather than the next
 sign-in.
 
-Bearer only, like every other API here — `N-17`. Set `UserInfoEnabled` to false and the endpoint is
+Bearer only, like every other API here - `N-17`. Set `UserInfoEnabled` to false and the endpoint is
 neither routed nor advertised.
 
 ### What an access token says about the caller
 
-`iss`, `aud`, `sub`, `scope`, `client_id`, `gid`, `iat`, `exp`, `jti` — plus **`preferred_username`**,
+`iss`, `aud`, `sub`, `scope`, `client_id`, `gid`, `iat`, `exp`, `jti` - plus **`preferred_username`**,
 because this host calls `AddSubjectClaimsFromAccounts()`.
 
 Without that call the token names nobody. It is a correct library default: a resource server that
 only needs to know a request is authorised should not be handed a name. It is a bad *deployment*
-default, and the failure is silent — the connector this was built for had a whole attribution path,
+default, and the failure is silent - the connector this was built for had a whole attribution path,
 and every commit it made came out authored by `01KZAWCB5XY91G8N9XG84WR1EN` the moment it moved off
 static tokens. Nothing errored. The git history simply stopped naming people.
 
@@ -396,14 +396,14 @@ showed the user; an address is a way to reach them, so it is a thing they agree 
 page.
 
 None of this can restate a protocol claim. `JwtTokenMinter` refuses `sub`, `aud`, `scope` and the
-rest with an exception rather than a silent skip — which is what keeps the claims seam a
+rest with an exception rather than a silent skip - which is what keeps the claims seam a
 convenience rather than a way to mint a token for somebody else.
 
 ### A Google account is not an account here
 
 With `refuse`, a Google identity nobody has linked is turned away. That is the right default
 for a company that demos to prospects: under `provision`, anyone in the world holding an
-account at the configured upstream gets one here — including the prospect who clicks through
+account at the configured upstream gets one here - including the prospect who clicks through
 your demo and lands in your production directory.
 
 There is deliberately no match-by-email. Linking an upstream identity to an existing local
@@ -413,7 +413,7 @@ account. `email_verified` in somebody else's token is a claim about *their* user
 about yours.
 
 **What holds that up is who may call the lookup, not the absence of one.**
-`IUserStore.FindByVerifiedEmailAsync` exists — signing in with a verified address is a feature, and
+`IUserStore.FindByVerifiedEmailAsync` exists - signing in with a verified address is a feature, and
 the sign-in form needs exactly the lookup federation must not have. So the guard is
 `StructuralRuleTests.Only_the_sign_in_form_resolves_an_account_by_address`, which reads the IL for
 every caller of that method and fails the build on one outside a single named type.
@@ -439,7 +439,7 @@ database.
 … -- migrate
 
 # Create the first account. Nothing else here creates one: there is no registration
-# endpoint, and federated sign-in refuses an unknown identity by default — so without
+# endpoint, and federated sign-in refuses an unknown identity by default - so without
 # this the first deployment comes up healthy with no way in at all.
 … -- new-user ada ada@example.com founder
 
@@ -456,7 +456,7 @@ the shape where `new-user ada founder` silently creates an account whose email i
 ### Accounts, and where a role comes from
 
 **The first account is `new-user`, and there is no other way to get one.** With `ADMIN_API=true`,
-`POST /admin/users` creates accounts too — but reaching it needs a token from an account that
+`POST /admin/users` creates accounts too - but reaching it needs a token from an account that
 already holds a role in `ADMIN_ROLES`, so the bootstrap is this command whatever else is turned on.
 [`Boltway.AdminBff`](../Boltway.AdminBff/README.md) is the UI over that API, and it is a separate
 deployable: nothing on this server serves an admin page, because `N-17` refuses a cookie principal
@@ -464,63 +464,63 @@ on `/admin/*` and a page authenticated any other way would be the exception that
 
 There is still no registration endpoint and no match-by-email: no setting links an upstream identity
 to a local account because the addresses agree, and federated sign-in refuses an identity nobody has
-linked, by default. An upstream identity reaches an existing account exactly one way —
+linked, by default. An upstream identity reaches an existing account exactly one way -
 `POST /external/{scheme}/link`, submitted from a page that account is already signed in to.
 
 That used to rest on `IUserStore` having no method that finds an account by an address at all.
-It has one now — the sign-in form takes a verified address as well as a handle — so what holds the
+It has one now - the sign-in form takes a verified address as well as a handle - so what holds the
 rule up is that only the sign-in form may call it, checked in the IL by
 `StructuralRuleTests.Only_the_sign_in_form_resolves_an_account_by_address`.
 
 **Permissions come in two layers, and conflating them is the usual mistake.**
 
-*Scope* is what the **client** may ask for — `docs:read`, `docs:write`, `email`. It is shown on the
+*Scope* is what the **client** may ask for - `docs:read`, `docs:write`, `email`. It is shown on the
 consent screen, the subject approves it, and this server enforces it. That is an OAuth concept
 and it is fully built.
 
-*Role* is what the **person** is — `IReadOnlyList<string> Roles` on the account, emitted as the
+*Role* is what the **person** is - `IReadOnlyList<string> Roles` on the account, emitted as the
 `role` claim in the access token. This server never compares one to anything. `founder`, `admin`,
 `tier-2` are all the same to it; deciding what a role permits is the resource server's job, and
 a library that shipped a vocabulary would be shipping one customer's org chart to every other.
 
 The claim name is `role` because that is what `ResourceServerAuthenticator.FromClaims` reads by
 default. Those two live in assemblies with no compiler relationship between them, so the only
-thing holding them to the same string is a test — `An_access_token_carries_the_role`.
+thing holding them to the same string is a test - `An_access_token_carries_the_role`.
 
 **Multi-valued, and the claim is a JSON array even for one role.** It does not collapse to a
 string, because a consumer that branches on the JSON type to read a claim is one that reads it
-wrong the day somebody is given a second role — and that day is invisible from here. Assign with
+wrong the day somebody is given a second role - and that day is invisible from here. Assign with
 `set-roles`, which replaces the set rather than adding to it; `set-role` is the one-role spelling
 of the same thing, and `-` clears either.
 
 **What a resource server reading with `FindFirst` will see is the first role and no sign that
 there were others**, and that asymmetry is the thing to know before handing anybody a second role.
 An array claim arrives as one `Claim` per element, so `FindFirst` succeeds, returns one value, and
-drops the rest silently — no error, no empty result, just a caller who is `employee` and not
+drops the rest silently - no error, no empty result, just a caller who is `employee` and not
 `on-call`. `FromClaims` uses `FindAll` for exactly this reason. It is also why the roles were a
 single string for a year: widening the store while the only shipped consumer still read one value
 would have been a rule existing on one surface and not the other, so both halves moved in one
-change. **A deployment's own configuration counts as a consumer** — a proxy or a dashboard whose
+change. **A deployment's own configuration counts as a consumer** - a proxy or a dashboard whose
 role mapping matches on one value will pick whichever arrives first.
 
 Alongside it, `permissions`: what those roles stand for, resolved from the role table at mint time
-and space-separated like `scope`. Absent means this server publishes none — not that the caller
-holds none — so a resource server with its own role table falls back to it. A role the realm no
+and space-separated like `scope`. Absent means this server publishes none - not that the caller
+holds none - so a resource server with its own role table falls back to it. A role the realm no
 longer defines contributes nothing rather than failing the mint.
 
 **No groups, no tenants, no organizations.** An account is a subject, a handle, an address and
 whether it is verified, a password hash, a disabled-at and a set of roles. If a deployment needs
-group membership, the seam is `IAccessTokenClaims` — implement it against whatever holds the org
+group membership, the seam is `IAccessTokenClaims` - implement it against whatever holds the org
 chart and register it instead of `AddSubjectClaimsFromAccounts()`. Nothing in this server needs
 changing for that.
 
 **An account with no role gets a token with no `role` claim**, which a resource server answers
 with whatever it treats as least privileged. `new-user` says so when it creates one, because the
 alternative is discovering it as "nothing is readable" during a demo. `DEFAULT_ROLES` is how a
-deployment changes that answer for every path at once — a named role still wins outright, and the
+deployment changes that answer for every path at once - a named role still wins outright, and the
 two are never unioned.
 
-**Tokens already issued keep the old roles until they expire** — 30 minutes unless
+**Tokens already issued keep the old roles until they expire** - 30 minutes unless
 `ACCESS_TOKEN_LIFETIME` says otherwise. Roles are copied into the token at issue, not looked up per
 request, which is what makes the resource server able to validate offline.
 
@@ -537,7 +537,7 @@ All three steps are edits to one secret, because the ring stores each key's **st
 just its material:
 
 1. Add a second key with `"state":"pending"`. It appears in JWKS and signs nothing.
-2. Wait out the lead time — the discovery document is served `max-age=300` and clients cache
+2. Wait out the lead time - the discovery document is served `max-age=300` and clients cache
    with their own staleness window on top. A key that signs before every verifier has seen it
    produces signature errors nobody diagnoses as a timing problem.
 3. Flip the new key to `active` and the old one to `retiring`. Delete the old entry once every
@@ -548,13 +548,13 @@ just its material:
 There is no rotation scheduler in this image. `SigningKeyRing` models the states and
 `DurableSigningKeys` reads them out of the secret; advancing a key through them is the three edits
 above, made by a person. So a `kid` named for a month is a name and not a schedule, and a ring
-holding one key is a ring with no successor pending — which is what JWKS showing exactly one entry
+holding one key is a ring with no successor pending - which is what JWKS showing exactly one entry
 means, since `Pending` keys are published too.
 
 Two consequences. The first is that a key stays active until somebody moves it, however its `kid`
 reads. The second is the expensive one: **the failure mode is not rotation day, it is a rotation
 that skips step 2.** Adding a key straight to `"state":"active"` is the case
-[`docs/CAPABILITIES.md`](../../docs/CAPABILITIES.md) records as having no cover —
+[`docs/CAPABILITIES.md`](../../docs/CAPABILITIES.md) records as having no cover -
 `ProtectedResourceOptions.SigningKeySource` is synchronous and on the request path, so
 `JwksKeySource` cannot react to a token naming a `kid` it has not seen. It serves the stale snapshot
 instead, and every token signed by the new key is rejected as a bad signature until each resource
@@ -574,37 +574,37 @@ a default that is right for everyone, which is why none of them has one.
 
 | | What to do | Why, and what it costs to skip |
 |---|---|---|
-| 1 | **Durable storage.** `AddBoltwayPostgreSqlStores`, and migrate as a deploy step | With the in-memory stores a restart loses every refresh token (users re-authorize), every consent record (users are asked again), and any authorization in flight. Two replicas share none of it. Not the SQLite one — it is a development provider and [the reason is above](../../docs/CAPABILITIES.md#not-built-yet) |
+| 1 | **Durable storage.** `AddBoltwayPostgreSqlStores`, and migrate as a deploy step | With the in-memory stores a restart loses every refresh token (users re-authorize), every consent record (users are asked again), and any authorization in flight. Two replicas share none of it. Not the SQLite one - it is a development provider and [the reason is above](../../docs/CAPABILITIES.md#not-built-yet) |
 | 2 | **A real signing key, with rotation.** Generate it outside the process, keep it across restarts, share it between replicas | `SigningKeyRing` models Pending → Active → Retiring: publish a key for at least `PublishLeadTime` (default 24h, floor 10 minutes) before it signs, and keep a retiring key published for at least one access-token lifetime after it stops. A key that signs before verifiers have seen its `kid` produces signature failures nobody diagnoses as a timing problem |
-| 3 | **A durable replay store if you offer `private_key_jwt`** | `AddBoltwayPostgreSqlStores` registers one. The in-memory implementation is not a weaker version of it here the way it is for grants and consents — it is a per-process set, so *n* replicas admit *n* uses of one captured assertion, and nothing about that is visible from outside. Startup refuses the method with no store at all; it cannot tell a shared store from a per-process one |
-| 4 | **A key source on every resource server, not a hand-filled list.** `JwksKeySource.CurrentKeys` assigned to `ProtectedResourceOptions.SigningKeySource`, or `AddJwksSigningKeys(issuer)` from `Boltway.ResourceServer`, which does that and primes it at startup | A host that fills `SigningKeys` by hand is a host whose rotation day is an outage, and item 2 guarantees there will be one. Keep `JwksKeySourceOptions.CacheLifetime` below the server's `PublishLeadTime` — the defaults, five minutes against a ten-minute floor, already are — and leave `AllowPrivateAddresses` clear on the client you hand it |
-| 5 | **`RefreshTokenDerivationKey` stable across restarts and instances.** At least 32 bytes | Worth as much as every refresh token this server will ever issue, so store it where the signing keys live. A per-process key makes the refresh grace window work only when two racing requests land on the same node — which looks like flakiness rather than a bug |
+| 3 | **A durable replay store if you offer `private_key_jwt`** | `AddBoltwayPostgreSqlStores` registers one. The in-memory implementation is not a weaker version of it here the way it is for grants and consents - it is a per-process set, so *n* replicas admit *n* uses of one captured assertion, and nothing about that is visible from outside. Startup refuses the method with no store at all; it cannot tell a shared store from a per-process one |
+| 4 | **A key source on every resource server, not a hand-filled list.** `JwksKeySource.CurrentKeys` assigned to `ProtectedResourceOptions.SigningKeySource`, or `AddJwksSigningKeys(issuer)` from `Boltway.ResourceServer`, which does that and primes it at startup | A host that fills `SigningKeys` by hand is a host whose rotation day is an outage, and item 2 guarantees there will be one. Keep `JwksKeySourceOptions.CacheLifetime` below the server's `PublishLeadTime` - the defaults, five minutes against a ten-minute floor, already are - and leave `AllowPrivateAddresses` clear on the client you hand it |
+| 5 | **`RefreshTokenDerivationKey` stable across restarts and instances.** At least 32 bytes | Worth as much as every refresh token this server will ever issue, so store it where the signing keys live. A per-process key makes the refresh grace window work only when two racing requests land on the same node - which looks like flakiness rather than a bug |
 | 6 | **TLS and HSTS** | The issuer must be `https`, path-less, and with no trailing slash. It is compared byte for byte by every client |
-| 7 | **`ForwardedHeaders` behind a proxy** | So the scheme and client address are the real ones. The issuer itself is never derived from the request, so a misconfigured proxy will not corrupt it — but cookie `Secure` policy and logging both depend on getting this right |
-| 8 | **Decide whether the per-process rate limits are enough**, and set `LoginThrottleOptions.ClientKey` if your proxy does not populate `RemoteIpAddress` | `/authorize`'s CIMD fetch and `POST /login` are bounded per process — `docs/DESIGN.md` §4.1, and [Before the second replica](#before-the-second-replica) for everything else that is per process. `/token` is not bounded at all. Without `ClientKey`, every user shares one per-source bucket and thirty attempts across all of them exhausts it |
-| 9 | **`AllowPrivateAddresses` clear** | It disables the RFC 6890 special-use address check *entirely*, which turns `/authorize` into an unauthenticated port scanner. `AddCimdClientResolver` refuses to build such a fetcher outside `Development` — but measured, that refusal happens when the fetcher is first resolved, on the first `/authorize`, **not at startup**. The host binds and serves discovery first, then fails on the first client |
-| 10 | **Name the meters, and alert on one of them.** `AuthorizationServerMetrics.MeterName`, `StorageMetrics.MeterName`, and on a resource server `ResourceServerMetrics.MeterName` | Nothing is published unless the host calls `AddMeter`, and an unnamed meter is not an error — it is silence that looks like a healthy system. The one alert to build first is `failed_open` on the revocation check, because `IntrospectionRevocationCheck` fails **open**: [Alerting on revocation](#alerting-on-revocation) has the expression and the one `reason` that deserves its own alert rather than a threshold |
-| 11 | **Run the doctor** against the configuration you would actually start with — `docker run --rm --env-file .env ghcr.io/<owner>/boltway-auth doctor`, or `ConfigurationDoctor.Run(options, keyRing)` hosting the library yourself | It prints every check rather than stopping at the first, exits non-zero on any `Fail`, and distinguishes `NotMeasured` from `Pass` — a check that could not run is never rendered green. `Warn` does not fail the exit code: telling "wrong" from "worth a look" is the job, and collapsing the two makes it a thing people stop running |
+| 7 | **`ForwardedHeaders` behind a proxy** | So the scheme and client address are the real ones. The issuer itself is never derived from the request, so a misconfigured proxy will not corrupt it - but cookie `Secure` policy and logging both depend on getting this right |
+| 8 | **Decide whether the per-process rate limits are enough**, and set `LoginThrottleOptions.ClientKey` if your proxy does not populate `RemoteIpAddress` | `/authorize`'s CIMD fetch and `POST /login` are bounded per process - `docs/DESIGN.md` §4.1, and [Before the second replica](#before-the-second-replica) for everything else that is per process. `/token` is not bounded at all. Without `ClientKey`, every user shares one per-source bucket and thirty attempts across all of them exhausts it |
+| 9 | **`AllowPrivateAddresses` clear** | It disables the RFC 6890 special-use address check *entirely*, which turns `/authorize` into an unauthenticated port scanner. `AddCimdClientResolver` refuses to build such a fetcher outside `Development` - but measured, that refusal happens when the fetcher is first resolved, on the first `/authorize`, **not at startup**. The host binds and serves discovery first, then fails on the first client |
+| 10 | **Name the meters, and alert on one of them.** `AuthorizationServerMetrics.MeterName`, `StorageMetrics.MeterName`, and on a resource server `ResourceServerMetrics.MeterName` | Nothing is published unless the host calls `AddMeter`, and an unnamed meter is not an error - it is silence that looks like a healthy system. The one alert to build first is `failed_open` on the revocation check, because `IntrospectionRevocationCheck` fails **open**: [Alerting on revocation](#alerting-on-revocation) has the expression and the one `reason` that deserves its own alert rather than a threshold |
+| 11 | **Run the doctor** against the configuration you would actually start with - `docker run --rm --env-file .env ghcr.io/<owner>/boltway-auth doctor`, or `ConfigurationDoctor.Run(options, keyRing)` hosting the library yourself | It prints every check rather than stopping at the first, exits non-zero on any `Fail`, and distinguishes `NotMeasured` from `Pass` - a check that could not run is never rendered green. `Warn` does not fail the exit code: telling "wrong" from "worth a look" is the job, and collapsing the two makes it a thing people stop running |
 | 12 | **Check what your discovery document promises.** Every URL in it should answer | That is the one failure mode this project has paid for most often, and the reason N-06 is the rule cited most in this repository |
 
 ## Before the second replica
 
 **One replica is the configuration everything below is correct in.** Nothing here is a bug at *n* = 1
 and every item changes meaning at *n* = 2, so this is the list to read on the day somebody scales the
-deployment out — which is a day nobody plans as a protocol change.
+deployment out - which is a day nobody plans as a protocol change.
 
 The facts were already written down, each beside the thing it describes: `LoginThrottle` says a
 second instance enforces twice its numbers, `CimdClientResolver` says everything it keeps is per
 process, `ClientKeySource` says the same, and so on. Eleven files, each locally honest, and nowhere
-to look on the day it matters — which is how the first draft of the table below came to be missing
+to look on the day it matters - which is how the first draft of the table below came to be missing
 `RecoveryThrottle`. A single-instance deployment makes the answer today *nothing to do*; the point
 of the table is that the answer is written down before that changes.
 
 | Per process | *n* replicas cost | What to do |
 |---|---|---|
-| **Client-assertion replay store**, when it is the in-memory one | **The property, not a bound.** Each replica holds its own set, so one captured assertion authenticates once *per replica* | Use `AddBoltwayPostgreSqlStores`. This is the only row where *n* > 1 breaks a security guarantee rather than loosening a budget, and startup cannot detect it — it checks that a store is registered, not that it is shared |
+| **Client-assertion replay store**, when it is the in-memory one | **The property, not a bound.** Each replica holds its own set, so one captured assertion authenticates once *per replica* | Use `AddBoltwayPostgreSqlStores`. This is the only row where *n* > 1 breaks a security guarantee rather than loosening a budget, and startup cannot detect it - it checks that a store is registered, not that it is shared |
 | `POST /login` throttle | *n* × the attempts before backoff, per account and per source | Accept, or put a shared limiter in front. Note `LoginThrottleOptions.ClientKey` if the proxy does not populate `RemoteIpAddress` |
-| `/forgot` recovery throttle, when `PasswordRecoveryEnabled` is on | *n* × the reset mail one address can be made to receive — the abuse here is aimed at a person's mailbox rather than at this server | Accept, or front it. Off by default, so this row applies only to a deployment that turned the flow on |
+| `/forgot` recovery throttle, when `PasswordRecoveryEnabled` is on | *n* × the reset mail one address can be made to receive - the abuse here is aimed at a person's mailbox rather than at this server | Accept, or front it. Off by default, so this row applies only to a deployment that turned the flow on |
 | `/authorize`'s CIMD fetch budget and its negative-result breaker | *n* × the outbound fetches one `client_id` can provoke | Accept: the per-host limiter below is the bound that protects the stranger |
 | `SafeHttpFetcher` per-host budget (60/min) | *n* × 60/min against any one origin | Accept, or front it. LESSONS #9's conduct point lives here |
 | `ClientKeySource` cache and its unknown-`kid` refresh floor | *n* × the refetch rate against a client's `jwks_uri`; *n* independent staleness windows | Accept |
@@ -615,13 +615,13 @@ of the table is that the answer is written down before that changes.
 
 **Three things are not on this list because the production checklist already forces them**: durable
 storage, a signing key shared between replicas, and a `RefreshTokenDerivationKey` that is stable
-across instances. A per-process derivation key does not fail loudly — it makes the refresh grace
+across instances. A per-process derivation key does not fail loudly - it makes the refresh grace
 window work only when two racing requests land on the same node, which presents as flakiness.
 
 ## Alerting on revocation
 
-`IntrospectionRevocationCheck` — how a resource server finds out that a grant behind a still-valid
-access token has been revoked — **fails open**. When it cannot reach this server, the request is
+`IntrospectionRevocationCheck` - how a resource server finds out that a grant behind a still-valid
+access token has been revoked - **fails open**. When it cannot reach this server, the request is
 allowed through and a warning is logged.
 
 That is the right default: failing closed would turn one server's outage into an outage for every
@@ -637,7 +637,7 @@ failed_open / (live + revoked + failed_open)
 ```
 
 **`outcome="cached"` is excluded on purpose.** Including it makes the denominator a cache hit rate,
-and the number then moves with traffic rather than with reliability — busy periods would look
+and the number then moves with traffic rather than with reliability - busy periods would look
 healthier than quiet ones for no reason connected to whether revocation works.
 
 **One `reason` deserves its own alert rather than a threshold.** `credential_rejected` is this
@@ -646,7 +646,7 @@ improve with a retry, and it presents as revocation quietly doing nothing foreve
 threshold tuned for network trouble will not fire on it quickly, because it is 100% from the first
 request and stays there.
 
-The meter is off until the host names it — `AddMeter(ResourceServerMetrics.MeterName)` — and an
+The meter is off until the host names it - `AddMeter(ResourceServerMetrics.MeterName)` - and an
 unnamed meter is not an error. It is silence that looks like a healthy system, which is the failure
 this whole section is about, one layer down.
 
@@ -662,7 +662,7 @@ GET /.well-known/jwks.json    kid=[2026-08]  n=oUEga_ROJCYxhdrl…   ← same ke
 
 That last line is the whole reason this host exists.
 
-And the whole flow, against this host, with the `client_id` Claude publishes — dereferenced over
+And the whole flow, against this host, with the `client_id` Claude publishes - dereferenced over
 the network by the server, not stubbed:
 
 ```
@@ -678,7 +678,7 @@ POST /token       → 200  scope="email docs:read docs:write offline_access"
 POST /token       grant_type=refresh_token → same preferred_username, same email
 ```
 
-`email_verified` is `false` because `new-user` does not verify an address and nothing else has —
+`email_verified` is `false` because `new-user` does not verify an address and nothing else has -
 which is the honest answer, and the reason the claim ships beside the address rather than instead
 of it.
 

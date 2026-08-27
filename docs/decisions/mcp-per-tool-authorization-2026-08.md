@@ -1,11 +1,11 @@
-# Per-tool authorization for MCP connectors — the endpoint gate does not reach a tool
+# Per-tool authorization for MCP connectors - the endpoint gate does not reach a tool
 
 **Date:** 2026-08-25 · **Status:** every item closed; §2.4 closed as *cannot be done*, with the measurement · **Scope:** `Boltway.Mcp`, `Boltway.ResourceServer`
 
 > **Why this sits in `docs/decisions/` while most of its items are still open.** The convention in
 > [`../README.md`](../README.md) warns that a gap list read as a to-do list is how a server that
 > does one job becomes one that does none of them well. What is recorded here as *decided* is the
-> shape, the ordering, and §3 — *won't do, and the reasons matter more than the list*. What is
+> shape, the ordering, and §3 - *won't do, and the reasons matter more than the list*. What is
 > recorded as *open* carries the trigger that closes it, the way conditional revalidation stays open
 > in [`protocol-surface-gaps-2026-08.md`](protocol-surface-gaps-2026-08.md) §3.2. §1 was a
 > measurement rather than a task; it has been taken, and §2.4 is no longer waiting on anything.
@@ -42,7 +42,7 @@ built on it has already paid for the difference in production. The class-level `
 app.MapMcp("/mcp").RequireScope("docs:read");   // what makes the gate apply
 ```
 
-Read on its own — which is how a consumer reads a class summary — that sentence says the gate is
+Read on its own - which is how a consumer reads a class summary - that sentence says the gate is
 applied. It is not, and §2.1 is what the line costs beyond leaving tools ungated.
 
 **Confidence.** Every claim about this repository is `measured`, by reading it, with file and symbol
@@ -57,7 +57,7 @@ applies in every direction.
 
 ---
 
-## 1. The measurement that came before §2.4 — **answered 2026-08-25**
+## 1. The measurement that came before §2.4 - **answered 2026-08-25**
 
 `spec/REQUIREMENTS.md` carries two rows that cannot both be simply true.
 
@@ -67,7 +67,7 @@ applies in every direction.
 
 **C-25**, on the 401 handshake, records a measurement:
 
-> `401` is **required** — "Claude does not honor a `WWW-Authenticate` header on a `200` response". A
+> `401` is **required** - "Claude does not honor a `WWW-Authenticate` header on a `200` response". A
 > `200` + `isError:true` produces **no auth prompt at all**
 
 A tool-level refusal rides inside a JSON-RPC result, and that result is carried by an HTTP `200`.
@@ -87,7 +87,7 @@ Measured that day:
 - `_meta["mcp/www_authenticate"]` is **SEP-1489**, *Tool Error Responses for Triggering OAuth
   Flows*, and it is in **Draft** status with a sponsor. It names no target revision and reports no
   client adoption.
-- The substring `authenticat` — any casing, any position — occurs **zero times** in the
+- The substring `authenticat` - any casing, any position - occurs **zero times** in the
   `2025-11-25` schema and **zero times** in the `draft` schema the `2026-07-28` release candidate is
   cut from. Neither defines any `mcp/…` `_meta` key.
 
@@ -98,24 +98,24 @@ client to read. There is no mechanism there to honour yet.
 **This is the `no` branch, and it selects the design:** a per-tool refusal that wants to be
 actionable must reach the client as an HTTP `401`/`403` challenge, not as a field inside a `200`.
 `BearerChallenge` already writes that challenge, and getting it wrong is expensive in the way its
-own remarks describe — a `403` without `error="insufficient_scope"` is terminal for that client, for
+own remarks describe - a `403` without `error="insufficient_scope"` is terminal for that client, for
 that user and that server, with no re-authentication prompt, permanently.
 
 `REQUIREMENTS.md` C-24's MCP column moved in the same commit as the capture: it asserted a
 mechanism, and it now says what that field actually is and points at the file. No `U-*` entry was
-allocated, because the question is answered rather than unresolved — and a `U-*` row for a settled
+allocated, because the question is answered rather than unresolved - and a `U-*` row for a settled
 question is the same defect one column over.
 
 **What is still not measured** is whether some client honours the draft anyway. Nothing here drove a
 live client against a server emitting the field, and nothing here says one refuses it. The claim is
-narrower and sufficient: no client is *obliged* to. If SEP-1489 lands, §2.4 is worth reopening — a
+narrower and sufficient: no client is *obliged* to. If SEP-1489 lands, §2.4 is worth reopening - a
 tool-level channel is the better one when it exists, because it does not cost the JSON-RPC reply.
 
 ---
 
 ## 2. The gaps, ranked
 
-### 2.1 The documented example instructs every client to ask for too little — **done 2026-08-25, in 0.3.0**
+### 2.1 The documented example instructs every client to ask for too little - **done 2026-08-25, in 0.3.0**
 
 `RequireScope` declares **two** things, and the second is the one nobody expects.
 `RequiredScopeMetadata`'s own remarks are accurate about it:
@@ -127,12 +127,12 @@ tool-level channel is the better one when it exists, because it does not cost th
 > a minimal grant and one that does not gets everything.
 
 *A minimal grant* is the intended reading when an endpoint's scopes are its tools' scopes. On an MCP
-endpoint they are not, because every tool is behind one route — so the declaration silently becomes
+endpoint they are not, because every tool is behind one route - so the declaration silently becomes
 an instruction to every client about what to request, for the whole server.
 
 **What that cost, on a connector built on this library.** A read scope was declared on the MCP
 endpoint. The write scope was declared in the host, advertised in both RFC 9728 documents, shown on
-the consent screen, and enforced in the tools — every part correct on its own. But the challenge
+the consent screen, and enforced in the tools - every part correct on its own. But the challenge
 named only the read scope, so every client asked for only that, consent never offered the write
 scope, and no token that server minted ever carried it. Nothing reported it: reads worked, the
 health endpoint was green, and the deployment's own verification script printed that its scopes
@@ -149,7 +149,7 @@ resource's whole `ScopesSupported`, which is what lets a client ask for what the
 need. That connector now maps its MCP endpoint with `RequireBearer()` and gates scopes in the tools.
 
 **Decided.** The example on `ResourceServerAuthenticator` becomes `RequireBearer()`, and carries the
-reason rather than only the call — a consumer who copies a line without the paragraph is the case
+reason rather than only the call - a consumer who copies a line without the paragraph is the case
 this item exists for. `RequiredScopeMetadata`'s remarks are already correct and stay; the problem is
 that a reader reaches them only after copying the wrong example.
 
@@ -158,12 +158,12 @@ diagnostic would have to compare an endpoint's `RequiredScopeMetadata` against t
 advertised set, and `ProtectedResource` is `internal sealed` in `Boltway.ResourceServer` with
 `ScopesSupported` internal to it and `InternalsVisibleTo` granted to that package's own tests and
 nothing else. So `Boltway.Mcp` cannot see the advertised scopes at all. Making it able to is a
-deliberate widening of `Boltway.ResourceServer`'s public surface, not an addition — which is why
+deliberate widening of `Boltway.ResourceServer`'s public surface, not an addition - which is why
 this was a design question rather than a line, and the reason is now recorded instead of restated.
 
 Two things were done instead. `StructuralRuleTests.No_shipped_example_declares_a_required_scope_on_an_mcp_route`
 fails the build if any file under `src/`, `samples/`, `hosts/` or `testing/` puts `MapMcp` and
-`RequireScope` on one line, so the sample cannot come back — it is red against the example this item
+`RequireScope` on one line, so the sample cannot come back - it is red against the example this item
 replaced, which is how it was checked. And the correction says, at all four sites a reader reaches,
 what the consumer-side guard is: **a host-level test asserting that every scope the deployment
 advertises is named in its challenge.** That is what caught it where it happened, it asserts the
@@ -173,14 +173,14 @@ Worth reopening only if `Boltway.ResourceServer` grows a public read of the adve
 other reason. Adding one *for* this would be surface bought to catch a mistake the docs and the
 build rule now cover.
 
-### 2.2 A scope claim's absence is indistinguishable from its emptiness — **done 2026-08-25, in 0.3.0**
+### 2.2 A scope claim's absence is indistinguishable from its emptiness - **done 2026-08-25, in 0.3.0**
 
 `CallerPrincipal.Scopes` collapses three states into one empty set:
 
 | The token | What the connector should do |
 |---|---|
-| carried no `scope` claim | fall back — the server publishes no scopes, and the connector's own table answers |
-| carried a `scope` claim that granted nothing | refuse — the token was written to grant nothing |
+| carried no `scope` claim | fall back - the server publishes no scopes, and the connector's own table answers |
+| carried a `scope` claim that granted nothing | refuse - the token was written to grant nothing |
 | carried a `scope` claim this library could not parse | neither of the above, and certainly not the first |
 
 `ResourceServerAuthenticator.FromClaims` yields the empty set for all three. The third is not
@@ -188,8 +188,8 @@ hypothetical: `ScopeSet.TryParse` rejects a claim **whole** when it carries any 
 RFC 6749's scope-token set, so one stray character produces the same empty set as no claim at all.
 
 A connector reading that has to pick a fallback, and the first two states want opposite ones. Picking
-*fall back* — the reading `CallerPrincipal.Permissions` already documents for permissions, and the
-one that keeps a static-token deployment working — means a **malformed scope claim grants more than
+*fall back* - the reading `CallerPrincipal.Permissions` already documents for permissions, and the
+one that keeps a static-token deployment working - means a **malformed scope claim grants more than
 the token said**. That is the dangerous direction, and it is the direction the documented reading
 points.
 
@@ -204,30 +204,30 @@ it and `CallerPrincipal.Grants(scope)` is the read: `true`, `false`, or `null` w
 to judge by.
 
 **The nullable return is the mechanism, not the ergonomics.** `bool?` does not convert to `bool`, so
-`if (!caller.Grants("x"))` does not compile — the third case cannot be folded into either of the
+`if (!caller.Grants("x"))` does not compile - the third case cannot be folded into either of the
 others by accident. Same move as `AccessTokenDescriptor.Audience` and N-01: a rule that stops being a
 rule and becomes a fact about the type system. `Unreadable` answers `false` rather than `null`,
 which is the whole point.
 
 `Scopes` is untouched and still empty in all three cases, so nothing compiled against the older shape
 changes behaviour; the pack validated additive against the 0.2.0 baseline with no `CP0002`. The
-static-token path reports `Absent` rather than `Unknown` — it *knows* there is no authorization
+static-token path reports `Absent` rather than `Unknown` - it *knows* there is no authorization
 server, and saying so is what keeps a connector that gates on scopes working there.
 
 Verified: solution build 0 warnings, 2716 tests across 15 suites green including PostgreSQL and the
-architecture scan, and the new rule bites — restoring the fail-open (`Unreadable` answering `null`)
+architecture scan, and the new rule bites - restoring the fail-open (`Unreadable` answering `null`)
 turns exactly one test red, the one named for it.
 
-### 2.3 `CallerPrincipal` does not name the audit identity tuple — **done 2026-08-25, in 0.3.0**
+### 2.3 `CallerPrincipal` does not name the audit identity tuple - **done 2026-08-25, in 0.3.0**
 
 `CallerPrincipal` carries `Actor`, `Email`, `Roles`, `Permissions`, `Scopes`, `DownstreamToken` and
 `Claims`. A connector writing an audit trail needs the calling client and a stable handle for the
-authorization it is acting under. Both are in the token — `JwtTokenMinter.MintAccessToken` emits
+authorization it is acting under. Both are in the token - `JwtTokenMinter.MintAccessToken` emits
 `client_id`, `jti` and `gid`, and `AccessTokenDescriptor` documents `gid` as *"our own grant
-identifier"* — and both are reachable only as string lookups into `Claims`.
+identifier"* - and both are reachable only as string lookups into `Claims`.
 
 That is the wrong side of the seam. `IConnectorAuthenticator` is *"deliberately the whole
-interface"*, and `BearerAuthenticator` — this library's own static-token implementation — has
+interface"*, and `BearerAuthenticator` - this library's own static-token implementation - has
 nothing to put in a dictionary key it was never told about. The result is every connector inventing
 its own key strings, and the abstraction being shaped by whichever implementation was written first.
 Measured: a connector on this library reads `Claims["client_id"]` by hand for exactly this.
@@ -237,7 +237,7 @@ Measured: a connector on this library reads `Claims["client_id"]` by hand for ex
 | Property | Claim | Why it is separate |
 |---|---|---|
 | `ClientId` | `client_id` | Which client, as distinct from which person |
-| `TokenId` | `jti` | Identifies one token. Changes on every refresh — `TokenIssuer` mints it as a fresh `Guid` per token |
+| `TokenId` | `jti` | Identifies one token. Changes on every refresh - `TokenIssuer` mints it as a fresh `Guid` per token |
 | `GrantId` | `gid` | Stable across a whole refresh family. The grouping key an audit trail actually wants |
 
 `TokenId` and `GrantId` are both present because they answer different questions and are trivially
@@ -250,24 +250,24 @@ rather than a model, so mapping one to another would be `assumed` recorded as `m
 casing, trimming or URL normalisation here would silently rewrite what a consumer's history means.
 
 `required` would break every existing consumer's initializer, so these are additive, and null means
-*the authenticator did not learn one* — the reading `Permissions` and `Scopes` already carry, and the
+*the authenticator did not learn one* - the reading `Permissions` and `Scopes` already carry, and the
 rule `Email` states: an invented value cannot be told from a real one, so guessing costs the trail
 its worth on every entry rather than only the guessed one.
 
 **No new parameter on `FromClaims`.** `client_id` and `jti` are RFC 9068 §2.2 claim names and not a
 deployment's to rename. `gid` is this project's own, so an authorization server that names it
-differently is a real case — but adding a fourth optional parameter changes the method's signature
+differently is a real case - but adding a fourth optional parameter changes the method's signature
 in metadata, which is a binary break the pack would flag. The escape already exists and is already
 documented: the `ResourceServerAuthenticator` constructor takes the whole mapping.
 
-**Done, and `ConnectorCaller` gained `Scopes` and `Grants` with it** — the shorthand set named
+**Done, and `ConnectorCaller` gained `Scopes` and `Grants` with it** - the shorthand set named
 everything except what a tool gate reads, and after §2.2 the one worth calling is `Grants`.
 
-Verified: build 0 warnings, full suite green, pack clean at 0.3.0 with no `CP0002`. The rules bite —
+Verified: build 0 warnings, full suite green, pack clean at 0.3.0 with no `CP0002`. The rules bite -
 lowercasing `ClientId` reddens `The_client_id_is_verbatim`, and crossing the two claims reddens
 `The_token_id_and_the_grant_id_do_not_swap`.
 
-### 2.4 A refusal that cannot carry a challenge — **closed 2026-08-25: it cannot, on either channel**
+### 2.4 A refusal that cannot carry a challenge - **closed 2026-08-25: it cannot, on either channel**
 
 A connector that gates a tool on a scope has no way to tell the caller *which scope would fix it*,
 in a form the caller can act on. Two mechanisms exist here and neither is reachable.
@@ -288,13 +288,13 @@ a role refusal does not. Today that distinction reaches nobody.
 the HTTP one. Building that closed the second door, and the measurement is in §4 of
 [`../../spec/mcp-tool-challenge-2026-08-25.md`](../../spec/mcp-tool-challenge-2026-08-25.md):
 
-- Streamable HTTP refuses a client that will not accept `text/event-stream` — `406`, outright — so
+- Streamable HTTP refuses a client that will not accept `text/event-stream` - `406`, outright - so
   there is no buffered-JSON arrangement in which the response is still open. `HttpServerTransportOptions`
   offers no server-side switch for one either.
 - By the time an `AddCallToolFilter` runs, `Response.HasStarted` is **true** and the status line
   `200` is already on the wire. The `HttpContext` is reachable; the response has moved on.
 
-So a per-tool refusal cannot be a `401` or `403`. Not "hard" — the status was sent before the tool
+So a per-tool refusal cannot be a `401` or `403`. Not "hard" - the status was sent before the tool
 was chosen.
 
 **Which means the public seam this item existed to justify is not built.** `BearerChallenge` stays
@@ -304,13 +304,13 @@ warns about, arrived at from the other direction.
 
 **What shipped instead** is the honest half: `InsufficientScopeException`, a sealed
 `ConnectorToolException` carrying every scope the operation needs and the `insufficient_scope` code.
-It is a sentence in a tool result and nothing more — worse than a challenge, better than a bare
+It is a sentence in a tool result and nothing more - worse than a challenge, better than a bare
 refusal, and it says which it is rather than implying the other. Sharing the type is what keeps a
 scope refusal (which re-authorizing fixes) distinguishable from a role refusal (which it does not)
 across connectors instead of each inventing the distinction.
 
 `ToolRefusalReachTests` pins both measurements as tests. If a future SDK buffers the response, or a
-future revision adopts SEP-1489, one goes red — which is the only way a closed door gets re-checked.
+future revision adopts SEP-1489, one goes red - which is the only way a closed door gets re-checked.
 
 **Compatibility constraints, held.** `ConnectorToolException` is subclassed by at least one consumer
 using the two-argument constructor, so it is not sealed and that signature did not change;
@@ -320,17 +320,17 @@ using the two-argument constructor, so it is not sealed and that signature did n
 test: `UseConnectorCaller` is path-prefix middleware and runs **before** routing, so no endpoint is
 resolved and no `RequiredScopeMetadata` can be read. Measured on that deployment, a `POST` to the
 MCP path is challenged with the endpoint's declared scope while a `GET` to the same path is
-challenged with the resource's whole scope list — two answers to one question, from one path. Their
+challenged with the resource's whole scope list - two answers to one question, from one path. Their
 note says routing cannot fix what happens before routing, that it belongs here next to the challenge
 writer, and that it is a design question rather than a line. It is the same code as this item and
 should be answered with it.
 
 **Also part of this item, and true regardless of §1:** `S-42` records RFC 9470 as not implemented
 because *"scope step-up via `insufficient_scope` covers the MCP case (D-07)"*, and `D-07` repeats
-it. That justification holds at the endpoint and does not hold per tool — which is the whole of §0.
+it. That justification holds at the endpoint and does not hold per tool - which is the whole of §0.
 The deferral may well survive; its stated reason does not, and both entries move in the same commit.
 
-### 2.5 Filtering `tools/list`, and a seam — **done 2026-08-25, in 0.3.0**
+### 2.5 Filtering `tools/list`, and a seam - **done 2026-08-25, in 0.3.0**
 
 The SDK has the hooks, and `Boltway.Mcp` references the package that carries them without using
 either:
@@ -353,7 +353,7 @@ the tool is the same tool either way. That gate exists in any connector whose to
 
 **This is not §3's resource-argument matching, and the difference is the whole of it.** Handing a
 connector what arrived is plumbing; reading it is policy. The library matches nothing, knows which
-arguments name resources not at all, and takes no view on what reaching one means — it passes a
+arguments name resources not at all, and takes no view on what reaching one means - it passes a
 read-only view of the arguments and gets out of the way. Shipping a matcher would be the thing §3
 refuses; withholding the input was the thing that made the seam half-useful.
 
@@ -363,8 +363,8 @@ listing and the call, `AllowsArguments` on the call alone. A default implementat
 
 **Decided: ship the plumbing, not the policy.** The first draft of this document proposed a per-tool
 scope gate. Measured on a connector built on this library, that is the wrong half to generalise. It
-gates every tool on two axes — a scope check per tool, and a role-to-permission table with its own
-resolution order — plus a reflection test that fails its build when a write tool ships without a
+gates every tool on two axes - a scope check per tool, and a role-to-permission table with its own
+resolution order - plus a reflection test that fails its build when a write tool ships without a
 guard. None of that has a generic equivalent: the role vocabulary is a deployment's, and §2.2 shows
 the scope fallback is subtle enough that a library shipping the wrong default would gate wrongly in
 the dangerous direction for every consumer at once.
@@ -379,7 +379,7 @@ had a gate. `Allows` is synchronous: the decision is made from what the token al
 
 **A correction, and the compiler is what caught it.** This entry said to assert against
 `HttpServerTransportOptions.PerSessionExecutionContext` being `true`. That property is **obsolete**
-in SDK 2.2.0 — referencing it is `MCP9006`, which is an error here — and the hazard has largely
+in SDK 2.2.0 - referencing it is `MCP9006`, which is an error here - and the hazard has largely
 stopped existing: `SessionMode` now defaults to `HttpServerSessionMode.Stateless`, because the
 2026-07-28 revision removed sessions from Streamable HTTP altogether (SEP-2567 removed
 `Mcp-Session-Id`, SEP-2575 the `initialize` handshake). Under `Stateless` a handler runs on the
@@ -389,12 +389,12 @@ method rather than checked against an API the SDK is retiring. Written down beca
 version of this paragraph would have been repeated as fact.
 
 **No new row in `docs/CAPABILITIES.md`.** Its three sections are off-by-default, absent on purpose,
-and not built yet, and a connector-side extension method is none of them — filing it under one to
+and not built yet, and a connector-side extension method is none of them - filing it under one to
 satisfy the ritual would make the file less true, which is the opposite of its job. The README's
 *What you get* row moved instead, and it needed to: **MCP half** read "per-endpoint scope", which is
 the framing §2.1 exists because of.
 
-### 2.6 Move a consumer onto the baseline before shipping any of this — **ready, and first in wall-clock**
+### 2.6 Move a consumer onto the baseline before shipping any of this - **ready, and first in wall-clock**
 
 `EnablePackageValidation` diffs each packable project against `PackageValidationBaselineVersion`,
 which is the release before the one being packed. **A consumer two releases back is not covered by
@@ -402,8 +402,8 @@ that diff at all.** Shipping the next version would validate the previous releas
 a consumer pinned to the one before that compiles a span the gate never looked at.
 
 Measured: a connector on this library pins the first release. Every breaking entry in the second
-release's `CHANGELOG.md` — the rendered class prefix, the translation-arity startup check, the
-container's log-format default, and a test package withdrawn from the feed — lands on the
+release's `CHANGELOG.md` - the rendered class prefix, the translation-arity startup check, the
+container's log-format default, and a test package withdrawn from the feed - lands on the
 authorization server, the container image, or the storage packages, none of which that connector
 references. So the uncovered span is empty **today**.
 
@@ -416,7 +416,7 @@ first costs nothing now and makes the gate mean what it claims for the release a
 
 **A policy engine.** §2.5 is the long version. The short one: a deployment's role vocabulary is the
 deployment's, and a shipped default for the scope fallback would be wrong in the fail-open direction
-for every consumer simultaneously — which is precisely §2.2.
+for every consumer simultaneously - which is precisely §2.2.
 
 **Resource-argument matching.** Gating a tool on *which host* or *which path* an argument names is a
 connector's decision, not this library's. Argument names, their meanings, and whether a given one
@@ -425,7 +425,7 @@ pretending to be a security boundary.
 
 That is about **matching**, not about **passing**. `IConnectorToolPolicy.AllowsArguments` hands the
 connector a read-only view of the arguments as they arrived and reads none of them. Withholding the
-input would not have kept this promise — it would only have moved the connector's decision out of
+input would not have kept this promise - it would only have moved the connector's decision out of
 the one place both filters run through, which is what §2.5 exists to prevent.
 
 **Anything that inspects the content of an argument.** Not a matcher, not a pattern list, not a
@@ -468,27 +468,27 @@ nobody exercises is the one that will be wrong.
 §2.1  documented example + the startup-diagnostic question   ─┐
 §2.3  the identity tuple                                      ├─ nothing blocks any of these
 §2.5  list filter + seam                                      │
-§2.4  the refusal — closed: it can be neither, and the seam is not built  ─┘
+§2.4  the refusal - closed: it can be neither, and the seam is not built  ─┘
 
 The version ritual below ran with §2.2: `<Version>` is 0.3.0 and the baseline is 0.2.0, so §2.1,
 §2.3, §2.4 and §2.5 join the same unreleased version and neither number moves again for them.
 ```
 
-§2.1 and §2.2 are the two a consumer is exposed to right now — one instructs clients to ask for too
-little, the other fails open on a malformed claim — so they go first among the code changes. §2.6
+§2.1 and §2.2 are the two a consumer is exposed to right now - one instructs clients to ask for too
+little, the other fails open on a malformed claim - so they go first among the code changes. §2.6
 goes before all of them because it is what makes the release gate cover the consumer at all.
 
 Because §2.2, §2.3 and §2.5 change the public surface, the release ritual applies in full and in the
 same commit as the surface move:
 
 1. `<Version>` in `Directory.Build.props` moves off `0.2.0`.
-2. `PackageValidationBaselineVersion` moves to the release before the new one — **after** the
+2. `PackageValidationBaselineVersion` moves to the release before the new one - **after** the
    version moves, never equal to it. A test holds it to `CHANGELOG.md`'s second heading.
 3. `CHANGELOG.md` gets the new heading. Anything breaking is marked in bold at the front; at 0.x a
    break is permitted and the point of permitting it is that it is announced.
 4. §2.5 adds a capability, so `docs/CAPABILITIES.md` and the README's *What you get* table move in
    the same commit. `CAPABILITIES.md` currently mentions `Boltway.Mcp` once, for
-   `AddJwksSigningKeys` — there is no row yet for anything MCP-authorization-shaped.
+   `AddJwksSigningKeys` - there is no row yet for anything MCP-authorization-shaped.
 5. `tests/Boltway.PublicApi.Tests` compiles against the new members with no `InternalsVisibleTo`
    grant. That build **is** the check that §2.3's properties are genuinely public.
 6. Every new rule gets a test that is red without the change, and a control proving the accepting
@@ -500,7 +500,7 @@ same commit as the surface move:
 It is not a plan for any particular connector. The gap in §0 is a property of MCP's single-endpoint
 transport and of `RequireScope`'s endpoint scope, and it holds for every connector built on this
 library regardless of what its tools do. §2.1 and §2.2 were found on one, but neither is that
-connector's bug — both are this library's surface behaving as documented.
+connector's bug - both are this library's surface behaving as documented.
 
 It is not permission to widen `Boltway.Mcp` into a policy engine. §3's first three entries are the
 boundary, and they are the half of this document most likely to still matter after §2 closes.

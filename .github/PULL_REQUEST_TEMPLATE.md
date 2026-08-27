@@ -17,22 +17,22 @@
 <!--
   "Fixes the race" is not reviewable. "The diff was computed outside the `IsEnabled` guard, so a
   large key set paid for a sentence nobody was listening to" is. If the change is about somebody
-  else's system, say how it was measured and when — a fact with no date silently becomes a claim.
+  else's system, say how it was measured and when - a fact with no date silently becomes a claim.
 -->
 
 ## Before merging
 
 - [ ] `dotnet build Boltway.slnx` is **0 warnings** and `dotnet test Boltway.slnx` is 0 failures
-      (`./scripts/postgres.sh up` first — the storage suite fails rather than skips without a server)
+      (`./scripts/postgres.sh up` first - the storage suite fails rather than skips without a server)
 - [ ] **Anything a consumer compiles against moved?** Then `<Version>` in `Directory.Build.props`
       moved in the same commit, and `CHANGELOG.md`'s top section says what changed. Doing this at
       release time has already cost an outage: a frozen version is pushed with `--skip-duplicate`,
       which reports success and drops the package.
-- [ ] **Public surface changed?** `tests/Boltway.PublicApi.Tests` holds the approved surface — it
+- [ ] **Public surface changed?** `tests/Boltway.PublicApi.Tests` holds the approved surface - it
       compiles with no `InternalsVisibleTo` grant, so the build is the test. Update it here, so the
       diff shows what a stranger sees.
 - [ ] One concern. A rename and a behaviour change in the same diff cannot be reviewed.
-- [ ] New rule? There is a test that goes **red without it** — a test that would have passed against
+- [ ] New rule? There is a test that goes **red without it** - a test that would have passed against
       the old code is a promise rather than a check.
 - [ ] Nothing here names our deployment: no company, product or person names, and example values
       obey RFC 2606 (`example.com`, `.test`, `.invalid`, `.localhost`).

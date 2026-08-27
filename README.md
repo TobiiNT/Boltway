@@ -1,4 +1,4 @@
-# Boltway — OAuth 2.1 authorization server for MCP connectors
+# Boltway - OAuth 2.1 authorization server for MCP connectors
 
 [![ci](https://github.com/TobiiNT/Boltway/actions/workflows/ci.yml/badge.svg)](https://github.com/TobiiNT/Boltway/actions/workflows/ci.yml)
 [![Boltway.AuthorizationServer on NuGet](https://img.shields.io/nuget/v/Boltway.AuthorizationServer?label=Boltway.AuthorizationServer&color=004880)](https://www.nuget.org/packages/Boltway.AuthorizationServer)
@@ -8,7 +8,7 @@
 
 Put an MCP server behind authentication that Claude and ChatGPT can complete with no administrator
 in the loop. An OAuth 2.1 + OpenID Connect authorization server for .NET 10, written from scratch,
-shipped as libraries you host — plus a resource-server half your MCP server references.
+shipped as libraries you host - plus a resource-server half your MCP server references.
 
 **Not** a general-purpose identity provider or an Entra ID replacement. No user registration, no
 multi-tenancy. Some protocol endpoints are absent on purpose and some are simply unbuilt;
@@ -26,7 +26,7 @@ On with no flag, in the configuration the quickstart builds.
 | **Replay** | A reused refresh token revokes its family and the grant |
 | **Audience** | RFC 8707 resource indicators |
 | **Discovery** | RFC 8414, OIDC, JWKS, `/userinfo` |
-| **Clients** | CIMD — connect by URL, no registration step |
+| **Clients** | CIMD - connect by URL, no registration step |
 | **Pages** | Sign-in, consent and error, satisfying N-14 |
 | **Accounts** | Argon2id locally, or any OIDC provider upstream |
 | **MCP half** | Bearer gate, RFC 9728 metadata, per-tool policy on `tools/list` and `tools/call` |
@@ -45,12 +45,12 @@ dotnet add package Boltway.AuthorizationServer   # the server you host
 dotnet add package Boltway.Mcp                   # what your MCP server references
 
 # In your test project. Eight assertions against your own wired pipeline, asking
-# what a client asks — every one of them failed on a real deployment whose unit
+# what a client asks - every one of them failed on a real deployment whose unit
 # suite was green.
 dotnet add package Boltway.ResourceServer.Testing
 ```
 
-Watch a whole flow first — 15 steps, `401` through refresh:
+Watch a whole flow first - 15 steps, `401` through refresh:
 
 ```bash
 dotnet run --project samples/Boltway.Sample.AuthorizationServer   # terminal 1
@@ -84,25 +84,25 @@ service in one exception rather than one per restart.
 Prefer not to write it? `hosts/Boltway.AuthorizationServer.Host` is the same library as one image,
 configured entirely by environment.
 
-→ **[docs/HOSTING.md](https://github.com/TobiiNT/Boltway/blob/main/docs/HOSTING.md)** — the
+→ **[docs/HOSTING.md](https://github.com/TobiiNT/Boltway/blob/main/docs/HOSTING.md)** - the
 quickstart, the twelve services you supply, and signing in through an upstream provider.
-→ **[docs/INTERACTION-PAGES.md](https://github.com/TobiiNT/Boltway/blob/main/docs/INTERACTION-PAGES.md)**
-— theming the pages, in three tiers.
-→ **[docs/LOCALIZATION.md](https://github.com/TobiiNT/Boltway/blob/main/docs/LOCALIZATION.md)** —
+→ **[docs/INTERACTION-PAGES.md](https://github.com/TobiiNT/Boltway/blob/main/docs/INTERACTION-PAGES.md)** -
+theming the pages, in three tiers.
+→ **[docs/LOCALIZATION.md](https://github.com/TobiiNT/Boltway/blob/main/docs/LOCALIZATION.md)** -
 replacing the English text.
 
 ## Running it
 
 **Every package targets `net10.0` only, and that is a limit.** An MCP server on net8.0 cannot
 reference `Boltway.ResourceServer` at all. The blocker is `System.Buffers.Text.Base64Url`, .NET 9
-and later — measured, not assumed. Fixing it means hand-writing unpadded base64url in the primitive
+and later - measured, not assumed. Fixing it means hand-writing unpadded base64url in the primitive
 that encodes PKCE verifiers, so it is a decision about crypto-adjacent code rather than a packaging
 chore.
 
-→ **[Production checklist](https://github.com/TobiiNT/Boltway/blob/main/hosts/Boltway.AuthorizationServer.Host/README.md#production-checklist)**
-— twelve settings with no safe default.
-→ **[Before the second replica](https://github.com/TobiiNT/Boltway/blob/main/hosts/Boltway.AuthorizationServer.Host/README.md#before-the-second-replica)**
-— everything counted per process, and what each costs at *n* > 1. One row is a security property
+→ **[Production checklist](https://github.com/TobiiNT/Boltway/blob/main/hosts/Boltway.AuthorizationServer.Host/README.md#production-checklist)** -
+twelve settings with no safe default.
+→ **[Before the second replica](https://github.com/TobiiNT/Boltway/blob/main/hosts/Boltway.AuthorizationServer.Host/README.md#before-the-second-replica)** -
+everything counted per process, and what each costs at *n* > 1. One row is a security property
 rather than a budget.
 
 ## Running the tests
@@ -139,14 +139,14 @@ design.
 it asks what a client asks: both RFC 9728 well-known forms answering without a credential, the
 challenge naming a `resource_metadata` URL that is really reachable, a bad token producing a `401`
 rather than a `403`. The first consumer outside this repository found three of those broken by hand,
-with curl, after 402 unit tests passed — the usual cause being a host whose own authentication
+with curl, after 402 unit tests passed - the usual cause being a host whose own authentication
 middleware has never heard of the framework's anonymous marker.
 
 ## Where to read next
 
 | | |
 |---|---|
-| [Capabilities](https://github.com/TobiiNT/Boltway/blob/main/docs/CAPABILITIES.md) | What is on, off, refused, unbuilt — and why |
+| [Capabilities](https://github.com/TobiiNT/Boltway/blob/main/docs/CAPABILITIES.md) | What is on, off, refused, unbuilt - and why |
 | [Hosting](https://github.com/TobiiNT/Boltway/blob/main/docs/HOSTING.md) | Wiring a `Program.cs` |
 | [Roadmap](https://github.com/TobiiNT/Boltway/blob/main/ROADMAP.md) | The gaps, measured against Keycloak |
 | [Contributing](https://github.com/TobiiNT/Boltway/blob/main/CONTRIBUTING.md) | House rules, and how a release is cut |
@@ -162,7 +162,7 @@ middleware has never heard of the framework's anonymous marker.
 promise; [CHANGELOG.md](https://github.com/TobiiNT/Boltway/blob/main/CHANGELOG.md) records every
 break as it lands.
 
-Apache-2.0 — see [LICENSE](https://github.com/TobiiNT/Boltway/blob/main/LICENSE) — chosen over MIT
+Apache-2.0 - see [LICENSE](https://github.com/TobiiNT/Boltway/blob/main/LICENSE) - chosen over MIT
 for the patent grant, which is what matters to anyone adopting protocol code inside a company.
 [NOTICE](https://github.com/TobiiNT/Boltway/blob/main/NOTICE) names the two IETF drafts under
 `spec/` that are **not** covered by it.

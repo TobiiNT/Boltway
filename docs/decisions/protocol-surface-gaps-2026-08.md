@@ -1,10 +1,10 @@
-# Protocol-surface gaps — an upgrade plan, read against better-auth 1.7.x
+# Protocol-surface gaps - an upgrade plan, read against better-auth 1.7.x
 
 **Date:** 2026-08-22 · **Status:** closed, kept as a decision record · **Scope:** the authorization server
 
 > **Why this sits in `docs/decisions/` and not in `docs/proposals/`.** Every item below has closed:
-> shipped, decided, or converted into a trigger. One gap stays open on purpose — conditional
-> revalidation in §3.2 — and §3.2 says what it is waiting for. What is left is §3, *Won't do, and
+> shipped, decided, or converted into a trigger. One gap stays open on purpose - conditional
+> revalidation in §3.2 - and §3.2 says what it is waiting for. What is left is §3, *Won't do, and
 > the reasons matter more than the list*, plus the per-item markers recording where the plan was
 > wrong. That is a record of decisions taken, and stopping one of them from being re-proposed from
 > scratch is the job it does now.
@@ -20,23 +20,23 @@
 better-auth `v1.7.0` shipped on **2026-08-18** and landed, in one release, four things this
 repository's README lists under *"what is simply not built yet"*: a CIMD plugin
 (`@better-auth/cimd`), DPoP, `private_key_jwt`, and explicit per-resource modelling. It targets
-**the same MCP authorization revision we do — `2026-07-28`** — and the same CIMD draft, `-02`.
+**the same MCP authorization revision we do - `2026-07-28`** - and the same CIMD draft, `-02`.
 
 That makes it the closest thing to a conformance oracle this project has ever had, and the useful
 output is not a feature list. It is a ranked answer to *which of our gaps are real*.
 
-**Confidence.** Everything stated here about better-auth is `stated`, not `measured` — read from
+**Confidence.** Everything stated here about better-auth is `stated`, not `measured` - read from
 their published documentation on 2026-08-22. Nothing in this repository has run against a
 better-auth instance. Every claim about *this* codebase is `measured`, by reading it, with file and
 symbol cited. Rule 1 of `LESSONS.md` applies in both directions.
 
 ---
 
-## 1. A correction that comes before the plan — **done, 2026-08-22**
+## 1. A correction that comes before the plan - **done, 2026-08-22**
 
 The README no longer prints the sentence quoted below. `client_credentials` moved out of *What is
 deliberately not implemented* into a third list, **What is built and off by default**, which exists
-because two lists had no room for *present, and not switched on* — so a capability that grew a
+because two lists had no room for *present, and not switched on* - so a capability that grew a
 default got filed under "absent" and stayed there. `/revoke` and `private_key_jwt` joined it on
 2026-08-23, found by the same sweep this entry asked for.
 
@@ -50,18 +50,18 @@ README is. The original entry follows.
 
 That is wrong now. `client_credentials` is implemented:
 
-- `src/Boltway.AuthorizationServer/Token/ClientCredentialsGrant.cs` — a full handler, in a
+- `src/Boltway.AuthorizationServer/Token/ClientCredentialsGrant.cs` - a full handler, in a
   deliberately narrowed shape (the client names an owner; a client acting purely for itself is
   refused with `ReasonCode.ClientHasNoOwner`).
-- `Endpoints/TokenEndpoint.cs` — an arm in the dispatch switch.
-- `Configuration/AuthorizationServerOptions.cs` — a row in `KnownGrantTypes`.
+- `Endpoints/TokenEndpoint.cs` - an arm in the dispatch switch.
+- `Configuration/AuthorizationServerOptions.cs` - a row in `KnownGrantTypes`.
 
 It is *off by default*, because `_grantTypesSupported` defaults to two names
 (`AuthorizationServerOptions.cs`). **"Not in the default set" and "not implemented" are different
 sentences, and the README prints the second.**
 
 This is N-06 turned inward: a capability document that is wrong about what we have. It happens to be
-wrong in the safe direction — under-claiming rather than over-claiming — which is exactly why nobody
+wrong in the safe direction - under-claiming rather than over-claiming - which is exactly why nobody
 noticed. Fix the README first; it costs an hour and it is the only item here that is a defect rather
 than a gap.
 
@@ -75,9 +75,9 @@ against the code. This one was found by reading; nothing tests it.
 Ranking axis: **does closing it remove a failure that has already happened here, or one a client can
 trigger today?** Not "does better-auth have it".
 
-### Tier 1 — real, small, and the parts already exist
+### Tier 1 - real, small, and the parts already exist
 
-#### 1.1 `/revoke` — RFC 7009, E-16 · **done, 2026-08-22**
+#### 1.1 `/revoke` - RFC 7009, E-16 · **done, 2026-08-22**
 
 `Endpoints/RevocationEndpoint.cs` routes from `RevocationEnabled`, the same flag `MetadataBuilder`
 gates the advertisement on, so the flag both routes and advertises. The README's *built and off by
@@ -85,7 +85,7 @@ default* table gained the row on 2026-08-23.
 
 **Two rules came out broader than the entry planned, and both are the same decision twice.** RFC
 7009 §2.1's "an unrecognised token is 200" was extended to a token belonging to a *different*
-client — also an empty 200, nothing revoked, written down as X-39. Answering "that is not yours"
+client - also an empty 200, nothing revoked, written down as X-39. Answering "that is not yours"
 would turn the endpoint into an oracle confirming a stolen token is real and naming whose it is. And
 revoking either token type revokes the grant behind it: the denylist a resource server consults is
 `IGrantStore.IsRevokedAsync`, keyed on the grant, and access tokens are signed rather than stored,
@@ -97,12 +97,12 @@ was to be repointed at `IntrospectionEnabled`; by the time this shipped, `/useri
 `/logout` and `/revoke` all routed and advertised from one flag apiece, so no flag of that kind was
 left to break on purpose. `MetadataHonestyTests.The_sweep_catches_an_endpoint_that_is_advertised_but_not_routed`
 now serves a deliberately broken discovery document from a stub, which is what that test's own note
-said to do when this day came. What it tests is the sweep — that it walks a document, probes what it
+said to do when this day came. What it tests is the sweep - that it walks a document, probes what it
 finds, and can tell a 404 from an answer.
 
 The original entry follows.
 
-#### 1.1a The original entry — `/revoke`, the last advertised path nothing routes
+#### 1.1a The original entry - `/revoke`, the last advertised path nothing routes
 
 The last endpoint whose flag advertises a path nothing routes.
 
@@ -113,18 +113,18 @@ The last endpoint whose flag advertises a path nothing routes.
 | The flag, wired into the metadata document | `RevocationEnabled` in `Configuration/AuthorizationServerOptions.cs`, read by `Metadata/MetadataBuilder.cs` |
 | Grant revocation | `IGrantStore.RevokeAsync` (`Abstractions/Stores/IGrantStores.cs`) |
 | Refresh-family revocation | `IRefreshTokenStore.RevokeFamilyAsync` (same file) |
-| Client authentication, confidential-only | `Token/ClientAuthentication.cs` — shared with introspection |
+| Client authentication, confidential-only | `Token/ClientAuthentication.cs` - shared with introspection |
 | The endpoint shape to copy | `Endpoints/IntrospectionEndpoint.cs`, 426 lines, same client-auth rule and the same "never tell the caller whether the token was real" rule |
 
 **To write:** `Endpoints/RevocationEndpoint.cs`, routed from the existing flag so the flag both
-routes and advertises — the invariant `MetadataHonestyTests` enforces.
+routes and advertises - the invariant `MetadataHonestyTests` enforces.
 
 **Then move the control.** `MetadataHonestyTests.The_sweep_catches_an_endpoint_that_is_advertised_
 but_not_routed` uses `RevocationEnabled` as its deliberately-broken flag and says in its own comment
 what to do next: move it to `IntrospectionEnabled`, and when no flag of that kind is left, build the
 control from a broken options object instead. Doing this is part of the task, not follow-up.
 
-**The rule most likely to be got wrong:** RFC 7009 §2.1 — an unrecognised token is `200`, not an
+**The rule most likely to be got wrong:** RFC 7009 §2.1 - an unrecognised token is `200`, not an
 error. Same class as introspection's `{"active": false}`, and the reason is the same: a caller
 holding a stolen token learns only that it does not work.
 
@@ -133,29 +133,29 @@ its grant and denylists that, so `/introspect` flips to `active:false` and
 `IAccessTokenRevocationCheck` in the resource server starts refusing; an unknown token still
 answers `200`; the discovery document names `/revoke` only when it is routed.
 
-**Effort:** ~1 day including tests. **Risk:** low — no new store, no new outbound path.
+**Effort:** ~1 day including tests. **Risk:** low - no new store, no new outbound path.
 
-#### 1.2 Pairwise `sub` — **decided, 2026-08-22: deleted**
+#### 1.2 Pairwise `sub` - **decided, 2026-08-22: deleted**
 
 The decision this item asked for, with the fact that settled it. `ISubjectIdentifierService` took
 `(UserAccount, ClientRecord)`; `TokenIssuer` carries `grant.Subject`, a bare `SubjectId`, and loads
-no account at all — the account-claims mapper is opt-in and most deployments do not register it. So
+no account at all - the account-claims mapper is opt-in and most deployments do not register it. So
 the seam could not have been wired without adding a store read to every token issuance, which means
 it would not have saved the hunt through call sites it existed to prevent. **It did not fit the path
 it was declared for**, and that is a stronger reason than "unused".
 
 Deleted rather than commented, on the precedent the top-level README sets for the JavaScript layer:
-*the one nobody uses is the one that will be wrong when somebody finally does* — and this one was
+*the one nobody uses is the one that will be wrong when somebody finally does* - and this one was
 already wrong. It also removes `Boltway.Identity`'s only reach into client types; password
 hashing and subject minting have nothing to do with clients.
 
 `D-11` now records what pairwise would actually cost instead of naming a seam that was not one. The
 original entry follows.
 
-#### 1.2a The original entry — pairwise `sub`, decide, do not build
+#### 1.2a The original entry - pairwise `sub`, decide, do not build
 
 `ISubjectIdentifierService` exists (`Boltway.Identity/Subjects/SubjectIds.cs`) and nothing on
-the token path calls it. README says so, so this is not dishonest — it is dead.
+the token path calls it. README says so, so this is not dishonest - it is dead.
 
 We have two relying-party populations, both of them AI clients, and no correlation threat model that
 pairwise addresses. better-auth ships it and also documents the trap: rotating the pairwise secret
@@ -165,7 +165,7 @@ a permanent operational obligation bought for a threat we do not have.
 **Recommendation: delete it, or leave one comment on the interface saying it is unwired and why.**
 Not a build item. It is in this document so it stops being re-discovered.
 
-### Tier 2 — real, medium, and one of them has already been paid for
+### Tier 2 - real, medium, and one of them has already been paid for
 
 #### 2.1 A JWKS-backed key source for the resource server · **done, 2026-08-23**
 
@@ -175,13 +175,13 @@ authorization server's discovery document rather than guessing a path. The sched
 entry named is closed.
 
 **The cache lifetime is derived rather than chosen.** Five minutes, because a signing key is
-published for at least `PublishLeadTime` before it signs anything — 24 hours by default, floor of
-ten minutes — so the question is not "how fast can a new key be noticed" but "inside the shortest
+published for at least `PublishLeadTime` before it signs anything - 24 hours by default, floor of
+ten minutes - so the question is not "how fast can a new key be noticed" but "inside the shortest
 lead time a deployment may configure", and five is inside ten with the margin a failed fetch needs.
 
 **The two failure rules point opposite ways on purpose.** `AddJwksSigningKeys` refuses to start a
 connector holding no keys, because serving with an empty key set means refusing every request as a
-401 — a startup failure presented as the caller's problem, in the one shape that makes them retry
+401 - a startup failure presented as the caller's problem, in the one shape that makes them retry
 forever. `JwksKeySource.CurrentKeys` never throws, because throwing at lookup returns 500 to
 somebody holding a perfectly good token. `RefreshAsync` is the startup call and the one that reports
 a failure rather than absorbing it.
@@ -189,17 +189,17 @@ a failure rather than absorbing it.
 **And it replaced a second implementation rather than filling an empty seam.** A `JwksRefresher` in
 `Boltway.Mcp` was already doing this job with its own fetch loop, parse and key diffing, and had
 already drifted: it hardcoded `/.well-known/jwks.json` instead of reading `jwks_uri`, so it could not
-follow an authorization server that published its key set anywhere else — including this
-repository's own, whose path is configurable — and it had no backoff, so a dead issuer was refetched
+follow an authorization server that published its key set anywhere else - including this
+repository's own, whose path is configurable - and it had no backoff, so a dead issuer was refetched
 on every tick forever. Reading `ProtectedResourceOptions` showed an unfilled seam; the duplicate was
 one package away. Two implementations of one thing agree for about a month.
 
 The original entry follows.
 
-#### 2.1a The original entry — a JWKS-backed key source
+#### 2.1a The original entry - a JWKS-backed key source
 
 **The highest value per day in this document.** Today `ProtectedResourceOptions.SigningKeys` is a
-list the host fills, and nothing refreshes it — so a resource server stops accepting tokens the
+list the host fills, and nothing refreshes it - so a resource server stops accepting tokens the
 moment the authorization server rotates a key. We have three-phase rotation (Pending → Active →
 Retiring, `PublishLeadTime` default 24h), which means **we will rotate**, which means this is a
 scheduled outage rather than a hypothetical one.
@@ -210,65 +210,65 @@ scheduled outage rather than a hypothetical one.
 fetch the AS's `jwks_uri` from discovery, cache, refresh on a `kid` miss with a floor so a miss
 storm cannot become a fetch storm, and fail closed on a bad document rather than emptying the list.
 
-**Acceptance:** rotate a key on a running AS with the RS untouched, and the RS keeps accepting —
+**Acceptance:** rotate a key on a running AS with the RS untouched, and the RS keeps accepting -
 the test the sample cannot currently pass, since it fetches once at startup and says so.
 
 **Effort:** ~1–2 days. **Risk:** low-medium (one new outbound path; reuse `Boltway.OAuth.Net`).
 
-#### 2.2 `private_key_jwt` at `/token` — RFC 7523 · **done, 2026-08-22**
+#### 2.2 `private_key_jwt` at `/token` - RFC 7523 · **done, 2026-08-22**
 
 Both decisions the plan said to take first were taken. **The `aud` rule:** both the token endpoint
 URL and the issuer identifier are accepted, compared ordinally. RFC 7523 §3 asks for a value
 identifying the authorization server and OIDC Core §9 names the token endpoint while permitting the
-issuer; real clients send one or the other, and **which one ChatGPT sends has not been measured** —
+issuer; real clients send one or the other, and **which one ChatGPT sends has not been measured** -
 no assertion from it has been captured. Accepting both costs nothing here because there is exactly
 one endpoint that takes assertions, so the cross-endpoint replay a broad audience would open has
 nowhere to go. **Inline `jwks`:** unchanged. `CimdDocument` still validates it and `ClientRecord`
 still has nowhere to put it, so an inline-`jwks` client is refused at resolution rather than
-validated-then-dropped — the state the plan said not to leave it in was "silently discarded", and it
+validated-then-dropped - the state the plan said not to leave it in was "silently discarded", and it
 is not that.
 
 The cost driver was the `jti` replay store, as predicted: a new interface, four implementations, two
 sets of migrations and a contract suite. What the plan did not anticipate is that the store's
-in-memory sibling is *less correct* rather than merely less durable — a per-process replay set
-admits one use per replica — so startup refuses the method without a store, and the README says
+in-memory sibling is *less correct* rather than merely less durable - a per-process replay set
+admits one use per replica - so startup refuses the method without a store, and the README says
 plainly that the check cannot tell a shared store from a per-process one.
 
 One thing is stricter than the RFC on purpose: a `jti` is **required**. §3 makes it optional and the
 replay check a MAY, and an assertion without one is a credential whose reuse this server cannot
 detect. It is also the one refusal here whose message names what is wrong, because the client can
-act on it — every other one answers an opaque `invalid_client`.
+act on it - every other one answers an opaque `invalid_client`.
 
 The original entry follows.
 
 **This one has already cost us.** LESSONS #8: on 2026-08-17 `chatgpt.com/oauth/client.json` was
 measured carrying both spellings of the auth method, the singular naming `private_key_jwt`, and
-every ChatGPT connection resolved to a confidential client **this server cannot authenticate** —
+every ChatGPT connection resolved to a confidential client **this server cannot authenticate** -
 `invalid_client`, with the cause three hops away in a parser. The parser was fixed. The underlying
 fact was not: we still cannot authenticate such a client.
 
 **Already present, and it is more than expected:**
 
-- `Clients/CimdDocument.cs` parses **and validates** `jwks` and `jwks_uri` — refuses both together
+- `Clients/CimdDocument.cs` parses **and validates** `jwks` and `jwks_uri` - refuses both together
   (RFC 7591 §2), refuses a non-HTTPS `jwks_uri` (CIMD §8.6), refuses symmetric keys and private key
   material (CIMD §4.1), and **already refuses `private_key_jwt` with no `jwks_uri`** (CIMD §8.2,
   `CimdDocument.cs`).
 - `ClientRecord.JwksUri` is carried through.
-- `ClientAuthentication.cs` already reasons about `private_key_jwt` in its 401-vs-400 comment — a
+- `ClientAuthentication.cs` already reasons about `private_key_jwt` in its 401-vs-400 comment - a
   body-carried credential has no RFC 7235 challenge form, so it answers 400.
 - `Boltway.OAuth.Net` is the hardened fetcher, with the RFC 6890 check and single-resolve
   pinning.
 
 **To write:** a JWKS fetch-and-cache over `ISafeHttpFetcher` mirroring the CIMD cache's bounds; an
 assertion validator; a `ClientAuthMethod.PrivateKeyJwt` arm; and the method added to
-`TokenEndpointAuthMethods` **only once the authenticator is registered** — the grant rule applied to
+`TokenEndpointAuthMethods` **only once the authenticator is registered** - the grant rule applied to
 auth methods.
 
 **Two decisions to take before writing a line:**
 
 1. **The `aud` rule.** RFC 7523 §3 says the token endpoint URL; OIDC Core has historically also
    accepted the issuer; live clients differ. Write the parser to accept the specification's shape
-   and pin the observed values in a dated fixture — `LESSONS.md` #8 exactly, and
+   and pin the observed values in a dated fixture - `LESSONS.md` #8 exactly, and
    `spec/cimd-live-*.json` is the precedent for where a dated observation belongs.
 2. **Inline `jwks`.** `CimdDocument.cs` records that `ClientRecord` "carries a `jwks_uri` and has
    nowhere to put" an inline set. Either add the field or keep refusing inline-`jwks` clients
@@ -280,7 +280,7 @@ storage contract suite.
 
 **Effort:** ~3–5 days. **Risk:** medium.
 
-#### 2.3 Rate limiting beyond two paths — **trigger written, 2026-08-22**
+#### 2.3 Rate limiting beyond two paths - **trigger written, 2026-08-22**
 
 The trigger is a README section, **Before the second replica**, and writing it turned out to be worth
 more than this entry expected. The plan framed the gap as "the limiters are per process"; the actual
@@ -288,24 +288,24 @@ list is **ten** things, and one of them is not a budget at all.
 
 Writing the table proved its own point twice: the first draft had nine rows and missed
 `RecoveryThrottle`, whose own comment says a fleet of *n* replicas sends *n* times each number.
-That one is not aimed at this server — it is *n* times the reset mail one person's address can be
+That one is not aimed at this server - it is *n* times the reset mail one person's address can be
 made to receive.
 
-`InMemoryClientAssertionReplayStore` — added by §2.2, after this entry was written — loses the
+`InMemoryClientAssertionReplayStore` - added by §2.2, after this entry was written - loses the
 property it exists to provide at *n* = 2: each replica holds its own set, so one captured assertion
 authenticates once per replica. Every other row loosens a bound; that row breaks a guarantee, and
 **startup cannot detect it**, because the check verifies a store is registered rather than that it is
-shared. So the trigger is no longer only "decide whether the numbers are enough" — it is "one of
+shared. So the trigger is no longer only "decide whether the numbers are enough" - it is "one of
 these rows is a security decision and the others are capacity ones".
 
-The facts were all already written down, each beside the code it describes — eleven places, each
+The facts were all already written down, each beside the code it describes - eleven places, each
 locally honest, and nowhere to look on the day somebody adds a replica. That is the defect a trigger
 fixes: not a missing fact, a missing index.
 
 Still no shared limiter, and still for the reason below: at one replica, per-process *is*
 fleet-wide. The original entry follows.
 
-#### 2.3a The original entry — rate limiting, a trigger not a task
+#### 2.3a The original entry - rate limiting, a trigger not a task
 
 Today: `/authorize`'s CIMD fetch and `POST /login`, **per process**. A fleet of *n* replicas admits
 *n* times each number.
@@ -314,12 +314,12 @@ Today: `/authorize`'s CIMD fetch and `POST /login`, **per process**. A fleet of 
 one exists. Building a shared limiter before then buys a store, a dependency and an operational
 surface for a property you already have.
 
-**Action:** add a line to the production checklist — *"before the second replica: a shared limiter,
-or accept n× every number"* — and stop there. Revisit at the replica, not at this document.
+**Action:** add a line to the production checklist - *"before the second replica: a shared limiter,
+or accept n× every number"* - and stop there. Revisit at the replica, not at this document.
 
-### Tier 3 — prepare, do not ship
+### Tier 3 - prepare, do not ship
 
-#### 3.1 DPoP — RFC 9449 · **tripwire written, 2026-08-22**
+#### 3.1 DPoP - RFC 9449 · **tripwire written, 2026-08-22**
 
 `CimdClientResolverTests.No_captured_vendor_document_asks_for_dpop` reads every
 `spec/cimd-live-*.json` capture and fails when one mentions `dpop` in any spelling. A substring
@@ -329,14 +329,14 @@ neither the test nor the resolver knows the name of yet. RFC 9449 §5.2 register
 in that document first.
 
 The captures are enumerated from disk rather than listed in the test, and
-`Every_capture_in_spec_is_read` asserts both by name — a theory over an empty set passes while
+`Every_capture_in_spec_is_read` asserts both by name - a theory over an empty set passes while
 measuring nothing, which is the failure that arrangement exists to prevent.
 
 **The rest of the entry stands unchanged: not enforced, not advertised, seam kept.** When the
 tripwire goes red, the comments asserting that neither vendor sends DPoP are the thing to fix, not
 the assertion. The original entry follows.
 
-#### 3.1a The original entry — DPoP, prepare do not ship
+#### 3.1a The original entry - DPoP, prepare do not ship
 
 `ResourceServer/Metadata/ProtectedResourceMetadata.cs` already records that setting
 `dpop_bound_access_tokens_required: true` **breaks both Claude and ChatGPT today, since neither
@@ -346,7 +346,7 @@ better-auth shipping DPoP is evidence about where the MCP profile is heading. It
 that any client we serve sends it. Those are different claims and conflating them is rule 1.
 
 But that comment is a dated measurement written as a standing fact, which is the exact shape of
-LESSONS #8 — correct when written, encoded as though it were a rule.
+LESSONS #8 - correct when written, encoded as though it were a rule.
 
 **Action, and it is cheap:** turn it into a **tripwire**. A test over the live client metadata
 fixtures that fails when Claude or ChatGPT begins advertising DPoP, dated in its filename beside
@@ -355,7 +355,7 @@ comment that will silently go stale into one that fails on purpose.
 
 **Do not enforce it. Do not advertise it. Keep the seam.**
 
-#### 3.2 CIMD cache parity — **read, 2026-08-22**
+#### 3.2 CIMD cache parity - **read, 2026-08-22**
 
 better-auth documents four properties for CIMD fetching. The read is done; this is what it found.
 Two were already there, one was a real gap and is now closed, one is a gap and stays open.
@@ -363,25 +363,25 @@ Two were already there, one was a real gap and is now closed, one is a gap and s
 | Property | Us | Where |
 |---|---|---|
 | Shared-cache freshness | **was partial, now done** | `GuardedTransport.Freshness` |
-| Conditional revalidation (`ETag` / `If-None-Match`) | **no** | — |
+| Conditional revalidation (`ETag` / `If-None-Match`) | **no** | - |
 | Per-origin fetch governor | **yes, and stricter** | `SafeHttpFetcher`, plus a second layer in the resolver |
 | Fail-closed refresh preserving previous state | **yes, bounded** | `CimdClientResolver.StaleOr` |
 
-**Freshness was reading the wrong member.** It was `response.Headers.CacheControl?.MaxAge` — the
+**Freshness was reading the wrong member.** It was `response.Headers.CacheControl?.MaxAge` - the
 directive for a *private* cache. Everything behind this transport is shared by construction: one
 process holding one origin's document on behalf of every user of that client. RFC 9111 §5.2.2.10
 gives `s-maxage` precedence for exactly that case, so an origin publishing
-`s-maxage=60, max-age=3600` was being held for an hour it asked shared caches to hold for a minute —
+`s-maxage=60, max-age=3600` was being held for an hour it asked shared caches to hold for a minute -
 an hour of acting on a redirect URI or a key it had already replaced. `Expires` was unread too, and
 that one cost the *origin* rather than us: with no freshness at all the resolver falls back to its
 300-second floor, so a document published with a day's `Expires` and no `Cache-Control` was refetched
 on that floor. Both fixed, five tests, including the control that `max-age` alone still works and
-that an already-past `Expires` is zero rather than absent — "stale" and "said nothing" are different
+that an already-past `Expires` is zero rather than absent - "stale" and "said nothing" are different
 answers and only the second should get the floor.
 
 **The per-origin governor exists, and this read got it wrong first.** Reading only
-`CimdClientResolver.cs` shows a budget keyed on `client_id` — `MaxFetchesPerClientIdPerWindow`, ten a
-minute — and that is genuinely not a per-origin bound: one origin can host unbounded distinct
+`CimdClientResolver.cs` shows a budget keyed on `client_id` - `MaxFetchesPerClientIdPerWindow`, ten a
+minute - and that is genuinely not a per-origin bound: one origin can host unbounded distinct
 `client_id` URLs, which is not hypothetical, because ChatGPT mints a document per connector instance.
 That looked like an amplifier against any third-party origin, next to a comment claiming the opposite.
 It is not: `SafeHttpFetcher` holds a second limiter keyed on `Url.Host`, 60 a minute, one layer down,
@@ -393,8 +393,8 @@ is LESSONS #9 pointed inward, and it was one edit away from a rate limiter chang
 **Conditional revalidation is a real gap and stays open.** `GuardedTransport` captures the `ETag` and
 `FetchOutcome.Ok` carries it; nothing reads it, and there is no request-side field to send
 `If-None-Match` with. So every refresh transfers the whole document. It is bounded rather than
-alarming — the 300-second floor and 5 KB cap mean the worst case is a small body every five minutes
-per client — and closing it needs a request field, a 304 arm, and a cache entry that keeps the
+alarming - the 300-second floor and 5 KB cap mean the worst case is a small body every five minutes
+per client - and closing it needs a request field, a 304 arm, and a cache entry that keeps the
 validator across a refresh. Worth doing when something else touches that path; not worth a change of
 its own.
 
@@ -403,13 +403,13 @@ its own.
 ## 3. Won't do, and the reasons matter more than the list
 
 - **Dynamic Client Registration (RFC 7591).** `/register` answers 404 on purpose. `U-02` records
-  conflicting primary sources — the MCP spec ranks CIMD above DCR, and a live Auth0 tenant was
-  measured with **DCR winning** — resolved defensively by advertising exactly one. better-auth calls
+  conflicting primary sources - the MCP spec ranks CIMD above DCR, and a live Auth0 tenant was
+  measured with **DCR winning** - resolved defensively by advertising exactly one. better-auth calls
   DCR deprecated and never enables it implicitly. Closing this "gap" reopens a resolved question and
   risks the silent connection failure `U-02` is about.
 - **Device authorization grant (RFC 8628).** No device without a browser exists in the connector
   story.
-- **Back-channel logout.** Needs a client that registers a logout URI. CIMD clients do not — and
+- **Back-channel logout.** Needs a client that registers a logout URI. CIMD clients do not - and
   better-auth's own CIMD plugin lists backchannel logout as unsupported for discovered clients.
 - **2FA, passkey, magic link, email OTP, phone, organization/team, SAML, SCIM, API keys, captcha,
   billing.** A different product. `README.md`'s "what it is not" holds: not a general-purpose
@@ -436,15 +436,15 @@ document is §3.2's conditional revalidation, and §3.2 says what it is waiting 
 | 4 | DPoP tripwire fixture (§3.1) | 0.5d | Cheapest item here; converts a stale-able comment into a failing test |
 | 5 | CIMD cache read (§3.2) | 0.5d | Decides whether §3.2 is a task at all |
 | 6 | `private_key_jwt` (§2.2) | 3–5d | Largest, and the only one with a failure already paid for |
-| 7 | Rate limiting (§2.3) | — | On the second-replica trigger |
-| 8 | Pairwise (§1.2) | — | Decide wire-or-delete; do not build |
+| 7 | Rate limiting (§2.3) | - | On the second-replica trigger |
+| 8 | Pairwise (§1.2) | - | Decide wire-or-delete; do not build |
 
 Items 1–5 total under a week and close every gap that can bite at one replica. Item 6 is the one
 worth scheduling deliberately.
 
 ## 5. What this document is not
 
-Not a claim that better-auth was measured — see §0. Not a commitment to parity: parity with a
+Not a claim that better-auth was measured - see §0. Not a commitment to parity: parity with a
 framework that has ~40 plugins is not a goal a server with one job should hold. And not a
 re-litigation of build-versus-buy. That question has a different shape now than it did in June, and
 it deserves its own document rather than a paragraph at the end of this one.
