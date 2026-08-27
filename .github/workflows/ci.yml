@@ -52,6 +52,38 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  # The one rule in CLAUDE.md a machine can settle, settled by one. `scripts/check-dashes.py` was
+  # written for it and then nothing ran it, which is the shape this repository warns about at
+  # length: a documented check nobody executes is a claim, and this one had already been wrong twice
+  # - once as a count in CLAUDE.md that went stale, once as a constant the script counted itself.
+  #
+  # Its own job rather than a step inside `test`, because it takes seconds and has no reason to wait
+  # on a .NET build to say what it knows.
+  prose:
+    runs-on: ubuntu-latest
+
+    # Seconds. Anything near this is a hung checkout rather than a slow scan.
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # No setup step: the script imports nothing outside the standard library, which is the rule
+      # release.yml wrote up after an undeclared PyYAML import worked only because the runner image
+      # happened to ship it. python3 is on the GitHub-hosted images; named explicitly when it is
+      # not, because "python3: command not found" is a two-word failure.
+      - name: No em-dashes in prose or comments
+        run: |
+          set -euo pipefail
+
+          command -v python3 >/dev/null || {
+            echo "::error::python3 is not on this runner. It ships in the GitHub-hosted images; a"
+            echo "::error::self-hosted runner has to install it."
+            exit 1
+          }
+
+          python3 scripts/check-dashes.py
+
   test:
     runs-on: ubuntu-latest
 
