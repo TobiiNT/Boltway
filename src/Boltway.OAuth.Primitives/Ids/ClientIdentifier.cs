@@ -136,10 +136,9 @@ public readonly struct ClientIdentifier : IEquatable<ClientIdentifier>
 /// A ULID, rendered as 26 characters of Crockford base32 - charset <c>[0-9A-HJKMNP-TV-Z]</c>. That
 /// choice does A-18's work by construction: no <c>|</c>, <c>/</c>, <c>.</c> or <c>@</c>, so the
 /// value is safe as a path segment, a filename, a cache key and a column name with no sanitiser
-/// anywhere. It is a deliberate improvement on the <c>auth0|&lt;hex&gt;</c> shape, which forced the
-/// connector this project came out of to write both a sanitiser and a collision-disambiguation
-/// path - and a sanitiser that maps several inputs onto one identifier is a collision waiting for
-/// the wrong two users.
+/// anywhere. It is a deliberate improvement on the <c>auth0|&lt;hex&gt;</c> shape, which forces a
+/// connector to write both a sanitiser and a collision-disambiguation path - and a sanitiser that
+/// maps several inputs onto one identifier is a collision waiting for the wrong two users.
 /// </remarks>
 public readonly struct SubjectId : IEquatable<SubjectId>
 {
