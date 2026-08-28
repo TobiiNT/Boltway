@@ -797,5 +797,5 @@ Each step leaves a green build and something runnable.
   dependency; finding out from a customer is the expensive way.
 
 Deadline pressure falls on `app`-shaped surface - endpoints, providers, admin convenience - never on
-`core`-shaped guarantees. That was the rule on the deployment this was extracted from, under its own
-deadline, and it was right there too.
+`core`-shaped guarantees. That was the rule the first time this code shipped under a deadline, and
+it was right there too.

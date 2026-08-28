@@ -19,9 +19,8 @@ namespace Boltway.AdminBff;
 /// <para>
 /// <b>Every sentence comes from <see cref="AdminText"/>, and none is a literal here.</b> That said
 /// "English only" for a while and gave a reason that was true when it was written - an internal
-/// tool's second localization mechanism is a cost with no reader. The reader appeared: the
-/// deployment this ships to runs every other page in Vietnamese and its operators are the two people
-/// who read these.
+/// tool's second localization mechanism is a cost with no reader. The reader appeared: a deployment
+/// whose other pages are all in Vietnamese has operators who read these in Vietnamese too.
 /// </para>
 /// </remarks>
 public sealed class DefaultAdminRenderer : IAdminRenderer

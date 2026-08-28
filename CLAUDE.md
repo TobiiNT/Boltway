@@ -5,8 +5,8 @@ published as NuGet packages under Apache-2.0. It is the layer underneath a conne
 connector: `Boltway.ResourceServer` and `Boltway.Mcp` are what an MCP server references, and
 `Boltway.AuthorizationServer` is a separate deployable that issues the tokens it validates.
 
-The audience is strangers. Nobody reading this code has our context, our deployment, or our
-vocabulary, and every rule below follows from that one fact.
+The audience is strangers. Nobody reading this code has the context, the setup or the vocabulary
+it was first written against, and every rule below follows from that one fact.
 
 ## How to work
 
@@ -52,13 +52,14 @@ One tree, one solution, `Boltway.slnx`. The reason is under *the architecture te
 
 ## Nothing about one deployment lands here
 
-This repository was extracted from a private deployment, and the extraction is the part that is
-never finished. A rule, a role name, a lifetime or an example that is true of *our* install and
-stated here as though it were true of the library is a defect, whether or not anything fails.
+Every library that grows out of one concrete problem carries residue from the first place it ran,
+and getting that residue out is the part that is never finished. A rule, a role name, a lifetime or
+an example that is true of *one* install and stated here as though it were true of the library is a
+defect, whether or not anything fails.
 
 - **No company, product or person names** in identifiers, comments, XML docs, log lines, strings
-  or fixtures. That includes using our people as the actors in an anecdote - *"a founder pressed
-  Link Google"* narrates a deployment the reader does not have. Say *"a user"*.
+  or fixtures. That includes named actors in an anecdote - *"a founder pressed Link Google"*
+  narrates a deployment the reader does not have. Say *"a user"*.
 - **No role vocabulary as though it were the library's.** `IRoleStore` and `IUserStore` hold role
   strings they never compare to a constant, and their doc comments say so by listing several
   unrelated examples on purpose. One example repeated everywhere reads as the built-in set.

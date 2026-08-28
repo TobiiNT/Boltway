@@ -379,7 +379,7 @@ because this host calls `AddSubjectClaimsFromAccounts()`.
 
 Without that call the token names nobody. It is a correct library default: a resource server that
 only needs to know a request is authorised should not be handed a name. It is a bad *deployment*
-default, and the failure is silent - the connector this was built for had a whole attribution path,
+default, and the failure is silent - one connector had a whole attribution path,
 and every commit it made came out authored by `01KZAWCB5XY91G8N9XG84WR1EN` the moment it moved off
 static tokens. Nothing errored. The git history simply stopped naming people.
 

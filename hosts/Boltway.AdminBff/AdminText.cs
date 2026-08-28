@@ -10,9 +10,9 @@ namespace Boltway.AdminBff;
 /// <para>
 /// <b>This file exists because its own predecessor's reasoning stopped being true.</b> Pages.cs
 /// said English only, on the grounds that "a second localization mechanism for an internal tool is
-/// a cost with no reader". That was right when it was written and is not right now: the deployment
-/// this ships to runs every other page in Vietnamese, and its operators are the two people who read
-/// these. The cost was always real; what changed is that the reader appeared.
+/// a cost with no reader". That was right when it was written and is not right now: a deployment
+/// whose other pages are all in Vietnamese has operators who read these in Vietnamese too. The cost
+/// was always real; what changed is that the reader appeared.
 /// </para>
 /// <para>
 /// <b>Constants with English defaults, not a resx</b> - the same shape as

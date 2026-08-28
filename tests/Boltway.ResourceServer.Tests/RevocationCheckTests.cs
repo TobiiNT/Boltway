@@ -177,8 +177,8 @@ public sealed class RevocationCheckTests
     {
         // Three ways to get no answer, all of them the same decision: allow the request, and write
         // a warning naming the cause. Failing closed here would take the resource server down with
-        // the authorization server - they share a host in the deployment this was built for, so an
-        // ordinary deploy would log everybody out several times.
+        // the authorization server - where they share a host, an ordinary deploy would log
+        // everybody out several times.
         var log = new Recorder();
         var check = Check(new StubIntrospection(body), log);
 

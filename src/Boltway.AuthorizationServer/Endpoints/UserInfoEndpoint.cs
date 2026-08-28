@@ -169,8 +169,8 @@ public static class UserInfoEndpoint
         // address. Gating it here would mean the same fact about the same person is governed by two
         // different rules depending on which surface asked, which is not a rule.
         //
-        // It would also be a gate that never opens on the deployment this was measured against: `profile` is not a
-        // scope this server knows anywhere - `ScopesSupported` is whatever a deployment configures,
+        // It would also be a gate that never opens here: `profile` is not a scope this server
+        // knows anywhere - `ScopesSupported` is whatever a deployment configures,
         // and nothing here treats `profile` specially - so a client asking for it gets
         // `invalid_scope`, and one that does not ask gets a person named by ULID.
         //

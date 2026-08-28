@@ -10,8 +10,8 @@ namespace Boltway.AdminBff.Tests;
 /// </summary>
 /// <remarks>
 /// The renderer used to say English only, on the grounds that a second localization mechanism for an
-/// internal tool is a cost with no reader. The reader turned up: the deployment this ships to runs
-/// every other page in Vietnamese and its operators are the two people who read these.
+/// internal tool is a cost with no reader. The reader turned up: a deployment running every other
+/// page in Vietnamese, whose operators are the people who read these.
 /// </remarks>
 public sealed class AdminTextTests
 {
