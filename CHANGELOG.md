@@ -16,6 +16,44 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
+## [0.5.0] - 2026-08-28
+
+**Documentation only.** No type, member, signature or behaviour under `src/` moved. These packages
+differ from 0.4.0's in their XML documentation and in nothing else, and the number moves anyway
+because that documentation ships: `GenerateDocumentationFile` is on, so these comments are what a
+consumer's IntelliSense shows, and a correction that stays on `main` reaches nobody. Every published
+version up to and including 0.4.0 carries the earlier wording; this is the first that does not.
+
+### Changed
+
+- **The comments no longer describe this codebase in terms of one deployment.** "The deployment
+  this was written for", "the connector this project came out of", "our vocabulary", "a private
+  product": gone from every comment, document and fixture outside `spec/` and `docs/archive/`,
+  among them `CLAUDE.md`'s own justification for the rule against exactly that and the pull request
+  template's checklist item asking for it. Each keeps its measurement and loses the party.
+  `AddSubjectClaimsFromAccounts` still records that every commit one connector made was attributed
+  to a bare ULID; `StoredRows.BrowserId` still records that a column added after the fact stays
+  blank on every row written before it; `SubjectId` still records why the `auth0|<hex>` shape forces
+  a sanitiser and a collision-disambiguation path. The rule they serve now rests on something true
+  of every library rather than on this repository's history.
+
+  **Three passes, because the first two matched line by line.** An XML doc comment wraps, so a
+  sentence can carry a phrase that no single line contains, and two of these survived a grep that
+  read the tree honestly. The check that found the rest flattens whitespace and comment markers
+  first, and the last one runs against the packed `.nupkg` documentation, which is the only thing
+  that answers what a consumer actually receives.
+
+- **`IRoleStore`'s example role strings are `founder`, `tier-2`, `reports_read`.** The third was
+  `read_ledgers`, one of the permission names 0.1.0 replaced, surviving as a sample. Nothing compares
+  any of them to a constant, which is the point the list makes.
+
+- **No em-dash reaches a comment or a document, and `ci` fails on one.**
+  `python3 scripts/check-dashes.py` separates what this repository writes from what the software
+  says, because a string literal is output and changing one is a change to a message. `spec/`,
+  `docs/archive/` and the example translations are out of scope: rewriting a vendored draft, a dated
+  measurement or a deployment's own copy falsifies it. Measured on this release: 0 in prose or
+  comments, 110 inside string literals.
+
 ## [0.4.0] - 2026-08-27
 
 ### Added

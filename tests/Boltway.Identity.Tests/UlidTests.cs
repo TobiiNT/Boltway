@@ -48,8 +48,8 @@ public sealed class UlidTests
     /// <remarks>
     /// Asserted as an explicit character list rather than by re-stating the alphabet, because a test
     /// that re-states the implementation's constant passes whatever that constant becomes. These are
-    /// the characters that made the connector this project came out of write a sanitiser, plus the
-    /// ones that would make a value unsafe in a path, a shell word or a SQL identifier.
+    /// the characters that make a connector write a sanitiser, plus the ones that would make a
+    /// value unsafe in a path, a shell word or a SQL identifier.
     /// </remarks>
     [Fact]
     public void A_minted_subject_needs_no_sanitiser_anywhere()
