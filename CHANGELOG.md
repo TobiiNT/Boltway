@@ -307,12 +307,13 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   advertise nothing DPoP-related; a search tag is an advertisement, so somebody filtering nuget.org
   for `dpop` was shown a package that does not implement it - 0.1.0's nuspecs carry the tag.
   `rfc9728` is there instead, which this server does serve.
-- The last of a private deployment's vocabulary is out of the XML docs, which ship to consumers'
-  IntelliSense because `GenerateDocumentationFile` is on. A private product was named 24 times,
-  including in a test fixture and a copy-pasteable JSON example; 22 sites narrated that
-  deployment's people as the actors in an anecdote; three doc comments justified `A-08` as
-  protecting "the property the product is sold on", which is a real property with a name a stranger
-  can read - zero-registration. Every measurement survives; only the proper nouns are gone.
+- The last vocabulary carried over from the setup this was first written against is out of the XML
+  docs, which ship to consumers' IntelliSense because `GenerateDocumentationFile` is on. One
+  unrelated product was named 24 times, including in a test fixture and a copy-pasteable JSON
+  example; 22 sites named particular people as the actors in an anecdote; three doc comments
+  justified `A-08` by what that product was sold on rather than by what this library guarantees,
+  which is zero-registration and readable by a stranger. Every measurement survives; only the
+  proper nouns are gone.
 - The documented seam for replacing interface text is `IStringLocalizer`, registered before
   `AddBoltwayInteractionLocalization`. The XML docs said `IStringLocalizerFactory`, the way
   OrchardCore and ABP do it; nothing here has ever resolved a factory, so anyone who followed that
@@ -370,11 +371,11 @@ Three conventions, because a changelog nobody can rely on is worse than none:
 
 The first release: the authorization server, the resource server, the MCP layer, the storage
 providers, federation, notifications, and the specs and research they are built against. 506 files
-in one curated commit, with no history carried over from the private tree it was assembled from,
+in one curated commit, with no history carried over from the working tree it was assembled from,
 plus three changes on top of it - the copyright holder named rather than a placeholder collective;
 `Boltway.Mcp`'s own JWKS refresher replaced by `Boltway.OAuth.Net.JwksKeySource` behind the same
-`AddJwksSigningKeys`; and the scope and permission vocabulary of a private deployment replaced with
-`docs:` and `reports:`.
+`AddJwksSigningKeys`; and the scope and permission vocabulary of the setup it was first written
+against replaced with `docs:` and `reports:`.
 
 **Which tree that was is not recorded anywhere, so it was measured off the feed rather than read off
 the log.** The packages went out from a `workflow_dispatch` that built whatever `main` was at that

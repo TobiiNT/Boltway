@@ -34,7 +34,7 @@
 - [ ] One concern. A rename and a behaviour change in the same diff cannot be reviewed.
 - [ ] New rule? There is a test that goes **red without it** - a test that would have passed against
       the old code is a promise rather than a check.
-- [ ] Nothing here names our deployment: no company, product or person names, and example values
+- [ ] Nothing here names one deployment: no company, product or person names, and example values
       obey RFC 2606 (`example.com`, `.test`, `.invalid`, `.localhost`).
 
 <!--

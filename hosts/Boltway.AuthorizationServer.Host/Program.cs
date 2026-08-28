@@ -1025,7 +1025,7 @@ builder.Services.AddBoltwayAuthorizationServer(options =>
 
 // Without this the access token says `sub: 01KZAWCB5XY91G8N9XG84WR1EN` and nothing else about
 // who is calling, so every resource server behind this one records a ULID where a person
-// belongs. Measured on the connector this was built for: it had a whole attribution path -
+// belongs. Measured on one connector: it had a whole attribution path -
 // commit author, actor line, refusal messages naming the caller - and all of it degraded to
 // the identifier the moment it moved off static tokens, with nothing failing to report it.
 //

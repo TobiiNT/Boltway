@@ -77,16 +77,16 @@ public sealed class IntrospectionOptions
 /// <para>
 /// <b>It fails open, and it says so every time.</b> When the authorization server cannot be reached
 /// - a restart, a deploy, a network blip - this answers "not revoked" and writes a warning naming
-/// the reason. The alternative was considered and rejected by the deployment this was written for:
-/// the two services share a host, so an authorization server restart would take the resource server
-/// down with it, several times per deploy, to close a window measured in seconds. The window it
+/// the reason. The alternative was considered and rejected: where the two services share a host, an
+/// authorization server restart takes the resource server down with it, several times per deploy,
+/// to close a window measured in seconds. The window it
 /// leaves open is exactly the one that existed before this class, so failing open is never worse
 /// than not having asked.
 /// </para>
 /// <para>
 /// <b>What makes that defensible is the log line.</b> An unnoticed fail-open is how a session
-/// somebody ended stays live for a week; the connector this was written for had a store fall back
-/// to a weaker path for 25 commits without saying so, which is the same lesson twice. Every
+/// somebody ended stays live for a week; one connector had a store fall back to a weaker path for
+/// 25 commits without saying so, which is the same lesson twice. Every
 /// unreachable answer here is a <see cref="LogLevel.Warning"/> carrying the cause, so "were we
 /// failing open, and for how long" is a query rather than a guess.
 /// </para>
