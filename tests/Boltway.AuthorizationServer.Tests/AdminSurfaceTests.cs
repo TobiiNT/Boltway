@@ -334,7 +334,7 @@ public sealed class AdminSurfaceTests
     /// before an account can hold it, and removing it has to take the assignment with it. Five tests
     /// would each seed the state the one before it produced, and none of them would cover the order.
     /// </remarks>
-    private static readonly string[] AnalystPermissions = ["docs_read", "read_ledgers"];
+    private static readonly string[] AnalystPermissions = ["docs_read", "reports_read"];
     private static readonly string[] Analyst = ["analyst"];
     private static readonly string[] Mistyped = ["analsyt"];
 

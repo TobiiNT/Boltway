@@ -9,7 +9,7 @@ namespace Boltway.AuthorizationServer.Abstractions.Users;
 /// <remarks>
 /// <para>
 /// <b>Every string in here is opaque to this library.</b> It stores them, emits them as claims, and
-/// never compares one to a constant. <c>founder</c>, <c>tier-2</c>, <c>read_ledgers</c> are all the
+/// never compares one to a constant. <c>founder</c>, <c>tier-2</c>, <c>reports_read</c> are all the
 /// same to it. Knowing what a role or a permission <i>means</i> is the resource server's job, and a
 /// library that shipped a vocabulary would be shipping one customer's org chart to every other
 /// customer. That rule is older than this type - it is why <c>UserAccount</c> carried a bare string

@@ -373,9 +373,8 @@ public static class AuthorizationServerServiceCollectionExtensions
     /// The reason to call it is an audit trail. A resource server recording <i>who did this</i> from
     /// a bare <c>sub</c> writes a ULID into its history, or keeps a second table mapping subjects to
     /// people - and the first is unreadable, while the second is a copy of this server's account
-    /// list in a system that has no way to know when it went stale. Measured on the connector this
-    /// was written for: every commit it made was attributed to
-    /// <c>01KZAWCB5XY91G8N9XG84WR1EN</c>.
+    /// list in a system that has no way to know when it went stale. Measured on one connector:
+    /// every commit it made was attributed to <c>01KZAWCB5XY91G8N9XG84WR1EN</c>.
     /// </para>
     /// <para>
     /// Scoped, because it reaches <c>IUserStore</c> and every other consumer of a store here is.
