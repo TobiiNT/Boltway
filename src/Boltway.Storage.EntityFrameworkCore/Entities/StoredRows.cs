@@ -180,8 +180,8 @@ internal sealed class GrantRow
     /// </summary>
     /// <remarks>
     /// Nullable and never backfilled. Every grant created before this column existed has none, and
-    /// nobody can say afterwards what device approved them - the same reason the connector's
-    /// <c>actor</c> ledger column was left blank on its older rows.
+    /// nobody can say afterwards what device approved them - the same reason an <c>actor</c> column
+    /// added to an audit table that already has rows stays blank on every one of them.
     /// </remarks>
     public string? UserAgent { get; set; }
 }
