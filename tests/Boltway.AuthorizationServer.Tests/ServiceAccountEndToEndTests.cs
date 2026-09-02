@@ -689,6 +689,101 @@ public sealed class ServiceAccountEndToEndTests
     }
 
     /// <summary>
+    /// Recreated with different scopes, it is audienced at what those scopes name now.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Measured in production 2026-09-01.</b> A service account holding the administrative
+    /// scopes was deleted and recreated holding a resource server's. Every token afterwards carried
+    /// the new scopes and the OLD audience, so the resource server refused all of them with "the
+    /// access token was not issued for this resource" while this server logged a clean 200. Naming
+    /// the new resource explicitly failed too, with <c>invalid_target</c>. Half a day went into the
+    /// resource registry, which was correct the whole time.
+    /// </para>
+    /// <para>
+    /// <b>Why deleting did not clear it.</b> The client id is derived from the owner's handle and
+    /// the grant id from (client, owner), so both came back identical and the grant row survived
+    /// the delete. That row is written once - <c>StoreAsync</c> is an insert and refuses a
+    /// duplicate - so reading its resources back is a cache with no invalidation, for a value that
+    /// was itself derived from the scopes the client held at the time.
+    /// </para>
+    /// <para>
+    /// The first token matters and is not decoration: the row is written on first use, not at
+    /// creation, so an account that was never used has nothing stale to inherit.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task A_recreated_service_account_is_audienced_at_what_its_new_scopes_name()
+    {
+        await using var server = await StartAsync(registry: new TestResourceRegistry()
+            .Add(Build.Resource, "docs:read docs:write")
+            .Add(Build.OtherResource, "users:read users:write"));
+
+        await CreateAccountAsync(server);
+
+        // Used once, which is what writes the grant row.
+        var (firstId, firstSecret) = await CreateServiceAccountAsync(server, "users:read", "users:write");
+
+        using (var first = await TokenAsync(server, firstId, firstSecret, ("resource", Build.OtherResource)))
+        {
+            await ShouldBeAsync(first, HttpStatusCode.OK);
+        }
+
+        var deleted = await server.Client.DeleteAsync($"/admin/users/{Handle}/service-account");
+        Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+
+        var (secondId, secondSecret) = await CreateServiceAccountAsync(server, "docs:read", "docs:write");
+
+        // The same credential id, which is the whole reason the row is found again.
+        Assert.Equal(firstId, secondId);
+
+        using var token = await TokenAsync(server, secondId, secondSecret, ("resource", Build.Resource));
+
+        await ShouldBeAsync(token, HttpStatusCode.OK);
+
+        var body = await token.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("docs:read docs:write", body.GetProperty("scope").GetString());
+    }
+
+    /// <summary>
+    /// And not at the one it left behind.
+    /// </summary>
+    /// <remarks>
+    /// The control for the test above, and the reason it is not enough on its own: recomputing the
+    /// audience would also "pass" if it resolved to every registered resource. This says the new
+    /// set is narrower than that - the resource the old scopes named is refused now, which is what
+    /// makes the recomputation a derivation rather than a widening.
+    /// </remarks>
+    [Fact]
+    public async Task A_recreated_service_account_is_not_audienced_at_what_it_left_behind()
+    {
+        await using var server = await StartAsync(registry: new TestResourceRegistry()
+            .Add(Build.Resource, "docs:read docs:write")
+            .Add(Build.OtherResource, "users:read users:write"));
+
+        await CreateAccountAsync(server);
+
+        var (firstId, firstSecret) = await CreateServiceAccountAsync(server, "users:read", "users:write");
+
+        using (var first = await TokenAsync(server, firstId, firstSecret, ("resource", Build.OtherResource)))
+        {
+            await ShouldBeAsync(first, HttpStatusCode.OK);
+        }
+
+        var deleted = await server.Client.DeleteAsync($"/admin/users/{Handle}/service-account");
+        Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+
+        var (secondId, secondSecret) = await CreateServiceAccountAsync(server, "docs:read", "docs:write");
+
+        using var stale = await TokenAsync(server, secondId, secondSecret, ("resource", Build.OtherResource));
+
+        await ShouldBeAsync(stale, HttpStatusCode.BadRequest);
+
+        var body = await stale.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("invalid_target", body.GetProperty("error").GetString());
+    }
+
+    /// <summary>
     /// A service account never reaches <c>/authorize</c>, whatever it sends.
     /// </summary>
     /// <remarks>

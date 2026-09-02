@@ -16,6 +16,42 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
+## [0.5.1]
+
+### Fixed
+
+- **A service account recreated with different scopes is audienced at what those scopes name now.**
+  The `client_credentials` grant derived the audience from the client's scopes only when no grant
+  row existed, and read it back from the row when one did. That row is written on first use and
+  never updated - `StoreAsync` is an insert and refuses a duplicate - so what it holds is the
+  audience the client's scopes implied the first time it was used, cached with nothing to
+  invalidate it.
+
+  Deleting a service account does not remove the row, and cannot reach it: the client id is derived
+  from the owner's handle and the grant id from (client, owner), so deleting and recreating one
+  returns the same pair and finds the same row.
+
+  Measured 2026-09-01 on a live deployment. An account holding the administrative scopes was
+  recreated holding a resource server's, and every token afterwards carried the new scopes and the
+  old audience. The resource server refused all of them with "the access token was not issued for
+  this resource" while this server logged a clean 200, and naming the new resource explicitly
+  failed with `invalid_target`, because the stale set is also what `resource` is checked against.
+  Both ends reported success at every step, so the search started at the resource registry, which
+  had been correct throughout.
+
+  The audience is now derived on every request. That is the rule the same method already applied
+  one line later to `Scope`: the grant is the revocation handle, the client is the authority on
+  what it may ask for. The authorization-code and refresh paths are untouched, and deliberately so
+  - there the stored set is what a person consented to, and reading it back is the point.
+
+  Not a widening: a service account is still refused a resource its current scopes do not name.
+  Both halves are held by `ServiceAccountEndToEndTests`, which goes in at the admin endpoint and
+  comes out at `/token`.
+
+  **A row written before this release still holds the stale value.** Nothing reads it now.
+  Correcting it in storage would need an update method on `IGrantStore`, which is a published
+  interface a deployment may implement, so the row is left as the historical record it now is.
+
 ## [0.5.0] - 2026-08-28
 
 **Documentation only.** No type, member, signature or behaviour under `src/` moved. These packages
