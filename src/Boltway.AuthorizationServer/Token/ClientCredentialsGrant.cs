@@ -193,8 +193,24 @@ public sealed class ClientCredentialsGrant(
 
         // Resources are resolved before the grant is written, so a request naming an unknown
         // resource does not leave a row behind for a token that was never issued.
-        var permitted = existing?.Resources
-            ?? Audience(await _resources.AllAsync(cancellationToken), client.AllowedScopes);
+        //
+        // **Derived on every request, never read back from the row.** That is the same sentence
+        // the issuer call below applies to `Scope`: the grant is the revocation handle, the client
+        // is the authority on what it may ask for. For the two grant types in `GrantHandlers` the
+        // stored set is what a person consented to and reading it back is the whole point. Nobody
+        // consented to anything here, and this set was itself computed from `AllowedScopes` by
+        // `Audience` - so reading it back is a cache with no invalidation, over a row that is
+        // written once and never updated (`StoreAsync` is an insert and refuses a duplicate).
+        //
+        // **Measured 2026-09-01.** A service account holding the administrative scopes was deleted
+        // and recreated holding a resource server's. The client id is derived from the owner's
+        // handle and the grant id from (client, owner), so both came back identical and the row
+        // survived the delete. Every token afterwards carried the new scopes and the OLD audience:
+        // the resource server refused all of them while this server logged a clean 200, and naming
+        // the new resource explicitly failed with `invalid_target`, because the stale set is also
+        // what `resource` is checked against. Both ends reported success at every step. Half a day
+        // went into the resource registry, which had been correct the whole time.
+        var permitted = Audience(await _resources.AllAsync(cancellationToken), client.AllowedScopes);
 
         var resolved = await ResourceNarrowing.ResolveAsync(
             parameters, permitted, client, _resources, cancellationToken);
@@ -226,8 +242,12 @@ public sealed class ClientCredentialsGrant(
         // Scope from the record, not from `grant`, so that a client whose scopes were narrowed
         // after the grant row was written gets the narrower set on its next token. The grant is the
         // revocation handle; the client is the authority on what it may ask for.
+        //
+        // `Resources` for the same reason and in the same breath: nothing downstream reads it
+        // today, and a record travelling beside a token it disagrees with is how that stops being
+        // true by accident.
         var tokens = await _issuer.IssueForClientCredentialsAsync(
-            grant with { Scope = client.AllowedScopes },
+            grant with { Scope = client.AllowedScopes, Resources = permitted },
             client,
             resolved.Resource!,
             client.AllowedScopes,
