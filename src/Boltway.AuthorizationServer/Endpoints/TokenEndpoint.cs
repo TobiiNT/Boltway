@@ -29,11 +29,21 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// </remarks>
 public static class TokenEndpoint
 {
-    /// <summary>Map <c>POST /token</c>.</summary>
+    /// <summary>Map <c>POST /token</c>, and the preflight a browser client may send first.</summary>
     /// <remarks>
+    /// <para>
     /// <c>MapPost</c> rather than <c>MapMethods</c>, so routing answers <c>405</c> for every other
     /// method by itself. <c>MapGet</c> would additionally serve HEAD, and a HEAD that reaches a
     /// grant handler is a token exchange whose response the client never sees.
+    /// </para>
+    /// <para>
+    /// <c>OPTIONS</c> is the exception, and it is mapped for the same reason this endpoint writes a
+    /// CORS header at all: a browser-based client calls it directly. A public client posting
+    /// form-encoded fields sends a simple request and never preflights, which is why this was not
+    /// noticed - but a client that authenticates with an <c>Authorization</c> header, or adds any
+    /// header of its own, preflights, and the preflight matched no route and fell through to the
+    /// host. See <see cref="DiscoveryEndpoints"/> for what that cost.
+    /// </para>
     /// </remarks>
     public static IEndpointRouteBuilder MapToken(this IEndpointRouteBuilder endpoints)
     {
@@ -44,8 +54,15 @@ public static class TokenEndpoint
             .AllowAnonymous()
             .WithName("boltway-token");
 
+        endpoints
+            .MapMethods(AuthorizationServerPaths.Token, PreflightMethods, () => new PreflightResult("POST, OPTIONS"))
+            .AllowAnonymous()
+            .WithName("boltway-token-preflight");
+
         return endpoints;
     }
+
+    private static readonly string[] PreflightMethods = ["OPTIONS"];
 
     /// <summary>
     /// Run the exchange, and turn a store that cannot be reached into a load-shed rather than a crash.

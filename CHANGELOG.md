@@ -16,6 +16,36 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
+## [0.5.2]
+
+### Fixed
+
+- **A CORS preflight is answered wherever a CORS header is written.** `OPTIONS` matched no route on
+  the authorization server or on the resource server's metadata, so a preflight fell through to
+  whatever the host had; a host with a deny-everything fallback policy answered `401`. Measured
+  against a running deployment, 2026-09-08, on all three public documents.
+
+  It bites later than it looks, and that is the reason it is worth a release rather than a note. A
+  browser preflights only once a request stops being simple, so the client that finds this is the
+  first one to add a request header of its own, and what that client is shown is the browser's
+  generic "no `Access-Control-Allow-Origin` header is present" pointing at CORS configuration that
+  is in fact correct. Authenticating a preflight cannot be right in any case: the browser sends it
+  with no credentials by specification, so there is nothing in it to authenticate.
+
+  `OPTIONS` is now mapped on the two discovery documents, the JWKS, the `/.well-known` catch-alls,
+  `/token`, and both forms of the RFC 9728 protected-resource metadata. That is every route that
+  already wrote `Access-Control-Allow-Origin` and no other: `/authorize` MUST have none (OAuth 2.1
+  §3.2, RFC 9700 §2.6), and a change that made every `OPTIONS` succeed would have taken that with
+  it, so a test holds the boundary from both sides.
+
+  The requested headers are echoed rather than published as a fixed list. These endpoints are read
+  without credentials and already answer `Access-Control-Allow-Origin: *` with no
+  `Access-Control-Allow-Credentials`, so naming back what was asked grants nothing they do not
+  already grant to anyone who asks, and a fixed list would make the next header a client adds the
+  next incident.
+
+  Nothing a consumer compiles against moved; the version turns because the behaviour did.
+
 ## [0.5.1] - 2026-09-02
 
 ### Fixed

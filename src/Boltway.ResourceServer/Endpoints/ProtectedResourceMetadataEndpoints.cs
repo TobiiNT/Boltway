@@ -78,6 +78,10 @@ public static class ProtectedResourceMetadataEndpoints
 {
     private static readonly string[] ProbeMethods = ["GET", "HEAD"];
 
+    private static readonly string[] PreflightMethods = ["OPTIONS"];
+
+    private static PreflightResult Preflight() => new();
+
     /// <summary>
     /// One hour.
     /// </summary>
@@ -103,6 +107,21 @@ public static class ProtectedResourceMetadataEndpoints
             .AllowAnonymous()
             .WithName("boltway-prm-root");
 
+        // The CORS preflight, on both routes below as well. This document already answers
+        // `Access-Control-Allow-Origin: *` because browser-based clients read it, and OPTIONS
+        // matched no route - so a preflight fell through to the host, which on a deployment with a
+        // deny-everything fallback answers 401. Measured on the authorization server's identical
+        // routes, 2026-09-08; the same shape, found here by looking rather than by an incident.
+        //
+        // It bites later than it looks: a browser preflights only once a request stops being
+        // simple, so the client that finds it is the first one to add a header, and what it sees is
+        // the browser's "no Access-Control-Allow-Origin header is present" pointing at CORS
+        // configuration that is correct.
+        endpoints
+            .MapMethods(WellKnownResourceUri.Suffix, PreflightMethods, Preflight)
+            .AllowAnonymous()
+            .WithName("boltway-prm-root-preflight");
+
         // E-23, the path-inserted form. A catch-all is mandatory: a plain route for the suffix
         // alone 404s the "/mcp" variant, which is the URL a conformant client constructs first and
         // the one this server's own challenges point at.
@@ -121,6 +140,11 @@ public static class ProtectedResourceMetadataEndpoints
                     : (IResult)NotFound())
             .AllowAnonymous()
             .WithName("boltway-prm-inserted");
+
+        endpoints
+            .MapMethods(WellKnownResourceUri.Suffix + "/{*rest}", PreflightMethods, Preflight)
+            .AllowAnonymous()
+            .WithName("boltway-prm-inserted-preflight");
 
         return endpoints;
     }
@@ -166,6 +190,38 @@ internal static class MetadataHeaders
 }
 
 /// <summary>A JSON body with a strong ETag and a conditional-GET short circuit.</summary>
+/// <summary>
+/// The answer to a CORS preflight: allowed, with no body.
+/// </summary>
+/// <remarks>
+/// The requested headers are echoed rather than published as a list. This document is public and
+/// is read with no credential, and the response carries <c>Access-Control-Allow-Origin: *</c> with
+/// no <c>Access-Control-Allow-Credentials</c>, so the browser sends no ambient authority and naming
+/// back what was asked grants nothing the document does not already grant to anyone. A fixed list
+/// would make the next header a client adds the next incident.
+/// </remarks>
+internal sealed class PreflightResult : IResult
+{
+    public Task ExecuteAsync(HttpContext httpContext)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext);
+
+        var response = httpContext.Response;
+        MetadataHeaders.AllowAnyOrigin(response);
+        response.Headers[HeaderNames.AccessControlAllowMethods] = "GET, HEAD, OPTIONS";
+
+        var asked = httpContext.Request.Headers[HeaderNames.AccessControlRequestHeaders];
+        if (!StringValues.IsNullOrEmpty(asked))
+        {
+            response.Headers[HeaderNames.AccessControlAllowHeaders] = asked;
+        }
+
+        response.Headers[HeaderNames.AccessControlMaxAge] = "600";
+        response.StatusCode = StatusCodes.Status204NoContent;
+        return Task.CompletedTask;
+    }
+}
+
 internal sealed class CachedJsonResult(ImmutableArray<byte> json, string etag, int maxAgeSeconds) : IResult
 {
     public async Task ExecuteAsync(HttpContext httpContext)

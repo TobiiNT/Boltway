@@ -334,6 +334,87 @@ public sealed class DiscoveryEndpointTests : IAsyncLifetime
     }
 
     /// <summary>
+    /// A CORS preflight on a public document is answered, not authenticated.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>OPTIONS</c> matched no route here, so it fell through to whatever the host had - and a
+    /// host with a deny-everything fallback policy answered <b>401</b>. Measured against a running
+    /// deployment on 2026-09-08, on all three public documents.
+    /// </para>
+    /// <para>
+    /// It had not bitten yet, and the reason it had not is the reason it is worth fixing rather
+    /// than noting: a browser preflights only when the request is not simple, and the OIDC client
+    /// libraries fetch these with CORS-safelisted headers alone. So the defect waits for the first
+    /// client that adds one header - and what that client sees is not a 401, it is the browser's
+    /// generic "no Access-Control-Allow-Origin header is present", pointing at CORS configuration
+    /// that is in fact correct. The cost is the hour spent looking in the wrong place.
+    /// </para>
+    /// <para>
+    /// Authenticating a preflight cannot be right in any case: the browser sends it with no
+    /// credentials by specification, so there is nothing there to authenticate.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData("/.well-known/oauth-authorization-server")]
+    [InlineData("/.well-known/openid-configuration")]
+    [InlineData("/.well-known/jwks.json")]
+    public async Task A_preflight_on_a_public_document_is_answered(string url)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Options, url);
+        request.Headers.Add("Origin", "https://client.example");
+        request.Headers.Add("Access-Control-Request-Method", "GET");
+        request.Headers.Add("Access-Control-Request-Headers", "x-request-id");
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal("*", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Origin")));
+        Assert.Contains("GET", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Methods")), StringComparison.Ordinal);
+        // Echoed rather than published as a list. These documents are public and read without
+        // credentials, so naming what was asked for grants nothing that the document itself does
+        // not already grant, and it is what makes an unknown client work rather than the next
+        // header being the next incident.
+        Assert.Equal("x-request-id", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Headers")));
+    }
+
+    /// <summary>The token endpoint too, which a browser-based client posts to.</summary>
+    [Fact]
+    public async Task A_preflight_on_the_token_endpoint_is_answered()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/token");
+        request.Headers.Add("Origin", "https://client.example");
+        request.Headers.Add("Access-Control-Request-Method", "POST");
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal("*", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Origin")));
+        Assert.Contains("POST", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Methods")), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The control, and it is the half that keeps the fix from being a CORS server.
+    /// </summary>
+    /// <remarks>
+    /// A preflight is answered where this server already writes
+    /// <c>Access-Control-Allow-Origin</c>, and nowhere else. The host's own routes are the host's,
+    /// and <c>/authorize</c> in particular MUST have no CORS at all (OAuth 2.1 §3.2, RFC 9700
+    /// §2.6) - a change that made every OPTIONS succeed would have taken that with it.
+    /// </remarks>
+    [Fact]
+    public async Task A_preflight_on_a_route_that_did_not_ask_for_cors_is_left_alone()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/some/app/route");
+        request.Headers.Add("Origin", "https://client.example");
+        request.Headers.Add("Access-Control-Request-Method", "GET");
+
+        var response = await _client.SendAsync(request);
+
+        Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));
+    }
+
+    /// <summary>
     /// The authorization endpoint has no CORS headers.
     /// </summary>
     /// <remarks>
