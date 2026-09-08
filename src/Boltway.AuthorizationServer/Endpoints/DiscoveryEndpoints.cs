@@ -38,7 +38,22 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <c>"contains CORS metadata, but a middleware was not found"</c> - a <b>500 on every discovery
 /// document</b>, while the 404 catch-all keeps working. Measured, and invisible to a test fixture
 /// that happens to call <c>UseCors()</c>. Writing the one header the documents need removes the
-/// dependency: these are simple cross-origin GETs, so no preflight is involved.
+/// dependency.
+/// </para>
+/// <para>
+/// This paragraph used to end "these are simple cross-origin GETs, so no preflight is involved",
+/// and that was true of the clients we had rather than of the endpoint. A browser preflights as
+/// soon as a request stops being simple - one non-safelisted request header is enough - and
+/// <c>OPTIONS</c> matched no route here, so it fell through to the host and a deny-everything
+/// fallback policy answered <b>401</b>. Measured against a running deployment, 2026-09-08.
+/// </para>
+/// <para>
+/// So <c>OPTIONS</c> is mapped wherever this server writes <c>Access-Control-Allow-Origin</c>, and
+/// only there. Authenticating a preflight cannot be right in any case - the browser sends it
+/// without credentials by specification, so there is nothing in it to authenticate - and the cost
+/// of leaving it was never the 401 itself: the browser reports a missing
+/// <c>Access-Control-Allow-Origin</c>, which sends the reader to CORS configuration that is
+/// correct.
 /// </para>
 /// </remarks>
 public static class DiscoveryEndpoints
@@ -59,12 +74,22 @@ public static class DiscoveryEndpoints
                 .MapMethods(path, ProbeMethods, () => Document(document))
                 .AllowAnonymous()
                 .WithName("boltway-discovery-" + path.Replace('/', '_'));
+
+            endpoints
+                .MapMethods(path, PreflightMethods, Preflight)
+                .AllowAnonymous()
+                .WithName("boltway-discovery-preflight-" + path.Replace('/', '_'));
         }
 
         endpoints
             .MapMethods(AuthorizationServerPaths.Jwks, ProbeMethods, () => Jwks(keyRing))
             .AllowAnonymous()
             .WithName("boltway-jwks");
+
+        endpoints
+            .MapMethods(AuthorizationServerPaths.Jwks, PreflightMethods, Preflight)
+            .AllowAnonymous()
+            .WithName("boltway-jwks-preflight");
 
         // Both shapes of well-known path that this server does not serve.
         //
@@ -81,18 +106,35 @@ public static class DiscoveryEndpoints
         // string was inserted" - and a conforming client is then required to reject what it just
         // fetched. A 404 lets it try the next probe instead of failing on a document it must not
         // trust.
+        // The preflight is answered here as well, and a 404 still follows it. That reads backwards
+        // until you see what the alternative costs: a refused preflight tells a browser client
+        // nothing except "CORS", while an answered one lets the real request through to the bare
+        // 404 this route exists to give - which is the answer that lets a client try its next
+        // probe, the whole reason the route is here.
         foreach (var (template, name) in NotFoundRoutes)
         {
             endpoints
                 .MapMethods(template, ProbeMethods, NotFound)
                 .AllowAnonymous()
                 .WithName(name);
+
+            endpoints
+                .MapMethods(template, PreflightMethods, Preflight)
+                .AllowAnonymous()
+                .WithName(name + "-preflight");
         }
 
         return endpoints;
     }
 
     private static readonly string[] ProbeMethods = ["GET", "HEAD"];
+
+    private static readonly string[] PreflightMethods = ["OPTIONS"];
+
+    private static PreflightResult Preflight() => new(DocumentMethods);
+
+    /// <summary>What a preflight on a read-only public document is told it may do.</summary>
+    private const string DocumentMethods = "GET, HEAD, OPTIONS";
 
     /// <summary>
     /// The well-known paths that get a bare 404.
@@ -189,6 +231,47 @@ internal static class DiscoveryHeaders
         {
             response.Headers[HeaderNames.AccessControlAllowOrigin] = "*";
         }
+    }
+}
+
+/// <summary>
+/// The answer to a CORS preflight: allowed, with no body.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>The requested headers are echoed rather than published as a list.</b> Every endpoint that
+/// uses this serves something public and reads no credential, and the response already carries
+/// <c>Access-Control-Allow-Origin: *</c> with no <c>Access-Control-Allow-Credentials</c> - so the
+/// browser sends no cookie and no ambient authority, and naming back what was asked for grants
+/// nothing the document does not already grant to anyone who asks. A fixed list would instead make
+/// the next header a client adds the next incident, which is exactly how this defect was found.
+/// </para>
+/// <para>
+/// <c>204</c> rather than <c>200</c>: there is nothing to send, and a preflight with a body is a
+/// body every client throws away.
+/// </para>
+/// </remarks>
+internal sealed class PreflightResult(string allowedMethods) : IResult
+{
+    public Task ExecuteAsync(HttpContext httpContext)
+    {
+        ArgumentNullException.ThrowIfNull(httpContext);
+
+        var response = httpContext.Response;
+        DiscoveryHeaders.AllowAnyOrigin(response);
+        response.Headers[HeaderNames.AccessControlAllowMethods] = allowedMethods;
+
+        var asked = httpContext.Request.Headers[HeaderNames.AccessControlRequestHeaders];
+        if (!StringValues.IsNullOrEmpty(asked))
+        {
+            response.Headers[HeaderNames.AccessControlAllowHeaders] = asked;
+        }
+
+        // Ten minutes, the same order as the documents' own five: a preflight the browser has to
+        // repeat on every call is a round trip per request, and these answers do not change.
+        response.Headers[HeaderNames.AccessControlMaxAge] = "600";
+        response.StatusCode = StatusCodes.Status204NoContent;
+        return Task.CompletedTask;
     }
 }
 

@@ -265,6 +265,49 @@ public sealed class ProtectedResourceMetadataEndpointTests
         Assert.Equal("*", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Origin")));
     }
 
+    /// <summary>
+    /// A preflight on the metadata document is answered rather than authenticated.
+    /// </summary>
+    /// <remarks>
+    /// The document already answers <c>Access-Control-Allow-Origin: *</c> because browser clients
+    /// read it, and <c>OPTIONS</c> matched no route - so a preflight fell through to the host, and
+    /// a host with a deny-everything fallback answered 401. It bites later than it looks: a
+    /// browser preflights only once a request stops being simple, so the client that finds it is
+    /// the first to add a header of its own, and what it is shown is the browser's generic
+    /// "no Access-Control-Allow-Origin header is present" pointing at configuration that is right.
+    /// </remarks>
+    [Theory]
+    [InlineData(Build.MetadataPath)]
+    [InlineData(Build.RootMetadataPath)]
+    public async Task A_preflight_on_the_document_is_answered(string path)
+    {
+        await using var fixture = await ResourceServerFixture.StartAsync();
+
+        using var request = new HttpRequestMessage(HttpMethod.Options, new Uri(path, UriKind.Relative));
+        request.Headers.Add("Origin", "https://client.example");
+        request.Headers.Add("Access-Control-Request-Method", "GET");
+        request.Headers.Add("Access-Control-Request-Headers", "x-request-id");
+
+        using var response = await fixture.Client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal("*", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Origin")));
+        Assert.Contains("GET", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Methods")), StringComparison.Ordinal);
+        Assert.Equal("x-request-id", Assert.Single(response.Headers.GetValues("Access-Control-Allow-Headers")));
+    }
+
+    /// <summary>The control: the GET this preflight clears still answers the document.</summary>
+    [Fact]
+    public async Task The_request_a_preflight_clears_still_answers()
+    {
+        await using var fixture = await ResourceServerFixture.StartAsync();
+
+        using var response = await fixture.Client.GetAsync(new Uri(Build.MetadataPath, UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+    }
+
     [Fact]
     public async Task A_host_that_already_set_the_origin_header_does_not_get_it_twice()
     {
