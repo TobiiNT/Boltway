@@ -73,7 +73,7 @@
       Boltway.Notifications.Smtp - that client cannot do implicit TLS, and Cloudflare Email
       Service offers 465 with implicit TLS and nothing else. MimeKit comes with it.
     -->
-    <PackageVersion Include="MailKit" Version="4.17.0" />
+    <PackageVersion Include="MailKit" Version="4.18.0" />
   </ItemGroup>
 
   <ItemGroup Label="Hosting and federation">
