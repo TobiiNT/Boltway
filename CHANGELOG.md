@@ -16,7 +16,45 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   method announces itself at the consumer's next build; a renamed class in the rendered markup and
   a changed default in the container never do, so they carry the same marker.
 
-## [0.5.2]
+## [0.6.0]
+
+0.5.2 was never tagged or published - nuget.org's newest is 0.5.1, checked 2026-09-26 - so the fix
+that was waiting under that number ships here instead. 0.6.0 rather than 0.5.2 because this release
+changes a default a deployment can depend on, which `VERSIONING.md` puts on the minor number.
+
+### Added
+
+- **`PostgreSqlStorageOptions`, and an `AddBoltwayPostgreSqlStores` overload that takes it**, for the
+  one setting under *Changed*. The two-argument call is unchanged and takes every default.
+
+### Changed
+
+- **Breaking, for a deployment that relied on GSS encryption to its database without naming it.**
+  `AddBoltwayPostgreSqlStores` now opens connections with `GSS Encryption Mode=Disable` when the
+  connection string names no mode and `PGGSSENCMODE` names none either. Npgsql's own default is
+  `Prefer`, so every physical connection over TCP first tried to negotiate GSS encryption, and that
+  loads the Kerberos GSSAPI library. A host without one printed
+  `Cannot load library libgssapi_krb5.so.2` to standard error and connected anyway: nothing failed,
+  and the line reads as a failure in a deploy log. Found 2026-09-26 in a deployment's log, from the
+  authorization server's own image.
+
+  Measured 2026-09-26 on Npgsql 10.0.3 and the .NET 10.0.12 runtime on glibc, against PostgreSQL 16
+  over TCP, with the library made unloadable: five physical connections printed the line once,
+  threw and caught a `TypeInitializationException` on every one of them, and all five connected.
+  With the mode filled in, neither happened. Not measured in the image itself, which is musl-based.
+
+  What a deployment named is kept. A mode in the connection string, under any spelling Npgsql
+  accepts, passes through exactly as written, and one in `PGGSSENCMODE` is left for Npgsql to read:
+  overriding either would switch off encryption somebody asked for. A deployment that wants GSS
+  encryption names the mode - `Require` if the encryption is what protects the connection, because
+  `Prefer` carries on without it - or sets `PostgreSqlStorageOptions.DisableGssEncryptionByDefault`
+  to `false`, which puts Npgsql's default back and passes the string through unparsed. The
+  container image carries no Kerberos library, so there this removes the line and the attempt
+  behind it and nothing else.
+
+  Filling the mode in parses the connection string at registration, so a string Npgsql cannot parse
+  is now refused by `AddBoltwayPostgreSqlStores` rather than by the first connection, the way the
+  SQLite provider already refuses one.
 
 ### Fixed
 
@@ -44,7 +82,8 @@ Three conventions, because a changelog nobody can rely on is worse than none:
   already grant to anyone who asks, and a fixed list would make the next header a client adds the
   next incident.
 
-  Nothing a consumer compiles against moved; the version turns because the behaviour did.
+  Nothing a consumer compiles against moved in this fix; it is in a release because the behaviour
+  did.
 
 ## [0.5.1] - 2026-09-02
 

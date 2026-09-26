@@ -60,7 +60,7 @@
     cost twenty minutes instead of a rollback.
   -->
   <PropertyGroup>
-    <Version>0.5.2</Version>
+    <Version>0.6.0</Version>
   </PropertyGroup>
 
   <PropertyGroup>

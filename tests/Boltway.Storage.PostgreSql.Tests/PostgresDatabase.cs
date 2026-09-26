@@ -82,6 +82,12 @@ public sealed class PostgresDatabase : IDisposable
 
     private readonly string _connectionString;
 
+    /// <summary>
+    /// What the stores were handed, which is not <see cref="_connectionString"/>:
+    /// <c>AddBoltwayPostgreSqlStores</c> fills in a GSS encryption mode. See <see cref="Dispose"/>.
+    /// </summary>
+    private readonly string _storesConnectionString;
+
     private readonly List<ServiceProvider> _created = [];
 
     private readonly string _truncate;
@@ -115,6 +121,8 @@ public sealed class PostgresDatabase : IDisposable
         {
             context.Database.Migrate();
             _truncate = TruncateStatement(context);
+            _storesConnectionString = context.Database.GetConnectionString()
+                ?? throw new InvalidOperationException("The registered context carries no connection string.");
         }
     }
 
@@ -144,8 +152,14 @@ public sealed class PostgresDatabase : IDisposable
         // Pooled connections stay open after the providers are gone, and DROP DATABASE refuses while
         // any session is connected. ClearPool rather than ClearAllPools: the other test classes are
         // running in parallel against their own databases and share this process's pool table.
-        using (var handle = new NpgsqlConnection(_connectionString))
+        //
+        // Two pools, because Npgsql keys a pool on the exact connection string and there are two:
+        // this fixture's own, which TRUNCATE and the schema tests use, and the one the stores were
+        // handed, which carries the GSS encryption mode AddBoltwayPostgreSqlStores fills in.
+        // Clearing only the first leaves every store connection open for WITH (FORCE) to kill.
+        foreach (var pooled in new[] { _connectionString, _storesConnectionString })
         {
+            using var handle = new NpgsqlConnection(pooled);
             NpgsqlConnection.ClearPool(handle);
         }
 
