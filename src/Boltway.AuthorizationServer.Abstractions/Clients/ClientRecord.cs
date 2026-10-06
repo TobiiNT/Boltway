@@ -11,7 +11,8 @@ namespace Boltway.AuthorizationServer.Abstractions.Clients;
 /// <remarks>
 /// RFC 6749 §2.1, and it decides more than authentication. A public client cannot be authenticated
 /// at all, so consent is the <i>only</i> evidence the user agreed - which is why RFC 8252 §8.6 says
-/// not to skip repeat consent for one, and why this server does not.
+/// not to skip repeat consent for one unless its identity can be proven another way, and why this
+/// server does not. The one other way it accepts is <see cref="ClientRecord.RedirectProvesIdentity"/>.
 /// </remarks>
 public enum ClientType
 {
@@ -158,6 +159,35 @@ public sealed record ClientRecord
     /// </para>
     /// </remarks>
     public SubjectId? Owner { get; init; }
+
+    /// <summary>
+    /// Whether the operator who registered this public client vouches that its redirect URIs prove
+    /// who it is, so a consent it already holds may stand on a repeat visit.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>RFC 8252 §8.6 names this exception itself.</b> Repeat consent is not skipped for a public
+    /// client "unless the identity of the client can be proven", and "claimed https scheme redirects
+    /// MAY be accepted by authorization servers as identity proof". An https redirect URI matched
+    /// exactly means the code can only be delivered to the origin that serves it, so a page that
+    /// starts an authorization under this client's id cannot receive the result. A loopback or
+    /// private-use redirect proves nothing of the kind - a process on the user's machine can claim
+    /// either - which is the same line the consent page draws for its device warning.
+    /// </para>
+    /// <para>
+    /// <b>Only an operator's registration may set it.</b> A client that describes itself - a CIMD
+    /// document, a dynamic registration - would be vouching for its own identity, which is the
+    /// thing that cannot be taken on its word. The shipped resolvers that read such sources leave it
+    /// <see langword="false"/>.
+    /// </para>
+    /// <para>
+    /// Not sufficient on its own: <c>PublicClientReconsentGuard</c> also requires every registered
+    /// redirect URI to be https and the stored consent to cover the request, and the deployment's
+    /// <see cref="Consent.IConsentPolicy"/> still decides whether a remembered consent counts at all.
+    /// No effect on a confidential client, which authenticates and is not re-asked by the guard.
+    /// </para>
+    /// </remarks>
+    public bool RedirectProvesIdentity { get; init; }
 }
 
 /// <summary>Why a client could not be resolved.</summary>

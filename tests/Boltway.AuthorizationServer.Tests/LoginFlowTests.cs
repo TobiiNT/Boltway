@@ -103,7 +103,7 @@ public sealed partial class LoginFlowTests
         public ValueTask DisposeAsync() => Fixture.DisposeAsync();
     }
 
-    private static async Task<Server> StartAsync(bool accountEnabled = true)
+    private static async Task<Server> StartAsync(bool accountEnabled = true, bool persistentSessions = false)
     {
         var hasher = new CountingPasswordHasher(new Argon2idPasswordHasher(TestCost));
         var roles = new InMemoryRoleStore();
@@ -170,6 +170,7 @@ public sealed partial class LoginFlowTests
             };
 
             seed.ConfigureApp = app => app.UseAuthentication();
+            seed.ConfigureOptions = o => o.PersistentSessions = persistentSessions;
         });
 
         return new Server(fixture, hasher, subject, users);
@@ -255,7 +256,8 @@ public sealed partial class LoginFlowTests
         var backToAuthorize = signedIn.Headers.Location!.ToString();
         Assert.StartsWith("/authorize?", backToAuthorize, StringComparison.Ordinal);
 
-        // ── /authorize again, now with the session cookie. A public client always sees consent.
+        // ── /authorize again, now with the session cookie. A public client describing itself always
+        //    sees consent.
         var afterLogin = await server.Client.GetAsync(backToAuthorize);
 
         Assert.Equal(HttpStatusCode.SeeOther, afterLogin.StatusCode);
@@ -319,6 +321,40 @@ public sealed partial class LoginFlowTests
 
         return document.RootElement.GetProperty("sub").GetString()!;
     }
+
+    /// <summary>
+    /// By default the session cookie carries no expiry, so closing the browser ends the session.
+    /// </summary>
+    /// <remarks>
+    /// The behaviour <c>CookieUserSignIn</c> always had, pinned now that it is a choice: the cookie
+    /// handler's fourteen days live in the ticket, and without <c>IsPersistent</c> they never reach
+    /// the browser.
+    /// </remarks>
+    [Fact]
+    public async Task By_default_the_session_cookie_dies_with_the_browser()
+    {
+        await using var server = await StartAsync();
+
+        var signedIn = await PostLoginAsync(server, Username, Password);
+
+        Assert.DoesNotContain("expires=", SessionCookie(signedIn), StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary><c>PersistentSessions</c> writes the expiry, so the session survives a browser restart.</summary>
+    [Fact]
+    public async Task A_persistent_session_cookie_carries_an_expiry()
+    {
+        await using var server = await StartAsync(persistentSessions: true);
+
+        var signedIn = await PostLoginAsync(server, Username, Password);
+
+        Assert.Contains("expires=", SessionCookie(signedIn), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string SessionCookie(HttpResponseMessage response) =>
+        Assert.Single(
+            response.Headers.GetValues("Set-Cookie"),
+            c => c.StartsWith("__Host-boltway-session=", StringComparison.Ordinal));
 
     [Fact]
     public async Task A_username_is_matched_without_regard_to_case()

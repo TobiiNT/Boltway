@@ -254,6 +254,31 @@ public sealed class AuthorizationServerOptions
     public TimeSpan SessionRevalidation { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
+    /// Whether the sign-in cookie outlives the browser session. Off by default.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Off, the cookie carries no expiry, so closing the browser signs the user out of this
+    /// server</b> - whatever the cookie handler's own lifetime says, because that lifetime is
+    /// written into the ticket and not into the cookie. The next authorization from any client is a
+    /// full sign-in. On, the cookie is written with the ticket's expiry, so it survives a restart of
+    /// the browser until the cookie handler's <c>ExpireTimeSpan</c> runs out - fourteen days in
+    /// ASP.NET Core unless the host sets another, sliding forward while the session is used.
+    /// </para>
+    /// <para>
+    /// <b>The trade is a shared machine.</b> Off, closing the browser is a sign-out; on, only signing
+    /// out is. What still ends a persistent session from elsewhere is the same as for any other:
+    /// <see cref="SessionRevalidation"/> refuses it once the account is disabled or its sessions are
+    /// invalidated, so a password change or "end every session" reaches it within that interval.
+    /// </para>
+    /// <para>
+    /// Read by the default <c>IUserSignIn</c>, <c>CookieUserSignIn</c>. A host that registers its
+    /// own sign-in decides persistence itself, and this value is then a number nothing reads.
+    /// </para>
+    /// </remarks>
+    public bool PersistentSessions { get; set; }
+
+    /// <summary>
     /// How long an access token is valid.
     /// </summary>
     /// <remarks>

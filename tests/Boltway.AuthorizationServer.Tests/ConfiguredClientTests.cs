@@ -227,4 +227,78 @@ public sealed class ConfiguredClientTests
             configured.ToString(),
             StringComparison.Ordinal);
     }
+
+    /// <summary>A browser application: no secret, an https redirect, and the operator's word on it.</summary>
+    private static ConfiguredClient Web(params string[] redirects) => new(
+        ClientIdentifier.ForPreRegistered("northwind-web"),
+        "Northwind",
+        [.. (redirects.Length > 0 ? redirects : ["https://app.northwind.example/callback"]).Select(Redirect)],
+        null)
+    {
+        RedirectProvesIdentity = true,
+    };
+
+    /// <summary>The resolver carries the operator's word to the record the guard reads.</summary>
+    [Fact]
+    public async Task A_browser_application_resolves_with_its_redirect_vouched_for()
+    {
+        var resolution = await ResolverFor(Web()).ResolveAsync(
+            ClientIdentifier.ForPreRegistered("northwind-web"), CancellationToken.None);
+
+        Assert.NotNull(resolution.Client);
+        Assert.Equal(ClientType.Public, resolution.Client.ClientType);
+        Assert.True(resolution.Client.RedirectProvesIdentity);
+
+        // And the control: an ordinary client carries no such claim.
+        var admin = await ResolverFor(Admin()).ResolveAsync(
+            ClientIdentifier.ForPreRegistered("northwind-admin"), CancellationToken.None);
+
+        Assert.False(admin.Client!.RedirectProvesIdentity);
+    }
+
+    /// <summary>Registering it is accepted, which is the control for the three refusals below.</summary>
+    [Fact]
+    public void A_public_client_with_only_https_redirects_may_vouch_for_them()
+    {
+        new ServiceCollection().AddConfiguredClients([Web("https://app.northwind.example/callback", "https://app.northwind.example/silent")]);
+    }
+
+    /// <summary>
+    /// Each of these would be a setting that silently does nothing, or a claim that is false.
+    /// </summary>
+    [Theory]
+    [InlineData("http://127.0.0.1/callback")]
+    [InlineData("com.example.app:/oauth")]
+    public void A_redirect_a_local_process_can_claim_is_refused(string claimable)
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => new ServiceCollection().AddConfiguredClients([Web("https://app.northwind.example/callback", claimable)]));
+
+        Assert.Contains("northwind-web", error.Message, StringComparison.Ordinal);
+        Assert.Contains(claimable, error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_confidential_client_is_refused_the_flag()
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => new ServiceCollection().AddConfiguredClients([Admin() with { RedirectProvesIdentity = true }]));
+
+        Assert.Contains("has a secret", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_client_with_no_redirect_is_refused_the_flag()
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => new ServiceCollection().AddConfiguredClients(
+            [
+                new ConfiguredClient(ClientIdentifier.ForPreRegistered("northwind-web"), "Northwind", [], null)
+                {
+                    RedirectProvesIdentity = true,
+                },
+            ]));
+
+        Assert.Contains("registers no redirect URI", error.Message, StringComparison.Ordinal);
+    }
 }

@@ -27,6 +27,45 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
 - **`PostgreSqlStorageOptions`, and an `AddBoltwayPostgreSqlStores` overload that takes it**, for the
   one setting under *Changed*. The two-argument call is unchanged and takes every default.
 
+- **`RememberedConsentPolicy`: ask once.** An `IConsentPolicy` that answers `AlreadyGranted` while
+  the stored consent covers every requested scope and resource, and `Required` for anything wider.
+  The shipped default is still `AlwaysAskConsentPolicy`; a deployment registers this one before
+  `AddBoltwayAuthorizationServer`, and the host image does it for `REMEMBER_CONSENT=true`. It does
+  not reach a public client on its own, see the next entry.
+
+- **`ClientRecord.RedirectProvesIdentity` and `ConfiguredClient.RedirectProvesIdentity`**, set in
+  the host image as `"redirectProvesIdentity": true` on a `CLIENTS` entry. `PublicClientReconsentGuard`
+  sends every public client to the consent page on every authorization (N-14, RFC 8252 §8.6), so a
+  browser application renewing its token with `prompt=none` in a hidden frame was answered
+  `consent_required` every time: its token expired, its next call failed, and the whole page went
+  back through sign-in and consent. Found 2026-10-06 by reading the code after a deployment's users
+  reported being sent to sign in again almost continuously; the deployment's logs were not read.
+
+  The frame itself was not the obstacle, and that was measured rather than assumed: `/authorize`
+  answers with `X-Frame-Options: DENY` and `frame-ancestors 'none'`, and in Chromium 141 on
+  2026-10-06 a hidden frame whose navigation passed through that redirect still loaded the client's
+  callback, while a control page served `200` with the same headers was refused. Firefox and
+  Safari were not measured.
+
+  §8.6 names its own exception - "unless the identity of the client can be proven", with claimed
+  `https` redirects accepted as that proof - and this takes it narrowly. Only an operator's
+  registration can set the flag; a CIMD client or a dynamic registration describes itself and
+  never qualifies. The guard re-checks that every registered redirect URI is `https` on each
+  request, so a loopback or private-use one beside them withdraws the exemption, and
+  `AddConfiguredClients` refuses the flag at startup on a client with a secret, with no redirect
+  URI, or with any redirect that is not `https`. The consent must still cover the request (C-24),
+  and the deployment's policy must still say a remembered consent counts. **N-14 is amended in the
+  same change** to say so.
+
+- **`AuthorizationServerOptions.PersistentSessions` and `CookieUserSignIn.Persistent`**, set in the
+  host image by `PERSISTENT_SESSIONS=true`. `CookieUserSignIn` never set `IsPersistent`, so the
+  sign-in cookie was a browser-session cookie whatever the cookie handler's lifetime said: closing
+  the browser signed the user out, and the next authorization from any client was a full sign-in.
+  On, the cookie carries the ticket's expiry - fourteen days, sliding, unless the host's
+  `AddCookie` sets another - and keeps it through every renewal, which a test holds because
+  revalidation renews on each check it passes. Off is the default and the old behaviour; the
+  option's remarks carry the shared-machine trade.
+
 ### Changed
 
 - **Breaking, for a deployment that relied on GSS encryption to its database without naming it.**

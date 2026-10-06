@@ -1,7 +1,10 @@
 using System.Net;
 
 using Boltway.AuthorizationServer.Abstractions.Clients;
+using Boltway.AuthorizationServer.Abstractions.Consent;
 using Boltway.AuthorizationServer.Abstractions.Resources;
+using Boltway.AuthorizationServer.Configuration;
+using Boltway.AuthorizationServer.Interaction;
 using Boltway.AuthorizationServer.Resources;
 using Boltway.OAuth.Net;
 using Boltway.OAuth.Primitives.Ids;
@@ -380,6 +383,42 @@ public class CustomerSeamsCompileTests
         // And the reason it can be read off an outcome without an address in hand.
         var blocked = new FetchOutcome.Blocked(BlockReason.LinkLocalAddress, "detail");
         Assert.Equal(BlockReason.LinkLocalAddress, blocked.Reason);
+    }
+
+    /// <summary>
+    /// A customer's own client store can vouch for a browser application's https redirect, and ask
+    /// once rather than every time, from the public API alone.
+    /// </summary>
+    /// <remarks>
+    /// The flag is only worth anything if a resolver outside this repository can set it and the
+    /// guard every policy is wrapped in can be composed around the shipped policy by a stranger.
+    /// The control is the same record without the flag, which the guard still sends to the page.
+    /// </remarks>
+    [Fact]
+    public async Task A_customer_can_vouch_for_a_browser_applications_redirect_and_remember_consent()
+    {
+        var client = await NewClientAsync();
+        var subject = SubjectId.FromStorage("customer-user");
+        Assert.True(ScopeSet.TryParse("docs:read", out var scope, out _));
+
+        var record = new ConsentRecord(subject, client.ClientId, scope, [Canonical], DateTimeOffset.UnixEpoch);
+        var guard = new PublicClientReconsentGuard(new RememberedConsentPolicy());
+
+        var vouched = await guard.DecideAsync(
+            new ConsentContext(client with { RedirectProvesIdentity = true }, subject, scope, [Canonical], record),
+            CancellationToken.None);
+
+        var unvouched = await guard.DecideAsync(
+            new ConsentContext(client, subject, scope, [Canonical], record),
+            CancellationToken.None);
+
+        Assert.Equal(ConsentDecision.AlreadyGranted, vouched);
+        Assert.Equal(ConsentDecision.Required, unvouched);
+
+        // And the session half: a deployment can ask for a sign-in that outlives the browser, through
+        // the option or by registering the sign-in itself.
+        Assert.True(new AuthorizationServerOptions { PersistentSessions = true }.PersistentSessions);
+        Assert.True(new CookieUserSignIn { Persistent = true }.Persistent);
     }
 
     private static async Task<ClientRecord> NewClientAsync()

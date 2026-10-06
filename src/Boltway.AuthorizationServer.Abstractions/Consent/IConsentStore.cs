@@ -1,5 +1,6 @@
 using Boltway.AuthorizationServer.Abstractions.Clients;
 using Boltway.OAuth.Primitives.Ids;
+using Boltway.OAuth.Primitives.Redirects;
 using Boltway.OAuth.Primitives.Scopes;
 
 namespace Boltway.AuthorizationServer.Abstractions.Consent;
@@ -98,7 +99,8 @@ public interface IConsentStore
 }
 
 /// <summary>
-/// Forces a public client to ask again, whatever the inner policy said.
+/// Forces a public client to ask again, whatever the inner policy said, unless its redirect proves
+/// who it is.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -106,6 +108,15 @@ public interface IConsentStore
 /// the user agreed - and anything that can reach the authorization endpoint can claim to be that
 /// client. Skipping the prompt on a repeat visit is the classic "we made it faster" regression: it
 /// converts a stolen or guessed <c>client_id</c> into a silent authorization.
+/// </para>
+/// <para>
+/// <b>The exception is the one the same section names</b>: "unless the identity of the client can
+/// be proven", with claimed https redirects accepted as that proof. A client an operator marked
+/// <see cref="ClientRecord.RedirectProvesIdentity"/>, every one of whose registered redirect URIs is
+/// https, is held to the same rule as a confidential client - a remembered consent stands if it
+/// covers the request, and only if the inner policy says it does. Both halves are checked here
+/// rather than trusted to whoever built the record, so a store that sets the flag on a client with
+/// a loopback redirect gets the prompt rather than the exemption.
 /// </para>
 /// <para>
 /// Registered by the server around whatever <see cref="IConsentPolicy"/> the customer supplies, not
@@ -130,7 +141,7 @@ public sealed class PublicClientReconsentGuard(IConsentPolicy inner) : IConsentP
             return decision;
         }
 
-        if (context.Client.ClientType is ClientType.Public)
+        if (context.Client.ClientType is ClientType.Public && !RedirectProvesIdentity(context.Client))
         {
             return ConsentDecision.Required;
         }
@@ -171,4 +182,17 @@ public sealed class PublicClientReconsentGuard(IConsentPolicy inner) : IConsentP
             ? ConsentDecision.Required
             : decision;
     }
+
+    /// <summary>Whether this public client's redirect proves its identity, RFC 8252 §8.6.</summary>
+    /// <remarks>
+    /// <c>Https</c> and nothing else, because the other two kinds are callbacks a process on the
+    /// user's machine can claim: the same predicate, inverted, that the consent page uses to warn
+    /// that the code goes to this device. One loopback URI among https ones is enough to refuse,
+    /// since the code can be sent to any registered redirect and the weakest one decides. An empty
+    /// list proves nothing, rather than everything.
+    /// </remarks>
+    private static bool RedirectProvesIdentity(ClientRecord client) =>
+        client.RedirectProvesIdentity
+        && client.RedirectUris.Count > 0
+        && client.RedirectUris.All(u => u.Kind is RedirectKind.Https);
 }

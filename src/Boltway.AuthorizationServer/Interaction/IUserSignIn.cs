@@ -68,6 +68,17 @@ public sealed class CookieUserSignIn(string scheme = CookieAuthenticationDefault
     /// <summary>The claim carrying when the user actually authenticated.</summary>
     public const string AuthTimeClaim = "auth_time";
 
+    /// <summary>
+    /// Whether the cookie is written with an expiry, so it survives the browser being closed.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="false"/> by default, which is the behaviour this class always had: no
+    /// <c>IsPersistent</c>, so the cookie handler writes a browser-session cookie. The default
+    /// registration sets it from <c>AuthorizationServerOptions.PersistentSessions</c>, whose remarks
+    /// carry the trade.
+    /// </remarks>
+    public bool Persistent { get; init; }
+
     /// <inheritdoc />
     public Task SignInAsync(HttpContext context, AuthenticatedUser user)
     {
@@ -82,7 +93,12 @@ public sealed class CookieUserSignIn(string scheme = CookieAuthenticationDefault
             nameType: ClaimTypes.NameIdentifier,
             roleType: ClaimTypes.Role);
 
-        return context.SignInAsync(scheme, new ClaimsPrincipal(identity));
+        // The properties travel inside the ticket, so a sliding renewal rewrites the cookie with the
+        // same persistence it was issued with rather than falling back to a session cookie.
+        return context.SignInAsync(
+            scheme,
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties { IsPersistent = Persistent });
     }
 
     /// <inheritdoc />

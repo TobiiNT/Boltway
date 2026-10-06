@@ -143,6 +143,68 @@ public sealed class ConsentSubsetTests
         Assert.Equal(ConsentDecision.Required, decision);
     }
 
+    /// <summary>
+    /// A public client whose operator vouched for its https redirect is held to the confidential
+    /// rule: a covering record stands. RFC 8252 §8.6's own exception.
+    /// </summary>
+    /// <remarks>
+    /// The control is <see cref="A_public_client_is_asked_again_even_inside_the_record"/>: the same
+    /// record and the same request, without the flag, is asked again.
+    /// </remarks>
+    [Fact]
+    public async Task A_public_client_whose_https_redirect_proves_identity_is_not_asked_again_inside_the_record()
+    {
+        var decision = await DecideAsync(
+            granted: "mcp:tools",
+            requested: "mcp:tools",
+            grantedResources: [Build.Resource],
+            requestedResources: [Build.Resource],
+            clientType: ClientType.Public,
+            redirectProvesIdentity: true);
+
+        Assert.Equal(ConsentDecision.AlreadyGranted, decision);
+    }
+
+    /// <summary>The exemption does not widen anything: C-24 still asks about a widened request.</summary>
+    [Fact]
+    public async Task A_public_client_whose_redirect_proves_identity_is_still_asked_about_a_widened_request()
+    {
+        var decision = await DecideAsync(
+            granted: "mcp:tools",
+            requested: "mcp:tools offline_access",
+            grantedResources: [Build.Resource],
+            requestedResources: [Build.Resource],
+            clientType: ClientType.Public,
+            redirectProvesIdentity: true);
+
+        Assert.Equal(ConsentDecision.Required, decision);
+    }
+
+    /// <summary>
+    /// The guard checks the URIs, not only the flag: one loopback redirect beside an https one and
+    /// the client is asked again.
+    /// </summary>
+    /// <remarks>
+    /// The code can be sent to any registered redirect, so the weakest one decides. A store that sets
+    /// the flag without the check <c>AddConfiguredClients</c> makes still gets the prompt.
+    /// </remarks>
+    [Theory]
+    [InlineData("http://127.0.0.1/callback")]
+    [InlineData("com.example.app:/oauth")]
+    public async Task A_flag_beside_a_redirect_a_local_process_can_claim_is_ignored(string claimable)
+    {
+        var decision = await DecideAsync(
+            granted: "mcp:tools",
+            requested: "mcp:tools",
+            grantedResources: [Build.Resource],
+            requestedResources: [Build.Resource],
+            clientType: ClientType.Public,
+            redirectProvesIdentity: true,
+            redirectUris: ["https://app.example.com/callback", claimable]);
+
+        Assert.Equal(ConsentDecision.Required, decision);
+    }
+
     private sealed class AlwaysGranted : IConsentPolicy
     {
         public ValueTask<ConsentDecision> DecideAsync(ConsentContext context, CancellationToken cancellationToken) =>
@@ -154,12 +216,17 @@ public sealed class ConsentSubsetTests
         string requested,
         IReadOnlyList<string> grantedResources,
         IReadOnlyList<string> requestedResources,
-        ClientType clientType = ClientType.Confidential)
+        ClientType clientType = ClientType.Confidential,
+        bool redirectProvesIdentity = false,
+        string[]? redirectUris = null)
     {
         Assert.True(ScopeSet.TryParse(granted, out var grantedScope, out _));
         Assert.True(ScopeSet.TryParse(requested, out var requestedScope, out _));
 
-        var client = Build.Client(type: clientType);
+        var client = Build.Client(type: clientType, redirectUris: redirectUris ?? []) with
+        {
+            RedirectProvesIdentity = redirectProvesIdentity,
+        };
         var subject = SubjectId.FromStorage("user-1");
 
         var record = new ConsentRecord(
