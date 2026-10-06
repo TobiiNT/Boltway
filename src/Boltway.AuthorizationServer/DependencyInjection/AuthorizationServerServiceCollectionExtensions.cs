@@ -239,7 +239,10 @@ public static class AuthorizationServerServiceCollectionExtensions
         services.TryAddSingleton<Abstractions.Users.IScopeEntitlementPolicy,
             Abstractions.Users.PermissiveScopeEntitlementPolicy>();
 
-        services.TryAddSingleton<IUserSignIn>(_ => new CookieUserSignIn());
+        services.TryAddSingleton<IUserSignIn>(_ => new CookieUserSignIn
+        {
+            Persistent = options.PersistentSessions,
+        });
 
         // X-31 for POST /login. TryAdd for both, so a host that registered its own limits before
         // this call keeps them - the seam SafeHttpFetcherOptions already uses. Registered here

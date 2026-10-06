@@ -24,7 +24,8 @@ namespace Boltway.AuthorizationServer.Configuration;
 /// real policy decision and should write it down, which is what the seam is for - and when they do,
 /// the comparison they owe is <see cref="ConsentContext.RequestedScope"/> and
 /// <see cref="ConsentContext.RequestedResources"/> against <see cref="ConsentContext.Existing"/>,
-/// not merely whether <c>Existing</c> is non-null.
+/// not merely whether <c>Existing</c> is non-null. <see cref="RememberedConsentPolicy"/> is that
+/// comparison, shipped, for a deployment whose decision is "ask once".
 /// </para>
 /// <para>
 /// Registered with <c>TryAdd</c>, so a policy the host registers first wins. Whatever is registered

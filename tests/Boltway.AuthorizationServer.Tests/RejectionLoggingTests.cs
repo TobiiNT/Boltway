@@ -416,7 +416,8 @@ public sealed partial class RejectionLoggingTests
             async f =>
             {
                 // The whole flow, because this refusal only exists at the end of it: a public client
-                // is sent to the consent page on every authorization (RFC 8252 §8.6), and the POST
+                // whose redirect proves nothing is sent to the consent page on every authorization
+                // (RFC 8252 §8.6), and the POST
                 // that says Deny is the request being tested.
                 using var start = await f.Client.GetAsync(Authorize(Valid()));
 

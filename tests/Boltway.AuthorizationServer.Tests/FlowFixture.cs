@@ -390,7 +390,8 @@ internal sealed class AuthorizationServerOptionsSeed
     /// </para>
     /// <para>
     /// A <i>public</i> client is sent to the consent page on every authorization, however the
-    /// policy answered - RFC 8252 §8.6, enforced by the guard the endpoint composes. Since
+    /// policy answered, unless its redirect proves its identity - RFC 8252 §8.6, enforced by the
+    /// guard the endpoint composes. Since
     /// <c>/consent</c> (E-09) is not implemented, a public client cannot reach a code here, so the
     /// flow tests would have nowhere to go.
     /// </para>

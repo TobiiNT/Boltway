@@ -64,6 +64,27 @@ public sealed record ConfiguredClient(
     public IReadOnlyList<string> GrantTypes =>
         Owner is null ? InteractiveGrants : ServiceAccountGrants;
 
+    /// <summary>
+    /// Whether this public client's https redirect URIs prove who it is, so a consent it already
+    /// holds may stand. RFC 8252 §8.6.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// For a browser application registered here by hand: no secret, because a secret in a page is
+    /// a secret every visitor holds, and therefore asked to consent on every authorization -
+    /// including the silent <c>prompt=none</c> one it renews its token with, which then can only
+    /// fail. Setting this is the operator saying the redirect URI is an origin they control, and
+    /// <see cref="ConfiguredClientServiceCollectionExtensions.AddConfiguredClients"/> refuses it on
+    /// anything the claim cannot be true of.
+    /// </para>
+    /// <para>
+    /// It is not a consent policy. The deployment's <c>IConsentPolicy</c> still decides whether a
+    /// remembered consent counts, and the shipped default never lets one count - see
+    /// <c>RememberedConsentPolicy</c>.
+    /// </para>
+    /// </remarks>
+    public bool RedirectProvesIdentity { get; init; }
+
     internal static readonly string[] InteractiveGrants = ["authorization_code", "refresh_token"];
 
     internal static readonly string[] ServiceAccountGrants = ["client_credentials"];
@@ -141,6 +162,7 @@ public sealed class ConfiguredClientResolver(IReadOnlyDictionary<string, Configu
             ClientName = configured.Name,
             Owner = configured.Owner,
             AllowedScopes = configured.Scopes,
+            RedirectProvesIdentity = configured.RedirectProvesIdentity,
         }));
     }
 }
@@ -213,6 +235,8 @@ public static class ConfiguredClientServiceCollectionExtensions
         // discovered at somebody's next sign-in rather than at the deploy that caused it.
         foreach (var client in clients)
         {
+            RefuseUnprovableRedirectClaim(client);
+
             if (client.Owner is null)
             {
                 continue;
@@ -240,5 +264,59 @@ public static class ConfiguredClientServiceCollectionExtensions
         services.AddSingleton<IClientSecretStore>(new ConfiguredClientSecretStore(byId));
 
         return services;
+    }
+
+    /// <summary>
+    /// Refuse <see cref="ConfiguredClient.RedirectProvesIdentity"/> wherever it cannot be true.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>PublicClientReconsentGuard</c> checks the redirect URIs again on every request, so none of
+    /// these would open anything. They are refused because each would be a setting that silently
+    /// does nothing: the operator believes the client stops asking, and it keeps asking with no
+    /// line anywhere saying why.
+    /// </para>
+    /// <para>
+    /// A confidential client is not re-asked by the guard in the first place. A client with no
+    /// redirect URI - a service account, a resource server that only introspects - never reaches
+    /// <c>/authorize</c>. And a loopback or private-use redirect is a callback a process on the
+    /// user's machine can claim, which is exactly what the flag says this one is not.
+    /// </para>
+    /// </remarks>
+    private static void RefuseUnprovableRedirectClaim(ConfiguredClient client)
+    {
+        if (!client.RedirectProvesIdentity)
+        {
+            return;
+        }
+
+        if (client.SecretHash is not null)
+        {
+            throw new InvalidOperationException(
+                $"Client '{client.ClientId.Value}' sets redirectProvesIdentity and has a secret. A "
+                + "confidential client authenticates, so it is never re-asked for consent on the "
+                + "public-client rule this flag relaxes; the setting would change nothing. Drop it.");
+        }
+
+        if (client.RedirectUris.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"Client '{client.ClientId.Value}' sets redirectProvesIdentity and registers no "
+                + "redirect URI, so there is no redirect to prove anything. Drop it, or register "
+                + "the https redirect URI it is meant to vouch for.");
+        }
+
+        var claimable = client.RedirectUris.Where(u => u.Kind is not RedirectKind.Https).ToList();
+
+        if (claimable.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Client '{client.ClientId.Value}' sets redirectProvesIdentity, and "
+                + $"{string.Join(", ", claimable.Select(u => u.Value))} is not an https redirect. "
+                + "RFC 8252 §8.6 accepts a claimed https redirect as proof of a client's identity; "
+                + "a loopback or private-use one can be claimed by any process on the user's "
+                + "machine, and the code may be sent to any registered redirect, so one such URI "
+                + "is enough to make the claim false. Drop the flag or the URI.");
+        }
     }
 }

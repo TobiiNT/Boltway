@@ -351,7 +351,8 @@ public static class AuthorizeEndpoint
         // RFC 8252 §8.6: a public client cannot be authenticated, so consent is the only evidence
         // the user agreed, and anything that can reach this endpoint can claim to be that client.
         // Skipping the prompt on a repeat visit turns a guessed client_id into a silent
-        // authorization.
+        // authorization - unless the client's redirect proves who it is, which is the section's own
+        // exception and which the guard checks against the registered URIs, not against the flag.
         var configuredPolicy = services.GetRequiredService<IConsentPolicy>();
         var policy = new PublicClientReconsentGuard(configuredPolicy);
 

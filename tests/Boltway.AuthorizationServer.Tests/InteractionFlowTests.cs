@@ -10,8 +10,8 @@ namespace Boltway.AuthorizationServer.Tests;
 /// The consent and login pages, and the flow a public client actually takes.
 /// </summary>
 /// <remarks>
-/// Both vendors are public clients, and <c>PublicClientReconsentGuard</c> sends a public client to
-/// the consent page on <b>every</b> authorization. So until these endpoints existed, neither Claude
+/// Both vendors are public clients that describe themselves, and <c>PublicClientReconsentGuard</c>
+/// sends such a client to the consent page on <b>every</b> authorization. So until these endpoints existed, neither Claude
 /// nor ChatGPT could complete a single flow against this server - the redirect went to a route that
 /// was not mapped.
 /// </remarks>

@@ -517,6 +517,23 @@ builder.Services.AddSingleton<IResourceRegistry>(ConfiguredResourceRegistry.Crea
 // whether a token somebody already presented is still live: `IntrospectionOnlyClientTests` drives
 // the three refusals that hold it to that.
 //
+// ── A browser application ───────────────────────────────────────────────────
+//
+//   CLIENTS='{"northwind-web":{"name":"Northwind","redirectUris":"https://app.example.com/callback",
+//              "redirectProvesIdentity":true}}'
+//
+// No secret, because a secret in a page is a secret every visitor holds - so this is a public
+// client, and N-14 sends a public client to the consent page on every authorization. For a page
+// that renews its token with `prompt=none` in a hidden frame, that is `consent_required` on every
+// renewal: the token expires, the next call fails, and the whole page goes back through sign-in
+// and consent.
+//
+// `redirectProvesIdentity` is the exception RFC 8252 §8.6 names: a claimed https redirect MAY be
+// accepted as proof of the client's identity, because the code can only be delivered to the
+// origin that serves that URL. It is refused on anything with a secret, without a redirect URI,
+// or with one that is not https, and it does nothing on its own: REMEMBER_CONSENT is what makes a
+// consent the user already gave count at all.
+//
 // ── A service account ────────────────────────────────────────────────────────
 //
 //   CLIENTS='{"northwind-nightly":{"name":"Nightly report","owner":"usr_01J…",
@@ -763,6 +780,28 @@ if (uiLocalized)
     builder.Services.AddBoltwayInteractionLocalization(uiDefaultLocale, uiTranslations);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Whether a consent already given is asked for again
+// ─────────────────────────────────────────────────────────────────────────────
+//
+//   REMEMBER_CONSENT=true
+//
+// Off by default, and off means the library's AlwaysAskConsentPolicy: every authorization shows
+// the consent page, for every client. On registers RememberedConsentPolicy, so a consent stands
+// while it covers the scopes and resources being asked for; a widened request is asked again.
+//
+// What it changes is narrower than it sounds. Every client that describes itself - every CIMD
+// client, which is every MCP client - is public and is still asked every time, because the guard
+// the endpoint wraps around any policy does that and cannot be configured away. So this reaches
+// the confidential clients in CLIENTS and the public ones marked `redirectProvesIdentity`.
+//
+// Registered before AddBoltwayAuthorizationServer, which adds the default with TryAdd.
+if (Flag(config, "REMEMBER_CONSENT", @default: false))
+{
+    builder.Services.AddSingleton<
+        Boltway.AuthorizationServer.Abstractions.Consent.IConsentPolicy, RememberedConsentPolicy>();
+}
+
 builder.Services.AddBoltwayAuthorizationServer(options =>
 {
     options.Issuer = issuer;
@@ -777,6 +816,10 @@ builder.Services.AddBoltwayAuthorizationServer(options =>
     if (Duration(config, "AUTH_CODE_LIFETIME") is { } codes) options.AuthorizationCodeLifetime = codes;
     if (Duration(config, "SESSION_REVALIDATION") is { } revalidation) options.SessionRevalidation = revalidation;
     if (Duration(config, "REAUTH_FRESHNESS") is { } freshness) options.ReauthenticationFreshness = freshness;
+
+    // Off, the sign-in cookie dies with the browser and the cookie handler's fourteen days never
+    // reach the browser at all. AuthorizationServerOptions.PersistentSessions carries the trade.
+    options.PersistentSessions = Flag(config, "PERSISTENT_SESSIONS", @default: false);
 
     // Derived rather than read from a variable of its own, and that is the whole point: two knobs
     // that have to agree are two knobs that eventually do not.
@@ -2322,7 +2365,20 @@ static ConfiguredClient ParseClient(KeyValuePair<string, ClientEntry> entry)
 
     if (value.Owner is not { Length: > 0 } owner)
     {
-        return new ConfiguredClient(clientId, value.Name, redirects, secret);
+        return new ConfiguredClient(clientId, value.Name, redirects, secret)
+        {
+            RedirectProvesIdentity = value.RedirectProvesIdentity,
+        };
+    }
+
+    // A service account never reaches /authorize, so the flag has nothing to relax. Refused here
+    // rather than dropped, since dropping it is the setting that silently does nothing.
+    if (value.RedirectProvesIdentity)
+    {
+        throw new InvalidOperationException(
+            $"CLIENTS entry `{id}` sets both owner and redirectProvesIdentity. A service account "
+            + "never reaches /authorize and is never asked for consent, so there is nothing for the "
+            + "flag to change. Drop it.");
     }
 
     // Validated here rather than left to AddConfiguredClients, so the message names the CLIENTS
@@ -2464,6 +2520,17 @@ internal sealed class ClientEntry
     /// </para>
     /// </remarks>
     public bool IntrospectionOnly { get; set; }
+
+    /// <summary>
+    /// A browser application whose https redirect URIs prove who it is, so a consent it already
+    /// holds may stand. <c>ConfiguredClient.RedirectProvesIdentity</c> carries the argument.
+    /// </summary>
+    /// <remarks>
+    /// Refused by <c>AddConfiguredClients</c> on a client with a secret, with no redirect URI, or with
+    /// any redirect URI that is not https, because on each of those it would change nothing while
+    /// reading as though it did.
+    /// </remarks>
+    public bool RedirectProvesIdentity { get; set; }
 
     /// <summary>
     /// The subject of the account this client acts as. Present only for a service account.

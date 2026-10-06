@@ -25,8 +25,9 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// <para>
 /// <b>The consent POST completes the authorization itself.</b> It does not record consent and bounce
 /// the browser back to <c>/authorize</c>, and that is forced rather than chosen:
-/// <see cref="PublicClientReconsentGuard"/> turns <c>AlreadyGranted</c> into <c>Required</c>
-/// unconditionally for a public client, and both vendors are public clients - so approving and
+/// <see cref="PublicClientReconsentGuard"/> turns <c>AlreadyGranted</c> into <c>Required</c> for a
+/// public client whose redirect does not prove its identity, and both vendors are such clients -
+/// they describe themselves, so nothing can vouch for their redirect - so approving and
 /// re-entering <c>/authorize</c> would find consent Required again and redirect to
 /// <c>/consent</c> forever. Completing the flow inside the POST is what makes "the user approved
 /// just now" a fact this request holds rather than one it has to re-derive.

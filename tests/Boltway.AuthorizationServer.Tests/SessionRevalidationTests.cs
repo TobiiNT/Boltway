@@ -229,6 +229,41 @@ public sealed partial class SessionRevalidationTests
     /// asserts a status code nothing here produces. What these tests are about is being sent to the
     /// login page rather than served the account, and the Location header carries that.
     /// </remarks>
+    /// <summary>A persistent session stays persistent when revalidation renews its cookie.</summary>
+    /// <remarks>
+    /// Revalidation renews the ticket on every check it passes, and the renewal is a second
+    /// <c>Set-Cookie</c>. Written without the expiry the sign-in gave it, the first check passed
+    /// would quietly turn a session that survives the browser back into one that does not - the
+    /// interval here is zero, so that would be the very next request.
+    /// </remarks>
+    [Fact]
+    public async Task A_persistent_session_keeps_its_expiry_through_a_renewal()
+    {
+        await using var world = await StartAsync(persistentSessions: true);
+
+        var renewed = await world.GetAccountAsync();
+
+        Assert.Equal(HttpStatusCode.OK, renewed.StatusCode);
+        Assert.Contains("expires=", SessionCookie(renewed), StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>The control: by default the renewed cookie still dies with the browser.</summary>
+    [Fact]
+    public async Task By_default_a_renewed_session_cookie_carries_no_expiry()
+    {
+        await using var world = await StartAsync();
+
+        var renewed = await world.GetAccountAsync();
+
+        Assert.Equal(HttpStatusCode.OK, renewed.StatusCode);
+        Assert.DoesNotContain("expires=", SessionCookie(renewed), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string SessionCookie(HttpResponseMessage response) =>
+        Assert.Single(
+            response.Headers.GetValues("Set-Cookie"),
+            c => c.StartsWith("__Host-boltway-session=", StringComparison.Ordinal));
+
     private static bool IsRedirect(HttpStatusCode status) =>
         (int)status is >= 300 and <= 399;
 
@@ -247,7 +282,7 @@ public sealed partial class SessionRevalidationTests
         public ValueTask DisposeAsync() => Fixture.DisposeAsync();
     }
 
-    private static async Task<World> StartAsync()
+    private static async Task<World> StartAsync(bool persistentSessions = false)
     {
         var hasher = new Argon2idPasswordHasher(new Argon2idParameters
         {
@@ -274,6 +309,14 @@ public sealed partial class SessionRevalidationTests
             // Signed in the way a browser is, by posting the form. A pre-seeded principal would skip
             // the ticket entirely, and the ticket is what these tests are about.
             seed.SignedInUser = null;
+
+            // A persistent cookie's expiry comes from the fixture's clock and the cookie jar judges
+            // it by the real one, so the fixture's fixed date in the past would have the jar drop a
+            // fourteen-day cookie as already expired and every request after sign-in look signed out.
+            if (persistentSessions)
+            {
+                seed.Now = TimeProvider.System.GetUtcNow();
+            }
 
             seed.ConfigureServices = services =>
             {
@@ -320,6 +363,8 @@ public sealed partial class SessionRevalidationTests
                 // it. The interval has its own test; mixing the two would make every assertion here
                 // depend on a clock nobody moved.
                 o.SessionRevalidation = TimeSpan.Zero;
+
+                o.PersistentSessions = persistentSessions;
             };
         });
 
