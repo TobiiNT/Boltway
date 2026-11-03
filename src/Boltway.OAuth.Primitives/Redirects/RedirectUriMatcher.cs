@@ -84,13 +84,38 @@ public static class RedirectUriMatcher
             // quieter way: GetComponents(Path, UriEscaped) resolves dot segments and percent-decodes
             // unreserved characters, so /a/../callback, /a/%2e%2e/callback and /%63allback all
             // arrive as "callback" and match a registration containing none of them.
+            // The scheme as the client sent it, too. The parser lowercases the scheme before
+            // classifying, so `HTTP://127.0.0.1:5000/cb` reached this branch looking like
+            // `http://127.0.0.1/cb` and matched (measured 2026-11-03; a differently cased host was
+            // already refused, since the host comparison above reads the raw host). OAuth 2.1 -17
+            // §4.1.1 lets only the port vary - "a case-sensitive, character-by-character comparison
+            // with no normalization applied" for everything else - and the registration is stored
+            // lowercased, so the raw request has to begin with exactly its scheme and host.
             if (string.Equals(requested.Host, registration.Host, StringComparison.Ordinal)
-                && string.Equals(requested.PathAndQuery, registration.PathAndQuery, StringComparison.Ordinal))
+                && string.Equals(requested.PathAndQuery, registration.PathAndQuery, StringComparison.Ordinal)
+                && StartsWithSchemeAndHost(requested.Value, registration.Value!))
             {
                 return RedirectMatch.LoopbackPortIgnored(registration, requested.Value);
             }
         }
 
         return RedirectMatch.None;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="requested"/> begins with <paramref name="registered"/>'s scheme and
+    /// host exactly, followed by a port, a path, a query or nothing.
+    /// </summary>
+    private static bool StartsWithSchemeAndHost(string requested, string registered)
+    {
+        var authorityStart = registered.IndexOf("://", StringComparison.Ordinal) + 3;
+        var hostEnd = registered[authorityStart] == '['
+            ? registered.IndexOf(']', authorityStart) + 1
+            : registered.IndexOfAny([':', '/', '?'], authorityStart);
+
+        var prefix = hostEnd <= 0 ? registered : registered[..hostEnd];
+
+        return requested.StartsWith(prefix, StringComparison.Ordinal)
+            && (requested.Length == prefix.Length || requested[prefix.Length] is ':' or '/' or '?');
     }
 }

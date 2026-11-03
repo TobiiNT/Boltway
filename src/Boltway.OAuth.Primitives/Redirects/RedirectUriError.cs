@@ -38,4 +38,13 @@ public enum RedirectUriError
 
     /// <summary>Port outside 1-65535, or explicitly 0. Port 0 means "any port" to a listener.</summary>
     PortOutOfRange,
+
+    /// <summary>
+    /// The query names a parameter the authorization response uses: <c>code</c>, <c>state</c>,
+    /// <c>iss</c>, <c>error</c>, <c>error_description</c> or <c>error_uri</c>. OAuth 2.1 -17 §2.3:
+    /// the redirect URI's query "MUST NOT include any parameters defined for use in the
+    /// authorization response". Checked at registration only; a response appended to such a URI
+    /// would carry the parameter twice, and which copy a client reads is its library's choice.
+    /// </summary>
+    QueryHasResponseParameter,
 }

@@ -2381,7 +2381,17 @@ static ConfiguredClient ParseClient(KeyValuePair<string, ClientEntry> entry)
         return new ConfiguredClient(clientId, value.Name, redirects, secret)
         {
             RedirectProvesIdentity = value.RedirectProvesIdentity,
+            RefreshTokenExpiryIsFixed = value.RefreshTokenExpiryIsFixed,
         };
+    }
+
+    // A service account is issued no refresh token, so this flag has nothing to fix either.
+    if (value.RefreshTokenExpiryIsFixed)
+    {
+        throw new InvalidOperationException(
+            $"CLIENTS entry `{id}` sets both owner and refreshTokenExpiryIsFixed. A service account "
+            + "uses client_credentials and is issued no refresh token, so there is nothing for the "
+            + "flag to change. Drop it.");
     }
 
     // A service account never reaches /authorize, so the flag has nothing to relax. Refused here
@@ -2544,6 +2554,13 @@ internal sealed class ClientEntry
     /// reading as though it did.
     /// </remarks>
     public bool RedirectProvesIdentity { get; set; }
+
+    /// <summary>
+    /// A browser application whose rotated refresh tokens keep the first one's expiry, as OAuth
+    /// 2.1 -17 §9.3.2 requires of one. <c>ClientRecord.RefreshTokenExpiryIsFixed</c> carries the
+    /// argument.
+    /// </summary>
+    public bool RefreshTokenExpiryIsFixed { get; set; }
 
     /// <summary>
     /// The subject of the account this client acts as. Present only for a service account.

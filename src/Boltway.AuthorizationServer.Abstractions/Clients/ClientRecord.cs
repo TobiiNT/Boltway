@@ -198,6 +198,28 @@ public sealed record ClientRecord
     /// </para>
     /// </remarks>
     public bool RedirectProvesIdentity { get; init; }
+
+    /// <summary>
+    /// Whether a rotated refresh token keeps the expiry of the one it replaces rather than
+    /// starting a fresh lifetime.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// OAuth 2.1 -17 §9.3.2, for browser-based applications: the server "MUST NOT, when issuing a
+    /// rotated refresh token, extend the lifetime of the new refresh token beyond the lifetime of
+    /// the initial refresh token". Set, each successor expires at the earlier of its own lifetime
+    /// and its predecessor's expiry, so a family never outlives the token that started it, and a
+    /// stolen token stops working on a date fixed at sign-in however often it is used.
+    /// </para>
+    /// <para>
+    /// A per-client switch and off by default, because the server cannot tell a browser-based
+    /// application from any other public client and the sentence binds only those. For every
+    /// other client, rotation keeps sliding: a native or server client renewing daily is not
+    /// signed out at the end of the first lifetime. No storage column: the cap is the presented
+    /// token's own expiry, so it needs nothing the record does not already carry.
+    /// </para>
+    /// </remarks>
+    public bool RefreshTokenExpiryIsFixed { get; init; }
 }
 
 /// <summary>Why a client could not be resolved.</summary>

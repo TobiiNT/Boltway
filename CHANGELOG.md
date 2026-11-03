@@ -24,6 +24,17 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
 
 ### Added
 
+- **`ClientRecord.RefreshTokenExpiryIsFixed` and `ConfiguredClient.RefreshTokenExpiryIsFixed`**,
+  set in the host image as `"refreshTokenExpiryIsFixed": true` on a `CLIENTS` entry. OAuth 2.1 -17
+  §9.3.2 forbids a browser-based application's rotated refresh token from outliving the first one,
+  and every rotation here started a fresh `RefreshTokenLifetime`, so a family used daily never
+  expired. Set, each successor keeps its predecessor's expiry. Off by default, because the server
+  cannot tell a browser application from a native one and the sentence binds only the first.
+
+- **`RedirectUriError.QueryHasResponseParameter`.** A redirect URI whose query names `code`,
+  `state`, `iss`, `error`, `error_description` or `error_uri` is refused at registration (OAuth
+  2.1 -17 §2.3). Stored rows still load.
+
 - **`PostgreSqlStorageOptions`, and an `AddBoltwayPostgreSqlStores` overload that takes it**, for the
   one setting under *Changed*. The two-argument call is unchanged and takes every default.
 
@@ -134,6 +145,15 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
   which is the point: `NotFound` tells a thief nothing was noticed.
 
 ### Fixed
+
+- **`/userinfo` answers a browser.** It sent no CORS header, so a single-page client received its
+  user's claims from the server and the browser withheld them. OAuth 2.1 -17 §3.2 makes the header
+  a MUST on any endpoint a browser-based application may call. `/userinfo` now writes
+  `Access-Control-Allow-Origin: *` on every status and answers its preflight.
+
+- **A loopback redirect differing from its registration only in the scheme's case is refused.**
+  `HTTP://127.0.0.1:5000/cb` matched a registered `http://127.0.0.1/cb`, because the scheme was
+  lowercased before the comparison. OAuth 2.1 -17 §4.1.1 lets only the port vary.
 
 - **A refused CIMD document no longer comes back when the breaker opens.** A 404, a redirect or a
   malformed document skipped the stale window, but the cached entry stayed, and once enough of

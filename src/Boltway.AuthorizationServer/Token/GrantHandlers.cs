@@ -501,9 +501,18 @@ public sealed class RefreshTokenGrant(
         // invalid_grant to a client that was doing nothing wrong.
         var successor = _deriver.Derive(record.FamilyId, record.Generation + 1);
 
+        // OAuth 2.1 -17 §9.3.2 for a client marked as a browser-based application: the successor
+        // never outlives the token it replaces, so the family never outlives the first one.
+        var successorExpiry = now + _options.RefreshTokenLifetime;
+
+        if (client.RefreshTokenExpiryIsFixed && record.ExpiresAt < successorExpiry)
+        {
+            successorExpiry = record.ExpiresAt;
+        }
+
         var redemption = await _refreshTokens.RedeemAsync(
             hash,
-            new RefreshTokenSeed(Sha256Hash.Of(successor), now + _options.RefreshTokenLifetime),
+            new RefreshTokenSeed(Sha256Hash.Of(successor), successorExpiry),
             now,
             GraceWindow,
             cancellationToken);

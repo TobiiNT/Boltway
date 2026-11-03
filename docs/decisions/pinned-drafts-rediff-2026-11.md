@@ -178,10 +178,18 @@ reading of an ambiguous sentence. Measured by reading the code unless it says ot
    expiration time". Each rotation here gets a fresh `RefreshTokenLifetime`, with no cap for the
    family. This binds only where browser-based applications receive refresh tokens. The server
    cannot tell one from another client, so a cap would be a per-client option.
+
+   **Closed 2026-11-03, as that option:** `RefreshTokenExpiryIsFixed` on `ClientRecord` and
+   `ConfiguredClient` (`"refreshTokenExpiryIsFixed": true` in the host's `CLIENTS`). Set, a
+   successor expires at the earlier of its own lifetime and its predecessor's expiry. Off by
+   default, and a deployment sets it on its browser applications.
 8. **OAuth 2.1 -17 §3.2, CORS on userinfo.** Endpoints a browser-based application may call "MUST
    also send the CORS header fields to allow access". `/token` and discovery do. `/userinfo` sends
    none. Revocation and introspection are for confidential clients only, so a browser application
    never calls them.
+
+   **Closed 2026-11-03.** `/userinfo` answers with `Access-Control-Allow-Origin: *` on every
+   status, and its preflight is answered.
 9. **CIMD-03 §10.12 and consent.** The MUST is "scoped at least to the pair of Client Identifier
    URL and resource", and reuse is. Scopes are a union across resources, though, so consent to
    scope A on R1 and scope B on R2 admits B on R1 without a prompt. That is finer than the MUST
@@ -189,11 +197,16 @@ reading of an ambiguous sentence. Measured by reading the code unless it says ot
 10. **OAuth 2.1 -17 §4.1.1, "no normalization applied".**
     - Registration lowercases scheme and host, so a client registered as `https://App.example/cb`
       that sends exactly that fails the match. It fails closed.
-    - The loopback branch compares the scheme case-insensitively.
+    - The loopback branch compares the scheme case-insensitively. **Closed 2026-11-03:** it now
+      requires the request to begin with the registration's scheme and host exactly. A
+      differently cased host was already refused; only the scheme was not.
 11. **OAuth 2.1 -17 §2.3, "The query string component MUST NOT include any parameters defined for
     use in the authorization response."** A registered redirect URI carrying `state` or `code` is
     not refused, and the response would repeat the parameter. The draft does not say whether the
     server enforces this at registration.
+
+    **Closed 2026-11-03, at registration:** `RedirectUriError.QueryHasResponseParameter`. Rows
+    stored before the rule still load, since refusing them would stop a store from starting.
 
 Also seen on the way, outside the drafts: `ClientLogoEndpoint` fetches the logo through the same
 transport, which sends `Accept: application/json`. A strict image host could answer 406. This was

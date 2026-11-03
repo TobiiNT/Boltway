@@ -282,4 +282,43 @@ public sealed class UserInfoSurfaceTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+
+    /// <summary>
+    /// A browser-based client can read the answer, a refusal included, and its preflight is
+    /// answered.
+    /// </summary>
+    /// <remarks>
+    /// OAuth 2.1 -17 §3.2 made it a MUST: endpoints a browser-based application may call "MUST
+    /// also send the CORS header fields to allow access". <c>/token</c> and discovery did and this
+    /// endpoint did not, so a single-page client got its user's claims back from the server and
+    /// the browser withheld them. The refusal matters as much as the success: without the header
+    /// a 403 reads to the script as a network error.
+    /// </remarks>
+    [Fact]
+    public async Task A_browser_client_can_read_the_answer_and_preflight_it()
+    {
+        var world = await StartAsync();
+        await using var fixture = world.Fixture;
+
+        await SeedAsync(world);
+
+        SignedIn(scopes: "openid");
+        var answered = await fixture.Client.GetAsync(new Uri("/userinfo", UriKind.Relative));
+
+        SignedIn(scopes: "email");
+        var refused = await fixture.Client.GetAsync(new Uri("/userinfo", UriKind.Relative));
+
+        using var preflight = new HttpRequestMessage(HttpMethod.Options, "/userinfo");
+        preflight.Headers.Add("Origin", "https://spa.example.com");
+        preflight.Headers.Add("Access-Control-Request-Method", "GET");
+        preflight.Headers.Add("Access-Control-Request-Headers", "authorization");
+        var preflighted = await fixture.Client.SendAsync(preflight);
+
+        Assert.Equal(HttpStatusCode.OK, answered.StatusCode);
+        Assert.Equal("*", Assert.Single(answered.Headers.GetValues("Access-Control-Allow-Origin")));
+        Assert.Equal(HttpStatusCode.Forbidden, refused.StatusCode);
+        Assert.Equal("*", Assert.Single(refused.Headers.GetValues("Access-Control-Allow-Origin")));
+        Assert.Equal(HttpStatusCode.NoContent, preflighted.StatusCode);
+        Assert.Contains("GET", Assert.Single(preflighted.Headers.GetValues("Access-Control-Allow-Methods")), StringComparison.Ordinal);
+    }
 }

@@ -85,6 +85,12 @@ public sealed record ConfiguredClient(
     /// </remarks>
     public bool RedirectProvesIdentity { get; init; }
 
+    /// <summary>
+    /// Whether rotated refresh tokens keep the first one's expiry. Set it on a browser-based
+    /// application. <c>ClientRecord.RefreshTokenExpiryIsFixed</c> carries the argument.
+    /// </summary>
+    public bool RefreshTokenExpiryIsFixed { get; init; }
+
     internal static readonly string[] InteractiveGrants = ["authorization_code", "refresh_token"];
 
     internal static readonly string[] ServiceAccountGrants = ["client_credentials"];
@@ -163,6 +169,7 @@ public sealed class ConfiguredClientResolver(IReadOnlyDictionary<string, Configu
             Owner = configured.Owner,
             AllowedScopes = configured.Scopes,
             RedirectProvesIdentity = configured.RedirectProvesIdentity,
+            RefreshTokenExpiryIsFixed = configured.RefreshTokenExpiryIsFixed,
         }));
     }
 }
