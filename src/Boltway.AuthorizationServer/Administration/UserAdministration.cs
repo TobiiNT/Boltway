@@ -565,6 +565,12 @@ public sealed class UserAdministration(
     public async Task<RoleChangeResult> SetRoleAsync(
         Actor actor, RealmId realm, string handle, string? role, CancellationToken cancellationToken)
     {
+        // An empty role means "clear", and is recorded and returned exactly as null is.
+        if (string.IsNullOrEmpty(role))
+        {
+            role = null;
+        }
+
         var account = await users
             .FindByUsernameAsync(realm.OrDefault, handle, cancellationToken)
             .ConfigureAwait(false);
@@ -1081,7 +1087,7 @@ public sealed class UserAdministration(
 
         return applied
             ? new RolesChangeResult(AdministrationStatus.Ok, account.Subject, assigned)
-            : new RolesChangeResult(AdministrationStatus.NoSuchAccount);
+            : new RolesChangeResult(AdministrationStatus.Gone);
     }
 
     /// <summary>

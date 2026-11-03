@@ -340,7 +340,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         // the state store is only reached from /external/{scheme}/*, and those routes refuse every
         // scheme when nothing is registered. TryAdd so a host that configured its own options before
         // this call keeps them.
-        services.AddSingleton(options.ExternalLogin);
+        services.TryAddSingleton(options.ExternalLogin);
         services.TryAddSingleton(sp => new ExternalLoginStateStore(
             sp.GetRequiredService<Microsoft.AspNetCore.DataProtection.IDataProtectionProvider>(),
             sp.GetRequiredService<TimeProvider>(),
@@ -673,7 +673,7 @@ public static class AuthorizationServerServiceCollectionExtensions
         // No localization configured is the ordinary shape: the pages are in one language, and a
         // deployment naming it - or naming nothing - is telling the truth either way. Only the
         // multi-locale claim needs a mechanism behind it.
-        if (localization is null)
+        if (localization is null || resolved.GetService<Boltway.AuthorizationServer.Interaction.InteractionLocalizationMarker>() is null)
         {
             if (advertised.Count > 1)
             {

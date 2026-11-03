@@ -27,10 +27,11 @@ public sealed class SigningKeyHandle
             throw new ArgumentOutOfRangeException(nameof(algorithm), "A signing key needs a real algorithm.");
         }
 
-        if (key is RsaSecurityKey { Rsa: not null } rsa && rsa.Rsa.KeySize < SigningAlgorithms.MinimumRsaKeySizeBits)
+        if (key is RsaSecurityKey rsa && rsa.KeySize < SigningAlgorithms.MinimumRsaKeySizeBits)
         {
+            // KeySize covers both shapes: an RSA instance and bare RSAParameters.
             throw new ArgumentOutOfRangeException(
-                nameof(key), rsa.Rsa.KeySize, $"RSA keys must be at least {SigningAlgorithms.MinimumRsaKeySizeBits} bits.");
+                nameof(key), rsa.KeySize, $"RSA keys must be at least {SigningAlgorithms.MinimumRsaKeySizeBits} bits.");
         }
 
         key.KeyId = kid;

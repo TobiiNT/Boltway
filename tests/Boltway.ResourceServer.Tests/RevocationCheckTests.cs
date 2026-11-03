@@ -1,5 +1,6 @@
 using System.Diagnostics.Metrics;
 using System.Net;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
 using Boltway.ResourceServer.DependencyInjection;
@@ -69,6 +70,31 @@ public sealed class RevocationCheckTests
         using var response = await BearerChallengeTests.Get(fixture, "/mcp", Mint.AccessToken());
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    /// <summary>
+    /// On an anonymous endpoint a revoked token sets no principal, and a standing one does.
+    /// </summary>
+    /// <remarks>
+    /// The anonymous path validated the token and skipped the revocation check, so a handler that
+    /// gates on <c>HttpContext.User</c> - an admin surface does - admitted a token its own
+    /// authorization server had revoked.
+    /// </remarks>
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task On_an_anonymous_endpoint_a_revoked_token_sets_no_principal(bool revoked, bool authenticated)
+    {
+        await using var fixture = await ResourceServerFixture.StartAsync(
+            configureServices: services => services.AddSingleton<IAccessTokenRevocationCheck>(new Fixed(revoked)));
+
+        using var response = await BearerChallengeTests.Get(fixture, "/open/whoami", Mint.AccessToken());
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            authenticated,
+            (await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>())
+                .GetProperty("authenticated").GetBoolean());
     }
 
     [Fact]
@@ -231,6 +257,26 @@ public sealed class RevocationCheckTests
         Assert.Contains("Endpoint", error.Message, StringComparison.Ordinal);
         Assert.Contains("ClientSecret", error.Message, StringComparison.Ordinal);
         Assert.DoesNotContain("ClientId", error.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A 200 whose JSON is not an object, or a refusal whose <c>error</c> is not a string, is a
+    /// malformed answer and fails open with one line - not an exception out of the middleware.
+    /// </summary>
+    /// <remarks>
+    /// <c>TryGetProperty</c> on an array and <c>GetString</c> on a number both throw
+    /// <see cref="InvalidOperationException"/>, which no handler here caught.
+    /// </remarks>
+    [Theory]
+    [InlineData("[]", HttpStatusCode.OK)]
+    [InlineData("""{"error":5}""", HttpStatusCode.Unauthorized)]
+    public async Task A_json_body_of_the_wrong_shape_fails_open_with_one_line(string body, HttpStatusCode status)
+    {
+        var log = new Recorder();
+        var check = Check(new StubIntrospection(body, status), log);
+
+        Assert.False(await check.IsRevokedAsync("token-a", Anonymous, CancellationToken.None));
+        Assert.Single(log.Lines);
     }
 
     /// <summary>

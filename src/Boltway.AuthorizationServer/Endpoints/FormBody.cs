@@ -73,7 +73,7 @@ internal static class FormBody
         {
             form = http.Request.Form;
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ex is InvalidOperationException or System.IO.InvalidDataException)
         {
             // Request.Form throws rather than returning empty on a body it cannot parse. Caught so
             // a malformed body is an OAuth error rather than a 500 - which the client would read as

@@ -72,8 +72,12 @@
       SMTP submission. MIT, and it replaces System.Net.Mail.SmtpClient in
       Boltway.Notifications.Smtp - that client cannot do implicit TLS, and Cloudflare Email
       Service offers 465 with implicit TLS and nothing else. MimeKit comes with it.
+
+      4.18.2 because its MimeKit takes System.Security.Cryptography.Pkcs to 10.0.13; 4.18.0
+      resolved 10.0.0, which NuGet audit reports as NU1902 and NU1903 (GHSA-2fmv-rv2c-59x7,
+      GHSA-846f-f764-76mx), and that fails the build here. Measured 2026-11-03.
     -->
-    <PackageVersion Include="MailKit" Version="4.18.0" />
+    <PackageVersion Include="MailKit" Version="4.18.2" />
   </ItemGroup>
 
   <ItemGroup Label="Hosting and federation">

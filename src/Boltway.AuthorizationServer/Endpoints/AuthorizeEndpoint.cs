@@ -446,6 +446,19 @@ public static class AuthorizeEndpoint
     {
         var self = http.Request.Path.Value + http.Request.QueryString.Value;
 
+        // A request sent as a POST form body (OIDC Core §3.1.2.1) carries its parameters there,
+        // not in the query; carry them forward too or the resumed GET has no client_id.
+        if (HttpMethods.IsPost(http.Request.Method) && http.Request.HasFormContentType)
+        {
+            foreach (var (name, values) in http.Request.Form)
+            {
+                foreach (var value in values)
+                {
+                    self = QueryHelpers.AddQueryString(self, name, value ?? string.Empty);
+                }
+            }
+        }
+
         var url = QueryHelpers.AddQueryString(page, "returnUrl", self);
 
         // Carry the language across the redirect, or it is lost here.

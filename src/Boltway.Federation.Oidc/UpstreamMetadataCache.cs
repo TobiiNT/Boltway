@@ -132,6 +132,22 @@ internal sealed class UpstreamMetadataCache : IDisposable
         }
     }
 
+    private DateTimeOffset _keysAttemptedAt = DateTimeOffset.MinValue;
+
+    private bool KeysStale(DateTimeOffset now, bool refreshBecauseKeyUnknown)
+    {
+        if (_keys.Count == 0)
+        {
+            // Nothing held: retry, but still no more than once per interval after a failure.
+            return now - _keysAttemptedAt >= _options.JwksMinimumRefreshInterval;
+        }
+
+        var sinceAttempt = now - _keysAttemptedAt;
+
+        return (now >= _keysExpireAt && sinceAttempt >= _options.JwksMinimumRefreshInterval)
+            || (refreshBecauseKeyUnknown && sinceAttempt >= _options.JwksMinimumRefreshInterval);
+    }
+
     /// <summary>
     /// The upstream's signing keys.
     /// </summary>
@@ -146,13 +162,13 @@ internal sealed class UpstreamMetadataCache : IDisposable
     {
         var now = _time.GetUtcNow();
 
-        var stale = _keys.Count == 0
-            || now >= _keysExpireAt
-            || (refreshBecauseKeyUnknown && now - _keysFetchedAt >= _options.JwksMinimumRefreshInterval);
+        var stale = KeysStale(now, refreshBecauseKeyUnknown);
 
         if (!stale)
         {
-            return Resolved<IReadOnlyList<SecurityKey>>.Ok(_keys);
+            return _keys.Count > 0
+                ? Resolved<IReadOnlyList<SecurityKey>>.Ok(_keys)
+                : Resolved<IReadOnlyList<SecurityKey>>.Failed("jwks fetch failed recently; not retried yet");
         }
 
         var endpoints = await GetEndpointsAsync(cancellationToken);
@@ -170,14 +186,18 @@ internal sealed class UpstreamMetadataCache : IDisposable
 
             // Re-tested inside the gate. Without this, a hundred requests queued on a cold cache
             // each make their own fetch as they are let through one at a time.
-            var stillStale = _keys.Count == 0
-                || now >= _keysExpireAt
-                || (refreshBecauseKeyUnknown && now - _keysFetchedAt >= _options.JwksMinimumRefreshInterval);
+            var stillStale = KeysStale(now, refreshBecauseKeyUnknown);
 
             if (!stillStale)
             {
-                return Resolved<IReadOnlyList<SecurityKey>>.Ok(_keys);
+                return _keys.Count > 0
+                    ? Resolved<IReadOnlyList<SecurityKey>>.Ok(_keys)
+                    : Resolved<IReadOnlyList<SecurityKey>>.Failed("jwks fetch failed recently; not retried yet");
             }
+
+            // Recorded before the fetch, so a failing upstream is asked at most once per
+            // JwksMinimumRefreshInterval rather than on every sign-in.
+            _keysAttemptedAt = now;
 
             var outcome = await _http.GetAsync(
                 new UpstreamDocumentRequest(endpoints.Value.Jwks, FetchPurpose.UpstreamJwks), cancellationToken);

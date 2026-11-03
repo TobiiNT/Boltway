@@ -391,9 +391,9 @@ public static class RecoveryEndpoints
 
             return body?.Account;
         }
-        catch (System.Text.Json.JsonException)
+        catch (Exception ex) when (ex is System.Text.Json.JsonException or InvalidOperationException)
         {
-            // Unparseable is the same as absent. It still costs a throttle slot and still gets the
+            // Unparseable (or not JSON at all) is the same as absent. It still costs a throttle slot and still gets the
             // 202 - a 400 here would tell a caller their request reached the handler, which is one
             // bit more than the endpoint means to give away.
             return null;

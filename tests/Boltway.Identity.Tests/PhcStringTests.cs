@@ -168,4 +168,17 @@ public sealed class PhcStringTests
         Assert.False(PhcString.TryParse(
             $"$argon2id$v=19$m=64,t=1,p=1${oversized}$AAECAwQFBgcICQoLDA0ODw", out _));
     }
+
+    /// <summary>
+    /// A cost with a leading zero is refused, so one cost has one spelling.
+    /// </summary>
+    /// <remarks>
+    /// <c>NumberStyles.None</c> accepts <c>019456</c>. A lone <c>0</c> is still a number, and is
+    /// left to the range checks.
+    /// </remarks>
+    [Theory]
+    [InlineData("$argon2id$v=19$m=019456,t=2,p=1$AAECAwQFBgcICQoLDA0ODw$//79/Pv6+fj39vX08/Lx8O/u7ezr6uno5+bl5OPi4eA")]
+    [InlineData("$argon2id$v=19$m=19456,t=02,p=1$AAECAwQFBgcICQoLDA0ODw$//79/Pv6+fj39vX08/Lx8O/u7ezr6uno5+bl5OPi4eA")]
+    public void A_leading_zero_in_a_cost_is_refused(string encoded) =>
+        Assert.False(PhcString.TryParse(encoded, out _));
 }

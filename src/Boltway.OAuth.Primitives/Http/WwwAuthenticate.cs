@@ -85,7 +85,10 @@ public static class WwwAuthenticate
 
         // Truncating a challenge would produce a malformed one, so an over-long header drops the
         // optional parameters and keeps the two the client cannot act without.
+        // Fall back only while there is still something optional to drop; otherwise the fallback
+        // would call itself with identical arguments forever.
         return header.Length <= MaxHeaderLength
+            || (errorDescription is null && scopes is null && realm is null)
             ? header
             : Bearer(error, errorDescription: null, resourceMetadataUrl, scopes: null, realm: null);
     }

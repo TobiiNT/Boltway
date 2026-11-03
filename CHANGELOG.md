@@ -66,6 +66,10 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
   revalidation renews on each check it passes. Off is the default and the old behaviour; the
   option's remarks carry the shared-machine trade.
 
+- **`SigningKeyRing.Options`**, the rotation options the ring was built with. `ConfigurationDoctor`
+  checked the lifetime arithmetic against a fresh `SigningKeyRingOptions` instead, so a deployment
+  that set its own lead time or retention was validated against defaults it was not running.
+
 ### Changed
 
 - **Breaking, for a deployment that relied on GSS encryption to its database without naming it.**
@@ -95,6 +99,17 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
   is now refused by `AddBoltwayPostgreSqlStores` rather than by the first connection, the way the
   SQLite provider already refuses one.
 
+- **Breaking, for a custom `IRefreshTokenStore`.** Replaying a consumed refresh token from a family
+  that has since been revoked now answers `ReuseDetected`, as `RedeemAsync`'s documentation always
+  said. The shipped stores answered `NotFound`, and so did the contract test in
+  `Boltway.Storage.Testing` - against its own name. A store written to pass that test now fails it,
+  which is the point: `NotFound` tells a thief nothing was noticed.
+
+- **MailKit 4.18.0 to 4.18.2**, which takes `System.Security.Cryptography.Pkcs` from 10.0.0 to
+  10.0.13. NuGet audit reports two advisories against 10.0.0 (GHSA-2fmv-rv2c-59x7, moderate;
+  GHSA-846f-f764-76mx, high), and with warnings as errors the build failed at restore. Measured
+  2026-11-03.
+
 ### Fixed
 
 - **A CORS preflight is answered wherever a CORS header is written.** `OPTIONS` matched no route on
@@ -123,6 +138,44 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
 
   Nothing a consumer compiles against moved in this fix; it is in a release because the behaviour
   did.
+
+- **A batch of defects found in review.** Each item above *Smaller* has a test that fails without
+  its fix; the items under it, and the federation JWKS floor, do not yet.
+  - `PATCH /admin/users/{handle}` refuses `role` together with `roles` before writing anything; the
+    check ran after `role` had been saved. An account that vanished between the lookup and the
+    write is `410` on every field, where it had been `200`.
+  - On an anonymous endpoint, a revoked access token no longer sets `HttpContext.User`. Only the
+    challenging path asked the revocation check, and a handler that gates itself admitted it.
+  - `IntrospectionRevocationCheck` fails open with one log line, rather than throwing, on a `200`
+    whose JSON is not an object and on an `error` that is not a string.
+  - `ClientKeySource` remembers a failed `jwks_uri` fetch for `MinimumRefreshInterval`, so a broken
+    key set is no longer fetched once per token request. A cached key set is served stale only
+    when the fetch could not be made (timeout, transport, `5xx`, rate limit), not when the origin
+    answered with a redirect or an oversized body. The upstream JWKS in `Boltway.Federation.Oidc`
+    gets the same floor after a failure.
+  - `WwwAuthenticate.Bearer` returned only by recursing forever when the header was over length
+    with nothing optional left to drop, which ended the process.
+  - `PhcString` refuses a cost with a leading zero, so one cost has one spelling.
+  - An `ES256` signing key on a curve other than P-256 is refused at parse. An `RsaSecurityKey`
+    built from bare `RSAParameters` is held to the minimum size and published without its private
+    half.
+  - `InMemoryUserStore.AnonymiseAsync` refuses a tombstone username another account holds, as the
+    relational stores' unique index does, instead of making that account unfindable.
+  - The consent page's truncated client name never splits a surrogate pair; the one-line device
+    description removes control characters instead of turning them into gaps; an IPv4-mapped
+    IPv6 address shares the IPv4 login-throttle bucket.
+  - Smaller: a `POST /authorize` that needs sign-in carries its form parameters into the resumed
+    request; the external-login `POST` routes shed on store failure like their `GET` sibling;
+    `ExternalLoginOptions` is `TryAdd`, as its comment said; a body `Request.Form` cannot parse is
+    an OAuth error rather than a `500`, and a non-JSON forgot-password body is treated as absent;
+    a connection lost mid-body is `TransportFailed`; the protected-resource metadata path is
+    matched in its decoded form; a multi-locale claim with no localization registered is refused
+    at startup; the admin UI tolerates a bare array and non-string error fields from the API and
+    splits typed roles on any whitespace; `new-role` refuses two arguments that could each be the
+    display name; `check-dashes.py` keeps trailing comments and docstrings in scope;
+    `check-pinned-drafts.py` reads an offset-less expiry as UTC; a forgot-password request for an
+    unknown account makes the same store writes as one for a known account; an empty role clears
+    the role exactly as `null` does.
 
 ## [0.5.1] - 2026-09-02
 

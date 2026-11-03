@@ -609,7 +609,7 @@ of the table is that the answer is written down before that changes.
 | `/forgot` recovery throttle, when `PasswordRecoveryEnabled` is on | *n* × the reset mail one address can be made to receive - the abuse here is aimed at a person's mailbox rather than at this server | Accept, or front it. Off by default, so this row applies only to a deployment that turned the flow on |
 | `/authorize`'s CIMD fetch budget and its negative-result breaker | *n* × the outbound fetches one `client_id` can provoke | Accept: the per-host limiter below is the bound that protects the stranger |
 | `SafeHttpFetcher` per-host budget (60/min) | *n* × 60/min against any one origin | Accept, or front it. LESSONS #9's conduct point lives here |
-| `ClientKeySource` cache and its unknown-`kid` refresh floor | *n* × the refetch rate against a client's `jwks_uri`; *n* independent staleness windows | Accept |
+| `ClientKeySource` cache, its memory of a failed fetch, and its unknown-`kid` refresh floor | *n* × the refetch rate against a client's `jwks_uri`; *n* independent staleness windows | Accept |
 | `CimdClientResolver` cache | *n* × the fetches, and *n* windows in which a retired client document is still trusted | Accept |
 | `JwksKeySource` cache (resource server) | *n* × the fetches against the authorization server's own JWKS | Accept |
 | `UpstreamEndpointClient` per-host budget (federation) | *n* × the requests to an upstream identity provider | Accept |

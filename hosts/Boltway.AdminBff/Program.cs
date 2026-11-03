@@ -666,7 +666,7 @@ app.MapPost("/users/{handle}/patch", async (
             // which is still "clear them" - that is what the placeholder says and it has to remain
             // possible - but it now takes deleting the text rather than opening the page.
             roles = form["roles"].ToString()
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             email = form["email"].ToString() is { Length: > 0 } e ? e : "-",
             email_verified = form["email_verified"].Count > 0,
             enabled = form["enabled"].Count > 0,

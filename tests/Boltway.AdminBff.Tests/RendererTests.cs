@@ -227,8 +227,8 @@ public sealed class RendererTests
 
             // Both halves again: a realm with roles carries every sentence about one, and a realm
             // with none carries the sentence that says so - which no fixture holding a role reaches.
-            // Accounts and the truncation flag are on the populated call because the holder
-            // sentences - held-by, nobody, and the truncated caveat - live only there.
+            // Accounts and the truncation flag are on the populated call because the held-by and
+            // truncated sentences live only there; "nobody" needs the untruncated call below.
             renderer.RenderRoles(new RolesViewModel(
                 Render.Json(
                     """
@@ -239,6 +239,15 @@ public sealed class RendererTests
             {
                 Accounts = Render.Json("""[{"handle":"ada","role":["founder"]}]"""),
                 HoldersTruncated = true,
+            }),
+
+            // The same realm with the walk complete, because "nobody holds this role" is said only
+            // when the directory was seen whole - a truncated walk does not know it.
+            renderer.RenderRoles(new RolesViewModel(
+                Render.Json("""{"roles":[{"id":"member","name":"Member","permissions":[]}]}"""),
+                Render.Tokens, null, "ada")
+            {
+                Accounts = Render.Json("""[{"handle":"ada","role":["founder"]}]"""),
             }),
             renderer.RenderRoles(new RolesViewModel(
                 Render.Json("""{"roles":[]}"""), Render.Tokens, null, "ada")),

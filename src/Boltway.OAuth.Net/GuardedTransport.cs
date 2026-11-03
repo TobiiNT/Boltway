@@ -241,6 +241,11 @@ internal sealed class GuardedTransport : IDisposable
         {
             return new FetchOutcome.TransportFailed(ex.Message);
         }
+        catch (System.IO.IOException ex)
+        {
+            // A connection lost mid-body surfaces as HttpIOException (an IOException).
+            return new FetchOutcome.TransportFailed(ex.Message);
+        }
     }
 
     /// <summary>

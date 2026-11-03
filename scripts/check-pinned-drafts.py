@@ -133,6 +133,10 @@ def main(argv):
 
         if expires:
             when = datetime.fromisoformat(expires.replace('Z', '+00:00'))
+            if when.tzinfo is None:
+                # The datatracker normally sends an offset; a bare timestamp is read as UTC rather
+                # than crashing on naive-minus-aware.
+                when = when.replace(tzinfo=timezone.utc)
             days = (when - now).days
 
             # Labelled with `latest`, not with what is pinned: the datatracker reports the expiry

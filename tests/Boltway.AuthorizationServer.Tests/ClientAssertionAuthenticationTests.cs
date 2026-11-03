@@ -420,6 +420,36 @@ public sealed class ClientAssertionAuthenticationTests
         await AssertRefusedAsync(await ExchangeAsync(fixture, Assertion(fixture)));
     }
 
+    /// <summary>
+    /// A key set that failed is not fetched again inside the refetch floor.
+    /// </summary>
+    /// <remarks>
+    /// Only a success was remembered, so a client whose <c>jwks_uri</c> answered 503 cost one
+    /// outbound request per token request - the amplification
+    /// <c>ClientKeySourceOptions.MinimumRefreshInterval</c> exists to bound, reachable by anyone
+    /// who can reach <c>/token</c>.
+    /// </remarks>
+    [Fact]
+    public async Task A_failing_key_set_is_not_refetched_inside_the_floor()
+    {
+        StubFetcher? fetcher = null;
+
+        await using var fixture = await StartAsync(
+            configureFetcher: f =>
+            {
+                fetcher = f;
+                f.Respond(JwksUri, new FetchOutcome.NotOk(503));
+            });
+
+        await AssertRefusedAsync(await ExchangeAsync(fixture, Assertion(fixture)));
+
+        var fetchesAfterFirst = fetcher!.Calls;
+
+        await AssertRefusedAsync(await ExchangeAsync(fixture, Assertion(fixture)));
+
+        Assert.Equal(fetchesAfterFirst, fetcher.Calls);
+    }
+
     /// <summary>A key set carrying nothing to verify with is refused rather than treated as absent.</summary>
     [Fact]
     public async Task A_key_set_with_no_signing_keys_is_refused()

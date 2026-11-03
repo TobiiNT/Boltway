@@ -107,6 +107,12 @@ internal sealed class EfRefreshTokenStore(
         var familyRevoked = await context.RefreshTokenFamilies
             .AnyAsync(f => f.FamilyId == row.FamilyId, cancellationToken);
 
+        if (familyRevoked && row.ConsumedAt is not null && row.ExpiresAt > nowTicks)
+        {
+            // A consumed token replayed from a revoked family is still reuse.
+            return new RefreshRedemption.ReuseDetected(row.GrantId, row.FamilyId);
+        }
+
         if (familyRevoked || row.ExpiresAt <= nowTicks)
         {
             // Expiry is normal and must not revoke a family, so it is NotFound rather than reuse.

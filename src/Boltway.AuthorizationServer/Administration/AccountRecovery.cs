@@ -176,6 +176,12 @@ public sealed class AccountRecovery(
                 SubjectId.FromStorage("unknown"), UserTokenPurpose.PasswordReset, cancellationToken)
                 .ConfigureAwait(false);
 
+            // The found path also writes a token; write one here too so both paths make the same
+            // store calls. Born expired (expiresAt = now), so it can never be redeemed.
+            await tokens.StoreAsync(
+                new UserTokenRecord(hash, SubjectId.FromStorage("unknown"), UserTokenPurpose.PasswordReset, now),
+                cancellationToken).ConfigureAwait(false);
+
             await RecordAsync(
                 "user.password.forgot", null, handleOrEmail, AdminAuditOutcome.Refused,
                 "no such account", cancellationToken).ConfigureAwait(false);
