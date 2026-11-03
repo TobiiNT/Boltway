@@ -142,11 +142,19 @@ reading of an ambiguous sentence. Measured by reading the code unless it says ot
    `unauthorized_client` by redirect, and it reads an empty array as "did not say" (C-14). Meeting
    it means the resolver learns the server's supported grants, and the refusal moves to the
    no-redirect path §6.1 asks for.
+
+   **Closed 2026-11-03.** The registered resolver intersects both members with
+   `GrantTypesSupported` and `code`, keeps the intersection on the record, and refuses an empty
+   one as `invalid_client` when it reads the document. An empty array is now an empty
+   intersection rather than "did not say"; an absent member still is.
 3. **CIMD-03 §10.1, client_id confusion.** The server "SHOULD reject a Client Identifier URL that
    is equal ... to its own issuer identifier, or to the identifier of any authorization server or
    resource server it has a trust relationship with". Not checked. An issuer with no path can never
    be equal, because §3 requires a path. A resource identifier with one, such as an MCP endpoint,
    could be.
+
+   **Closed 2026-11-03.** Refused before any fetch when the identifier equals the validated issuer
+   or a registered resource's canonical identifier.
 4. **CIMD-03 §6.1, refresh tokens on a terminal failure.** "A terminal failure caused by a
    client_id mismatch SHOULD invalidate the client's outstanding refresh tokens immediately." The
    resolver has no store access by design (A-08), so nothing revokes.
@@ -155,6 +163,9 @@ reading of an ambiguous sentence. Measured by reading the code unless it says ot
    purpose. Its reason, that RFC 7523 registers no `typ`, is now outdated by this sentence.
    Requiring one would refuse every current client, so the likely shape is to accept a missing
    `typ` and refuse a wrong one.
+
+   **Closed 2026-11-03, in that shape.** No `typ`, `JWT` and `client-authentication+jwt` pass,
+   case-insensitively; any other declared type is refused.
 6. **CIMD-03 §5, "MUST include either jwks or jwks_uri properties".** The sentence sits in the
    `private_key_jwt` paragraph, and this server applies it there: a `private_key_jwt` document with
    no `jwks_uri` is refused, and so, more strictly than -03, is one with only inline `jwks`, because

@@ -1,4 +1,5 @@
 using Boltway.AuthorizationServer.Abstractions.Clients;
+using Boltway.AuthorizationServer.Abstractions.Resources;
 using Boltway.OAuth.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -61,6 +62,8 @@ public static class CimdServiceCollectionExtensions
                 // GetService, so a resolver registered without the authorization server keeps the
                 // choice it always made instead of failing to build.
                 EnabledAuthMethods = sp.GetService<Configuration.AuthorizationServerOptions>()?.TokenEndpointAuthMethods,
+                EnabledGrantTypes = sp.GetService<Configuration.AuthorizationServerOptions>()?.GrantTypesSupported,
+                ReservedIdentifiers = ReservedIdentifiers(sp),
             }));
 
         return services;
@@ -100,6 +103,43 @@ public static class CimdServiceCollectionExtensions
     /// <exception cref="InvalidOperationException">
     /// The flag is set and the environment is not Development.
     /// </exception>
+    /// <summary>
+    /// The issuer and every registered resource, read on each resolution that reaches a fetch, or
+    /// <see langword="null"/> when neither the server options nor a registry is registered.
+    /// </summary>
+    private static Func<CancellationToken, ValueTask<IReadOnlyCollection<string>>>? ReservedIdentifiers(IServiceProvider sp)
+    {
+        var options = sp.GetService<Configuration.AuthorizationServerOptions>();
+        var registry = sp.GetService<IResourceRegistry>();
+
+        if (options is null && registry is null)
+        {
+            return null;
+        }
+
+        return async cancellationToken =>
+        {
+            var reserved = new HashSet<string>(StringComparer.Ordinal);
+
+            // ValidatedIssuer is meaningful only once validation has run; before that its Value
+            // is null and there is nothing to compare.
+            if (options?.ValidatedIssuer.Value is { Length: > 0 } issuer)
+            {
+                reserved.Add(issuer);
+            }
+
+            if (registry is not null)
+            {
+                foreach (var registration in await registry.AllAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    reserved.Add(registration.Resource.Canonical);
+                }
+            }
+
+            return reserved;
+        };
+    }
+
     private static SafeHttpFetcherOptions? GuardPrivateAddresses(
         SafeHttpFetcherOptions? options, IHostEnvironment? environment)
     {

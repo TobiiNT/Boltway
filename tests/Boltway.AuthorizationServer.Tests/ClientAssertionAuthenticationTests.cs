@@ -95,7 +95,8 @@ public sealed class ClientAssertionAuthenticationTests
         string? subject = null,
         string? audience = null,
         string? jwtId = null,
-        TimeSpan? lifetime = null)
+        TimeSpan? lifetime = null,
+        string? type = null)
     {
         var now = DateTimeOffset.UtcNow;
         var signing = new RsaSecurityKey(key ?? ClientKey) { KeyId = kid ?? ClientKid };
@@ -112,6 +113,7 @@ public sealed class ClientAssertionAuthenticationTests
                 ["jti"] = jwtId ?? Guid.NewGuid().ToString("N"),
             },
             SigningCredentials = new SigningCredentials(signing, SecurityAlgorithms.RsaSha256),
+            TokenType = type,
         };
 
         _ = fixture;
@@ -324,6 +326,35 @@ public sealed class ClientAssertionAuthenticationTests
         fields["client_secret"] = "bw_cs_whatever";
 
         await AssertRefusedAsync(await PostAsync(fixture, fields));
+    }
+
+    /// <summary>
+    /// A declared <c>typ</c> naming another kind of token is refused, and the type CIMD-03 §5
+    /// recommends is accepted.
+    /// </summary>
+    /// <remarks>
+    /// <c>at+jwt</c> stands for any JWT the client signed with the same key for another purpose -
+    /// here, an access token it might issue as an authorization server of its own. Presented as an
+    /// assertion it was accepted, because <c>typ</c> was not read at all. <c>JWT</c>, what the
+    /// libraries write by default, is the control every other test in this file already exercises.
+    /// </remarks>
+    [Theory]
+    [InlineData("at+jwt", false)]
+    [InlineData("client-authentication+jwt", true)]
+    public async Task An_assertion_declaring_another_token_type_is_refused(string type, bool accepted)
+    {
+        await using var fixture = await StartAsync();
+
+        var exchange = await ExchangeAsync(fixture, Assertion(fixture, type: type));
+
+        if (accepted)
+        {
+            Assert.Equal(HttpStatusCode.OK, exchange.Status);
+        }
+        else
+        {
+            await AssertRefusedAsync(exchange);
+        }
     }
 
     /// <summary>An assertion of an unregistered type is refused. RFC 7521 §4.2.</summary>

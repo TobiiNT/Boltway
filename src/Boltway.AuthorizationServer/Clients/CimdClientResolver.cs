@@ -182,6 +182,22 @@ public sealed class CimdClientResolver : IClientResolver
     internal IEnumerable<ClientAuthMethod>? EnabledAuthMethods { get; init; }
 
     /// <summary>
+    /// The grant types this server has enabled, or <see langword="null"/> when unknown. Same shape
+    /// and same reasons as <see cref="EnabledAuthMethods"/>. CIMD-03 §6.
+    /// </summary>
+    internal IEnumerable<string>? EnabledGrantTypes { get; init; }
+
+    /// <summary>
+    /// The identifiers a Client Identifier URL must not equal: this server's issuer and the
+    /// resources it issues tokens for. <see langword="null"/> when unknown. CIMD-03 §10.1.
+    /// </summary>
+    /// <remarks>
+    /// A function rather than a list, because the resource registry answers asynchronously and a
+    /// deployment's registry may change without a restart.
+    /// </remarks>
+    internal Func<CancellationToken, ValueTask<IReadOnlyCollection<string>>>? ReservedIdentifiers { get; init; }
+
+    /// <summary>
     /// The fetches currently running, so concurrent callers for one <c>client_id</c> share one.
     /// </summary>
     /// <remarks>
@@ -278,6 +294,21 @@ public sealed class CimdClientResolver : IClientResolver
         if (!CimdClientIdUrl.TryParse(clientId.Value, out var url, out var shapeFailure))
         {
             return ClientResolution.Failed(ClientResolutionError.MetadataUnusable, shapeFailure);
+        }
+
+        // CIMD-03 §10.1: "an authorization server SHOULD reject a Client Identifier URL that is
+        // equal, using simple string comparison ..., to its own issuer identifier, or to the
+        // identifier of any authorization server or resource server it has a trust relationship
+        // with". A client named after a resource is one whose tokens a confused verifier could take
+        // for the resource's own. Checked before the fetch, so such an identifier costs no request.
+        // An issuer with no path can never match, since §3 requires one; a resource with a path,
+        // such as an MCP endpoint, can.
+        if (ReservedIdentifiers is { } reserved
+            && (await reserved(cancellationToken)).Contains(url.Value, StringComparer.Ordinal))
+        {
+            return ClientResolution.Failed(
+                ClientResolutionError.MetadataUnusable,
+                "This client_id is the identifier of this server or of a resource it issues tokens for (CIMD section 10.1).");
         }
 
         var started = System.Diagnostics.Stopwatch.GetTimestamp();
@@ -384,7 +415,7 @@ public sealed class CimdClientResolver : IClientResolver
                     transient);
             }
 
-            if (!CimdDocument.TryRead(ok.Body, ok.ContentType, url, _options, EnabledAuthMethods, out var client, out var documentFailure))
+            if (!CimdDocument.TryRead(ok.Body, ok.ContentType, url, _options, EnabledAuthMethods, EnabledGrantTypes, out var client, out var documentFailure))
             {
                 _breaker.RecordFailure(key);
 
