@@ -121,11 +121,6 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
   `Boltway.Storage.Testing` - against its own name. A store written to pass that test now fails it,
   which is the point: `NotFound` tells a thief nothing was noticed.
 
-- **MailKit 4.18.0 to 4.18.2**, which takes `System.Security.Cryptography.Pkcs` from 10.0.0 to
-  10.0.13. NuGet audit reports two advisories against 10.0.0 (GHSA-2fmv-rv2c-59x7, moderate;
-  GHSA-846f-f764-76mx, high), and with warnings as errors the build failed at restore. Measured
-  2026-11-03.
-
 ### Fixed
 
 - **A refused CIMD document no longer comes back when the breaker opens.** A 404, a redirect or a
