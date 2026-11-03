@@ -343,13 +343,19 @@ public static class Rfc9068ValidationParameters
     /// reverse of <see cref="ForIdToken"/>, one method up.
     /// </para>
     /// <para>
-    /// <b>No <c>ValidTypes</c>, deliberately, and it is the one place in this file that omits it.</b>
-    /// N-09 pins <c>typ</c> everywhere else because two of this server's own token kinds are
-    /// otherwise interchangeable. Here there is nothing to confuse: a client assertion is verified
-    /// against the <i>client's</i> keys, and this server mints nothing with those keys, so there is
-    /// no second token kind a valid signature could belong to. RFC 7523 registers no <c>typ</c>
-    /// requirement, and demanding one would refuse conformant clients - measured on ChatGPT's own
-    /// metadata, which declares <c>token_endpoint_auth_signing_alg</c> and no type at all.
+    /// <b>A <c>typ</c> is checked when present, and its absence is accepted.</b> N-09 pins
+    /// <c>typ</c> everywhere else because two of this server's own token kinds are otherwise
+    /// interchangeable. Here the keys are the <i>client's</i>, and the confusion CIMD-03 §5 names is
+    /// the client's: a JWT it signed for some other purpose, an access token it issued as an
+    /// authorization server of its own, say, presented here as an assertion. §5 says clients
+    /// "SHOULD include an explicit typ header parameter (recommended value:
+    /// client-authentication+jwt ...)" and servers "SHOULD validate JWT types". Requiring one would
+    /// refuse every client that sets none - RFC 7523 registers no <c>typ</c>, and the libraries most
+    /// clients use write <c>JWT</c> or nothing - so the rule is: absent, <c>JWT</c> and
+    /// <c>client-authentication+jwt</c> pass, and any other declared type is a token minted for
+    /// something else. Case-insensitive, because <c>typ</c> is a media type (RFC 7515 §4.1.9).
+    /// Until 2026-11-03 this was unchecked entirely, on the reasoning that RFC 7523 asked for
+    /// nothing; CIMD-03 is what changed it.
     /// </para>
     /// <para>
     /// <c>TryAllIssuerSigningKeys</c> is true for the reason <see cref="ForUpstreamIdToken"/> gives:
@@ -401,7 +407,22 @@ public static class Rfc9068ValidationParameters
             RequireExpirationTime = true,
             RequireSignedTokens = true,
 
+            TypeValidator = ClientAssertionType,
+
             ClockSkew = clockSkew ?? TimeSpan.FromSeconds(30),
         };
     }
+
+    /// <summary>The <c>typ</c> values a client assertion may carry, besides none. See <see cref="ForClientAssertion"/>.</summary>
+    private static readonly string[] ClientAssertionTypes = ["JWT", "client-authentication+jwt", "application/client-authentication+jwt"];
+
+    private static string ClientAssertionType(string type, SecurityToken securityToken, TokenValidationParameters validationParameters) =>
+        string.IsNullOrEmpty(type) || ClientAssertionTypes.Contains(type, StringComparer.OrdinalIgnoreCase)
+            ? type
+            : throw new SecurityTokenInvalidTypeException(
+                $"A client assertion's 'typ' is '{type}', which names a token minted for another purpose. "
+                + "Send no 'typ', 'JWT' or 'client-authentication+jwt' (CIMD section 5).")
+            {
+                InvalidType = type,
+            };
 }

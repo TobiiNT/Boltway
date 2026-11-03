@@ -72,6 +72,18 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
 
 ### Changed
 
+- **CIMD documents are held to three more CIMD-03 sentences**, each refused when the document is
+  read, as `invalid_client`, by the resolver `AddCimdClientResolver` registers:
+  - `grant_types` and `response_types` are intersected with what this server supports (§6). A
+    grant it lacks is dropped from the record, not refused (C-14 still holds); an empty
+    intersection, which includes a declared empty array, is refused. It used to pass resolution
+    and meet `unauthorized_client` by redirect at `/authorize`.
+  - A `client_id` equal to this server's issuer or to a registered resource's identifier is
+    refused before any fetch (§10.1).
+  - A client assertion whose `typ` names another kind of token is refused (§5). No `typ`, `JWT`
+    and `client-authentication+jwt` are accepted, so no current client is affected unless it
+    sends a JWT minted for something else.
+
 - **The pinned drafts moved: CIMD -02 to -03, OAuth 2.1 -15 to -17.** Every section citation in
   the code and the current documents moved with them, and so do the section numbers inside refusal
   messages: `(CIMD section 8.6)` reads `(CIMD section 10.7)` now. A log alert matching that text

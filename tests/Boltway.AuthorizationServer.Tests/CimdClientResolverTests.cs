@@ -8,6 +8,7 @@ using Boltway.OAuth.Primitives.Http;
 using Boltway.OAuth.Primitives.Ids;
 using Boltway.OAuth.Primitives.Secrets;
 using Boltway.OAuth.Primitives.Redirects;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Boltway.AuthorizationServer.Tests;
 
@@ -683,6 +684,110 @@ public sealed class CimdClientResolverTests
             Assert.Equal(ClientResolutionError.MetadataUnusable, resolution.Error);
             Assert.Contains("is enabled on this server", resolution.Detail, StringComparison.Ordinal);
         }
+    }
+
+    /// <summary>
+    /// Declared grant and response types are intersected with this server's, and a document left
+    /// with nothing is refused when it is read.
+    /// </summary>
+    /// <remarks>
+    /// CIMD-03 §6: the server "MUST filter the grant_types and response_types ... and find the
+    /// intersection", and "If the intersection of either of these two properties is empty ... MUST
+    /// reject the request with invalid_client". C-14 survives as the filtering half: a grant this
+    /// server lacks is dropped, not refused. An empty intersection used to pass resolution and
+    /// meet <c>unauthorized_client</c> by redirect at <c>/authorize</c>.
+    /// </remarks>
+    [Theory]
+    [InlineData("\"grant_types\":[\"urn:ietf:params:oauth:grant-type:jwt-bearer\",\"authorization_code\"]", true, "authorization_code")]
+    [InlineData("\"grant_types\":[\"implicit\"]", false, "grant_types")]
+    [InlineData("\"grant_types\":[]", false, "grant_types")]
+    [InlineData("\"response_types\":[\"token\"]", false, "response_types")]
+    [InlineData("\"client_name\":\"no types declared\"", true, null)]
+    public async Task Declared_types_are_intersected_with_this_servers(string member, bool resolves, string? expected)
+    {
+        var document = Document(members: $"\"redirect_uris\":[\"{ClaudeCallback}\"],{member}");
+
+        var resolver = new CimdClientResolver(new StubFetcher().Serve(ClaudeId, document), TimeProvider.System)
+        {
+            EnabledGrantTypes = ["authorization_code", "refresh_token"],
+        };
+
+        var resolution = await resolver.ResolveAsync(Identifier(ClaudeId), CancellationToken.None);
+
+        if (resolves)
+        {
+            var client = Assert.IsType<ClientRecord>(resolution.Client);
+
+            if (expected is not null)
+            {
+                Assert.Equal([expected], client.GrantTypes);
+            }
+        }
+        else
+        {
+            Assert.Null(resolution.Client);
+            Assert.Equal(ClientResolutionError.MetadataUnusable, resolution.Error);
+            Assert.Contains(expected!, resolution.Detail, StringComparison.Ordinal);
+            Assert.Contains("CIMD section 6", resolution.Detail, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>
+    /// A client_id equal to this server's issuer or to a resource it serves is refused, before
+    /// any fetch; any other is fetched as usual.
+    /// </summary>
+    /// <remarks>
+    /// CIMD-03 §10.1. Without it a client could name itself after a resource, and a verifier that
+    /// confused the two identifiers would take that client's tokens for the resource's own.
+    /// </remarks>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task A_client_id_equal_to_a_reserved_identifier_is_refused(bool reserved)
+    {
+        var fetcher = new StubFetcher().Serve(ClaudeId, Document());
+
+        var resolver = new CimdClientResolver(fetcher, TimeProvider.System)
+        {
+            ReservedIdentifiers = _ => ValueTask.FromResult<IReadOnlyCollection<string>>(
+                reserved ? [ClaudeId] : ["https://mcp.example.com/mcp"]),
+        };
+
+        var resolution = await resolver.ResolveAsync(Identifier(ClaudeId), CancellationToken.None);
+
+        if (reserved)
+        {
+            Assert.Null(resolution.Client);
+            Assert.Contains("CIMD section 10.1", resolution.Detail, StringComparison.Ordinal);
+            Assert.Equal(0, fetcher.Calls);
+        }
+        else
+        {
+            Assert.NotNull(resolution.Client);
+        }
+    }
+
+    /// <summary>
+    /// The registration hands the resolver what it needs to know about this server.
+    /// </summary>
+    /// <remarks>
+    /// The three checks above live behind internal inputs that only <c>AddCimdClientResolver</c>
+    /// sets. A registration that stopped setting them would leave every one of those tests green
+    /// and every deployment unprotected.
+    /// </remarks>
+    [Fact]
+    public void The_registration_wires_the_servers_facts_into_the_resolver()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new Boltway.AuthorizationServer.Configuration.AuthorizationServerOptions());
+        services.AddCimdClientResolver();
+
+        var resolver = Assert.IsType<CimdClientResolver>(
+            Assert.Single(services.BuildServiceProvider().GetServices<IClientResolver>()));
+
+        Assert.NotNull(resolver.EnabledAuthMethods);
+        Assert.NotNull(resolver.EnabledGrantTypes);
+        Assert.NotNull(resolver.ReservedIdentifiers);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

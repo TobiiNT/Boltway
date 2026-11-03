@@ -73,6 +73,7 @@ internal static class CimdDocument
         CimdClientIdUrl clientId,
         CimdClientResolverOptions options,
         IEnumerable<ClientAuthMethod>? enabledAuthMethods,
+        IEnumerable<string>? enabledGrantTypes,
         [NotNullWhen(true)] out ClientRecord? client,
         [NotNullWhen(false)] out string? failure)
     {
@@ -106,7 +107,7 @@ internal static class CimdDocument
 
         using (document)
         {
-            return TryReadRoot(document.RootElement, clientId, options, enabledAuthMethods, out client, out failure);
+            return TryReadRoot(document.RootElement, clientId, options, enabledAuthMethods, enabledGrantTypes, out client, out failure);
         }
     }
 
@@ -115,6 +116,7 @@ internal static class CimdDocument
         CimdClientIdUrl clientId,
         CimdClientResolverOptions options,
         IEnumerable<ClientAuthMethod>? enabledAuthMethods,
+        IEnumerable<string>? enabledGrantTypes,
         [NotNullWhen(true)] out ClientRecord? client,
         [NotNullWhen(false)] out string? failure)
     {
@@ -227,6 +229,27 @@ internal static class CimdDocument
             || !TryReadHttpsUrl(root, "logo_uri", out var logoUri, out failure))
         {
             return false;
+        }
+
+        // ───────── §6: what the client declares, intersected with what this server does ─────────
+        //
+        // "The Authorization Server MUST filter the grant_types and response_types array-valued
+        // fields and find the intersection of what the Client ID Metadata Document declares and
+        // what the Authorization Servers supports. If the intersection of either of these two
+        // properties is empty, the Authorization Server MUST reject the request with
+        // invalid_client." C-14 still holds: a declared grant this server lacks is filtered out,
+        // not refused. What is refused is a document left with nothing this server can do for it,
+        // here and as invalid_client, where it used to pass resolution and meet unauthorized_client
+        // by redirect at /authorize. An absent member is RFC 7591's default and is left as "did not
+        // say". `null` is a resolver built outside the server's registration, which cannot know
+        // the enabled grants and keeps the old behaviour.
+        if (enabledGrantTypes is not null)
+        {
+            if (!TryIntersect(root, "grant_types", grantTypes, enabledGrantTypes, out grantTypes, out failure)
+                || !TryIntersect(root, "response_types", responseTypes, SupportedResponseTypes, out responseTypes, out failure))
+            {
+                return false;
+            }
         }
 
         client = new ClientRecord
@@ -585,6 +608,39 @@ internal static class CimdDocument
         return AbsoluteHttpsUrl.TryCreate(uri.Value, out var redirect)
             && string.Equals(redirect.Host, clientId.Url.Host, StringComparison.Ordinal)
             && redirect.Port == clientId.Url.Port;
+    }
+
+    /// <summary>The response types this server issues. <c>code</c> only - OAuth 2.1 §4.1.</summary>
+    private static readonly string[] SupportedResponseTypes = ["code"];
+
+    /// <summary>Keep what both sides support, and refuse when nothing is left. CIMD-03 §6.</summary>
+    private static bool TryIntersect(
+        JsonElement root,
+        string name,
+        IReadOnlyList<string> declared,
+        IEnumerable<string> supported,
+        out IReadOnlyList<string> kept,
+        [NotNullWhen(false)] out string? failure)
+    {
+        kept = declared;
+
+        if (!root.TryGetProperty(name, out _))
+        {
+            failure = null;
+            return true;
+        }
+
+        kept = [.. declared.Where(value => supported.Contains(value, StringComparer.Ordinal)).Distinct(StringComparer.Ordinal)];
+
+        if (kept.Count == 0)
+        {
+            failure = $"None of the {name} this client metadata document declares "
+                + $"({(declared.Count == 0 ? "none" : string.Join(", ", declared.Select(Echo)))}) is supported by this server (CIMD section 6).";
+            return false;
+        }
+
+        failure = null;
+        return true;
     }
 
     private static bool TryReadStringArray(
