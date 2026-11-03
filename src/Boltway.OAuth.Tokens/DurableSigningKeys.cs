@@ -183,6 +183,13 @@ public static class DurableSigningKeys
             {
                 var ecdsa = ECDsa.Create();
                 ecdsa.ImportFromPem(pem);
+
+                // ES256 is ECDSA over P-256 only (RFC 7518 §3.4); the JWKS publishes crv P-256.
+                if (ecdsa.KeySize != 256)
+                {
+                    throw new InvalidOperationException($"Signing key `{kid}` is ES256 but is not a P-256 key.");
+                }
+
                 return new ECDsaSecurityKey(ecdsa);
             }
 

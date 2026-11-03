@@ -147,7 +147,10 @@ public static class PhcString
 
         // NumberStyles.None: no sign, no whitespace, no thousands separator. "+2", " 2" and "2 "
         // are all refused, so the parsed number and the stored text stay one-to-one.
-        return int.TryParse(part.AsSpan(2), NumberStyles.None, CultureInfo.InvariantCulture, out value);
+        // Leading zeros are refused too: NumberStyles.None accepts "065536", which would give two
+        // spellings of one cost.
+        return int.TryParse(part.AsSpan(2), NumberStyles.None, CultureInfo.InvariantCulture, out value)
+            && (part.Length == 3 || part[2] != '0');
     }
 
     /// <summary>

@@ -137,9 +137,9 @@ public static class ApprovingDevice
         {
             // Control characters are removed rather than replaced by a space: a header padded with
             // them would otherwise become a wide gap that pushes the real text off the line.
-            if (char.IsControl(character))
+            if (char.IsControl(character) && !char.IsWhiteSpace(character))
             {
-                pendingSpace = true;
+                // Removed, not turned into a space (tab and newline are whitespace, handled below).
                 continue;
             }
 

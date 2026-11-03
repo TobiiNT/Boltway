@@ -1241,4 +1241,30 @@ public abstract class UserStoreContract
 
         Assert.Equal(Subject("ZZ"), found!.Subject);
     }
+
+    /// <summary>
+    /// Anonymising onto a username another account already holds is refused, and the holder stays
+    /// findable.
+    /// </summary>
+    /// <remarks>
+    /// The relational stores refuse it with their unique index. The in-memory store overwrote the
+    /// index entry instead, so the other account silently stopped resolving by its own name - which
+    /// reads as "no such account" to the person, not as a collision.
+    /// </remarks>
+    [Fact]
+    public async Task Anonymising_onto_a_username_another_account_holds_is_refused()
+    {
+        var store = NewUserStore();
+        var ada = Account();
+        var holder = Account(username: "anonymised-x", subjectSuffix: "ZW");
+
+        await store.StoreAsync(ada, CancellationToken.None);
+        await store.StoreAsync(holder, CancellationToken.None);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => store.AnonymiseAsync(
+            ada.Subject, "anonymised-x", DateTimeOffset.UnixEpoch, CancellationToken.None));
+
+        var found = await store.FindByUsernameAsync(RealmId.Default, "anonymised-x", CancellationToken.None);
+        Assert.Equal(holder.Subject, found?.Subject);
+    }
 }

@@ -160,7 +160,12 @@ public static class ProtectedResourceMetadataEndpoints
     /// identifier ends in one too.
     /// </remarks>
     private static bool PathMatchesThisResource(HttpContext context, ProtectedResource resource) =>
-        string.Equals(context.Request.Path.Value, resource.MetadataPath, StringComparison.Ordinal);
+        // MetadataPath is the raw, percent-encoded form; compare against its decoded form, the
+        // same decoding the request path went through.
+        string.Equals(
+            context.Request.Path.Value,
+            PathString.FromUriComponent(resource.MetadataPath).Value,
+            StringComparison.Ordinal);
 
     private static CachedJsonResult Document(ProtectedResource resource) =>
         new(resource.Json, resource.ETag, MaxAgeSeconds);

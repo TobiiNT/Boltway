@@ -99,6 +99,10 @@ public sealed class ClientKeySource(ISafeHttpFetcher fetcher, TimeProvider time,
 
     private readonly ConcurrentDictionary<string, Entry> _cache = new(StringComparer.Ordinal);
 
+    // When the last fetch for a key set that did not produce usable keys happened. Without it a
+    // failing jwks_uri is fetched again on every request, which MinimumRefreshInterval promises not to do.
+    private readonly ConcurrentDictionary<string, (DateTimeOffset At, string Error)> _failedAt = new(StringComparer.Ordinal);
+
     /// <summary>
     /// The keys to verify this client's assertion with.
     /// </summary>
@@ -136,13 +140,24 @@ public sealed class ClientKeySource(ISafeHttpFetcher fetcher, TimeProvider time,
             }
         }
 
+        if (_failedAt.TryGetValue(key, out var failure) && now - failure.At < _options.MinimumRefreshInterval)
+        {
+            return cached is { } held
+                && _options.StaleTolerance > TimeSpan.Zero
+                && now < held.ExpiresAt + _options.StaleTolerance
+                ? new ClientKeys(held.Keys, null)
+                : new ClientKeys([], failure.Error);
+        }
+
         var outcome = await _fetcher.FetchAsync(
             new SafeFetchRequest(jwksUri, FetchPurpose.JwksUri, _options.MaxDocumentBytes),
             cancellationToken);
 
         if (outcome is not FetchOutcome.Ok ok)
         {
-            return Fallback(cached, now, outcome);
+            var fallback = Fallback(cached, now, outcome);
+            _failedAt[key] = (now, fallback.Detail ?? $"The client's key set could not be fetched: {Describe(outcome)}.");
+            return fallback;
         }
 
         IReadOnlyList<SecurityKey> keys;
@@ -158,14 +173,19 @@ public sealed class ClientKeySource(ISafeHttpFetcher fetcher, TimeProvider time,
         {
             // Fetched and unusable, which is the client's problem rather than a transient one - so
             // no stale fallback. See Fallback for why the two are separated.
-            return new ClientKeys([], $"The client's key set could not be parsed: {ex.GetType().Name}.");
+            var unparsed = $"The client's key set could not be parsed: {ex.GetType().Name}.";
+            _failedAt[key] = (now, unparsed);
+            return new ClientKeys([], unparsed);
         }
 
         if (keys.Count == 0)
         {
-            return new ClientKeys([], "The client's key set carries no signing keys.");
+            const string empty = "The client's key set carries no signing keys.";
+            _failedAt[key] = (now, empty);
+            return new ClientKeys([], empty);
         }
 
+        _failedAt.TryRemove(key, out _);
         Cache(key, keys, ok.MaxAge, now);
 
         return new ClientKeys(keys, null);
@@ -183,7 +203,13 @@ public sealed class ClientKeySource(ISafeHttpFetcher fetcher, TimeProvider time,
     {
         var detail = Describe(outcome);
 
-        if (cached is { } entry
+        // Only "could not ask" outcomes qualify. A redirect, an oversized body or an address that
+        // is now blocked is the origin answering, and its old keys are not vouched for.
+        var transient = outcome is FetchOutcome.NotOk or FetchOutcome.Timeout
+            or FetchOutcome.TransportFailed or FetchOutcome.RateLimited;
+
+        if (transient
+            && cached is { } entry
             && _options.StaleTolerance > TimeSpan.Zero
             && now < entry.ExpiresAt + _options.StaleTolerance)
         {

@@ -128,6 +128,9 @@ public sealed class SigningKeyRing
     private readonly SigningKeyRingOptions _options;
     private readonly TimeProvider _time;
 
+    /// <summary>The rotation options this ring was built with.</summary>
+    public SigningKeyRingOptions Options => _options;
+
     /// <summary>Create a ring over a known set of keys.</summary>
     public SigningKeyRing(
         IReadOnlyList<ManagedSigningKey> keys,
@@ -248,6 +251,8 @@ public sealed class SigningKeyRing
                 new RsaSecurityKey(rsa.Rsa.ExportParameters(includePrivateParameters: false)) { KeyId = handle.Kid },
             ECDsaSecurityKey { ECDsa: not null } ec =>
                 new ECDsaSecurityKey(ECDsa.Create(ec.ECDsa.ExportParameters(includePrivateParameters: false))) { KeyId = handle.Kid },
+            RsaSecurityKey { Rsa: null } p =>
+                new RsaSecurityKey(new RSAParameters { Modulus = p.Parameters.Modulus, Exponent = p.Parameters.Exponent }) { KeyId = handle.Kid },
             _ => handle.Key,
         };
 

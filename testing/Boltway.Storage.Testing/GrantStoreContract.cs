@@ -743,8 +743,8 @@ public abstract class GrantStoreContract
     }
 
     /// <summary>
-    /// A revoked family answers <c>NotFound</c> to a consumed token's replay, and revoking it again transitions
-    /// nothing.
+    /// A revoked family answers <c>ReuseDetected</c> to a consumed token's replay, and revoking it again
+    /// transitions nothing.
     /// </summary>
     [Fact]
     public async Task Replaying_a_consumed_token_after_revocation_still_reports_reuse()
@@ -768,8 +768,10 @@ public abstract class GrantStoreContract
             root.TokenHash, new RefreshTokenSeed(Hash("rt-3"), now.AddDays(30)),
             now.AddMinutes(5), TimeSpan.FromSeconds(45), CancellationToken.None);
 
-        // NotFound would mean the row is gone, and a thief would learn nothing was noticed.
-        Assert.IsType<RefreshRedemption.NotFound>(outcome);
+        // NotFound would mean the row is gone, and a thief would learn nothing was noticed. This
+        // asserted NotFound until 0.6.0, contradicting its own name, the comment above it and
+        // IRefreshTokenStore.RedeemAsync's contract; the stores were written to the assertion.
+        Assert.IsType<RefreshRedemption.ReuseDetected>(outcome);
         Assert.Equal(0, await store.RevokeFamilyAsync(root.FamilyId, now, CancellationToken.None));
     }
 

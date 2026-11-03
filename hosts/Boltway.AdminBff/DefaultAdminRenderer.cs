@@ -137,9 +137,10 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
             .Append("</th><th>").Append(_text[AdminText.ColumnState])
             .Append("</th></tr></thead><tbody>");
 
-        var users = model.Page.TryGetProperty("item1", out var a) ? a
+        var users = model.Page.ValueKind is JsonValueKind.Array ? model.Page
+            : model.Page.ValueKind is not JsonValueKind.Object ? default
+            : model.Page.TryGetProperty("item1", out var a) ? a
             : model.Page.TryGetProperty("users", out var b) ? b
-            : model.Page.ValueKind is JsonValueKind.Array ? model.Page
             : default;
 
         if (users.ValueKind is JsonValueKind.Array)
@@ -675,8 +676,8 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
                 .Append(_text[AdminText.RoleHoldersTruncated]).Append("</p>");
         }
 
-        var roles = model.Roles.TryGetProperty("roles", out var listed) ? listed
-            : model.Roles.ValueKind is JsonValueKind.Array ? model.Roles
+        var roles = model.Roles.ValueKind is JsonValueKind.Array ? model.Roles
+            : model.Roles.ValueKind is JsonValueKind.Object && model.Roles.TryGetProperty("roles", out var listed) ? listed
             : default;
 
         var any = false;
@@ -688,7 +689,7 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
             foreach (var role in roles.EnumerateArray())
             {
                 any = true;
-                body.Append(Role(role, hidden, model.Accounts));
+                body.Append(Role(role, hidden, model.Accounts, model.HoldersTruncated));
             }
 
             body.Append("</div>");
@@ -726,7 +727,8 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
     /// <param name="role">The role, as the admin API returned it.</param>
     /// <param name="hidden">The antiforgery field, already rendered.</param>
     /// <param name="accounts">Every account, for the holder list - or undefined for silence.</param>
-    private string Role(JsonElement role, string hidden, JsonElement accounts)
+    /// <param name="holdersTruncated">Whether the holder walk stopped early.</param>
+    private string Role(JsonElement role, string hidden, JsonElement accounts, bool holdersTruncated = false)
     {
         var id = Text(role, "id");
         var action = "/roles/" + Uri.EscapeDataString(id);
@@ -795,12 +797,13 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
         // holds this role" is only ever said when the walk actually saw the whole directory's page.
         if (holders is not null)
         {
-            if (holders.Length == 0)
+            // When the walk stopped early "nobody" is not known, so nothing is said here.
+            if (holders.Length == 0 && !holdersTruncated)
             {
                 body.Append("<p class=\"field-note\">")
                     .Append(_text[AdminText.RoleHoldersNone]).Append("</p>");
             }
-            else
+            else if (holders.Length > 0)
             {
                 body.Append("<p class=\"field-note\">").Append(_text[AdminText.RoleHolders]).Append(' ');
 
@@ -1055,7 +1058,8 @@ public sealed class DefaultAdminRenderer : IAdminRenderer
 
         // Ordinal, matching AdminRoleScopePolicy. A case-insensitive hint here would say an account
         // administers when the server says it does not, which is worse than saying nothing.
-        var administers = _adminRoles.Contains(role, StringComparer.Ordinal);
+        var administers = role.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Any(r => _adminRoles.Contains(r, StringComparer.Ordinal));
 
         var list = string.Join(", ", _adminRoles.Select(Encode));
 

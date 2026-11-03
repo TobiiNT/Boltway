@@ -58,7 +58,15 @@ def prose_only(path: str, text: str) -> str:
     if path.endswith(".md"):
         return text
     if path.endswith(".cs"):
-        return re.sub(r'"""(?:.|\n)*?"""|@?"(?:[^"\\\n]|\\.|"")*"', blank, text)
+        # Char literals and comments are matched first and kept, so a quote inside either does not
+        # start a "string" that swallows the rest of the line.
+        cs = (r"'(?:[^'\\\n]|\\.)*'" r"|//[^\n]*|/\*(?:.|\n)*?\*/" r'|"""(?:.|\n)*?"""' r'|@"(?:[^"]|"")*"' r'|"(?:[^"\\\n]|\\.)*"')
+        # A comment that quotes a shipped string ("used to read ...") is quoting output, which the
+        # string rule leaves alone, so a same-line quoted span inside a comment is blanked too.
+        return re.sub(cs,
+                      lambda m: m.group() if m.group()[0] == "'"
+                      else re.sub(r'"[^"\n]*"', blank, m.group()) if m.group()[0] == "/"
+                      else blank(m), text)
     if path.endswith((".props", ".csproj", ".slnx", ".targets")):
         # Only the comments are ours; element and attribute text is what MSBuild or an IDE shows.
         # Keeping the comments and blanking the rest, rather than the other way round, because the
@@ -68,15 +76,18 @@ def prose_only(path: str, text: str) -> str:
                        else re.sub(r"[^\n]", " ", m.group())
                        for m in re.finditer(r"<!--(?:.|\n)*?-->|(?:(?!<!--).|\n)+", text))
     if path.endswith((".css", ".js")):
-        text = re.sub(r"/\*(?:.|\n)*?\*/", lambda m: "\x00" + m.group()[1:], text)
-        out = []
-        for line in text.split("\n"):
-            keep = "\x00" in line or line.lstrip().startswith("//") or line.lstrip().startswith("*")
-            out.append(line.replace("\x00", "/") if keep else "")
-        return "\n".join(out)
+        # Keep comments wherever they sit (trailing //, every line of a /* */ block); blank the rest.
+        comments = r"/\*(?:.|\n)*?\*/|//[^\n]*" if path.endswith(".js") else r"/\*(?:.|\n)*?\*/"
+        pattern = comments + r"""|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`|[^/"'`]+|/"""
+        return "".join(m.group() if m.group().startswith(("/*", "//")) else blank(m)
+                       for m in re.finditer(pattern, text))
     if path.endswith((".yml", ".yaml", ".sh", ".py")) or pathlib.Path(path).name in HASH_NAMES:
-        lines = [l if l.lstrip().startswith("#") else "" for l in text.split("\n")]
-        return "\n".join(lines)
+        # Keep '#' comments wherever they start outside a string, and Python docstrings.
+        docstrings = r'"""(?:.|\n)*?"""|\'\'\'(?:.|\n)*?\'\'\'|' if path.endswith(".py") else ""
+        pattern = docstrings + r"""#[^\n]*|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|[^#"']+|["']"""
+        keep = lambda g: g.startswith("#") or g.startswith(('"""', "'''"))  # noqa: E731
+        return "".join(m.group() if keep(m.group()) else blank(m)
+                       for m in re.finditer(pattern, text))
     return ""
 
 

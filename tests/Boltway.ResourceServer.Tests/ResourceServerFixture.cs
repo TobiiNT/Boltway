@@ -329,6 +329,13 @@ internal sealed class ResourceServerFixture : IAsyncDisposable
                         endpoints.MapGet("/protected", () => Results.Ok());
 
                         endpoints.MapGet("/open", () => Results.Ok()).AllowAnonymous();
+
+                        // Anonymous, and says who it thinks is calling, because a handler that
+                        // authorizes from HttpContext.User itself is exactly what an anonymous
+                        // endpoint here is for.
+                        endpoints.MapGet("/open/whoami", (HttpContext context) =>
+                                Results.Json(new { authenticated = context.User.Identity?.IsAuthenticated ?? false }))
+                            .AllowAnonymous();
                     });
                 }))
             .StartAsync();

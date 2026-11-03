@@ -214,6 +214,14 @@ internal sealed class BearerAuthenticationMiddleware
             return;
         }
 
+        // A revoked token must not populate the principal on anonymous endpoints either: handlers
+        // such as the admin gate authorize from HttpContext.User.
+        if (context.RequestServices.GetService<IAccessTokenRevocationCheck>() is { } revocation
+            && await revocation.IsRevokedAsync(credential.Token!, result.Principal!, context.RequestAborted))
+        {
+            return;
+        }
+
         context.Features.Set(new BearerTokenFeature(result.Principal!, result.Scopes.Values));
         context.User = result.Principal!;
     }

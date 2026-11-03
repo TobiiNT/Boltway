@@ -260,7 +260,8 @@ public sealed class IntrospectionRevocationCheck : IAccessTokenRevocationCheck
 
             using var body = JsonDocument.Parse(bytes);
 
-            if (!body.RootElement.TryGetProperty("active", out var active)
+            if (body.RootElement.ValueKind is not JsonValueKind.Object
+                || !body.RootElement.TryGetProperty("active", out var active)
                 || active.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
             {
                 // RFC 7662 §2.2 makes `active` REQUIRED. A 200 without it is a server that is not
@@ -329,6 +330,7 @@ public sealed class IntrospectionRevocationCheck : IAccessTokenRevocationCheck
 
             if (parsed.RootElement.ValueKind is JsonValueKind.Object
                 && parsed.RootElement.TryGetProperty("error", out var error)
+                && error.ValueKind is JsonValueKind.String
                 && string.Equals(error.GetString(), "invalid_client", StringComparison.Ordinal))
             {
                 return (

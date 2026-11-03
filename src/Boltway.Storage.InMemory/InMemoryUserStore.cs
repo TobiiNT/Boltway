@@ -463,6 +463,13 @@ public sealed class InMemoryUserStore : IUserStore
             // Not `Update`, and that is the whole difference: every other setter leaves the username
             // alone, so re-indexing under `account.Username` is right for them and would leave the
             // old name resolving to the tombstone here. Remove, then add.
+            // Refused like the relational store's unique index would refuse it: overwriting the
+            // entry would make another account unfindable by username.
+            if (_byUsername.TryGetValue((realm, tombstoneUsername), out var holder) && holder.Subject != account.Subject)
+            {
+                throw new InvalidOperationException("The tombstone username is already held by another account in this realm.");
+            }
+
             _byUsername.Remove((realm, account.Username));
             _byUsername[(realm, tombstoneUsername)] = updated;
             _bySubject[value] = updated;

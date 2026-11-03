@@ -189,4 +189,22 @@ public sealed class DurableSigningKeysTests
         Assert.Equal(SigningKeyState.Pending, keys.Single(k => k.Handle.Kid == "next").State);
         Assert.Null(keys.Single(k => k.Handle.Kid == "next").ActivatedAt);
     }
+
+    /// <summary>
+    /// An ES256 entry holding a key on another curve is refused at parse.
+    /// </summary>
+    /// <remarks>
+    /// RFC 7518 §3.4 ties ES256 to P-256, and the JWKS publishes the key as <c>crv: P-256</c>. A
+    /// P-384 key loaded under that name signed tokens no verifier could check.
+    /// </remarks>
+    [Fact]
+    public void An_ES256_entry_with_a_P384_key_is_refused()
+    {
+        var ring = Ring(
+            Entry("2026-08"),
+            Entry("es-1", alg: "ES256", pem: ECDsa.Create(ECCurve.NamedCurves.nistP384).ExportPkcs8PrivateKeyPem()));
+
+        var ex = Assert.Throws<InvalidOperationException>(() => DurableSigningKeys.Parse(ring));
+        Assert.Contains("es-1", ex.Message, StringComparison.Ordinal);
+    }
 }

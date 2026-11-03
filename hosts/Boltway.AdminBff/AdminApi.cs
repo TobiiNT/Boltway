@@ -161,8 +161,8 @@ public sealed class AdminApi(IHttpClientFactory clients, AdminBffOptions options
 
                 if (parsed.ValueKind is JsonValueKind.Object)
                 {
-                    error = parsed.TryGetProperty("error", out var e) ? e.GetString() : null;
-                    description = parsed.TryGetProperty("error_description", out var d) ? d.GetString() : null;
+                    error = parsed.TryGetProperty("error", out var e) ? e.ValueKind is JsonValueKind.String ? e.GetString() : null : null;
+                    description = parsed.TryGetProperty("error_description", out var d) ? d.ValueKind is JsonValueKind.String ? d.GetString() : null : null;
                 }
             }
             catch (JsonException)

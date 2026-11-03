@@ -184,6 +184,12 @@ public sealed class InMemoryRefreshTokenStore : IRefreshTokenStore
                 return Task.FromResult<RefreshRedemption>(new RefreshRedemption.NotFound());
             }
 
+            if (_revokedFamilies.ContainsKey(record.FamilyId) && record.ConsumedAt is not null && record.ExpiresAt > now)
+            {
+                // A consumed token replayed from a revoked family is still reuse.
+                return Task.FromResult<RefreshRedemption>(new RefreshRedemption.ReuseDetected(record.GrantId, record.FamilyId));
+            }
+
             if (_revokedFamilies.ContainsKey(record.FamilyId) || record.ExpiresAt <= now)
             {
                 return Task.FromResult<RefreshRedemption>(new RefreshRedemption.NotFound());

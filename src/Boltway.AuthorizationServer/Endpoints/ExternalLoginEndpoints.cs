@@ -78,10 +78,10 @@ public static class ExternalLoginEndpoints
         var pages = endpoints.ShedsOnStoreFailure(OAuthSurface.Interaction, rendered: true);
 
 
-        endpoints.MapPost(AuthorizationServerPaths.ExternalStart, StartAsync)
+        pages.MapPost(AuthorizationServerPaths.ExternalStart, StartAsync)
             .AllowAnonymous().WithName("boltway-external-start");
 
-        endpoints.MapPost(AuthorizationServerPaths.ExternalLink, LinkAsync)
+        pages.MapPost(AuthorizationServerPaths.ExternalLink, LinkAsync)
             .AllowAnonymous().WithName("boltway-external-link");
 
         pages.MapGet(AuthorizationServerPaths.ExternalCallback, CallbackAsync)

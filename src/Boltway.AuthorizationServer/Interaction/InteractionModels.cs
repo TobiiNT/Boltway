@@ -1041,9 +1041,20 @@ internal static class ConsentModelBuilder
             return null;
         }
 
-        return client.ClientName.Length <= MaxClientNameLength
-            ? client.ClientName
-            : client.ClientName[..(MaxClientNameLength - 1)] + "…";
+        if (client.ClientName.Length <= MaxClientNameLength)
+        {
+            return client.ClientName;
+        }
+
+        // Never cut between the halves of a surrogate pair.
+        var cut = MaxClientNameLength - 1;
+
+        if (char.IsHighSurrogate(client.ClientName[cut - 1]))
+        {
+            cut--;
+        }
+
+        return client.ClientName[..cut] + "…";
     }
 
     /// <summary>

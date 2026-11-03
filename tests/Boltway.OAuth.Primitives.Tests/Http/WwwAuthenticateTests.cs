@@ -175,4 +175,21 @@ public sealed class WwwAuthenticateTests
         // Five parameters, each contributing exactly two quotes.
         Assert.Equal(10, header.Count(c => c == '"'));
     }
+
+    /// <summary>
+    /// A challenge over the length limit with nothing optional left to drop is returned, not retried.
+    /// </summary>
+    /// <remarks>
+    /// The fallback called itself with identical arguments, which recursed until the stack ran out
+    /// and took the process with it - from a resource metadata URL a deployment configured.
+    /// </remarks>
+    [Fact]
+    public void An_over_long_challenge_with_nothing_optional_still_returns()
+    {
+        var url = "https://mcp.example.com/" + new string('a', 20_000);
+
+        var header = WwwAuthenticate.Bearer(error: "invalid_token", resourceMetadataUrl: url);
+
+        Assert.Contains($"resource_metadata=\"{url}\"", header, StringComparison.Ordinal);
+    }
 }

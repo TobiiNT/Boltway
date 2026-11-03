@@ -271,7 +271,7 @@ public static class ConfigurationDoctor
             }
         }
 
-        var ringOptions = new SigningKeyRingOptions();
+        var ringOptions = keyRing.Options;
         var arithmeticOk = ringOptions.TryValidate(options.AccessTokenLifetime, out var ringError);
 
         return arithmeticOk
@@ -279,7 +279,7 @@ public static class ConfigurationDoctor
                 "signing-keys",
                 "A signing key is active and published",
                 DoctorStatus.Pass,
-                $"{published.Count} key(s) published; RS256 active.")
+                $"{published.Count} key(s) published; {issuing.ToJwaName()} active.")
             : new DoctorCheck(
                 "signing-keys",
                 "A signing key is active and published",

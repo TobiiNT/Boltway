@@ -544,6 +544,38 @@ public sealed class AdminSurfaceTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    /// <summary>
+    /// <c>role</c> and <c>roles</c> together are refused before anything is written.
+    /// </summary>
+    /// <remarks>
+    /// The check used to run after <c>role</c> had been applied, so the caller was told 400 about
+    /// a change the store had already saved.
+    /// </remarks>
+    [Fact]
+    public async Task Role_and_roles_together_are_refused_before_any_write()
+    {
+        await using var fixture = await StartAsync();
+
+        SignedInAs("Bearer", AdminScopes.Read + " " + AdminScopes.Write);
+
+        var created = await fixture.Client.PostAsJsonAsync(
+            new Uri("/admin/users", UriKind.Relative),
+            new { handle = Handle, email = "ada@example.com", role = "founder" });
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+
+        var patched = await fixture.Client.PatchAsJsonAsync(
+            new Uri("/admin/users/" + Handle, UriKind.Relative),
+            new { role = "employee", roles = (string[])["employee"] });
+
+        Assert.Equal(HttpStatusCode.BadRequest, patched.StatusCode);
+
+        var read = await fixture.Client.GetFromJsonAsync<JsonElement>(
+            new Uri("/admin/users/" + Handle, UriKind.Relative));
+
+        Assert.Equal("founder", Assert.Single(read.GetProperty("role").EnumerateArray()).GetString());
+    }
+
     [Fact]
     public async Task An_account_can_be_created_read_patched_and_reset()
     {

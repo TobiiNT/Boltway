@@ -320,6 +320,11 @@ public sealed class LoginThrottle : IDisposable
             return "no-remote-address";
         }
 
+        if (address.IsIPv4MappedToIPv6)
+        {
+            address = address.MapToIPv4();
+        }
+
         if (address.AddressFamily is not AddressFamily.InterNetworkV6)
         {
             return address.ToString();

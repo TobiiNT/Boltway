@@ -1478,7 +1478,20 @@ if (args is ["new-role", var newRoleId, ..])
     // silently creates a role called "docs_read".
     var rest = args[2..];
     var permissions = Array.FindAll(rest, a => a.Contains('_', StringComparison.Ordinal));
-    var displayName = Array.Find(rest, a => !a.Contains('_', StringComparison.Ordinal));
+    var names = Array.FindAll(rest, a => !a.Contains('_', StringComparison.Ordinal));
+
+    // More than one argument without an underscore cannot all be the name; refusing beats
+    // silently dropping what was probably a permission.
+    if (names.Length > 1)
+    {
+        Console.Error.WriteLine(
+            $"More than one argument has no '_' ({string.Join(' ', names)}). Only one can be the display name; "
+            + "permissions are snake_case.");
+        Environment.Exit(1);
+        return;
+    }
+
+    var displayName = names.FirstOrDefault();
 
     try
     {

@@ -286,6 +286,13 @@ public static class InteractionLocalization
         services.TryAddSingleton<IStringLocalizer>(
             _ => new DictionaryStringLocalizer(translations));
 
+        // Marks that localization was configured. IOptions<RequestLocalizationOptions> cannot
+        // say so: AddOptions registers it for every type, configured or not.
+        services.TryAddSingleton<InteractionLocalizationMarker>();
+
         return services;
     }
 }
+
+/// <summary>Registered by <c>AddBoltwayInteractionLocalization</c>; its presence means localization is configured.</summary>
+internal sealed class InteractionLocalizationMarker;

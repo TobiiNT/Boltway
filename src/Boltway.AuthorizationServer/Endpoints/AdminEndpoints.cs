@@ -67,7 +67,7 @@ public static class AdminEndpoints
         api.MapPost(AuthorizationServerPaths.AdminUsers, PostUserAsync)
             .AllowAnonymous().WithName("boltway-admin-user-create");
 
-        endpoints.MapPatch(AuthorizationServerPaths.AdminUser, PatchUserAsync)
+        api.MapPatch(AuthorizationServerPaths.AdminUser, PatchUserAsync)
             .AllowAnonymous().WithName("boltway-admin-user-patch");
 
         api.MapPost(AuthorizationServerPaths.AdminUserPassword, PostPasswordAsync)
@@ -80,16 +80,16 @@ public static class AdminEndpoints
             .AllowAnonymous().WithName("boltway-admin-user-anonymise");
 
         api.MapGet(AuthorizationServerPaths.AdminUserServiceAccount, GetServiceAccountAsync)
-            .WithName("AdminGetServiceAccount");
+            .AllowAnonymous().WithName("AdminGetServiceAccount");
 
         api.MapPost(AuthorizationServerPaths.AdminUserServiceAccount, PostServiceAccountAsync)
-            .WithName("AdminPostServiceAccount");
+            .AllowAnonymous().WithName("AdminPostServiceAccount");
 
-        endpoints.MapPatch(AuthorizationServerPaths.AdminUserServiceAccount, PatchServiceAccountAsync)
-            .WithName("AdminPatchServiceAccount");
+        api.MapPatch(AuthorizationServerPaths.AdminUserServiceAccount, PatchServiceAccountAsync)
+            .AllowAnonymous().WithName("AdminPatchServiceAccount");
 
         api.MapDelete(AuthorizationServerPaths.AdminUserServiceAccount, DeleteServiceAccountAsync)
-            .WithName("AdminDeleteServiceAccount");
+            .AllowAnonymous().WithName("AdminDeleteServiceAccount");
 
         api.MapGet(AuthorizationServerPaths.AdminRoles, ListRolesAsync)
             .AllowAnonymous().WithName("boltway-admin-role-list");
@@ -97,7 +97,7 @@ public static class AdminEndpoints
         api.MapPost(AuthorizationServerPaths.AdminRoles, PostRoleAsync)
             .AllowAnonymous().WithName("boltway-admin-role-create");
 
-        endpoints.MapPatch(AuthorizationServerPaths.AdminRole, PatchRoleAsync)
+        api.MapPatch(AuthorizationServerPaths.AdminRole, PatchRoleAsync)
             .AllowAnonymous().WithName("boltway-admin-role-patch");
 
         api.MapDelete(AuthorizationServerPaths.AdminRole, DeleteRoleAsync)
@@ -229,6 +229,20 @@ public static class AdminEndpoints
             return Problem(StatusCodes.Status400BadRequest, "invalid_request", "A body is required.");
         }
 
+        // Both fields are accepted and `roles` is the general one. Sending both is refused rather
+        // than ranked: they are two ways to say the same thing, and picking a winner would make
+        // `{"role":"founder","roles":[]}` mean whichever this file checks first. Refused before any
+        // write, because the check used to sit after `role` was applied and answered 400 for a
+        // change that had already been saved.
+        if (body.Role is not null && body.Roles is not null)
+        {
+            return Problem(
+                StatusCodes.Status400BadRequest,
+                "invalid_request",
+                "Send `role` or `roles`, not both. They are two ways to set the same thing and there "
+                + "is no correct way to merge them.");
+        }
+
         var service = Administration(http);
         var realm = Realm(http);
         var applied = 0;
@@ -243,23 +257,16 @@ public static class AdminEndpoints
                 return NotFound();
             }
 
+            if (result.Status is AdministrationStatus.Gone)
+            {
+                return Gone();
+            }
+
             applied++;
         }
 
         if (body.Roles is not null)
         {
-            // Both fields are accepted and `roles` is the general one. Sending both is refused
-            // rather than ranked: they are two ways to say the same thing, and picking a winner
-            // would make `{"role":"founder","roles":[]}` mean whichever this file checks first.
-            if (body.Role is not null)
-            {
-                return Problem(
-                    StatusCodes.Status400BadRequest,
-                    "invalid_request",
-                    "Send `role` or `roles`, not both. They are two ways to set the same thing and there "
-                    + "is no correct way to merge them.");
-            }
-
             try
             {
                 var result = await service.SetRolesAsync(actor, realm, handle, body.Roles, cancellationToken);
@@ -267,6 +274,11 @@ public static class AdminEndpoints
                 if (result.Status is AdministrationStatus.NoSuchAccount)
                 {
                     return NotFound();
+                }
+
+                if (result.Status is AdministrationStatus.Gone)
+                {
+                    return Gone();
                 }
             }
             catch (InvalidOperationException undefined)
@@ -291,6 +303,11 @@ public static class AdminEndpoints
                 return NotFound();
             }
 
+            if (result.Status is AdministrationStatus.Gone)
+            {
+                return Gone();
+            }
+
             applied++;
         }
 
@@ -302,6 +319,11 @@ public static class AdminEndpoints
             if (result.Status is AdministrationStatus.NoSuchAccount)
             {
                 return NotFound();
+            }
+
+            if (result.Status is AdministrationStatus.Gone)
+            {
+                return Gone();
             }
 
             applied++;
