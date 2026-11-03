@@ -64,8 +64,8 @@
   <ItemGroup Label="Tokens and crypto">
     <!-- JWT creation and validation. Note: ValidTypes and ValidAlgorithms are
          UNSET by default in this library, which is why N-09 exists. -->
-    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.22.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.22.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.23.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.23.0" />
     <!-- Argon2id for local password hashing. MIT. -->
     <PackageVersion Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
     <!--
