@@ -127,9 +127,12 @@ public sealed class AuthorizationServerOptions
     /// what both vendors' MCP clients actually use.
     /// </para>
     /// <para>
-    /// <see cref="ClientAuthMethod.PrivateKeyJwt"/> is <b>not</b> in the default set, because it is
-    /// not implemented yet - and advertising it would be N-06 exactly: a capability in the metadata
-    /// with nothing behind it. Add it here once there is a JWKS-fetching authenticator to honour it.
+    /// <see cref="ClientAuthMethod.PrivateKeyJwt"/> is <b>not</b> in the default set, and that is a
+    /// decision rather than a gap: <c>ClientAssertionAuthenticator</c> implements it, and adding it
+    /// here advertises and enables it. It stays off by default because verifying an assertion means
+    /// fetching the client's <c>jwks_uri</c> - an outbound request to a URL the client chose - and
+    /// because startup then requires an <c>IClientAssertionReplayStore</c>. <c>docs/CAPABILITIES.md</c>
+    /// has the row. This paragraph said "not implemented yet" until 2026-11-03, long after it was.
     /// </para>
     /// <para>
     /// Omitting it is not a vendor lockout, because ChatGPT's live metadata offers

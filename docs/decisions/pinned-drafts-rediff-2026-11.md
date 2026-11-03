@@ -198,3 +198,40 @@ reading of an ambiguous sentence. Measured by reading the code unless it says ot
 Also seen on the way, outside the drafts: `ClientLogoEndpoint` fetches the logo through the same
 transport, which sends `Accept: application/json`. A strict image host could answer 406. This was
 not measured.
+
+## 5. Decided, not changed
+
+Recorded 2026-11-03, after the items in §4 that could close did (TobiiNT/Boltway#63 and #64 mark
+theirs in place). What is left is a decision to keep the current behaviour, and each says why, so
+the next re-diff reads a reason rather than an open question.
+
+- **§4 item 1, `private_key_jwt` beside `none`: kept.** The preference for `none` is what a
+  measured vendor client does, and following the MUST would break it on any deployment that
+  enables `private_key_jwt`. The draft disagrees with itself here (§5's MUST, its own "SHOULD
+  select one of the values ... that it supports", and §5.1's "may reject"). The question for the
+  draft's authors, not yet asked: *when a document offers both `none` and `private_key_jwt` and the
+  server supports both, is selecting `none` a conforming choice?* Raising it on the draft's issue
+  tracker is the owner's call, since it speaks for this project in public.
+- **§4 item 4, refresh tokens on a client_id mismatch: kept, and weaker than it reads.** Nothing
+  revokes, because the resolver has no store (A-08). The tokens are unusable all the same: `/token`
+  resolves the client on every request, and since #62 a terminal answer evicts the cached
+  document, so the next refresh fetches, meets the same mismatch, and is `invalid_client`. If the
+  client publishes a corrected document they work again, which is the difference from
+  invalidation, and it is accepted.
+- **§4 item 6, "MUST include either jwks or jwks_uri": scoped reading kept.** Applied to the
+  `private_key_jwt` paragraph it sits in. The literal reading would refuse the captured vendor
+  documents that declare only `none` and publish no keys - half of those in
+  `spec/cimd-live-2026-08-17.json` (the other half carry a `jwks_uri`).
+- **§4 item 9, scopes per resource in a remembered consent: kept.** The MUST, client and resource,
+  is met. Scopes per resource would change `ConsentRecord` and the schema of three stores, for a
+  case that needs one client consented on two resources with different scopes and then asking for
+  a mix. Worth doing when a deployment has that shape.
+- **§4 item 10, registration lowercases scheme and host: kept.** Registration is an operator's
+  input, normalized once on write, and the request side is compared raw. Stopping the lowercasing
+  would make a registration typed with a capital stop matching the lowercase URI its client
+  sends, which is a working client broken to satisfy a sentence about requests.
+- **`RedirectProvesIdentity` keeps its name.** It looked at odds with -17 §7.3.1's "do not
+  authenticate the client", and it is not: -17 §7.3.2, the sentence that permits what the flag
+  does, calls the same thing "proof of identity of a browser-based application". Renaming would
+  also break the `redirectProvesIdentity` key in a live deployment's `CLIENTS`.
+
