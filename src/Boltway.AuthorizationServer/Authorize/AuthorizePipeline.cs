@@ -436,8 +436,8 @@ public sealed class AuthorizePipeline(
                 "parameter=code_challenge|code_challenge_method");
         }
 
-        // Required for every client, with no carve-out. OAuth 2.1 draft-15 offers one for
-        // confidential clients using the OIDC nonce, and it is not taken: §4.1.3's final bullet
+        // Required for every client, with no carve-out. OAuth 2.1 draft-17 §7.5.1.1 offers one
+        // for confidential clients using the OIDC nonce, and it is not taken: §4.1.3's final bullet
         // makes a code issued under that carve-out unredeemable, so the draft contradicts itself
         // there. Requiring it universally also removes the attacker-controllable flag that the
         // downgrade attack targets.

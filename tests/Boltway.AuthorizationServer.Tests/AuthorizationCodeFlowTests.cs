@@ -199,7 +199,7 @@ public sealed class AuthorizationCodeFlowTests
     /// <remarks>
     /// Not 302 and never 307. Under 307 the browser replays the POST body - which on the login and
     /// consent paths is the user's credentials - to the client's redirect URI, and a malicious
-    /// client can then impersonate them. OAuth 2.1 §7.5.3: "only the status code 303 unambiguously
+    /// client can then impersonate them. OAuth 2.1 §7.5.4: "only the 303 status code unambiguously
     /// enforces rewriting the HTTP POST request to an HTTP GET request."
     /// </remarks>
     [Fact]
@@ -390,8 +390,8 @@ public sealed class AuthorizationCodeFlowTests
     /// A replay with a <b>wrong verifier</b> is refused and the original tokens keep working.
     /// </summary>
     /// <remarks>
-    /// N-07, and the whole reason redemption runs last. OAuth 2.1 §7.5.2: revoking on a replay that
-    /// contains invalid parameters "would create a denial of service opportunity for an attacker who
+    /// N-07, and the whole reason redemption runs last. OAuth 2.1 §7.5.3: revoking on a replay that
+    /// contains invalid parameters "would create a denial-of-service opportunity for an attacker who
     /// is able to obtain an authorization code but unable to obtain the client authentication or
     /// code_verifier" - they could kill the legitimate client's session at will. So this asserts the
     /// refusal <i>and</i> that the grant survived it.

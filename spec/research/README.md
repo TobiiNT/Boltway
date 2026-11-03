@@ -56,8 +56,8 @@ note first:
 - **Paths inside them pointed at directories that were never checked in** — a `raw/` beside
   `anthropic-claude-client-behavior.md` (git history has never held one), and a `scratchpad/rfc/` in
   `security-bcp-and-hardening.md` plus a `/tmp/…/scratchpad/cimd-02.txt` in
-  `client-id-metadata-document.md`. The CIMD one now points at the draft this repository actually
-  pins, `../draft-ietf-oauth-client-id-metadata-document-02.txt`; the other two say plainly that no
+  `client-id-metadata-document.md`. The CIMD one pointed at the draft this repository pinned then,
+  -02, and since 2026-11-03 names -02's archive URL instead, because -03 is what is pinned now; the other two say plainly that no
   local copy exists and leave the URLs as the source.
 - **`REQUIREMENTS.md` cited this folder by its original scratchpad path**, and §10 cited
   `research/cimd-live-2026-08-03.json`. Both point where the files are: `spec/research/` and

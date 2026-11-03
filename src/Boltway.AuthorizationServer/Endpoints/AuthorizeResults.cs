@@ -151,13 +151,13 @@ public static class AuthorizeResults
 /// <remarks>
 /// <para>
 /// Hand-written because ASP.NET Core has no 303 helper: <c>Results.Redirect</c> emits 302, and its
-/// <c>preserveMethod</c> overload emits 307 or 308 - which is the status OAuth 2.1 §7.5.3 forbids
+/// <c>preserveMethod</c> overload emits 307 or 308 - which is the status OAuth 2.1 §7.5.4 forbids
 /// outright.
 /// </para>
 /// <para>
 /// The reason is specific, not stylistic. The user reaches this redirect by POSTing credentials to
-/// a login or consent form. "In HTTP, only the status code 303 unambiguously enforces rewriting the
-/// HTTP POST request to an HTTP GET request. For all other status codes, including the popular 302,
+/// a login or consent form. "In HTTP, only the 303 status code unambiguously enforces rewriting the
+/// HTTP POST request to an HTTP GET request. For all other status codes, including the popular 302 (Found),
 /// user agents can opt not to rewrite POST to GET requests and therefore reveal the user
 /// credentials to the client." Under 307 the browser replays the POST body - the user's password -
 /// to the client's redirect URI. If the client is malicious it can then impersonate the user.

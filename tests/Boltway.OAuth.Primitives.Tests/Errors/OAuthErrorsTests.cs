@@ -118,7 +118,7 @@ public sealed class OAuthErrorsTests
     [Fact]
     public void Every_authorize_redirect_is_303_never_302_or_307()
     {
-        // OAuth 2.1 §7.5.3 and RFC 9700 §4.12: an authorization server redirecting a request that
+        // OAuth 2.1 §7.5.4 and RFC 9700 §4.12: an authorization server redirecting a request that
         // may carry user credentials MUST NOT use 307 and SHOULD use 303. access_denied is by
         // definition the answer to a consent POST, so the rule is live here rather than theoretical.
         foreach (var (key, spec) in OAuthErrors.All)

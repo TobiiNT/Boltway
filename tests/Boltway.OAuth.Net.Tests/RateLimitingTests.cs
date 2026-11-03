@@ -249,7 +249,7 @@ public sealed class KeyedRateLimiterTests
     }
 }
 
-/// <summary>The breaker, and the §5.2 distinction it rests on.</summary>
+/// <summary>The breaker, and the §6.2 distinction it rests on.</summary>
 public sealed class NegativeResultBreakerTests
 {
     private static DateTimeOffset Start => new(2026, 8, 5, 12, 0, 0, TimeSpan.Zero);
@@ -293,7 +293,7 @@ public sealed class NegativeResultBreakerTests
     /// A success clears the key outright, which is what makes this not a cache of the error.
     /// </summary>
     /// <remarks>
-    /// CIMD §5.2 forbids caching an error response. A cached error would still be served after the
+    /// CIMD §6.2 forbids caching an error response. A cached error would still be served after the
     /// origin recovered; this cannot be, because the first successful attempt removes the entry and
     /// the count with it.
     /// </remarks>
@@ -401,7 +401,7 @@ public sealed class NegativeResultBreakerTests
     /// A probe that succeeds reopens the key immediately, with no residue.
     /// </summary>
     /// <remarks>
-    /// The other half of the §5.2 argument: what the breaker holds is a decision not to act, not an
+    /// The other half of the §6.2 argument: what the breaker holds is a decision not to act, not an
     /// answer. One real attempt with a real result replaces it entirely.
     /// </remarks>
     [Fact]

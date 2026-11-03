@@ -36,15 +36,16 @@ Two things about reading it:
 
 ## Why two Internet-Drafts are checked in
 
-`draft-ietf-oauth-v2-1-15.txt` and `draft-ietf-oauth-client-id-metadata-document-02.txt`.
+`draft-ietf-oauth-v2-1-17.txt` and `draft-ietf-oauth-client-id-metadata-document-03.txt`, which replaced -15 and -02
+on 2026-11-03.
 
 `S-01` requires citing the exact draft revision — "OAuth 2.1" unqualified is not a citation, because
 there is no RFC number and the normative text still moves. `U-15` turns that into three obligations
 on this repository: cite the revision, **pin a copy**, and re-diff on each new one.
 
 The pinned copy is not redundancy. Each of these files says of itself that it "may be updated,
-replaced, or obsoleted by other documents at any time", and both carry an expiry — 3 September 2026
-for OAuth 2.1, 7 January 2027 for CIMD. A URL at `ietf.org` serves whatever revision is current, so
+replaced, or obsoleted by other documents at any time", and both carry an expiry — 4 May 2027
+for OAuth 2.1, 6 May 2027 for CIMD. A URL at `ietf.org` serves whatever revision is current, so
 a link is not a citation of the text the requirement ids were written against. The file here is.
 
 The third obligation is a standing instruction whose trigger lives on somebody else's website, and
