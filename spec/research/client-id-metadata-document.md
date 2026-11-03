@@ -3,7 +3,7 @@
 **Primary source fetched:** `draft-ietf-oauth-client-id-metadata-document-02`, 6 July 2026,
 Parecki (Okta) + Smith. Expires 7 January 2027. Intended status: Standards Track.
 Raw text: <https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.txt>
-(pinned in this repository: [`spec/draft-ietf-oauth-client-id-metadata-document-02.txt`](../draft-ietf-oauth-client-id-metadata-document-02.txt) — checked to be this revision, 6 July 2026)
+(pinned in this repository until 2026-11-03, when -03 replaced it; -02 is at the URL above. Section numbers here are -02's)
 
 **Section numbers below are from -02.** ⚠️ The MCP `2026-07-28` authorization spec still cites
 **-00**, whose numbering differs. Mapping for anyone following MCP's links:

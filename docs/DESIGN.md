@@ -276,7 +276,7 @@ public abstract record FetchOutcome
     private FetchOutcome() { }
     public sealed record Ok(byte[] Body, MediaType ContentType, string? ETag, TimeSpan? MaxAge) : FetchOutcome;
     public sealed record Blocked(BlockReason Reason, string Detail)  : FetchOutcome;
-    public sealed record Redirected(int Status, string? Location)    : FetchOutcome;  // CIMD §5: MUST NOT follow
+    public sealed record Redirected(int Status, string? Location)    : FetchOutcome;  // CIMD §6: MUST NOT follow
     public sealed record NotOk(int Status)                           : FetchOutcome;  // only 200 is Ok
     public sealed record TooLarge(int BytesRead)                     : FetchOutcome;
     public sealed record Timeout(TimeSpan Elapsed)                   : FetchOutcome;
@@ -673,7 +673,7 @@ end-to-end request that follows the redirect is not one.
 6. **Only now** `TryRedeemAsync`. `false` ⇒ a *fully valid* replay ⇒ revoke the grant and descendants.
 
 An attacker with a sniffed code but no verifier fails at step 4, and the legitimate client's tokens
-survive. The naive "seen twice ⇒ revoke" is a denial-of-service (OAuth 2.1 §7.5.2 SHOULD NOT).
+survive. The naive "seen twice ⇒ revoke" is a denial-of-service (OAuth 2.1 §7.5.3 SHOULD NOT).
 
 ---
 

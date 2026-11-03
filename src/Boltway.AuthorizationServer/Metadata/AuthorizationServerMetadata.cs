@@ -157,7 +157,7 @@ public sealed record AuthorizationServerMetadata
     public required IReadOnlyList<string> CodeChallengeMethodsSupported { get; init; }
 
     /// <summary>
-    /// draft-ietf-oauth-client-id-metadata-document §6. A JSON boolean, never the string.
+    /// draft-ietf-oauth-client-id-metadata-document §8. A JSON boolean, never the string.
     /// </summary>
     /// <remarks>Gate #1 for CIMD selection by both vendors. Absent in the DCR profile.</remarks>
     [JsonPropertyName("client_id_metadata_document_supported")]

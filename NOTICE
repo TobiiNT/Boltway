@@ -11,8 +11,8 @@ Third-party material redistributed in this repository
 Two IETF Internet-Drafts are checked in under spec/ and are NOT covered by this
 repository's Apache-2.0 licence:
 
-  spec/draft-ietf-oauth-v2-1-15.txt
-  spec/draft-ietf-oauth-client-id-metadata-document-02.txt
+  spec/draft-ietf-oauth-v2-1-17.txt
+  spec/draft-ietf-oauth-client-id-metadata-document-03.txt
 
   Copyright (c) 2026 IETF Trust and the persons identified as the document
   authors. All rights reserved.

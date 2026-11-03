@@ -113,8 +113,11 @@ public interface IConsentStore
 /// <b>The exception is the one the same section names</b>: "unless the identity of the client can
 /// be proven", with claimed https redirects accepted as that proof. A client an operator marked
 /// <see cref="ClientRecord.RedirectProvesIdentity"/>, every one of whose registered redirect URIs is
-/// https, is held to the same rule as a confidential client - a remembered consent stands if it
-/// covers the request, and only if the inner policy says it does. Both halves are checked here
+/// https, is held to the same <i>consent</i> rule as a confidential client - a remembered consent
+/// stands if it covers the request, and only if the inner policy says it does. Only that rule: it
+/// is not authenticated and does not become confidential anywhere else, which is OAuth 2.1 -17
+/// §7.3.1's line, and -17 §7.3.2 is the sentence that permits exactly this for a browser-based
+/// application. Both halves are checked here
 /// rather than trusted to whoever built the record, so a store that sets the flag on a client with
 /// a loopback redirect gets the prompt rather than the exemption.
 /// </para>

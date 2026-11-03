@@ -42,7 +42,7 @@ internal sealed class ThrowingResourceRegistry : IResourceRegistry
 /// </summary>
 /// <remarks>
 /// <para>
-/// <c>DESIGN.md</c> §1.2 claimed the <c>Rejection</c> type made A-09 structural and §6 put it on the
+/// <c>DESIGN.md</c> §1.2 claimed the <c>Rejection</c> type made A-09 structural and §8 put it on the
 /// never-cut list, while the type did not exist and twenty-five rejection classes logged nothing.
 /// This file is what makes the claim checkable, so the acceptance criterion is taken literally:
 /// <i>"Force each rejection class ⇒ each emits exactly one structured log carrying a correlation id
@@ -296,7 +296,7 @@ public sealed partial class RejectionLoggingTests
             {
                 f.Clients.ForcedFailure = ClientResolution.Failed(
                     ClientResolutionError.MetadataUnusable,
-                    "The client metadata document answered HTTP 404; only 200 is accepted (CIMD section 5).");
+                    "The client metadata document answered HTTP 404; only 200 is accepted (CIMD section 6).");
 
                 return f.Client.GetAsync(Authorize(Valid()));
             }),

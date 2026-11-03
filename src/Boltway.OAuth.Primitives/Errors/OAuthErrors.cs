@@ -75,7 +75,7 @@ public static class OAuthErrors
 
             // ── /authorize, once redirecting is permitted ────────────────────────
             //
-            // 303 throughout, not 302. OAuth 2.1 §7.5.3 and RFC 9700 §4.12: an authorization server
+            // 303 throughout, not 302. OAuth 2.1 §7.5.4 and RFC 9700 §4.12: an authorization server
             // redirecting a request that may carry user credentials MUST NOT use 307 and SHOULD use
             // 303. Several of these arise from the consent POST - access_denied is by definition
             // the answer to one - so a uniform 303 satisfies N-12 without asking each call site to
@@ -259,7 +259,7 @@ public static class OAuthErrors
     /// the endpoint. Not inferable from the error code, which is why this is a separate call.
     /// </param>
     /// <remarks>
-    /// OAuth 2.1 §3.2.4 and RFC 6749 §5.2: the token endpoint answers 400 in general, and for
+    /// RFC 6749 §5.2, quoted below, and OAuth 2.1 -17 §3.2.4, which says the same in its own words: the token endpoint answers 400 in general, and for
     /// <c>invalid_client</c> "MAY return an HTTP 401 … If the client attempted to authenticate via
     /// the Authorization request header field, the authorization server MUST respond with an HTTP
     /// 401 … and include the 'WWW-Authenticate' response header field matching the authentication

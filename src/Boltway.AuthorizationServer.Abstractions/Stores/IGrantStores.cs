@@ -114,7 +114,7 @@ public interface IAuthorizationCodeStore
     /// <para>
     /// Call this <b>last</b>, after every other check has passed, so
     /// <see cref="CodeRedemption.ReplayedOutsideGrace"/> means a presenter who holds the client
-    /// authentication and the verifier - the evidence §7.5.2 requires before revoking.
+    /// authentication and the verifier - the evidence §7.5.3 requires before revoking.
     /// </para>
     /// <para>
     /// <b>Expiry is deliberately not checked here, and must not be added.</b> Folding it in would

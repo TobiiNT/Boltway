@@ -72,6 +72,22 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
 
 ### Changed
 
+- **The pinned drafts moved: CIMD -02 to -03, OAuth 2.1 -15 to -17.** Every section citation in
+  the code and the current documents moved with them, and so do the section numbers inside refusal
+  messages: `(CIMD section 8.6)` reads `(CIMD section 10.7)` now. A log alert matching that text
+  needs the new number. `docs/decisions/pinned-drafts-rediff-2026-11.md` has the map and the
+  re-diff, including eleven sentences in the new drafts this server does not yet meet.
+
+- **Breaking, for a client whose metadata document is served at `/`.** CIMD-03 §3 prohibits a
+  Client Identifier URL whose path is `/`. -02 only called it NOT RECOMMENDED, and it was
+  accepted. It is refused now, before any fetch.
+
+- **A CIMD client offering only authentication methods this server has not enabled is refused at
+  `/authorize`**, with `invalid_client`, as CIMD-03 §5 requires. With `private_key_jwt` off (the
+  default), a document offering only that used to pass `/authorize` and fail at `/token`, after
+  sign-in and consent. Applies to the resolver `AddCimdClientResolver` registers; one constructed
+  by hand keeps the old choice.
+
 - **Breaking, for a deployment that relied on GSS encryption to its database without naming it.**
   `AddBoltwayPostgreSqlStores` now opens connections with `GSS Encryption Mode=Disable` when the
   connection string names no mode and `PGGSSENCMODE` names none either. Npgsql's own default is
@@ -111,6 +127,17 @@ changes a default a deployment can depend on, which `VERSIONING.md` puts on the 
   2026-11-03.
 
 ### Fixed
+
+- **A refused CIMD document no longer comes back when the breaker opens.** A 404, a redirect or a
+  malformed document skipped the stale window, but the cached entry stayed, and once enough of
+  them opened the breaker, the breaker served it. The third refusal in a row brought back the
+  document the first had refused, for the rest of its stale window. A terminal answer (CIMD-03
+  §6.1) now evicts the entry. Found by reading, 2026-11-03.
+
+- **MailKit 4.18.0 to 4.18.2**, which takes `System.Security.Cryptography.Pkcs` from 10.0.0 to
+  10.0.13. NuGet audit reports two advisories against 10.0.0 (GHSA-2fmv-rv2c-59x7, moderate;
+  GHSA-846f-f764-76mx, high), and with warnings as errors the build failed at restore. Measured
+  2026-11-03.
 
 - **A CORS preflight is answered wherever a CORS header is written.** `OPTIONS` matched no route on
   the authorization server or on the resource server's metadata, so a preflight fell through to

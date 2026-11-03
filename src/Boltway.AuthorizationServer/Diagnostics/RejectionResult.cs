@@ -467,9 +467,9 @@ internal sealed class RejectionHtmlResult(AuthorizeHtmlError error, OAuthSurface
 /// <remarks>
 /// <para>
 /// 303 See Other, which is what the table says for every code on the <c>Authorize</c> surface.
-/// OAuth 2.1 §7.5.3 forbids 307 outright: "In HTTP, only the status code 303 unambiguously enforces
+/// OAuth 2.1 §7.5.4 forbids 307 outright: "In HTTP, only the 303 status code unambiguously enforces
 /// rewriting the HTTP POST request to an HTTP GET request. For all other status codes, including the
-/// popular 302, user agents can opt not to rewrite POST to GET requests and therefore reveal the
+/// popular 302 (Found), user agents can opt not to rewrite POST to GET requests and therefore reveal the
 /// user credentials to the client." Several of these arise from the consent POST.
 /// </para>
 /// <para>

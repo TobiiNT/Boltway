@@ -37,13 +37,13 @@ public sealed class NegativeResultBreakerOptions
 /// <remarks>
 /// <para>
 /// <b>Refusing to act is not the same as remembering an answer, and the difference is the whole
-/// reason this type exists rather than a negative cache.</b> CIMD §5.2 says an authorization server
+/// reason this type exists rather than a negative cache.</b> CIMD §6.2 says an authorization server
 /// "MUST NOT cache error responses" and "MUST NOT cache documents which are invalid or malformed".
 /// Nothing here holds a response, a status, a body or a reason: an entry is a count and two
 /// timestamps. When the breaker is open the caller does not receive a remembered failure - it
 /// receives a different answer, computed now, that says the operation was not attempted and when to
 /// ask again. The moment the cooldown elapses the next caller performs a real fetch and its real
-/// result is used, and a single success clears the entry outright. That is the distinction §5.2
+/// result is used, and a single success clears the entry outright. That is the distinction §6.2
 /// draws: a cached error would still be served after the origin recovered; this cannot be.
 /// </para>
 /// <para>

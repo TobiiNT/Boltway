@@ -15,8 +15,8 @@ instruction nobody follows, and the way you find out is that the pinned copy and
 have disagreed for months.
 
 **What it compares.** The revision in each pinned filename against the revision the IETF
-datatracker reports for that draft today. `draft-ietf-oauth-v2-1-15.txt` says we are working from
-revision 15; if the datatracker says 16, the diff described in U-15 is now owed and this goes red.
+datatracker reports for that draft today. `draft-ietf-oauth-v2-1-17.txt` says we are working from
+revision 17; if the datatracker says 18, the diff described in U-15 is now owed and this goes red.
 
 **Where the list of drafts comes from: the directory, not a list in this file.** Pinning a new
 draft is `cp` into `spec/` and nothing else. A second place to name them is a second place
@@ -56,7 +56,7 @@ from datetime import datetime, timezone
 DATATRACKER = 'https://datatracker.ietf.org/api/v1/doc/document/'
 
 # IETF revisions are always two digits, and a draft name may itself end in a digit:
-# `draft-ietf-oauth-v2-1-15` is revision 15 of `draft-ietf-oauth-v2-1`, not revision 1 of
+# `draft-ietf-oauth-v2-1-17` is revision 17 of `draft-ietf-oauth-v2-1`, not revision 1 of
 # something. Anchoring on exactly two trailing digits is what keeps those apart.
 PINNED = re.compile(r'^(draft-.+)-(\d{2})$')
 

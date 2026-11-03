@@ -116,7 +116,7 @@ internal sealed class CountingClientStore : IClientStore
 }
 
 /// <summary>
-/// The CIMD client resolver: CIMD §3, §4, §4.1, §4.2, §5, §5.2, §8.6.
+/// The CIMD client resolver: CIMD §3, §4, §4.1, §4.2, §6, §6.2, §10.7.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -168,7 +168,7 @@ public sealed class CimdClientResolverTests
             : throw new InvalidOperationException($"'{clientId}' is not a usable client_id.");
 
     // ─────────────────────────────────────────────────────────────────────────
-    // CanResolve: the cheap shape test, §7.1
+    // CanResolve: the cheap shape test, §9.1
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>Only an <c>https://</c> identifier is this resolver's business.</summary>
@@ -250,6 +250,8 @@ public sealed class CimdClientResolverTests
     [InlineData("https://claude.ai/a/%2e%2e/b", "path segments")]
     [InlineData("https://claude.ai/a/%2E%2E/b", "path segments")]
     [InlineData("https://claude.ai/a/%2e/b", "path segments")]
+    [InlineData("https://claude.ai/", "other than '/'")]
+    [InlineData("https://claude.ai/?v=2", "other than '/'")]
     public async Task A_client_id_url_that_breaks_section_3_names_the_rule(string clientId, string phrase)
     {
         var resolution = await ResolveAsync(clientId);
@@ -262,7 +264,7 @@ public sealed class CimdClientResolverTests
     /// A §3 violation is refused before any socket is opened.
     /// </summary>
     /// <remarks>
-    /// Not merely tidiness. §8.6 is about not dereferencing attacker-chosen URLs carelessly, and a
+    /// Not merely tidiness. §10.7 is about not dereferencing attacker-chosen URLs carelessly, and a
     /// URL this server has already decided is not a Client Identifier URL is one it has no reason to
     /// dereference at all.
     /// </remarks>
@@ -277,13 +279,14 @@ public sealed class CimdClientResolverTests
     }
 
     /// <summary>
-    /// §3 permits a port, a query and a path of <c>/</c>, so none of them is refused.
+    /// §3 permits a port, a query and a one-segment path, so none of them is refused.
     /// </summary>
     /// <remarks>
     /// The control for the theory above: a rule set that refuses everything passes every negative
-    /// test. §3 states the query rule as SHOULD NOT and the bare-<c>/</c> rule as NOT RECOMMENDED,
-    /// and neither is promoted to a refusal here - refusing would turn a specification's advice into
-    /// this server's rejection of a client that is legal everywhere else.
+    /// test. §3 states the query rule as SHOULD NOT, and it is not promoted to a refusal here -
+    /// refusing would turn a specification's advice into this server's rejection of a client that
+    /// is legal everywhere else. The bare-<c>/</c> row that used to sit here moved to the theory
+    /// above: CIMD-02 called that path NOT RECOMMENDED, and CIMD-03 §3 prohibits it.
     /// </remarks>
     [Theory]
     // Each row's redirect URI is same-origin with its own client_id, so this measures §3 and not
@@ -291,7 +294,7 @@ public sealed class CimdClientResolverTests
     // includes the port, so `https://claude.ai:8443/…` is not same-origin with a 443 callback.
     [InlineData("https://claude.ai:8443/oauth/client.json", "https://claude.ai:8443/cb")]
     [InlineData("https://claude.ai/oauth/client.json?v=2", "https://claude.ai/cb")]
-    [InlineData("https://claude.ai/", "https://claude.ai/cb")]
+    [InlineData("https://claude.ai/c", "https://claude.ai/cb")]
     public async Task A_url_section_3_permits_is_accepted(string clientId, string callback)
     {
         var fetcher = new StubFetcher().Serve(clientId, Document(clientId, $"\"redirect_uris\":[\"{callback}\"]"));
@@ -314,11 +317,11 @@ public sealed class CimdClientResolverTests
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // §5, retrieval
+    // §6, retrieval
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// A redirect is reported, never followed. §5.
+    /// A redirect is reported, never followed. §6.
     /// </summary>
     /// <remarks>
     /// The fetcher is what refuses to follow it; this asserts the resolver reports it as its own
@@ -342,7 +345,7 @@ public sealed class CimdClientResolverTests
         Assert.Equal(1, fetcher.Calls);
     }
 
-    /// <summary>Only 200 is a document. §5.</summary>
+    /// <summary>Only 200 is a document. §6.</summary>
     [Theory]
     [InlineData(201)]
     [InlineData(204)]
@@ -359,7 +362,7 @@ public sealed class CimdClientResolverTests
         Assert.Contains(status.ToString(CultureInfo.InvariantCulture), resolution.Detail, StringComparison.Ordinal);
     }
 
-    /// <summary>The resolver asks for the §8.7 read limit, and reports reaching it.</summary>
+    /// <summary>The resolver asks for the §10.11 read limit, and reports reaching it.</summary>
     [Fact]
     public async Task The_read_limit_is_five_kilobytes_and_exceeding_it_is_reported()
     {
@@ -594,7 +597,7 @@ public sealed class CimdClientResolverTests
         Assert.Contains("both 'jwks' and 'jwks_uri'", resolution.Detail, StringComparison.Ordinal);
     }
 
-    /// <summary>A URL member that is not an absolute https URL. §8.6 names <c>javascript:</c>.</summary>
+    /// <summary>A URL member that is not an absolute https URL. §10.7 names <c>javascript:</c>.</summary>
     [Theory]
     [InlineData("jwks_uri", "javascript:alert(1)")]
     [InlineData("jwks_uri", "http://claude.ai/jwks.json")]
@@ -612,7 +615,7 @@ public sealed class CimdClientResolverTests
         Assert.Contains("absolute https URL", resolution.Detail, StringComparison.Ordinal);
     }
 
-    /// <summary><c>private_key_jwt</c> with nowhere to find the key. §8.2.</summary>
+    /// <summary><c>private_key_jwt</c> with nowhere to find the key. §5.</summary>
     [Fact]
     public async Task Private_key_jwt_without_a_jwks_uri_is_refused()
     {
@@ -625,7 +628,7 @@ public sealed class CimdClientResolverTests
         Assert.Contains("needs a 'jwks_uri'", resolution.Detail, StringComparison.Ordinal);
     }
 
-    /// <summary><c>private_key_jwt</c> with a <c>jwks_uri</c> is a confidential client. §8.2.</summary>
+    /// <summary><c>private_key_jwt</c> with a <c>jwks_uri</c> is a confidential client. §5.1.</summary>
     [Fact]
     public async Task Private_key_jwt_with_a_jwks_uri_is_a_confidential_client()
     {
@@ -639,6 +642,47 @@ public sealed class CimdClientResolverTests
         Assert.Equal(ClientType.Confidential, client.ClientType);
         Assert.Equal(ClientAuthMethod.PrivateKeyJwt, client.TokenEndpointAuthMethod);
         Assert.Equal("https://claude.ai/jwks.json", client.JwksUri);
+    }
+
+    /// <summary>
+    /// A document offering only methods this server has not enabled is refused when it is read,
+    /// and the same document resolves once the method is enabled.
+    /// </summary>
+    /// <remarks>
+    /// CIMD-03 §5: an authorization server that supports none of the declared methods "MUST abort
+    /// the authorization request and token requests with invalid_client". The choice used to ignore
+    /// the deployment's enabled set, so with <c>private_key_jwt</c> off - the default - such a
+    /// client was let through <c>/authorize</c>, the user signed in and consented, and only then did
+    /// <c>/token</c> refuse.
+    /// </remarks>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task A_document_offering_only_disabled_methods_is_refused_when_read(bool enabled)
+    {
+        var document = Document(
+            members: $"\"redirect_uris\":[\"{ClaudeCallback}\"],\"token_endpoint_auth_methods_supported\":[\"private_key_jwt\"],"
+                + "\"jwks_uri\":\"https://claude.ai/jwks.json\"");
+
+        var resolver = new CimdClientResolver(new StubFetcher().Serve(ClaudeId, document), TimeProvider.System)
+        {
+            EnabledAuthMethods = enabled
+                ? [ClientAuthMethod.None, ClientAuthMethod.PrivateKeyJwt]
+                : [ClientAuthMethod.None, ClientAuthMethod.ClientSecretBasic],
+        };
+
+        var resolution = await resolver.ResolveAsync(Identifier(ClaudeId), CancellationToken.None);
+
+        if (enabled)
+        {
+            Assert.Equal(ClientAuthMethod.PrivateKeyJwt, Assert.IsType<ClientRecord>(resolution.Client).TokenEndpointAuthMethod);
+        }
+        else
+        {
+            Assert.Null(resolution.Client);
+            Assert.Equal(ClientResolutionError.MetadataUnusable, resolution.Error);
+            Assert.Contains("is enabled on this server", resolution.Detail, StringComparison.Ordinal);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -864,7 +908,7 @@ public sealed class CimdClientResolverTests
     /// U-17: an https redirect URI must share the <c>client_id</c>'s origin.
     /// </summary>
     /// <remarks>
-    /// §8.1: without a restriction like this, "the client attempts to impersonate a more well-known
+    /// §10.2: without a restriction like this, "the client attempts to impersonate a more well-known
     /// client". A document at <c>evil.example</c> declaring <c>client_name: "Claude"</c> and a
     /// redirect to itself is the whole attack, and the consent page's hostname display is the only
     /// other defence.
@@ -940,7 +984,7 @@ public sealed class CimdClientResolverTests
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // §5.2 and S-30, caching
+    // §6.2 and S-30, caching
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>A resolved document is served from cache on the next authorization.</summary>
@@ -1026,7 +1070,7 @@ public sealed class CimdClientResolverTests
     }
 
     /// <summary>
-    /// An error is never cached. §5.2, and it says so twice.
+    /// An error is never cached. §6.2, and it says so twice.
     /// </summary>
     /// <remarks>
     /// "The authorization server MUST NOT cache error responses. The authorization server also MUST
@@ -1169,11 +1213,11 @@ public sealed class CimdClientResolverTests
         yield return new("§3 userinfo", "https://u@claude.ai/c", new StubFetcher());
         yield return new("§3 dot segment", "https://claude.ai/a/../b", new StubFetcher());
 
-        // §5, the fetch.
-        yield return new("§5 status", ClaudeId, Answering(new FetchOutcome.NotOk(404)));
-        yield return new("§5 redirect", ClaudeId, Answering(new FetchOutcome.Redirected(301, "https://x.example/")));
-        yield return new("§8.7 too large", ClaudeId, Answering(new FetchOutcome.TooLarge(5 * 1024)));
-        yield return new("§8.6 special-use", ClaudeId, Answering(new FetchOutcome.Blocked(
+        // §6, the fetch.
+        yield return new("§6 status", ClaudeId, Answering(new FetchOutcome.NotOk(404)));
+        yield return new("§6 redirect", ClaudeId, Answering(new FetchOutcome.Redirected(301, "https://x.example/")));
+        yield return new("§10.11 too large", ClaudeId, Answering(new FetchOutcome.TooLarge(5 * 1024)));
+        yield return new("§10.7 special-use", ClaudeId, Answering(new FetchOutcome.Blocked(
             BlockReason.SpecialUseAddress, "'claude.ai' resolves to 127.0.0.1, which is a special-use address (RFC 6890).")));
         yield return new("dns", ClaudeId, Answering(new FetchOutcome.Blocked(BlockReason.DnsFailed, "'claude.ai' did not resolve.")));
         yield return new("blocked scheme", ClaudeId, Answering(new FetchOutcome.Blocked(BlockReason.NotAnHttpsUrl, "not https")));
@@ -1198,9 +1242,9 @@ public sealed class CimdClientResolverTests
             "\"jwks\":{\"keys\":[{\"kty\":\"RSA\",\"n\":\"a\",\"e\":\"AQAB\",\"d\":\"x\"}]}")));
         yield return new("§4.1 symmetric key", ClaudeId, Serving(WithMembers("\"jwks\":{\"keys\":[{\"kty\":\"oct\",\"k\":\"x\"}]}")));
         yield return new("malformed jwks", ClaudeId, Serving(WithMembers("\"jwks\":{\"keys\":\"nope\"}")));
-        yield return new("§8.6 jwks_uri scheme", ClaudeId, Serving(WithMembers("\"jwks_uri\":\"javascript:alert(1)\"")));
-        yield return new("§8.6 logo_uri scheme", ClaudeId, Serving(WithMembers("\"logo_uri\":\"javascript:alert(1)\"")));
-        yield return new("§8.2 no jwks_uri", ClaudeId, Serving(WithMembers("\"token_endpoint_auth_method\":\"private_key_jwt\"")));
+        yield return new("§10.7 jwks_uri scheme", ClaudeId, Serving(WithMembers("\"jwks_uri\":\"javascript:alert(1)\"")));
+        yield return new("§10.7 logo_uri scheme", ClaudeId, Serving(WithMembers("\"logo_uri\":\"javascript:alert(1)\"")));
+        yield return new("§5 no jwks_uri", ClaudeId, Serving(WithMembers("\"token_endpoint_auth_method\":\"private_key_jwt\"")));
 
         // §4.2 and U-17, redirects.
         yield return new("§4.2 missing", ClaudeId, Serving($$"""{"client_id":"{{ClaudeId}}"}"""));
@@ -1226,7 +1270,7 @@ public sealed class CimdClientResolverTests
     /// encountered, over the size cap, resolved to a special-use IP, body not JSON, <c>client_id</c>
     /// ≠ fetch URL, <c>client_secret*</c> present, <c>jwks</c> and <c>jwks_uri</c> both present,
     /// private key material present. The scenario list above is a superset: it adds the §3 URL rules,
-    /// §8.2, §8.6 and U-17, and splits the transport failures the row groups as "fetch failed".
+    /// §5, §10.7 and U-17, and splits the transport failures the row groups as "fetch failed".
     /// </para>
     /// <para>
     /// The distinctness assertion is the point. A description that appears twice is two conditions a
@@ -1608,7 +1652,7 @@ public sealed class CimdClientResolverTests
     /// <remarks>
     /// <para>
     /// A-03's acceptance criterion is written as "⇒ <c>/authorize</c> returns 302". This server
-    /// answers <b>303</b>, deliberately and everywhere: RFC 9700 §4.12 and OAuth 2.1 §7.5.3 require
+    /// answers <b>303</b>, deliberately and everywhere: RFC 9700 §4.12 and OAuth 2.1 §7.5.4 require
     /// 303 so a browser rewrites the request as a GET, and an architecture test refuses 307 and 308
     /// outright. So the claim proved here is the one A-03 is about - a client nobody registered gets
     /// a redirect into the flow instead of <c>invalid_client</c> - and not the literal status digit.

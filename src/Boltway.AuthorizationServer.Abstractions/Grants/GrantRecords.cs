@@ -191,7 +191,7 @@ public abstract record CodeRedemption
     /// §4.1.3: the server "SHOULD revoke (when possible) all access tokens and refresh tokens
     /// previously issued based on that authorization code". Reaching here means every other check
     /// passed, so the presenter holds the client authentication and the verifier - which is the
-    /// evidence §7.5.2 requires before revoking anything.
+    /// evidence §7.5.3 requires before revoking anything.
     /// </remarks>
     public sealed record ReplayedOutsideGrace : CodeRedemption;
 }
