@@ -15,8 +15,14 @@ public sealed class CimdClientResolverOptions
     /// </summary>
     /// <remarks>
     /// A floor, not a default with a smaller override: it applies even when the origin sent
-    /// <c>max-age=0</c>. §5.2 permits an authorization server to "define its own upper and/or lower
-    /// bounds on an acceptable cache lifetime", and this is that lower bound. It exists because the
+    /// <c>max-age=0</c>. CIMD-02 §5.2 let an authorization server "define its own upper and/or lower
+    /// bounds on an acceptable cache lifetime", and this was that lower bound. CIMD-03 §6.2 dropped
+    /// that sentence: it says the server "SHOULD also enforce a minimum effective cache duration
+    /// when none is otherwise indicated", which a <c>max-age=0</c> arguably does indicate, and
+    /// separately that it "MAY implement rate limiting or other measures to avoid repeatedly
+    /// fetching ... even if that results in fetching the URL less often than requested by the cache
+    /// headers". The floor still applying over <c>max-age=0</c> rests on that second sentence now.
+    /// It exists because the
     /// fetch happens inside <c>/authorize</c>, on the user's latency budget, and a client that asks
     /// not to be cached is asking to spend it on every authorization.
     /// </remarks>
@@ -24,12 +30,12 @@ public sealed class CimdClientResolverOptions
 
     /// <summary>The longest a fetched document may be cached. S-30's ceiling.</summary>
     /// <remarks>
-    /// §8.4: documents are served from URLs under client control and change. A ceiling bounds how
+    /// §10.5: documents are served from URLs under client control and change. A ceiling bounds how
     /// long this server can be acting on a redirect URI or a key the client has already replaced.
     /// </remarks>
     public static TimeSpan MaximumCacheLifetime { get; } = TimeSpan.FromSeconds(86_400);
 
-    /// <summary>Cap on bytes read from a metadata document. §8.7 recommends 5 KB.</summary>
+    /// <summary>Cap on bytes read from a metadata document. §10.11 recommends 5 KB.</summary>
     public int MaxDocumentBytes { get; set; } = 5 * 1024;
 
     /// <summary>Total fetch budget, or <see langword="null"/> for the fetcher's own.</summary>
@@ -78,7 +84,7 @@ public sealed class CimdClientResolverOptions
     /// <remarks>
     /// Ten a minute. A resolved document is cached for at least 300 s, so a legitimate client costs
     /// at most one fetch per five minutes per instance and this is fifty times its ceiling. What it
-    /// bounds is the case that is <i>not</i> cached: §5.2 forbids caching an error, so a
+    /// bounds is the case that is <i>not</i> cached: §6.2 forbids caching an error, so a
     /// <c>client_id</c> whose document is missing or malformed produces one outbound fetch per
     /// authorization request forever, which is what made <c>/authorize</c> an amplifier.
     /// </remarks>
@@ -154,7 +160,7 @@ public sealed class CimdClientResolver : IClientResolver
     private readonly NegativeResultBreaker _breaker;
 
     /// <summary>
-    /// The §5.2 cache. Keyed on the raw <c>client_id</c>, ordinal.
+    /// The §6.2 cache. Keyed on the raw <c>client_id</c>, ordinal.
     /// </summary>
     /// <remarks>
     /// Ordinal, because the key is the client's identity and §3 compares identities as strings. A
@@ -162,6 +168,18 @@ public sealed class CimdClientResolver : IClientResolver
     /// second one would be served the first one's redirect URIs.
     /// </remarks>
     private readonly ConcurrentDictionary<string, CacheEntry> _cache = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The token endpoint authentication methods this server has enabled, or <see langword="null"/>
+    /// when the resolver was built outside <c>AddCimdClientResolver</c> and cannot know them.
+    /// </summary>
+    /// <remarks>
+    /// Internal and set by the registration rather than a constructor parameter, because the
+    /// constructor is public surface and the list belongs to <c>AuthorizationServerOptions</c>, not
+    /// to this resolver's options: a second copy is a second place for it to be wrong. Live, not
+    /// copied, so a method added after startup is seen. CIMD-03 §5.
+    /// </remarks>
+    internal IEnumerable<ClientAuthMethod>? EnabledAuthMethods { get; init; }
 
     /// <summary>
     /// The fetches currently running, so concurrent callers for one <c>client_id</c> share one.
@@ -245,7 +263,7 @@ public sealed class CimdClientResolver : IClientResolver
     /// the resolver that recognised the identifier can produce one.
     /// </para>
     /// <para>
-    /// It is not a claim about kind. §7.1 warns that an <c>https://</c> prefix is not a reliable
+    /// It is not a claim about kind. §9.1 warns that an <c>https://</c> prefix is not a reliable
     /// signal that a client is a CIMD client - an administrator may issue URL-shaped identifiers for
     /// other reasons. What keeps those apart from these is chain order: a pre-registered resolver
     /// runs first and answers for its own clients before this one is asked.
@@ -346,18 +364,33 @@ public sealed class CimdClientResolver : IClientResolver
                 _breaker.RecordFailure(key);
                 outcome = "stale";
 
+                var transient = IsWorthServingStaleFor(fetched);
+
+                if (!transient)
+                {
+                    // A terminal answer (CIMD-03 §6.1) ends the previous document's standing, so it
+                    // leaves the cache now. Kept, it was served again as soon as enough of these
+                    // opened the breaker, because the breaker's own stale-serve has no way to know
+                    // why it opened.
+                    _ = _cache.TryRemove(key, out _);
+                }
+
                 return StaleOr(
                     key,
                     now,
                     ClientResolution.Failed(
                         ClientResolutionError.MetadataUnusable,
                         DescribeFetchFailure(fetched, _options.MaxDocumentBytes)),
-                    IsWorthServingStaleFor(fetched));
+                    transient);
             }
 
-            if (!CimdDocument.TryRead(ok.Body, ok.ContentType, url, _options, out var client, out var documentFailure))
+            if (!CimdDocument.TryRead(ok.Body, ok.ContentType, url, _options, EnabledAuthMethods, out var client, out var documentFailure))
             {
                 _breaker.RecordFailure(key);
+
+                // Terminal (CIMD-03 §6.1: retrieved but malformed or rejected), so the previous
+                // document goes too - see the same removal above for why it cannot merely be skipped.
+                _ = _cache.TryRemove(key, out _);
 
                 // No stale-serve here, and that is the line: the origin answered 200 with a document,
                 // so what it published is what it currently says about itself. Honouring the previous
@@ -368,7 +401,7 @@ public sealed class CimdClientResolver : IClientResolver
 
             _breaker.RecordSuccess(key);
 
-            // Reached only on success. §5.2: "The authorization server MUST NOT cache error responses.
+            // Reached only on success. §6.2: "The authorization server MUST NOT cache error responses.
             // The authorization server also MUST NOT cache documents which are invalid or malformed."
             // Both of those are early returns above, so there is no branch here that could cache one.
             Cache(key, client, ok.MaxAge, now);
@@ -384,7 +417,7 @@ public sealed class CimdClientResolver : IClientResolver
             // task is observable as completed. A caller arriving after this line starts a fresh
             // fetch; one arriving before it joins this one. Neither reads a finished result out of
             // the table, which is what would make this a cache of the outcome - including, for a
-            // failure, the error §5.2 forbids caching.
+            // failure, the error §6.2 forbids caching.
             _ = _inFlight.TryRemove(key, out _);
         }
     }
@@ -439,7 +472,7 @@ public sealed class CimdClientResolver : IClientResolver
     /// </summary>
     /// <remarks>
     /// Not a cached error and not a cached failure: the thing served is a document this server
-    /// fetched, validated and cached while it was fresh. §5.2's prohibition is on remembering the
+    /// fetched, validated and cached while it was fresh. §6.2's prohibition is on remembering the
     /// error, and the error is exactly what is discarded here.
     /// </remarks>
     private ClientResolution StaleOr(string key, DateTimeOffset now, ClientResolution fallback, bool permitted = true)
@@ -513,19 +546,19 @@ public sealed class CimdClientResolver : IClientResolver
     /// </remarks>
     private static string DescribeFetchFailure(FetchOutcome outcome, int maxBytes) => outcome switch
     {
-        // §5: "The authorization server MUST NOT automatically follow HTTP redirects when fetching
+        // §6: "The authorization server MUST NOT automatically follow HTTP redirects when fetching
         // the Client ID Metadata Document." A redirect is therefore something to report, not
         // something to chase - and §3 notes this is why URL shorteners cannot be client identifiers.
         FetchOutcome.Redirected redirected =>
-            $"The client metadata document answered HTTP {Number(redirected.Status)}; redirects are not followed (CIMD section 5).",
+            $"The client metadata document answered HTTP {Number(redirected.Status)}; redirects are not followed (CIMD section 6).",
 
-        // §5: "The Client ID Metadata Document MUST be served with a 200 OK HTTP status code. The
+        // §6: "The Client ID Metadata Document MUST be served with a 200 OK HTTP status code. The
         // authorization server MUST treat all other HTTP status codes as an error response."
         FetchOutcome.NotOk notOk =>
-            $"The client metadata document answered HTTP {Number(notOk.Status)}; only 200 is accepted (CIMD section 5).",
+            $"The client metadata document answered HTTP {Number(notOk.Status)}; only 200 is accepted (CIMD section 6).",
 
         FetchOutcome.TooLarge =>
-            $"The client metadata document is larger than the {Number(maxBytes)}-byte read limit (CIMD section 8.7).",
+            $"The client metadata document is larger than the {Number(maxBytes)}-byte read limit (CIMD section 10.11).",
 
         FetchOutcome.Timeout =>
             "Fetching the client metadata document timed out.",
@@ -552,7 +585,7 @@ public sealed class CimdClientResolver : IClientResolver
         {
             Reason: BlockReason.SpecialUseAddress or BlockReason.LinkLocalAddress,
         } blocked =>
-            $"Refused before connecting: {Echo(blocked.Detail)} (CIMD section 8.6).",
+            $"Refused before connecting: {Echo(blocked.Detail)} (CIMD section 10.7).",
 
         FetchOutcome.Blocked { Reason: BlockReason.DnsFailed } blocked =>
             $"The client metadata document host did not resolve: {Echo(blocked.Detail)}",
@@ -587,11 +620,12 @@ public sealed class CimdClientResolver : IClientResolver
         return false;
     }
 
-    /// <summary>Store a resolved client under the clamped lifetime. §5.2, S-30.</summary>
+    /// <summary>Store a resolved client under the clamped lifetime. §6.2, S-30.</summary>
     private void Cache(string key, ClientRecord client, TimeSpan? maxAge, DateTimeOffset now)
     {
-        // §5.2: "SHOULD respect HTTP cache headers ... but MAY define its own upper and/or lower
-        // bounds". No Cache-Control at all means the floor rather than "do not cache": re-fetching
+        // §6.2: "SHOULD enforce a maximum effective cache duration regardless of the cache
+        // directives" and "SHOULD also enforce a minimum effective cache duration when none is
+        // otherwise indicated". No Cache-Control at all means the floor rather than "do not cache": re-fetching
         // on every authorization would put an outbound request on the critical path of every sign-in.
         var lifetime = Clamp(maxAge ?? CimdClientResolverOptions.MinimumCacheLifetime);
         var expiresAt = now + lifetime;

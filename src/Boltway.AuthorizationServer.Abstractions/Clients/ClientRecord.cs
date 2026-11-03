@@ -175,6 +175,16 @@ public sealed record ClientRecord
     /// either - which is the same line the consent page draws for its device warning.
     /// </para>
     /// <para>
+    /// <b>OAuth 2.1 -17 says it for browser applications directly.</b> §7.3.2: "When a client uses
+    /// an absolute https URI as a redirect URI, an exact match may be accepted by authorization
+    /// servers as proof of identity of a browser-based application for the purpose of deciding
+    /// whether to process an authorization request automatically when a previous request for the
+    /// same client_id has already been approved." That is this flag's whole reach. -17 §7.3.1 adds
+    /// what it is not: such measures "do not authenticate the client, and do not make the client a
+    /// confidential client" - and nothing reads this flag at <c>/token</c>, where the client stays
+    /// public. Re-read 2026-11-03, when the pinned draft moved from -15 to -17.
+    /// </para>
+    /// <para>
     /// <b>Only an operator's registration may set it.</b> A client that describes itself - a CIMD
     /// document, a dynamic registration - would be vouching for its own identity, which is the
     /// thing that cannot be taken on its word. The shipped resolvers that read such sources leave it

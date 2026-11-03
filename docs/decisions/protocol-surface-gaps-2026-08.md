@@ -250,8 +250,8 @@ fact was not: we still cannot authenticate such a client.
 **Already present, and it is more than expected:**
 
 - `Clients/CimdDocument.cs` parses **and validates** `jwks` and `jwks_uri` - refuses both together
-  (RFC 7591 §2), refuses a non-HTTPS `jwks_uri` (CIMD §8.6), refuses symmetric keys and private key
-  material (CIMD §4.1), and **already refuses `private_key_jwt` with no `jwks_uri`** (CIMD §8.2,
+  (RFC 7591 §2), refuses a non-HTTPS `jwks_uri` (CIMD-02 §8.6), refuses symmetric keys and private key
+  material (CIMD §4.1), and **already refuses `private_key_jwt` with no `jwks_uri`** (CIMD-02 §8.2,
   `CimdDocument.cs`).
 - `ClientRecord.JwksUri` is carried through.
 - `ClientAuthentication.cs` already reasons about `private_key_jwt` in its 401-vs-400 comment - a

@@ -286,7 +286,7 @@ public sealed class StructuralRuleTests
     /// </summary>
     /// <remarks>
     /// <para>
-    /// RFC 9700 §4.12 and OAuth 2.1 §7.5.3: a redirect after a request that carried credentials or a
+    /// RFC 9700 §4.12 and OAuth 2.1 §7.5.4: a redirect after a request that carried credentials or a
     /// consent decision must be <c>303 See Other</c>, so the browser re-issues it as a GET. A 307 or
     /// 308 preserves the method <b>and the body</b> - so the username, the password or the consent
     /// form is re-sent to wherever the <c>Location</c> points, which on the error path is a URL the

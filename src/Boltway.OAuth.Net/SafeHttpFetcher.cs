@@ -26,7 +26,7 @@ public sealed class SafeHttpFetcherOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// A developer running a client on <c>localhost</c> genuinely needs this. CIMD section 8.6
+    /// A developer running a client on <c>localhost</c> genuinely needs this. CIMD section 10.7
     /// permits the exception for local development and says an implementation <b>MUST NOT</b> apply
     /// it in production, which is not a style note: the flag does not merely relax loopback, it
     /// short-circuits the RFC 6890 special-use check entirely, so

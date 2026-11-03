@@ -64,8 +64,8 @@ public sealed class TokenGuardTests
     /// <summary>A code issued to one client cannot be redeemed by another.</summary>
     /// <remarks>
     /// §4.1.3 requires the server to "ensure that the authorization code was issued to the
-    /// authenticated confidential client, or if the client is public, ensure that the code was
-    /// issued to <c>client_id</c> in the request". A code arriving from a different client is a code
+    /// authenticated confidential client or, if the client is public, ensure that the code was
+    /// issued to the <c>client_id</c> in the request". A code arriving from a different client is a code
     /// injection attempt.
     /// </remarks>
     [Fact]
@@ -245,7 +245,7 @@ public sealed class TokenGuardTests
     /// </summary>
     /// <remarks>
     /// OAuth 2.1 §2.4: a client "MUST NOT use more than one authentication method in each request to
-    /// prevent a conflict of which authentication mechanism is authoritative". §3.2.4 names the case
+    /// prevent a conflict over which authentication mechanism is authoritative". §3.2.4 names the case
     /// under <c>invalid_request</c> - "utilizes more than one mechanism for authenticating the
     /// client" - and the count runs before anything is validated, because a server that validates
     /// first has already picked one.
@@ -424,7 +424,7 @@ public sealed class TokenGuardTests
     /// A <c>client_id</c> in the body that disagrees with the header is refused.
     /// </summary>
     /// <remarks>
-    /// §4.1.3 binds a code to "the authenticated confidential client, or … <c>client_id</c> in the
+    /// §4.1.3 binds a code to "the authenticated confidential client or … the <c>client_id</c> in the
     /// request". With two candidate identities and no rule for choosing, the binding check would be
     /// checking the wrong one.
     /// </remarks>

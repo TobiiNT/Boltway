@@ -166,7 +166,7 @@ public sealed class CimdFetchControlTests
     /// A <c>client_id</c> whose document keeps failing stops producing outbound fetches.
     /// </summary>
     /// <remarks>
-    /// The measurement this exists for: fifty resolutions used to be fifty fetches, because §5.2
+    /// The measurement this exists for: fifty resolutions used to be fifty fetches, because §6.2
     /// forbids caching the error - which is precisely what makes each request a fresh probe.
     /// </remarks>
     [Fact]
@@ -193,7 +193,7 @@ public sealed class CimdFetchControlTests
     }
 
     /// <summary>
-    /// The breaker refuses to fetch; it does not remember the answer. CIMD §5.2.
+    /// The breaker refuses to fetch; it does not remember the answer. CIMD §6.2.
     /// </summary>
     /// <remarks>
     /// The distinction the specification draws, made checkable. A cached error would still be served
@@ -366,7 +366,7 @@ public sealed class CimdFetchControlTests
     }
 
     /// <summary>
-    /// Single-flight ends with the fetch; it is not a cache of the result. §5.2.
+    /// Single-flight ends with the fetch; it is not a cache of the result. §6.2.
     /// </summary>
     /// <remarks>
     /// The risk in coalescing is that the in-flight table quietly becomes a place where a failure
@@ -572,6 +572,42 @@ public sealed class CimdFetchControlTests
         {
             _ = MediaType.TryParse("application/json", out var type);
             return new FetchOutcome.Ok(System.Text.Encoding.UTF8.GetBytes("{"), type, null, TimeSpan.FromHours(12));
+        }
+    }
+
+    /// <summary>
+    /// A terminal answer is not undone by the breaker opening over it.
+    /// </summary>
+    /// <remarks>
+    /// Each answer above counts against the breaker, and once it opened the breaker served whatever
+    /// was still cached - so the third 404 in a row brought back the document the first one had
+    /// refused, for the rest of its stale window. CIMD-03 §6.1 calls these terminal; the document
+    /// they replaced has no standing left to serve. Found by reading, 2026-11-03.
+    /// </remarks>
+    [Theory]
+    [InlineData("404")]
+    [InlineData("malformed")]
+    public async Task A_terminal_answer_stays_refused_after_the_breaker_opens(string kind)
+    {
+        var clock = new MovableClock(Start);
+        var fetcher = new ConcurrentStubFetcher();
+        _ = fetcher.Serve(ClaudeId, Document(), TimeSpan.FromSeconds(300));
+
+        var resolver = new CimdClientResolver(fetcher, clock, Options());
+        Assert.NotNull((await resolver.ResolveAsync(Id(ClaudeId), CancellationToken.None)).Client);
+
+        clock.Advance(TimeSpan.FromSeconds(301));
+
+        _ = MediaType.TryParse("application/json", out var type);
+        _ = fetcher.Respond(ClaudeId, kind == "404"
+            ? new FetchOutcome.NotOk(404)
+            : new FetchOutcome.Ok(System.Text.Encoding.UTF8.GetBytes("{"), type, null, TimeSpan.FromHours(12)));
+
+        for (var attempt = 0; attempt < 6; attempt++)
+        {
+            var resolution = await resolver.ResolveAsync(Id(ClaudeId), CancellationToken.None);
+
+            Assert.Null(resolution.Client);
         }
     }
 

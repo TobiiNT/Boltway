@@ -66,7 +66,7 @@ public sealed record ConfiguredClient(
 
     /// <summary>
     /// Whether this public client's https redirect URIs prove who it is, so a consent it already
-    /// holds may stand. RFC 8252 §8.6.
+    /// holds may stand. RFC 8252 §8.6, and OAuth 2.1 -17 §7.3.2 for a browser-based application.
     /// </summary>
     /// <remarks>
     /// <para>

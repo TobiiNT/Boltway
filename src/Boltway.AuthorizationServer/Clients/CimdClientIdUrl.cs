@@ -67,7 +67,8 @@ public readonly struct CimdClientIdUrl : IEquatable<CimdClientIdUrl>
     /// <item><description>MUST use the https scheme - the ordinal prefix test.</description></item>
     /// <item><description>MUST NOT contain a userinfo component - the <c>@</c> scan of the authority.</description></item>
     /// <item><description>MAY contain a port - no check; <see cref="AbsoluteHttpsUrl"/> keeps it.</description></item>
-    /// <item><description>MUST contain a path component - the delimiter test.</description></item>
+    /// <item><description>MUST contain a path component other than <c>/</c> - the delimiter test,
+    /// then the bare-root test.</description></item>
     /// <item><description>MUST NOT contain single- or double-dot path components - <c>HasDotSegment</c>.</description></item>
     /// <item><description>MUST NOT contain a fragment - the <c>#</c> scan.</description></item>
     /// </list>
@@ -75,8 +76,9 @@ public readonly struct CimdClientIdUrl : IEquatable<CimdClientIdUrl>
     /// §3 also says a Client Identifier URL <b>SHOULD NOT</b> contain a query component. That is a
     /// SHOULD NOT and it is not enforced: refusing a query would refuse a client the specification
     /// permits, and neither of the four vendor documents captured on 2026-08-03 uses one, so there
-    /// is no measurement saying the stricter reading is needed. §3's "NOT RECOMMENDED" against a
-    /// path of <c>/</c> is left alone for the same reason.
+    /// is no measurement saying the stricter reading is needed. A path of <c>/</c> was the same kind
+    /// of advice in CIMD-02 ("NOT RECOMMENDED") and was left alone; CIMD-03 §3 made it a
+    /// prohibition ("A path of / ... is prohibited"), so it is refused now.
     /// </para>
     /// </remarks>
     public static bool TryParse(
@@ -127,6 +129,14 @@ public readonly struct CimdClientIdUrl : IEquatable<CimdClientIdUrl>
         var afterAuthority = rest[delimiter..];
         var queryStart = afterAuthority.IndexOf('?');
         var path = queryStart < 0 ? afterAuthority : afterAuthority[..queryStart];
+
+        // CIMD-03 §3: "MUST contain a path component other than /". A document at the root would
+        // share its URL with whatever the origin already publishes there.
+        if (path is "/")
+        {
+            failure = "A client metadata document URL must have a path other than '/' (CIMD section 3).";
+            return false;
+        }
 
         if (HasDotSegment(path))
         {

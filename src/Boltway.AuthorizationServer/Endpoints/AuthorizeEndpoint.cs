@@ -28,8 +28,8 @@ namespace Boltway.AuthorizationServer.Endpoints;
 /// </para>
 /// <para>
 /// <b>No CORS.</b> Not a permissive policy: none at all. OAuth 2.1 §3.1 - "Cross-Origin Resource
-/// Sharing MUST NOT be supported at the Authorization Endpoint as the client does not access this
-/// endpoint directly, instead the client redirects the user agent to it." That is why nothing here
+/// Sharing MUST NOT be supported at the authorization endpoint, as the client does not access this
+/// endpoint directly; instead, the client redirects the user agent to it." That is why nothing here
 /// writes an <c>Access-Control-Allow-Origin</c> header and why the discovery endpoints write theirs
 /// per-response rather than through a middleware a host might apply globally.
 /// </para>

@@ -78,7 +78,7 @@ public abstract record ClientAuthentication
 /// <para>
 /// The order below is not interchangeable. Counting the presented mechanisms happens <b>before</b>
 /// any of them is validated, because OAuth 2.1 §2.4 forbids using more than one - "to prevent a
-/// conflict of which authentication mechanism is authoritative for the request" - and a server that
+/// conflict over which authentication mechanism is authoritative for the request" - and a server that
 /// validates first and counts second has already picked one.
 /// </para>
 /// <para>
@@ -164,7 +164,7 @@ public sealed class ClientAuthenticator(
                 basic);
         }
 
-        // §4.1.3 binds an authorization code to "the authenticated confidential client, or if the
+        // §4.1.3 binds an authorization code to "the authenticated confidential client or, if the
         // client is public, the client_id in the request". If the header and the body name different
         // clients, that binding check has two candidate identities and no rule for choosing - so the
         // request is refused rather than resolved by precedence.

@@ -56,7 +56,12 @@ public static class CimdServiceCollectionExtensions
                 sp.GetRequiredService<ISafeHttpFetcher>(),
                 sp.GetRequiredService<TimeProvider>(),
                 options,
-                sp.GetService<Diagnostics.AuthorizationServerMetrics>())));
+                sp.GetService<Diagnostics.AuthorizationServerMetrics>())
+            {
+                // GetService, so a resolver registered without the authorization server keeps the
+                // choice it always made instead of failing to build.
+                EnabledAuthMethods = sp.GetService<Configuration.AuthorizationServerOptions>()?.TokenEndpointAuthMethods,
+            }));
 
         return services;
     }
@@ -111,7 +116,7 @@ public static class CimdServiceCollectionExtensions
             + Environment.NewLine
             + "That flag disables the RFC 6890 special-use address check entirely — not just for "
             + "loopback — which turns /authorize into an unauthenticated port scanner and makes "
-            + "http://169.254.169.254/ reachable by any anonymous request. CIMD section 8.6 permits "
+            + "http://169.254.169.254/ reachable by any anonymous request. CIMD section 10.7 permits "
             + "the exception for local development and says MUST NOT apply it in production."
             + Environment.NewLine
             + "Either clear the flag, or set the environment to Development if that is what this is.");

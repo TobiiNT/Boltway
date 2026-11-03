@@ -150,7 +150,7 @@ public abstract record FetchOutcome
     /// The server answered with a redirect, which is not followed.
     /// </summary>
     /// <remarks>
-    /// The CIMD draft §5 says a client metadata document MUST be retrieved without following
+    /// The CIMD draft §6 says a client metadata document MUST be retrieved without following
     /// redirects, and the reason is exactly SSRF: a public host answering 302 to
     /// <c>http://169.254.169.254/</c> would otherwise walk the fetcher straight past the address
     /// check, because the check ran on the first hop. <c>AllowAutoRedirect</c> defaults to

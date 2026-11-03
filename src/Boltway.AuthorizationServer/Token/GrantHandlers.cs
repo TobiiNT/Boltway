@@ -44,9 +44,9 @@ public abstract record GrantOutcome
 /// <para>
 /// <b>The order of the checks below is the requirement, not a convention</b>, and it is not the
 /// order §4.1.3 lists them in. Redemption is last, after every other check has passed, because
-/// OAuth 2.1 §7.5.2 says an authorization server "SHOULD NOT revoke any issued tokens when
+/// OAuth 2.1 §7.5.3 says an authorization server "SHOULD NOT revoke any issued tokens when
 /// receiving a replayed authorization code that contains invalid parameters. If it were to do so,
-/// this would create a denial of service opportunity for an attacker who is able to obtain an
+/// this would create a denial-of-service opportunity for an attacker who is able to obtain an
 /// authorization code but unable to obtain the client authentication or code_verifier".
 /// </para>
 /// <para>
@@ -172,7 +172,7 @@ public sealed class AuthorizationCodeGrant(
 
         // Expiry after PKCE, and deliberately not inside TryRedeemAsync. Folding it into redemption
         // would send an expired code down the revoke-the-grant path, which is the denial of service
-        // §7.5.2 describes.
+        // §7.5.3 describes.
         if (now >= record.ExpiresAt)
         {
             return Invalid(
@@ -224,7 +224,7 @@ public sealed class AuthorizationCodeGrant(
                 // §4.1.3: "SHOULD revoke (when possible) all access tokens and refresh tokens
                 // previously issued based on that authorization code." Every other check has passed,
                 // so whoever sent this holds the client authentication and the verifier - the
-                // evidence §7.5.2 requires before revoking anything.
+                // evidence §7.5.3 requires before revoking anything.
                 await _grants.RevokeAsync(record.GrantId, now, cancellationToken);
 
                 // Byte-identical to an unknown code on the wire. Confirming that a replay was
@@ -620,7 +620,7 @@ public sealed class RefreshTokenGrant(
     /// </summary>
     /// <remarks>
     /// §6: the requested scope "MUST NOT include any scope not originally granted by the resource
-    /// owner, and if omitted is treated as equal to the scope originally granted". Widening is
+    /// owner and, if omitted, is treated as equal to the scope originally granted". Widening is
     /// <c>invalid_scope</c> and never <c>invalid_grant</c> - a client reads the latter as "the
     /// refresh token is dead" and discards a live credential.
     /// </remarks>

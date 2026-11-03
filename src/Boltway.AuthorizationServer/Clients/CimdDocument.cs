@@ -72,6 +72,7 @@ internal static class CimdDocument
         MediaType contentType,
         CimdClientIdUrl clientId,
         CimdClientResolverOptions options,
+        IEnumerable<ClientAuthMethod>? enabledAuthMethods,
         [NotNullWhen(true)] out ClientRecord? client,
         [NotNullWhen(false)] out string? failure)
     {
@@ -105,7 +106,7 @@ internal static class CimdDocument
 
         using (document)
         {
-            return TryReadRoot(document.RootElement, clientId, options, out client, out failure);
+            return TryReadRoot(document.RootElement, clientId, options, enabledAuthMethods, out client, out failure);
         }
     }
 
@@ -113,6 +114,7 @@ internal static class CimdDocument
         JsonElement root,
         CimdClientIdUrl clientId,
         CimdClientResolverOptions options,
+        IEnumerable<ClientAuthMethod>? enabledAuthMethods,
         [NotNullWhen(true)] out ClientRecord? client,
         [NotNullWhen(false)] out string? failure)
     {
@@ -162,7 +164,7 @@ internal static class CimdDocument
             return false;
         }
 
-        if (!TryReadAuthMethod(root, out var method, out failure))
+        if (!TryReadAuthMethod(root, enabledAuthMethods, out var method, out failure))
         {
             return false;
         }
@@ -188,27 +190,27 @@ internal static class CimdDocument
 
         if (hasJwksUri)
         {
-            // §8.6: only fetch or parse URLs with known and supported schemes. This value is
+            // §10.7: only fetch or parse URLs with known and supported schemes. This value is
             // dereferenced later, by the same guarded fetcher, so an unusable one is caught here
             // rather than at the first token request.
             if (jwksUriElement.ValueKind is not JsonValueKind.String
                 || !AbsoluteHttpsUrl.TryCreate(jwksUriElement.GetString(), out _))
             {
-                failure = "The client metadata document's 'jwks_uri' is not an absolute https URL (CIMD section 8.6).";
+                failure = "The client metadata document's 'jwks_uri' is not an absolute https URL (CIMD section 10.7).";
                 return false;
             }
 
             jwksUri = jwksUriElement.GetString();
         }
 
-        // §8.2: a client declaring private_key_jwt MUST be authenticated with the key discovered
+        // §5: a client declaring private_key_jwt MUST be authenticated with the key discovered
         // from its metadata document. ClientRecord carries a jwks_uri and has nowhere to put an
         // inline key set, so a document that declares the method and publishes its keys inline
         // cannot be authenticated by this server - and saying so is better than registering a
         // confidential client whose first token request fails for a reason nothing explains.
         if (method is ClientAuthMethod.PrivateKeyJwt && jwksUri is null)
         {
-            failure = "'private_key_jwt' needs a 'jwks_uri' in the client metadata document (CIMD section 8.2).";
+            failure = "'private_key_jwt' needs a 'jwks_uri' in the client metadata document (CIMD section 5).";
             return false;
         }
 
@@ -229,14 +231,15 @@ internal static class CimdDocument
 
         client = new ClientRecord
         {
-            // ForCimd, so the record carries how the identifier was obtained. C-01 and §7.1: never
+            // ForCimd, so the record carries how the identifier was obtained. C-01 and §9.1: never
             // re-derive "is this CIMD?" from an https:// prefix, because an administrator may issue
             // URL-shaped identifiers for clients that are not CIMD clients at all.
             ClientId = ClientIdentifier.ForCimd(clientId.Value),
 
-            // §8.2: publishing a public key and declaring private_key_jwt "establishes this client
-            // as a confidential client". Everything else here is public - there is no third option,
-            // because §4.1 has removed every way to share a symmetric secret.
+            // §5.1 (non-normative in -03; a security consideration in -02): publishing a public key
+            // and declaring private_key_jwt "establishes this client as a confidential client".
+            // Everything else here is public - there is no third option, because §4.1 has removed
+            // every way to share a symmetric secret.
             ClientType = method is ClientAuthMethod.PrivateKeyJwt ? ClientType.Confidential : ClientType.Public,
 
             TokenEndpointAuthMethod = method,
@@ -310,7 +313,10 @@ internal static class CimdDocument
     /// </para>
     /// </remarks>
     private static bool TryReadAuthMethod(
-        JsonElement root, out ClientAuthMethod method, [NotNullWhen(false)] out string? failure)
+        JsonElement root,
+        IEnumerable<ClientAuthMethod>? enabled,
+        out ClientAuthMethod method,
+        [NotNullWhen(false)] out string? failure)
     {
         method = ClientAuthMethod.None;
 
@@ -369,18 +375,34 @@ internal static class CimdDocument
             return true;
         }
 
-        if (offered.Contains("none", StringComparer.Ordinal))
+        // CIMD-03 §5: the server "SHOULD select one of the values ... that it supports", and when it
+        // supports none of them it "MUST abort the authorization request and token requests with
+        // invalid_client". Choosing without asking what this deployment enabled is how a document
+        // offering only private_key_jwt used to pass /authorize on a server with that method off,
+        // and fail only at /token, after the user had signed in and consented for nothing. `null`
+        // is a resolver built outside the server's registration, which keeps the old choice.
+        bool Usable(string wire, ClientAuthMethod candidate) =>
+            offered.Contains(wire, StringComparer.Ordinal) && (enabled is null || enabled.Contains(candidate));
+
+        if (Usable("none", ClientAuthMethod.None))
         {
             method = ClientAuthMethod.None;
             failure = null;
             return true;
         }
 
-        if (offered.Contains("private_key_jwt", StringComparer.Ordinal))
+        if (Usable("private_key_jwt", ClientAuthMethod.PrivateKeyJwt))
         {
             method = ClientAuthMethod.PrivateKeyJwt;
             failure = null;
             return true;
+        }
+
+        if (offered.Contains("none", StringComparer.Ordinal) || offered.Contains("private_key_jwt", StringComparer.Ordinal))
+        {
+            failure = "None of the token endpoint authentication methods this client metadata document "
+                + $"declares ({string.Join(", ", offered.Select(Echo))}) is enabled on this server (CIMD section 5).";
+            return false;
         }
 
         // Nothing in the offer is a method this server knows. The first entry is named because it
@@ -516,7 +538,7 @@ internal static class CimdDocument
     /// </summary>
     /// <remarks>
     /// <para>
-    /// §8.1 leaves this to the authorization server and names what it is for: "the client attempts
+    /// §10.2 leaves this to the authorization server and names what it is for: "the client attempts
     /// to impersonate a more well-known client". Without it, anyone can publish a document at their
     /// own URL declaring <c>client_name: "Claude"</c> and a redirect URI pointing at themselves, and
     /// the consent page's only honest defence - showing the <c>client_id</c> host - is undermined
@@ -551,7 +573,7 @@ internal static class CimdDocument
             return true;
         }
 
-        // The escape hatch U-17 asks for. §8.10 and Appendix A make the same point: a strict
+        // The escape hatch U-17 asks for. §10.13 and Appendix A make the same point: a strict
         // same-origin rule is hostile to development, so there has to be a way for an operator to
         // name a client_id it has looked at. Per client_id, never per host, so exempting a developer
         // does not exempt everything that host ever publishes.
@@ -626,7 +648,7 @@ internal static class CimdDocument
 
     /// <summary>Read a member that must be an absolute https URL when it is present at all.</summary>
     /// <remarks>
-    /// §8.6 names <c>javascript:</c> in a metadata property as the hazard. The alternative to
+    /// §10.7 names <c>javascript:</c> in a metadata property as the hazard. The alternative to
     /// refusing was to drop the member and continue, which for <c>logo_uri</c> would be defensible -
     /// a logo is cosmetic. It is refused instead so that every member this class reads follows one
     /// rule, and so that an operator whose document is wrong is told rather than shown a consent page
@@ -643,7 +665,7 @@ internal static class CimdDocument
 
         if (result is not null && !AbsoluteHttpsUrl.TryCreate(result, out _))
         {
-            failure = $"The client metadata document's '{name}' is not an absolute https URL (CIMD section 8.6).";
+            failure = $"The client metadata document's '{name}' is not an absolute https URL (CIMD section 10.7).";
             return false;
         }
 
