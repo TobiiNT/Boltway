@@ -66,6 +66,14 @@ public readonly struct RegisteredRedirectUri : IEquatable<RegisteredRedirectUri>
             return false;
         }
 
+        // Registration only, not Rehydrate: a row stored before this rule existed still loads, and
+        // a store that refused to start over one would be an outage this check caused.
+        if (QueryNamesAResponseParameter(normalized))
+        {
+            error = RedirectUriError.QueryHasResponseParameter;
+            return false;
+        }
+
         result = new RegisteredRedirectUri(normalized, parts.Value);
         error = RedirectUriError.None;
         return true;
@@ -90,6 +98,32 @@ public readonly struct RegisteredRedirectUri : IEquatable<RegisteredRedirectUri>
         }
 
         return new RegisteredRedirectUri(normalizedValue, parts.Value);
+    }
+
+    /// <summary>The parameters OAuth 2.1 -17 §4.1.2 and §4.1.2.1 put in an authorization response.</summary>
+    private static readonly string[] ResponseParameters = ["code", "state", "iss", "error", "error_description", "error_uri"];
+
+    /// <summary>Whether the query names any of <see cref="ResponseParameters"/>, compared ordinally.</summary>
+    private static bool QueryNamesAResponseParameter(string value)
+    {
+        var start = value.IndexOf('?', StringComparison.Ordinal);
+
+        if (start < 0)
+        {
+            return false;
+        }
+
+        foreach (var pair in value[(start + 1)..].Split('&'))
+        {
+            var name = pair.Split('=', 2)[0];
+
+            if (ResponseParameters.Contains(Uri.UnescapeDataString(name), StringComparer.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <inheritdoc />

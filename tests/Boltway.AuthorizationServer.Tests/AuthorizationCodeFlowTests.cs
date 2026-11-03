@@ -586,6 +586,50 @@ public sealed class AuthorizationCodeFlowTests
     }
 
     /// <summary>
+    /// For a client marked as a browser-based application, a rotated refresh token keeps the
+    /// expiry of the one it replaced; for any other, rotation starts a fresh lifetime.
+    /// </summary>
+    /// <remarks>
+    /// OAuth 2.1 -17 §9.3.2: the server "MUST NOT, when issuing a rotated refresh token, extend the
+    /// lifetime of the new refresh token beyond the lifetime of the initial refresh token". Every
+    /// rotation used to start a fresh <c>RefreshTokenLifetime</c>, so a family used once a day never
+    /// expired. The unmarked row is the control: sliding expiry is still what a native client gets.
+    /// </remarks>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task A_browser_clients_rotated_refresh_token_keeps_the_first_expiry(bool fixedExpiry)
+    {
+        await using var fixture = await FlowFixture.StartAsync(seed =>
+            seed.Client = seed.Client with { RefreshTokenExpiryIsFixed = fixedExpiry });
+
+        var store = fixture.Services.GetRequiredService<IRefreshTokenStore>();
+
+        var code = await GetCodeAsync(fixture);
+        var original = (await ReadJsonAsync(await fixture.Client.PostAsync("/token", Exchange(code))))
+            .GetProperty("refresh_token").GetString()!;
+        var first = await store.FindAsync(Boltway.OAuth.Primitives.Secrets.Sha256Hash.OfString(original), CancellationToken.None);
+
+        fixture.Clock.Advance(TimeSpan.FromDays(1));
+
+        var successor = (await ReadJsonAsync(await fixture.Client.PostAsync("/token", Refresh(original))))
+            .GetProperty("refresh_token").GetString()!;
+        var second = await store.FindAsync(Boltway.OAuth.Primitives.Secrets.Sha256Hash.OfString(successor), CancellationToken.None);
+
+        Assert.NotNull(first);
+        Assert.NotNull(second);
+
+        if (fixedExpiry)
+        {
+            Assert.Equal(first.ExpiresAt, second.ExpiresAt);
+        }
+        else
+        {
+            Assert.Equal(first.ExpiresAt + TimeSpan.FromDays(1), second.ExpiresAt);
+        }
+    }
+
+    /// <summary>
     /// A second instance with a different derivation key refuses rather than issuing a corpse.
     /// </summary>
     /// <remarks>

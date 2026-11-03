@@ -147,6 +147,15 @@ public sealed class RedirectUriMatcherTests
     // allowlist depend on the host's resolver.
     [InlineData("http://127.0.0.1/callback", "http://localhost:51004/callback")]
     [InlineData("http://localhost/callback", "http://127.0.0.1:51004/callback")]
+    // The scheme and host as sent, not as lowercased for classification. OAuth 2.1 -17 §4.1.1:
+    // only the port varies, and everything else is "a case-sensitive, character-by-character
+    // comparison with no normalization applied". The two scheme rows matched until 2026-11-03;
+    // the two host rows were already refused and are here so a change to the host comparison
+    // cannot reopen them.
+    [InlineData("http://127.0.0.1/callback", "HTTP://127.0.0.1:51004/callback")]
+    [InlineData("http://127.0.0.1/callback", "Http://127.0.0.1:51004/callback")]
+    [InlineData("http://localhost/callback", "http://LOCALHOST:51004/callback")]
+    [InlineData("http://localhost/callback", "http://LocalHost:51004/callback")]
     public void Loopback_exception_does_not_widen_beyond_the_port(string registered, string requested)
     {
         Assert.False(Reaches(registered, requested));
@@ -260,5 +269,30 @@ public sealed class RedirectUriMatcherTests
 
         Assert.True(match.Matched);
         Assert.Equal("https://b.example/cb", match.Registration.Value);
+    }
+
+    /// <summary>
+    /// A redirect URI whose query names an authorization response parameter is refused at
+    /// registration, and one whose query names anything else is not.
+    /// </summary>
+    /// <remarks>
+    /// OAuth 2.1 -17 §2.3: the query "MUST NOT include any parameters defined for use in the
+    /// authorization response". Registered, such a URI made every response carry the parameter
+    /// twice, and which copy the client read was its library's choice.
+    /// </remarks>
+    [Theory]
+    [InlineData("https://app.example.com/cb?state=fixed", false)]
+    [InlineData("https://app.example.com/cb?tenant=a&code=x", false)]
+    [InlineData("https://app.example.com/cb?iss=https://as.example.com", false)]
+    [InlineData("https://app.example.com/cb?error=none", false)]
+    [InlineData("https://app.example.com/cb?st%61te=fixed", false)]
+    [InlineData("https://app.example.com/cb?tenant=a", true)]
+    [InlineData("https://app.example.com/cb?codes=1", true)]
+    public void A_registered_query_naming_a_response_parameter_is_refused(string registered, bool accepted)
+    {
+        var registeredOk = RegisteredRedirectUri.TryRegister(registered, out _, out var error);
+
+        Assert.Equal(accepted, registeredOk);
+        Assert.Equal(accepted ? RedirectUriError.None : RedirectUriError.QueryHasResponseParameter, error);
     }
 }

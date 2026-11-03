@@ -71,8 +71,18 @@ public static class UserInfoEndpoint
         endpoints.MapPost(AuthorizationServerPaths.UserInfo, GetAsync)
             .AllowAnonymous().WithName("boltway-userinfo-post");
 
+        // OAuth 2.1 -17 §3.2: endpoints a browser-based application may call "MUST also send the
+        // CORS header fields to allow access", and a single-page client reads its user's claims
+        // here. The preflight is needed because the request carries an Authorization header, which
+        // no simple request may. Origin `*` with no Allow-Credentials, the same as /token: the
+        // credential is the bearer token the caller attaches, never a cookie the browser would.
+        endpoints.MapMethods(AuthorizationServerPaths.UserInfo, PreflightMethods, () => new PreflightResult("GET, POST, OPTIONS"))
+            .AllowAnonymous().WithName("boltway-userinfo-preflight");
+
         return endpoints;
     }
+
+    private static readonly string[] PreflightMethods = ["OPTIONS"];
 
     /// <summary>
     /// Answer, or shed if the directory cannot be reached. X-43.
@@ -100,6 +110,10 @@ public static class UserInfoEndpoint
     /// </remarks>
     private static async Task<IResult> GetAsync(HttpContext http, CancellationToken cancellationToken)
     {
+        // Outside the try, as at /token: a browser client needs it on a 401 and a 503 as much as on
+        // a 200, or it cannot read why it was refused.
+        DiscoveryHeaders.AllowAnyOrigin(http.Response);
+
         try
         {
             return await ReadAsync(http, cancellationToken);
